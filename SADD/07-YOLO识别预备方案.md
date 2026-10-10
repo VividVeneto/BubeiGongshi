@@ -1,4 +1,4 @@
-# 06 YOLO 识别预备方案
+# 07 YOLO 识别预备方案
 
 > 状态：实验预研，不进入 `main` 分支。  
 > 分支：`exp/yolo-recognizer`  
