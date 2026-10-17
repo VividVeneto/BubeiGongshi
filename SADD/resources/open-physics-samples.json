@@ -1,0 +1,73 @@
+{
+  "schema": "formula-research-samples-v1",
+  "status": "research_only_not_production_content",
+  "retrieved_on": "2026-10-18",
+  "source_capture": "source-capture.json",
+  "upstream_repository": "Grufoony/Open_Physics",
+  "upstream_revision": "463d20911318d49206fc18209aa6ec47ea1a9fe7",
+  "upstream_file": "source/b_formulario_fisica_dei_solidi_e_dei_fluidi.tex",
+  "upstream_file_sha256": "c0ad5bb4a7213d7c5506dee8a47a48e01edc54261e8404167fed031a1cdeec08",
+  "upstream_copyright": "Copyright (c) 2022, Grufoony",
+  "upstream_document_author": "Marco Caporale",
+  "license": "BSD-3-Clause",
+  "license_file": "../licenses/Open_Physics-BSD-3-Clause.txt",
+  "dimension_order": ["L", "M", "T", "I", "Theta", "N", "J"],
+  "dimension_format": "integer exponents for research annotations; not the future application AST schema",
+  "review": {
+    "dimension_check": "manually_checked_during_architecture_review",
+    "application_parser_test": "not_run_no_implementation",
+    "independent_content_review": "pending",
+    "scope_assignment": "university_physics_candidate_pending_curriculum_review"
+  },
+  "samples": [
+    {
+      "id": "research.ideal-gas",
+      "title_zh": "理想气体状态方程",
+      "source_line": 35,
+      "source_latex": "pV = \\nu RT",
+      "normalized_latex": "p V = n_{mol} R T",
+      "changes": ["将上游表示物质的量的 nu 显式命名为 n_mol", "补充单位、物理角色和条件"],
+      "assumptions": ["理想气体近平衡状态", "T 为 Kelvin 绝对温度", "R 为摩尔气体常数"],
+      "symbols": {
+        "p": {"meaning": "压强", "dimension": [-1, 1, -2, 0, 0, 0, 0], "unit": "Pa"},
+        "V": {"meaning": "体积", "dimension": [3, 0, 0, 0, 0, 0, 0], "unit": "m^3"},
+        "n_mol": {"meaning": "物质的量", "dimension": [0, 0, 0, 0, 0, 1, 0], "unit": "mol"},
+        "R": {"meaning": "摩尔气体常数", "dimension": [2, 1, -2, 0, -1, -1, 0], "unit": "J/(mol K)"},
+        "T": {"meaning": "绝对温度", "dimension": [0, 0, 0, 0, 1, 0, 0], "unit": "K"}
+      },
+      "expected_equation_dimension": [2, 1, -2, 0, 0, 0, 0]
+    },
+    {
+      "id": "research.rms-speed",
+      "title_zh": "理想气体分子方均根速率",
+      "source_line": 37,
+      "source_latex": "v_{rms} = \\sqrt{\\frac{3k_B T}{m}}",
+      "normalized_latex": "v_{rms} = \\sqrt{\\frac{3 k_B T}{m}}",
+      "changes": ["补充显式间隔、单分子质量含义和温度条件"],
+      "assumptions": ["经典平衡理想气体模型", "m 为单个分子质量，不是摩尔质量", "T > 0 K"],
+      "symbols": {
+        "v_rms": {"meaning": "方均根速率", "dimension": [1, 0, -1, 0, 0, 0, 0], "unit": "m/s"},
+        "k_B": {"meaning": "玻尔兹曼常数", "dimension": [2, 1, -2, 0, -1, 0, 0], "unit": "J/K"},
+        "T": {"meaning": "绝对温度", "dimension": [0, 0, 0, 0, 1, 0, 0], "unit": "K"},
+        "m": {"meaning": "单分子质量", "dimension": [0, 1, 0, 0, 0, 0, 0], "unit": "kg"}
+      },
+      "expected_equation_dimension": [1, 0, -1, 0, 0, 0, 0]
+    },
+    {
+      "id": "research.newtonian-shear",
+      "title_zh": "牛顿流体剪切关系",
+      "source_line": 41,
+      "source_latex": "\\tau = \\eta \\frac{\\partial V_x}{\\partial z}",
+      "normalized_latex": "\\tau = \\eta \\frac{\\partial V_x}{\\partial z}",
+      "changes": ["补充坐标、黏度角色及适用条件"],
+      "assumptions": ["牛顿流体简单剪切", "剪切正方向按所定义坐标与应力约定", "eta 为动力黏度"],
+      "symbols": {
+        "tau": {"meaning": "剪切应力", "dimension": [-1, 1, -2, 0, 0, 0, 0], "unit": "Pa"},
+        "eta": {"meaning": "动力黏度", "dimension": [-1, 1, -1, 0, 0, 0, 0], "unit": "Pa s"},
+        "V_x": {"meaning": "x 方向速度分量", "dimension": [1, 0, -1, 0, 0, 0, 0], "unit": "m/s"},
+        "z": {"meaning": "垂直于流动的坐标", "dimension": [1, 0, 0, 0, 0, 0, 0], "unit": "m"}
+      },
+      "expected_equation_dimension": [-1, 1, -2, 0, 0, 0, 0]
+    }
+  ]
+}
