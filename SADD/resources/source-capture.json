@@ -1,0 +1,24 @@
+{
+  "schema": "source-capture-v1",
+  "retrieved_on": "2026-10-18",
+  "repository": "Grufoony/Open_Physics",
+  "revision": "463d20911318d49206fc18209aa6ec47ea1a9fe7",
+  "source_url": "https://raw.githubusercontent.com/Grufoony/Open_Physics/463d20911318d49206fc18209aa6ec47ea1a9fe7/source/b_formulario_fisica_dei_solidi_e_dei_fluidi.tex",
+  "source_sha256": "c0ad5bb4a7213d7c5506dee8a47a48e01edc54261e8404167fed031a1cdeec08",
+  "license_url": "https://raw.githubusercontent.com/Grufoony/Open_Physics/463d20911318d49206fc18209aa6ec47ea1a9fe7/LICENSE",
+  "license_sha256": "ea94121ff569baafa29d29ff546845fbc9e120c9dc40d69a23564f06331a9786",
+  "expressions": [
+    {
+      "expression": "pV = \\nu RT",
+      "line": 35
+    },
+    {
+      "expression": "v_{rms} = \\sqrt{\\frac{3k_B T}{m}}",
+      "line": 37
+    },
+    {
+      "expression": "\\tau = \\eta \\frac{\\partial V_x}{\\partial z}",
+      "line": 41
+    }
+  ]
+}
