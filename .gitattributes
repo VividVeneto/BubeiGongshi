@@ -1,5 +1,0 @@
-# Keep document and provenance hashes stable across Windows and Android tooling.
-*.md text eol=lf
-*.json text eol=lf
-*.mjs text eol=lf
-SADD/licenses/*.txt text eol=lf
