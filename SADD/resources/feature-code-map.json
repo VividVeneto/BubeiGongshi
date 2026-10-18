@@ -1,0 +1,1909 @@
+{
+  "schema": 1,
+  "title": "BubeiGongshi 预计功能—代码模块映射",
+  "date": "2026-10-18",
+  "audit_commit": "d1a80e94b90a",
+  "scope": "当前 main 工作区；不把历史 v2 或设计示例当作已实现源码",
+  "modules": [
+    {
+      "id": "UI",
+      "name": "Flutter 页面与 ViewModel",
+      "path": "apps/flutter/lib/presentation/",
+      "responsibility": "编辑器、公式库、计算/代入、复习、识别、历史、账户、包管理与设置页面",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "APP",
+      "name": "共享用例与端口",
+      "path": "apps/flutter/lib/application/",
+      "responsibility": "Import/Edit/Review/Sync 编排；FormulaEngine/StudyEngine/FormulaStore/FormulaView/FormulaRecognizer/PackStore/ImageImport/SecureStore/Auth/Sync",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "ADAPTER",
+      "name": "FFI/HTTP/模型/平台适配",
+      "path": "apps/flutter/lib/adapters/",
+      "responsibility": "实现端口；本地/云识别适配、平台文件与密钥、身份和同步 HTTP",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "COMPOSE",
+      "name": "配置与账户作用域装配",
+      "path": "apps/flutter/lib/composition/",
+      "responsibility": "启动依赖注入、账户切换、后台任务生命周期；不允许业务内全局找服务",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "CORE",
+      "name": "纯领域核心",
+      "path": "crates/fml-core/",
+      "responsibility": "ast / latex / types / units / eval / study；派生关系检查与中文数学语义；无 HTTP/SQLite/文件/Flutter/JNI",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "STORE",
+      "name": "加密本地存储与恢复",
+      "path": "crates/fml-store/",
+      "responsibility": "SQLCipher、迁移、仓储、修订/复习、outbox/cursor/tombstone、历史/资产/cleanup_job",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "ASSETS",
+      "name": "统一资源包加载",
+      "path": "crates/fml-assets/",
+      "responsibility": "清单、签名/hash、兼容/信任根、防攻击解包、原子激活、回退",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "RECOG",
+      "name": "图像与识别本地服务",
+      "path": "crates/fml-recognition/",
+      "responsibility": "受限解码/预处理、真实候选校验、本地 HMER 可选运行时适配；模型不随主包",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "FFI",
+      "name": "跨语言 ABI 边界",
+      "path": "crates/fml-ffi/",
+      "responsibility": "DTO/schema、句柄/generation、缓冲所有权、submit/poll/cancel 任务边界、C ABI",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "SERVER",
+      "name": "模块化单体与识别 worker",
+      "path": "server/",
+      "responsibility": "账户绑定、同步、识别、配额、审计；PostgreSQL＋受控对象存储；托管 OIDC/身份框架",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "CONTENT",
+      "name": "离线内容工具链",
+      "path": "tools/content/",
+      "responsibility": "来源/许可、数据提取、规范化/去重、AST/量纲验证、双人审校、签名打包与清单",
+      "status": "规划未落地",
+      "path_origin": "10:66–80 文档明确规划目录"
+    },
+    {
+      "id": "PLATFORM",
+      "name": "双端/鸿蒙平台端口",
+      "path": null,
+      "responsibility": "Android Keystore/SAF/Photo Picker/通知/生命周期；Windows DPAPI/ACL/IFileOpenDialog/DPI/单实例；鸿蒙仅预留",
+      "status": "规划未落地",
+      "path_origin": "逻辑职责；不指定不存在的物理目录"
+    },
+    {
+      "id": "QUALITY",
+      "name": "工程/性能/发布与运维",
+      "path": null,
+      "responsibility": "错误码/诊断/fixtures、故障注入、真机性能、CI、SemVer/锁工具链/SBOM/签名/恢复演练；具体目录未定",
+      "status": "规划未落地",
+      "path_origin": "逻辑职责；不指定不存在的物理目录"
+    },
+    {
+      "id": "EXP",
+      "name": "YOLO 独立实验范围",
+      "path": null,
+      "responsibility": "codex/exp-yolo-recognizer 分支；新增实现、权重与运行时依赖不得进入 main，非已交付识别能力",
+      "status": "规划未落地",
+      "path_origin": "逻辑职责；不指定不存在的物理目录"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R01",
+      "title": "Windows + Android",
+      "design": "10 系统结构与依赖 / 平台实现与生命周期",
+      "tests": [
+        "T-PLATFORM",
+        "T-FFI"
+      ],
+      "modules": [
+        "PLATFORM",
+        "UI",
+        "APP",
+        "ADAPTER",
+        "FFI",
+        "CORE"
+      ],
+      "surface": "双端客户端",
+      "milestone": "M0/M1/M5",
+      "status": "未实现",
+      "note": "Windows 11 x64、Android API26+ arm64；相同核心与资源包。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 17,
+        "end": 17
+      }
+    },
+    {
+      "id": "R02",
+      "title": "鸿蒙接口预留",
+      "design": "10 C ABI 与线程 / 端口契约",
+      "tests": [
+        "T-HARMONY"
+      ],
+      "modules": [
+        "FFI",
+        "CORE",
+        "PLATFORM"
+      ],
+      "surface": "接口预留",
+      "milestone": "M0",
+      "status": "仅预留，未实现",
+      "note": "只冻结平台无关 C ABI 与端口；HarmonyOS NAPI/HUKS 正式适配不在本期交付。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 18,
+        "end": 18
+      }
+    },
+    {
+      "id": "R03",
+      "title": "轻量、低性能开销",
+      "design": "10 质量属性 / 输入与图像预算",
+      "tests": [
+        "T-PERF"
+      ],
+      "modules": [
+        "APP",
+        "CORE",
+        "RECOG",
+        "STORE",
+        "ASSETS",
+        "PLATFORM"
+      ],
+      "surface": "横切性能",
+      "milestone": "M0/M5",
+      "status": "目标未实测",
+      "note": "单活动图像任务、分页/LRU、按需模型；体积、P95、内存均是验收预算。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 19,
+        "end": 19
+      }
+    },
+    {
+      "id": "R04",
+      "title": "强化背诵、参考不背单词流程",
+      "design": "10 背诵闭环",
+      "tests": [
+        "T-STUDY"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "双端学习",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "回忆→揭示→四级评分→FSRS 排程；固定修订卡片、评分幂等、确定性重放。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 20,
+        "end": 20
+      }
+    },
+    {
+      "id": "R05",
+      "title": "手写公式识别",
+      "design": "10 识别后端 / 候选、入库和历史",
+      "tests": [
+        "T-OCR"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "RECOG",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "端侧识别",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "墨迹板→本地 HMER 实际候选→人工校正；至少一个可用本地模型才算游客识别完成。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 21,
+        "end": 21
+      }
+    },
+    {
+      "id": "R06",
+      "title": "预留轻量模型/LLM 识别",
+      "design": "10 FormulaRecognizer / 识别后端",
+      "tests": [
+        "T-PLUGIN",
+        "T-OCR",
+        "T-CLOUD"
+      ],
+      "modules": [
+        "APP",
+        "ADAPTER",
+        "RECOG",
+        "ASSETS",
+        "SERVER"
+      ],
+      "surface": "端侧＋服务端",
+      "milestone": "M0/M2/M3",
+      "status": "未实现",
+      "note": "FormulaRecognizer capabilities/取消/版本；本地运行时二选一；云端逐次授权、不自动降级上传。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 22,
+        "end": 22
+      }
+    },
+    {
+      "id": "R07",
+      "title": "公式编辑器、ISO 字符和 LaTeX",
+      "design": "00 范围解释；10 输入与解析 / 渲染与编辑取舍",
+      "tests": [
+        "T-EDIT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "CORE",
+        "ASSETS"
+      ],
+      "surface": "双端编辑",
+      "milestone": "M0/M1",
+      "status": "未实现",
+      "note": "Unicode/LaTeX 子集、模板、撤销重做、错误定位、FormulaView 与语义朗读；不承诺文本双射或任意 WYSIWYG。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 23,
+        "end": 23
+      }
+    },
+    {
+      "id": "R08",
+      "title": "公式库查看检索",
+      "design": "10 编辑器、公式库和学习流程",
+      "tests": [
+        "T-LIB"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE",
+        "ASSETS"
+      ],
+      "surface": "双端公式库",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "名称/课程/标签/来源/量纲筛选；预置只读、用户修订、分页和跨账户缓存隔离。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 24,
+        "end": 24
+      }
+    },
+    {
+      "id": "R09",
+      "title": "查看时变量赋值计算",
+      "design": "10 计算器与代入",
+      "tests": [
+        "T-CALC"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "端侧计算",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "详情赋值、单位换算、基础向量/函数求值；复杂 CAS/任意符号积分不在 V1。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 25,
+        "end": 25
+      }
+    },
+    {
+      "id": "R10",
+      "title": "每式严格匹配量纲",
+      "design": "10 类型与校验状态",
+      "tests": [
+        "T-DIM"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "端侧语义校验",
+      "milestone": "M0/M1",
+      "status": "未实现",
+      "note": "SI 七维有理指数＋数学形状＋QuantityKind＋条件；Draft/Unresolved/Invalid/Verified 明确分离。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 26,
+        "end": 26
+      }
+    },
+    {
+      "id": "R11",
+      "title": "录入时调整、后期自定义量纲",
+      "design": "10 类型与校验状态 / 自定义单位",
+      "tests": [
+        "T-DIM",
+        "T-UNIT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "端侧单位管理",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "录入及后续编辑；命名空间/版本化、循环检查、温度点与温差、受影响修订重新校验。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 27,
+        "end": 27
+      }
+    },
+    {
+      "id": "R12",
+      "title": "同量纲部分作为变量代入",
+      "design": "10 计算器与代入",
+      "tests": [
+        "T-SUB"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "端侧推导",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "按 AST 子式选择与显式输出绑定；变量映射、alpha-renaming、条件/分支继承、无环与预算检查。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 28,
+        "end": 28
+      }
+    },
+    {
+      "id": "R13",
+      "title": "同济高数到考研数学全部范围",
+      "design": "12 覆盖矩阵 / 摄入与审校",
+      "tests": [
+        "T-CONTENT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ASSETS",
+        "CORE",
+        "CONTENT"
+      ],
+      "surface": "内容工程＋客户端",
+      "milestone": "M4",
+      "status": "未实现",
+      "note": "高数＋线性代数＋概率统计；数一/数二/数三并集，教材版本和考试年份待冻结。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 29,
+        "end": 29
+      }
+    },
+    {
+      "id": "R14",
+      "title": "大学物理",
+      "design": "12 覆盖矩阵",
+      "tests": [
+        "T-CONTENT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ASSETS",
+        "CORE",
+        "CONTENT"
+      ],
+      "surface": "内容工程＋客户端",
+      "milestone": "M4",
+      "status": "未实现",
+      "note": "大学物理课程、适用条件、SI/符号约定；三条研究样例不构成课程库。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 30,
+        "end": 30
+      }
+    },
+    {
+      "id": "R15",
+      "title": "高维护性、易读易排错、可靠注释",
+      "design": "10 安全、诊断与维护 / 模块；09 ADR",
+      "tests": [
+        "T-MAINT"
+      ],
+      "modules": [
+        "APP",
+        "CORE",
+        "STORE",
+        "SERVER",
+        "FFI",
+        "QUALITY"
+      ],
+      "surface": "横切工程",
+      "milestone": "M0–M5",
+      "status": "规范已有，应用待实现",
+      "note": "统一错误码、公开契约注释、ADR、脱敏复现；已有文档检查不等于应用质量测试。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 31,
+        "end": 31
+      }
+    },
+    {
+      "id": "R16",
+      "title": "搜寻开源公式库并尝试获取",
+      "design": "12 实际开源公式资源调查；resources/",
+      "tests": [
+        "T-SOURCE"
+      ],
+      "modules": [
+        "CONTENT",
+        "ASSETS",
+        "CORE"
+      ],
+      "surface": "内容工程",
+      "milestone": "M4",
+      "status": "研究样例已有，工具链未实现",
+      "note": "已取得三条 Open_Physics 样例＋来源快照＋许可；摄入自动化、AST 编译、双审与生产打包未完成。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 32,
+        "end": 32
+      }
+    },
+    {
+      "id": "R17",
+      "title": "YOLO 预案不写主分支",
+      "design": "00 范围解释；独立实验分支新增预案",
+      "tests": [
+        "T-EXP"
+      ],
+      "modules": [
+        "EXP",
+        "RECOG",
+        "QUALITY"
+      ],
+      "surface": "独立实验分支",
+      "milestone": "独立实验",
+      "status": "预案分支已有，模型未实现",
+      "note": "codex/exp-yolo-recognizer 分支存在；本次未检出/审计其详细内容；main 无新增 YOLO 实现/权重/依赖。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 33,
+        "end": 33
+      }
+    },
+    {
+      "id": "R18",
+      "title": "简洁可靠版本控制",
+      "design": "10 版本、里程碑与交付",
+      "tests": [
+        "T-RELEASE"
+      ],
+      "modules": [
+        "QUALITY",
+        "FFI",
+        "ASSETS",
+        "STORE",
+        "CONTENT"
+      ],
+      "surface": "横切发布",
+      "milestone": "M0/M5",
+      "status": "规范已有，应用待实现",
+      "note": "SemVer/ABI/AST/DB/包/模型版本矩阵、tag、锁工具链、SBOM、签名与迁移恢复；无应用 CI。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 34,
+        "end": 34
+      }
+    },
+    {
+      "id": "R19",
+      "title": "不登录不能用",
+      "design": "11 账户与本地访问状态",
+      "tests": [
+        "T-ACCOUNT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "COMPOSE",
+        "ADAPTER",
+        "STORE",
+        "SERVER"
+      ],
+      "surface": "客户端＋身份服务",
+      "milestone": "M1/M3",
+      "status": "未实现",
+      "note": "无身份不进核心；游客身份有效；注册退出锁库，离线解锁与云认证分开。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 35,
+        "end": 35
+      }
+    },
+    {
+      "id": "R20",
+      "title": "未注册可游客、临时本地账户",
+      "design": "00 范围解释；11 账户与本地访问状态",
+      "tests": [
+        "T-ACCOUNT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "COMPOSE",
+        "STORE",
+        "ADAPTER"
+      ],
+      "surface": "客户端本地账户",
+      "milestone": "M1",
+      "status": "未实现",
+      "note": "游客数据持续本地保留，退出不自动清除；与注册账户独立加密库/目录。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 36,
+        "end": 36
+      }
+    },
+    {
+      "id": "R21",
+      "title": "游客不向云端提交内容",
+      "design": "11 账户与本地访问状态 / 数据分类",
+      "tests": [
+        "T-PRIVACY"
+      ],
+      "modules": [
+        "APP",
+        "ADAPTER",
+        "COMPOSE",
+        "STORE",
+        "SERVER"
+      ],
+      "surface": "客户端＋网关门禁",
+      "milestone": "M1/M3",
+      "status": "未实现",
+      "note": "游客禁止上传公式/图片/偏好/诊断；主动下载公开包不附带学习数据；云识别网关拒绝游客。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 37,
+        "end": 37
+      }
+    },
+    {
+      "id": "R22",
+      "title": "本地保存、转注册后可同步",
+      "design": "11 密钥 / 游客升级 / 同步协议",
+      "tests": [
+        "T-UPGRADE",
+        "T-KEY",
+        "T-SYNC"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "COMPOSE",
+        "STORE",
+        "SERVER"
+      ],
+      "surface": "端侧＋服务端",
+      "milestone": "M3",
+      "status": "未实现",
+      "note": "upgrade journal 幂等升级/关联已有账户；独立同步授权、客户端 E2EE、outbox/ACK/游标原子提交。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 38,
+        "end": 38
+      }
+    },
+    {
+      "id": "R23",
+      "title": "静态资源剥离、通用资源包加载",
+      "design": "12 通用资源包 / 清单、签名与激活",
+      "tests": [
+        "T-PACK"
+      ],
+      "modules": [
+        "APP",
+        "ADAPTER",
+        "ASSETS",
+        "STORE",
+        "CONTENT"
+      ],
+      "surface": "端侧＋资源发布",
+      "milestone": "M0/M1/M4",
+      "status": "未实现",
+      "note": "bootstrap/课程/字体/模型通用包；验签后解包、TUF 元数据、防降级、原子激活与良好版本回退。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 39,
+        "end": 39
+      }
+    },
+    {
+      "id": "R24",
+      "title": "照片手写公式识别并入统一识别",
+      "design": "10 手写、照片和识别管线",
+      "tests": [
+        "T-OCR",
+        "T-IMAGE"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "双端照片识别",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "照片与墨迹共用输入资产/预览/识别/候选校验/入库管线，不仅接受笔画。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 40,
+        "end": 40
+      }
+    },
+    {
+      "id": "R25",
+      "title": "去噪与图像增强",
+      "design": "10 输入与图像预算",
+      "tests": [
+        "T-IMAGE"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "RECOG"
+      ],
+      "surface": "端侧图像处理",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "EXIF/降采样/裁剪、去噪、光照归一、透视校正、可选二值化；灰度/增强对照。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 41,
+        "end": 41
+      }
+    },
+    {
+      "id": "R26",
+      "title": "识别后保留最近记录",
+      "design": "11 识别生命周期与严格 N 保留",
+      "tests": [
+        "T-GC"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "STORE",
+        "RECOG",
+        "ADAPTER"
+      ],
+      "surface": "本机后台清理",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "按开始序号统一终态历史；事务标记 DELETING＋独立 cleanup_job，幂等文件回收与启动对账。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 42,
+        "end": 42
+      }
+    },
+    {
+      "id": "R27",
+      "title": "保留范围 0–100、默认 5",
+      "design": "11 会话和计数口径",
+      "tests": [
+        "T-GC"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "STORE"
+      ],
+      "surface": "本机设置/存储",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "keep_last 整数 0–100、默认 5；UI/用例/数据库约束，无 Pin/Adopted 豁免。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 43,
+        "end": 43
+      }
+    },
+    {
+      "id": "R28",
+      "title": "历史含输入图片与结果",
+      "design": "11 保留的内容",
+      "tests": [
+        "T-GC",
+        "T-IMAGE"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "STORE",
+        "RECOG"
+      ],
+      "surface": "本机历史资产",
+      "milestone": "M2",
+      "status": "未实现",
+      "note": "保存确认输入图、实际云提交图、候选/校正/诊断/版本；不进入私有同步，另存附件生命周期独立。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 44,
+        "end": 44
+      }
+    },
+    {
+      "id": "R29",
+      "title": "桌面文件管理器选照片",
+      "design": "10 平台实现与生命周期",
+      "tests": [
+        "T-PLATFORM"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG"
+      ],
+      "surface": "Windows 平台",
+      "milestone": "M2/M5",
+      "status": "未实现",
+      "note": "IFileOpenDialog 必需；原文件只读、路径不拼 shell；拖拽/剪贴板为可选入口。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 45,
+        "end": 45
+      }
+    },
+    {
+      "id": "R30",
+      "title": "安卓文件管理器选照片",
+      "design": "10 输入与图像预算 / 平台实现与生命周期",
+      "tests": [
+        "T-PLATFORM"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG"
+      ],
+      "surface": "Android 平台",
+      "milestone": "M2/M5",
+      "status": "未实现",
+      "note": "SAF ACTION_OPEN_DOCUMENT 必需，Photo Picker 可用；ContentResolver 复制受限私有副本并释放 URI 权限。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 46,
+        "end": 46
+      }
+    },
+    {
+      "id": "R31",
+      "title": "成熟可靠、无重大安全问题",
+      "design": "11 安全验证和故障演练；12 包安全",
+      "tests": [
+        "T-SECURITY",
+        "T-KEY",
+        "T-PACK"
+      ],
+      "modules": [
+        "APP",
+        "CORE",
+        "STORE",
+        "RECOG",
+        "ASSETS",
+        "ADAPTER",
+        "SERVER",
+        "QUALITY"
+      ],
+      "surface": "全链路安全",
+      "milestone": "M0–M5",
+      "status": "未实现，未安全验收",
+      "note": "不可信输入、跨账户越权、AEAD/KDF、包安全、供应链、隐私/恢复演练；不宣称无漏洞。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 47,
+        "end": 47
+      }
+    },
+    {
+      "id": "H01",
+      "title": "仓库记录的高中数学/物理内容",
+      "design": "00 历史记录与范围解释；12 覆盖矩阵",
+      "tests": [
+        "T-CONTENT"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ASSETS",
+        "CORE",
+        "CONTENT"
+      ],
+      "surface": "历史内容扩展",
+      "milestone": "M4",
+      "status": "未实现",
+      "note": "高中数学/物理独立分包；依据仓库历史记录，不冒充本次原文且不替代大学课程。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 48,
+        "end": 48
+      }
+    },
+    {
+      "id": "H02",
+      "title": "仓库记录的首版云端 API LLM",
+      "design": "11 云识别授权、任务与费用",
+      "tests": [
+        "T-CLOUD"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "RECOG",
+        "CORE",
+        "STORE",
+        "SERVER"
+      ],
+      "surface": "端侧＋云后端",
+      "milestone": "M3",
+      "status": "未实现",
+      "note": "首版云端视觉模型经自有网关；逐次授权、作业幂等、UNKNOWN 不自动重复付费、临时图清理。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 49,
+        "end": 49
+      }
+    },
+    {
+      "id": "A01",
+      "title": "未知量纲不冒充校验通过",
+      "design": "10 类型与校验状态",
+      "tests": [
+        "T-DIM"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "CORE",
+        "STORE"
+      ],
+      "surface": "必要架构约束",
+      "milestone": "M0/M1",
+      "status": "未实现",
+      "note": "未知量纲不能标 Verified；不能通过显示单位或经验标签绕过语义错误。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 50,
+        "end": 50
+      }
+    },
+    {
+      "id": "A02",
+      "title": "不承诺闪存单项绝对擦除",
+      "design": "11 保证范围 / 文件与数据库事务",
+      "tests": [
+        "T-GC",
+        "T-PRIVACY"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "STORE",
+        "RECOG",
+        "ADAPTER",
+        "SERVER"
+      ],
+      "surface": "必要架构约束",
+      "milestone": "M2/M3",
+      "status": "未实现",
+      "note": "GC 只承诺逻辑不可访问和受控副本尽力清理；不承诺闪存/备份/供应商副本绝对擦除。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 51,
+        "end": 51
+      }
+    },
+    {
+      "id": "A03",
+      "title": "新设备可恢复且本机密钥不上云",
+      "design": "11 密钥、恢复与本地加密",
+      "tests": [
+        "T-KEY"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "STORE",
+        "SERVER"
+      ],
+      "surface": "必要架构约束",
+      "milestone": "M0/M3",
+      "status": "未实现",
+      "note": "本机库/历史密钥不上云；独立同步密语或恢复码均可解锁账户根密钥，新设备生成独立库密钥。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 52,
+        "end": 52
+      }
+    },
+    {
+      "id": "A04",
+      "title": "实现前验证渲染/模型/密钥等风险",
+      "design": "09 必须先完成的工程验证；10 里程碑",
+      "tests": [
+        "T-PLUGIN",
+        "T-FFI",
+        "T-KEY"
+      ],
+      "modules": [
+        "UI",
+        "APP",
+        "FFI",
+        "CORE",
+        "RECOG",
+        "ASSETS",
+        "ADAPTER",
+        "QUALITY"
+      ],
+      "surface": "工程原型门槛",
+      "milestone": "M0",
+      "status": "待原型验证",
+      "note": "绑定/渲染/模型/密钥/GC/包攻击等先做真实原型；当前没有 Rust/Flutter/真机测试证据。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 53,
+        "end": 53
+      }
+    }
+  ],
+  "groups": [
+    {
+      "title": "编辑与渲染",
+      "ids": "R07",
+      "ux": "源码/模板/符号/诊断",
+      "client": "presentation/＋application/",
+      "core": "fml-core：latex / ast",
+      "support": "fml-assets：字体与符号",
+      "server": "无必需服务端"
+    },
+    {
+      "title": "公式库与变量计算",
+      "ids": "R08 / R09",
+      "ux": "检索/详情/参数输入",
+      "client": "presentation/＋application/",
+      "core": "fml-core：eval / units",
+      "support": "fml-store：修订与索引",
+      "server": "本地即可使用"
+    },
+    {
+      "title": "量纲、单位与代入",
+      "ids": "R10–R12 / A01",
+      "ux": "符号表/单位/子式映射",
+      "client": "presentation/＋application/",
+      "core": "fml-core：types / units / ast",
+      "support": "fml-store：单位版本/推导",
+      "server": "无需服务端；客户端校验"
+    },
+    {
+      "title": "背诵与复习",
+      "ids": "R04",
+      "ux": "回忆→揭示→评分",
+      "client": "application/：Review",
+      "core": "fml-core：study / FSRS",
+      "support": "fml-store：卡片/复习事件",
+      "server": "可选：server 同步密文"
+    },
+    {
+      "title": "照片与墨迹输入",
+      "ids": "R24 / R25 / R29 / R30",
+      "ux": "文件选择/墨迹/预览",
+      "client": "adapters/：ImageImport",
+      "core": "fml-recognition：解码/增强",
+      "support": "Android SAF / Windows 对话框",
+      "server": "无必需服务端"
+    },
+    {
+      "title": "本地识别与后端扩展",
+      "ids": "R05 / R06",
+      "ux": "安装模型/识别/校正",
+      "client": "application/＋adapters/",
+      "core": "fml-recognition＋fml-core",
+      "support": "fml-assets：模型包",
+      "server": "云模式须另行授权"
+    },
+    {
+      "title": "历史与垃圾回收",
+      "ids": "R26–R28 / A02",
+      "ux": "图片＋结果/保留设置",
+      "client": "application/：串行裁剪",
+      "core": "fml-store：历史 / cleanup_job",
+      "support": "fml-recognition：临时资产",
+      "server": "只在本机；N=0–100，默认5"
+    },
+    {
+      "title": "账户、游客与升级",
+      "ids": "R19–R22",
+      "ux": "账户入口/锁库/升级",
+      "client": "composition/＋Auth 用例",
+      "core": "fml-store＋SecureStore 适配",
+      "support": "本机 journal / 平台密钥",
+      "server": "server：账户绑定 / OIDC"
+    },
+    {
+      "title": "E2EE 同步与密钥恢复",
+      "ids": "R22 / R31 / A03",
+      "ux": "开启同步/恢复/冲突",
+      "client": "application/＋HTTP 适配",
+      "core": "fml-store：outbox / cursor",
+      "support": "客户端加密；本机密钥不上云",
+      "server": "server：密文/ACK/墓碑/epoch"
+    },
+    {
+      "title": "资源包与课程内容",
+      "ids": "R13 / R14 / R16 / R23 / H01",
+      "ux": "课程选择/包管理",
+      "client": "application/＋PackStore",
+      "core": "fml-assets＋fml-core",
+      "support": "tools/content/：摄入/审校/签名",
+      "server": "公开包分发；非私有同步"
+    },
+    {
+      "title": "云识别与服务治理",
+      "ids": "H02 / R06 / R31",
+      "ux": "按次确认/任务状态",
+      "client": "adapters/：云识别适配",
+      "core": "fml-core：候选再校验",
+      "support": "fml-store：job ID 与会话",
+      "server": "server：网关/worker/配额/GC"
+    },
+    {
+      "title": "双端、预留与工程约束",
+      "ids": "R01–R03 / R15 / R17 / R18 / A04",
+      "ux": "跨端/无障碍/生命周期",
+      "client": "composition/＋平台适配",
+      "core": "fml-ffi＋纯核心 C ABI",
+      "support": "性能/测试/签名/迁移恢复",
+      "server": "鸿蒙仅预留；YOLO 独立实验"
+    }
+  ],
+  "backend": [
+    {
+      "id": "B01",
+      "title": "身份验证与账户绑定",
+      "contract": "成熟 OIDC/身份框架；原生授权码＋PKCE；issuer/audience/expiry/账户状态；owner 来自 token",
+      "flow": "客户端 Auth → 单体身份/绑定模块 → OIDC",
+      "reqs": "R19–R22 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "ADAPTER",
+        "APP"
+      ],
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 262,
+        "end": 266
+      },
+      "tests": "T-ACCOUNT / T-UPGRADE / T-SECURITY"
+    },
+    {
+      "id": "B02",
+      "title": "密钥包装、设备与账户删除",
+      "contract": "服务端仅保存账户根密钥包装/参数；版本撤销、新 epoch、生产删除与备份删除清单；原始恢复码和本机密钥不上云",
+      "flow": "客户端密钥恢复/删除用例 → 单体账户模块 → PostgreSQL",
+      "reqs": "R22 / R31 / A03",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "APP",
+        "STORE"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 55,
+        "end": 75
+      },
+      "tests": "T-KEY / T-SYNC / T-PRIVACY",
+      "additional_sources": [
+        {
+          "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+          "start": 119,
+          "end": 134
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "title": "E2EE 同步网关",
+      "contract": "Push/Pull 契约（HTTP 路由未冻结）；(account_epoch,op_id) 去重、server_seq、opaque cursor、ACK、墓碑与旧 epoch 拒绝；内容不解密",
+      "flow": "客户端加密 outbox ⇄ 单体同步模块 ⇄ PostgreSQL 密文事件",
+      "reqs": "R22 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "STORE",
+        "APP",
+        "ADAPTER"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 104,
+        "end": 134
+      },
+      "tests": "T-SYNC / T-KEY / T-PRIVACY"
+    },
+    {
+      "id": "B04",
+      "title": "云识别任务 API",
+      "contract": "POST /v1/recognition/jobs；GET /v1/recognition/jobs/{job_id}；POST /v1/recognition/jobs/{job_id}/cancel；校验 owner/授权/图像预算",
+      "flow": "注册且逐次授权 → 识别网关 → 持久化任务",
+      "reqs": "H02 / R06 / R21 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "ADAPTER",
+        "APP"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 173,
+        "end": 187
+      },
+      "tests": "T-CLOUD / T-SECURITY / T-PRIVACY"
+    },
+    {
+      "id": "B05",
+      "title": "识别 worker 与供应商适配",
+      "contract": "受限并发独立 worker；端点白名单、仅服务端供应商密钥、响应/候选结构预算；SUBMITTING/RUNNING/UNKNOWN。端侧 RECOG/CORE 做语义和量纲校验，UI/APP 编排人工校正与确认。",
+      "flow": "持久化任务 → worker → 视觉供应商 → 候选结果",
+      "reqs": "H02 / R06 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "RECOG",
+        "CORE",
+        "UI",
+        "APP"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 187,
+        "end": 195
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/10-软件架构设计-v3.md",
+          "start": 60,
+          "end": 83
+        },
+        {
+          "path": "SADD/10-软件架构设计-v3.md",
+          "start": 230,
+          "end": 234
+        }
+      ],
+      "tests": "T-CLOUD / T-PLUGIN / T-SECURITY"
+    },
+    {
+      "id": "B06",
+      "title": "幂等、配额、计费与审计",
+      "contract": "(account_id,idempotency_key) 唯一；同键换图409，同键同图既有任务；预留/结算/UNKNOWN 对账；禁止不确定状态自动再次付费",
+      "flow": "网关事务 → 任务＋配额 → worker 结算/对账",
+      "reqs": "H02 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 189,
+        "end": 199
+      },
+      "tests": "T-CLOUD / T-SECURITY"
+    },
+    {
+      "id": "B07",
+      "title": "服务端临时图与结果 GC",
+      "contract": "完成/失败/取消目标≤60s清图；崩溃 TTL≤1h；结果/幂等状态≤24h；最小费用 tombstone 初始30天；日志/APM/备份禁正文",
+      "flow": "受控对象存储 → TTL 清理/结果过期 → 最小状态墓碑",
+      "reqs": "H02 / R28 / R31 / A02",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "QUALITY"
+      ],
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 197,
+        "end": 201
+      },
+      "tests": "T-CLOUD / T-PRIVACY / T-SECURITY"
+    },
+    {
+      "id": "B08",
+      "title": "服务运维、安全与备份恢复",
+      "contract": "TLS、参数化查询、限流/容量/成本配额、依赖扫描；备份恢复目标及删除清单重放；不增加微服务网格",
+      "flow": "单体 API＋worker → PostgreSQL/对象存储 → 加密备份与恢复演练",
+      "reqs": "R03 / R15 / R18 / R31",
+      "status": "未实现",
+      "modules": [
+        "SERVER",
+        "QUALITY"
+      ],
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 262,
+        "end": 268
+      },
+      "tests": "T-SECURITY / T-RELEASE / T-PERF"
+    },
+    {
+      "id": "B09",
+      "title": "公开资源签名发布与分发",
+      "contract": "离线内容工具生成 provenance/许可清单和签名包；在线 TUF root/targets/snapshot/timestamp；公开内容/模型分发不等于用户同步",
+      "flow": "tools/content/ → 审校/签名发布 → 公开包分发 → fml-assets",
+      "reqs": "R13 / R14 / R16 / R23 / H01",
+      "status": "未实现（研究样例除外）",
+      "modules": [
+        "CONTENT",
+        "ASSETS",
+        "QUALITY"
+      ],
+      "source": {
+        "path": "SADD/12-资源包内容与开源资源调查-v3.md",
+        "start": 24,
+        "end": 67
+      },
+      "tests": "T-PACK / T-SOURCE / T-CONTENT"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "tools/verify-sadd.mjs",
+      "title": "文档一致性检查脚本",
+      "note": "可执行现有工具；校验链接/围栏/标题/Mermaid无障碍字段/来源许可/需求测试引用；不是应用后端。"
+    },
+    {
+      "path": "SADD/resources/open-physics-samples.json",
+      "title": "三条物理公式研究样例",
+      "note": "仅研究输入，尚未 AST 编译/双人审校/发布课程包；不是完整公式库。"
+    },
+    {
+      "path": "SADD/resources/source-capture.json",
+      "title": "固定来源快照与 hash",
+      "note": "来源 revision、文件行、hash 与样例对应；不是资源下载/更新运行时。"
+    },
+    {
+      "path": "SADD/licenses/Open_Physics-BSD-3-Clause.txt",
+      "title": "Open_Physics 原始许可",
+      "note": "所选来源的版权与许可；不代表本项目或其他模型/字体已获同一许可。"
+    }
+  ],
+  "boundaries": [
+    "全部产品应用模块尚未落地；不能标记为‘已实现仅缺前端’。原有脚本用于文档检查，本次新增生成器也仅用于文档图表。",
+    "本文 A01–A04 专指 13 的需求架构约束，不等于 09 复审缺陷的 A01–A17。",
+    "文档明确的未来目录按原名保留；后端 B01–B09 为职责映射编号，不是新增需求 ID 或既存物理目录。",
+    "v3 优先于历史 v2：不采用 v2 自研排版前置、Pin/Adopted 免计数、上传本机库密钥及默认全量同步等旧设计。v3 另明确 Unknown 不可 Verified，并强化显式关系/条件验证。供应商密钥始终仅服务端保存，不是 v2 新旧差异。",
+    "本地识别模型/权重/数据许可与质量待选型；云供应商/保留政策待核实，游客不自动切云。",
+    "复杂 CAS、任意符号积分、完整鸿蒙客户端、社区功能均不默认为 V1 交付；YOLO 仅实验预案。"
+  ],
+  "milestones": [
+    [
+      "M0",
+      "风险原型",
+      "FFI/解析/量纲/渲染、本地模型、密钥与资源包；先冻结依赖与验收语料",
+      "A04 / R02 / R03 / R06 / R07 / R10 / R23 / A03"
+    ],
+    [
+      "M1",
+      "本地业务闭环",
+      "双端编辑、库、计算、代入、复习、bootstrap、游客账户；全离线可用",
+      "R01 / R04 / R07–R12 / R19–R21"
+    ],
+    [
+      "M2",
+      "识别与回收闭环",
+      "墨迹/照片、真实本地模型、增强、候选校正、严格 N 与崩溃恢复",
+      "R05 / R24–R30 / A02"
+    ],
+    [
+      "M3",
+      "账户与云服务",
+      "游客升级/密钥恢复、E2EE 同步、云识别及后台安全/幂等/费用/清理",
+      "R22 / R31 / H02 / A03"
+    ],
+    [
+      "M4",
+      "内容与签名发布",
+      "大学四模块＋历史高中、许可/来源/章节冻结、逐式校验、双审",
+      "R13 / R14 / R16 / R23 / H01"
+    ],
+    [
+      "M5",
+      "双端发布验收",
+      "性能/隐私/安全/签名/依赖/迁移/恢复；未执行项不得标通过",
+      "R01 / R03 / R15 / R18 / R31"
+    ]
+  ],
+  "client_details": [
+    {
+      "id": "D01",
+      "title": "Android 相册与文件管理器",
+      "reqs": "R24 / R30",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG"
+      ],
+      "contract": "SAF ACTION_OPEN_DOCUMENT 必需；Photo Picker 可用。ContentResolver 有界流式复制到私有工作区，不在 Dart 解码全图；源文件只读。",
+      "scope": "v3 必需入口；云盘来源访问不等于向应用云端上传。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 199,
+        "end": 213
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 88,
+        "end": 117
+      }
+    },
+    {
+      "id": "D02",
+      "title": "Android 拍照与质量提示",
+      "reqs": "R24 / R25",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG"
+      ],
+      "contract": "拍照进入统一导入/裁剪/增强/确认流程；按需 CAMERA 权限、后台释放相机、拒绝可走 SAF；模糊/阴影/曝光提示。",
+      "scope": "平台细化参考；CameraX 或系统 Intent 待实现选型，不是冻结依赖。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 199,
+        "end": 218
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 71,
+        "end": 86
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/03-Android端实现规范-v2.md",
+          "start": 119,
+          "end": 142
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "Windows 文件选择与可选入口",
+      "reqs": "R24 / R29",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG"
+      ],
+      "contract": "IFileOpenDialog 为必需；有界读取、预览裁剪、临时文件清理且不删原图。拖拽、显式剪贴板、扫描增强单列可选，不常驻监视剪贴板。",
+      "scope": "v3 降低了 v2 对拖拽/剪贴板的强制程度。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 201,
+        "end": 213
+      },
+      "historical": {
+        "path": "SADD/04-Windows桌面端实现规范-v2.md",
+        "start": 72,
+        "end": 119
+      }
+    },
+    {
+      "id": "D04",
+      "title": "双端墨迹板、触控笔与规范图",
+      "reqs": "R05 / R24",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "RECOG",
+        "STORE"
+      ],
+      "contract": "两端均提供墨迹板；归一化笔画或受限本地位图进入同一 FormulaRecognizer。平台采样、重采样、压力/防误触与草稿恢复需实现。",
+      "scope": "v3 明确双端墨迹；旧采样率参数是参考目标，不是已实测。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 199,
+        "end": 228
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 186,
+        "end": 204
+      }
+    },
+    {
+      "id": "D05",
+      "title": "编辑、渲染、快捷键与无障碍",
+      "reqs": "R07 / R08",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "CORE",
+        "ASSETS",
+        "PLATFORM"
+      ],
+      "contract": "Unicode/LaTeX 源码、模板、符号面板、撤销重做、IME、错误定位；FormulaView 成熟库渲染；AST 中文语义朗读与可访问标签。",
+      "scope": "不自研字形布局，不承诺任意 WYSIWYG 或精确 DisplayList 命中。桌面快捷键/DPI 与触屏布局需落地。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 181,
+        "end": 195
+      },
+      "historical": {
+        "path": "SADD/04-Windows桌面端实现规范-v2.md",
+        "start": 161,
+        "end": 207
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/03-Android端实现规范-v2.md",
+          "start": 206,
+          "end": 216
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "title": "草稿、复习、任务与进程恢复",
+      "reqs": "R01 / R04 / R05 / R15 / H02",
+      "modules": [
+        "APP",
+        "COMPOSE",
+        "STORE",
+        "FFI",
+        "ADAPTER",
+        "PLATFORM"
+      ],
+      "contract": "编辑草稿 500ms 防抖、评分立即事务；导入队列/墨迹与 job_id 可恢复；重启先账户作用域和 GC，再查询云任务，不自动重新付费；无常驻服务。",
+      "scope": "worker 执行解码/推理/迁移；取消确认并释放后才销毁句柄。Windows 单实例写库。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 278,
+        "end": 285
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 173,
+        "end": 184
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/10-软件架构设计-v3.md",
+          "start": 99,
+          "end": 105
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "title": "本地提醒与权限自检",
+      "reqs": "R01 / R04",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "PLATFORM",
+        "STORE"
+      ],
+      "contract": "本地学习提醒不泄露公式；通知拒绝不阻断学习。平台通知调度与设置自检待实现，不以精确闹钟或后台常驻为前提。",
+      "scope": "v3 当前最低约束；v2 自启/厂商表/Toast 为参考增强，不自动视为首版必须。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 278,
+        "end": 280
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 218,
+        "end": 232
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/04-Windows桌面端实现规范-v2.md",
+          "start": 209,
+          "end": 219
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "title": "私有存储、系统密钥和备份排除",
+      "reqs": "R19–R22 / R31 / A03",
+      "modules": [
+        "APP",
+        "COMPOSE",
+        "STORE",
+        "ADAPTER",
+        "PLATFORM"
+      ],
+      "contract": "每账户加密库、目录与私有 ACL；Android Keystore/noBackup，并排除敏感系统备份及 D2D；Windows 使用当前用户 DPAPI，历史不放漫游目录，不能保证排除用户控制的系统/第三方备份；DPAPI 不等于 Hello。",
+      "scope": "本机生物解锁不替代账户恢复，本机库/历史密钥不上传。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 276,
+        "end": 277
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 144,
+        "end": 171
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/04-Windows桌面端实现规范-v2.md",
+          "start": 121,
+          "end": 159
+        },
+        {
+          "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+          "start": 55,
+          "end": 75
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "title": "游客升级、恢复、导出及删除",
+      "reqs": "R20 / R22 / A03 / R31",
+      "modules": [
+        "UI",
+        "APP",
+        "COMPOSE",
+        "STORE",
+        "ADAPTER",
+        "SERVER"
+      ],
+      "contract": "升级 journal 可重入、已有账户根密钥不覆盖；另行授权开启同步。密语/恢复码并列包装；新设备生成独立本机库密钥。默认加密导出仅公式/复习/单位，不带识别历史和工作图。",
+      "scope": "登录密码不等于同步密语；没有恢复凭据无法恢复。账户删除期限为设计目标，离线设备副本不能远程抹除。",
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 55,
+        "end": 102
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+          "start": 130,
+          "end": 134
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "title": "Android 原生构建和渠道分发",
+      "reqs": "R01 / R03 / R18 / R31",
+      "modules": [
+        "UI",
+        "FFI",
+        "ADAPTER",
+        "PLATFORM",
+        "QUALITY"
+      ],
+      "contract": "Android API26+ arm64；AAB/APK 原生库、NDK/页大小、R8 后 FFI、SQLCipher/推理库兼容需渠道验收；模型通过包安装，不塞主包。",
+      "scope": "Gradle/Cargo 接法、库名及签名发布 CI 都未落地，编译成功不是完整验收。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 272,
+        "end": 283
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 50,
+        "end": 69
+      }
+    },
+    {
+      "id": "D11",
+      "title": "Windows 安装、应用升级和卸载",
+      "reqs": "R01 / R18 / R31",
+      "modules": [
+        "APP",
+        "STORE",
+        "ASSETS",
+        "ADAPTER",
+        "PLATFORM",
+        "QUALITY"
+      ],
+      "contract": "Win11 x64 主基线；每用户签名安装器、DLL 绝对安全加载、不覆盖已加载 DLL。升级前备份并迁移、失败可恢复，卸载提供保留/导出/删除选择。",
+      "scope": "Win10 22H2 仅在适用维护条件下另测；安装器工具候选和可选自启/MSIX 尚未冻结。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 274,
+        "end": 285
+      },
+      "historical": {
+        "path": "SADD/04-Windows桌面端实现规范-v2.md",
+        "start": 47,
+        "end": 70
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/04-Windows桌面端实现规范-v2.md",
+          "start": 221,
+          "end": 232
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "title": "资源在线/离线安装和回滚",
+      "reqs": "R13 / R14 / R16 / R23 / H01",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "ASSETS",
+        "STORE",
+        "CONTENT",
+        "QUALITY"
+      ],
+      "contract": "bootstrap 离线启动；课程/模型/字体统一清单、签名/hash/兼容/来源；先验签后解包，版本只读目录和 active.json 原子激活，Windows 占用延后清理。",
+      "scope": "TUF 角色、信任根轮换和 security epoch 受控回退均待实现；包通用不等于 native 二进制通用。",
+      "source": {
+        "path": "SADD/12-资源包内容与开源资源调查-v3.md",
+        "start": 9,
+        "end": 67
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 257,
+        "end": 261
+      }
+    },
+    {
+      "id": "D13",
+      "title": "云识别预览、授权和恢复",
+      "reqs": "R06 / R21 / H02 / R31",
+      "modules": [
+        "UI",
+        "APP",
+        "ADAPTER",
+        "STORE",
+        "RECOG",
+        "CORE",
+        "SERVER"
+      ],
+      "contract": "逐次确认实际 image hash/模型/供应商/政策版本；游客禁用；供应商 key 不落端。持久化 job_id，启动先查询，UNKNOWN 不自动重付费；云推理明文不属于同步 E2EE。",
+      "scope": "网关与受限 worker 详见 B04–B07；客户端仍需解析/量纲校验与人工确认。",
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 173,
+        "end": 201
+      },
+      "historical": {
+        "path": "SADD/03-Android端实现规范-v2.md",
+        "start": 234,
+        "end": 255
+      }
+    },
+    {
+      "id": "D14",
+      "title": "识别历史、保留设置和独立附件",
+      "reqs": "R26–R28 / A02",
+      "modules": [
+        "UI",
+        "APP",
+        "STORE",
+        "RECOG",
+        "ADAPTER",
+        "PLATFORM"
+      ],
+      "contract": "按识别开始序号保留最近 N 次全部终态，N=0–100 默认5，无固定项豁免。DB 标记 DELETING/cleanup_job 后异步幂等删受控文件，重启对账；显式附件生命周期独立。",
+      "scope": "N=0 终态只内存展示但在途需要 staging；不删用户原图，不宣称闪存绝对擦除，不把本机 N 当云 TTL。",
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 136,
+        "end": 169
+      },
+      "historical": {
+        "path": "SADD/04-Windows桌面端实现规范-v2.md",
+        "start": 264,
+        "end": 270
+      }
+    }
+  ],
+  "legacy": [
+    {
+      "topic": "代码目录与 I/O",
+      "old": "v2 多个 fml-* crate 与 platform/* 树",
+      "current": "v3 先按五个 Rust crate＋四个 Flutter 层规划；仅 fml-core 绝对无 I/O。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 66,
+        "end": 105
+      }
+    },
+    {
+      "topic": "公式渲染",
+      "old": "自研 typeset/DisplayList/精确命中",
+      "current": "FormulaView＋成熟渲染库；文本和模板编辑为首版边界。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 181,
+        "end": 189
+      }
+    },
+    {
+      "topic": "历史回收",
+      "old": "Pinned/Adopted 免计数、只清 Normal",
+      "current": "全部终态严格最近 N；附件另存；数据库与文件使用可恢复两阶段清理。",
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 136,
+        "end": 169
+      }
+    },
+    {
+      "topic": "量纲和代入",
+      "old": "Unknown 用于约束求解，未明确持久校验状态；跨 QuantityKind 为软警告＋用户确认，缺显式关系及条件验证",
+      "current": "Unknown 不可 Verified；数学类型/语义角色/条件和显式变量绑定必须同时检查。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 132,
+        "end": 177
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/02-软件架构设计-v2.md",
+          "start": 219,
+          "end": 240
+        },
+        {
+          "path": "SADD/02-软件架构设计-v2.md",
+          "start": 306,
+          "end": 324
+        },
+        {
+          "path": "SADD/06-测试与验收标准-v2.md",
+          "start": 60,
+          "end": 69
+        }
+      ]
+    },
+    {
+      "topic": "账户密钥和升级",
+      "old": "登录凭据派生、包装本机库密钥上传、默认全量同步",
+      "current": "随机账户根密钥；独立密语/恢复码包装；本机密钥不上云；升级后再询问同步。",
+      "source": {
+        "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+        "start": 24,
+        "end": 102
+      }
+    },
+    {
+      "topic": "识别与云作业",
+      "old": "本地纯可选、简化四态和删除保证",
+      "current": "游客识别验收必须有可用本地 HMER；云 UNKNOWN/幂等/费用/TTL 独立契约。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 220,
+        "end": 234
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/11-数据安全同步与识别生命周期-v3.md",
+          "start": 171,
+          "end": 201
+        }
+      ]
+    },
+    {
+      "topic": "平台与可选入口",
+      "old": "Win10 1809+、拖拽/剪贴板强制",
+      "current": "Win11 主基线、Win10 22H2 条件测试；文件对话框必需，拖拽/剪贴板可选。",
+      "source": {
+        "path": "SADD/10-软件架构设计-v3.md",
+        "start": 201,
+        "end": 203
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/10-软件架构设计-v3.md",
+          "start": 270,
+          "end": 285
+        }
+      ]
+    },
+    {
+      "topic": "需求、预案和里程碑",
+      "old": "历史 R01–R41、M0–M7、YOLO 简版分支名",
+      "current": "以 v3 的 37 条需求和 M0–M5 为准；YOLO 新详细预案仅 codex/exp-yolo-recognizer，未审计分支内容。",
+      "source": {
+        "path": "SADD/13-需求追踪与验收-v3.md",
+        "start": 13,
+        "end": 53
+      },
+      "additional_sources": [
+        {
+          "path": "SADD/10-软件架构设计-v3.md",
+          "start": 295,
+          "end": 310
+        }
+      ]
+    }
+  ]
+}

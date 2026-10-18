@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="2020" viewBox="0 0 2040 2020" role="img" aria-labelledby="title desc">
+<title id="title">预计功能与规划代码模块对应关系</title><desc id="desc">现行 v3 的十二组功能映射；全部产品模块待实现。目录缩写只代表设计中的未来路径。</desc>
+<rect width="2040" height="2020" fill="#f4f7fb"/>
+<text x="60" y="94" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="52" font-weight="700" fill="#20334e">预计功能 → 规划代码模块</text>
+<text x="62" y="137" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62728a">BubeiGongshi  ·  main@d1a80e94b90a  ·  2026-10-18</text>
+<rect x="60" y="168" width="1920" height="78" rx="16" fill="#fff2d7" stroke="#fff2d7" stroke-width="2"/>
+<text x="82" y="216" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#946116">设计覆盖 ≠ 实现完成：37 项需求均已映射；应用、Rust 核心和服务端源码均未落地。</text>
+<rect x="60" y="278" width="352" height="58" rx="9" fill="#20334e" stroke="#20334e" stroke-width="2"/>
+<text x="77" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">功能 / 需求编号</text>
+<rect x="420" y="278" width="372" height="58" rx="9" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="437" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">客户端层 / 用例入口</text>
+<rect x="800" y="278" width="362" height="58" rx="9" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="817" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">Rust 核心 / 本地服务</text>
+<rect x="1170" y="278" width="382" height="58" rx="9" fill="#16726b" stroke="#16726b" stroke-width="2"/>
+<text x="1187" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">存储 / 包 / 平台支撑</text>
+<rect x="1560" y="278" width="412" height="58" rx="9" fill="#6c4a98" stroke="#6c4a98" stroke-width="2"/>
+<text x="1577" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">后台或边界</text>
+<rect x="60" y="350" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="357" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="388" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">编辑与渲染</text>
+<text x="79" y="424" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R07</text>
+<text x="437" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：latex / ast</text>
+<text x="1187" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-assets：字体与符号</text>
+<text x="1577" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无必需服务端</text>
+<rect x="60" y="479" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="486" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="517" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">公式库与变量计算</text>
+<text x="79" y="553" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R08 / R09</text>
+<text x="437" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：eval / units</text>
+<text x="1187" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：修订与索引</text>
+<text x="1577" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">本地即可使用</text>
+<rect x="60" y="608" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="615" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="646" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">量纲、单位与代入</text>
+<text x="79" y="682" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R10–R12 / A01</text>
+<text x="437" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：types / units / ast</text>
+<text x="1187" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：单位版本/推导</text>
+<text x="1577" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无需服务端；客户端校验</text>
+<rect x="60" y="737" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="744" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="775" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">背诵与复习</text>
+<text x="79" y="811" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R04</text>
+<text x="437" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/：Review</text>
+<text x="817" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：study / FSRS</text>
+<text x="1187" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：卡片/复习事件</text>
+<text x="1577" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">可选：server 同步密文</text>
+<rect x="60" y="866" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="873" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="904" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">照片与墨迹输入</text>
+<text x="79" y="940" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R24 / R25 / R29 / R30</text>
+<text x="437" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">adapters/：ImageImport</text>
+<text x="817" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-recognition：解码/增强</text>
+<text x="1187" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">Android SAF / Windows 对话框</text>
+<text x="1577" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无必需服务端</text>
+<rect x="60" y="995" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1002" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1033" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">本地识别与后端扩展</text>
+<text x="79" y="1069" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R05 / R06</text>
+<text x="437" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋adapters/</text>
+<text x="817" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-recognition＋fml-core</text>
+<text x="1187" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-assets：模型包</text>
+<text x="1577" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">云模式须另行授权</text>
+<rect x="60" y="1124" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1131" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1162" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">历史与垃圾回收</text>
+<text x="79" y="1198" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R26–R28 / A02</text>
+<text x="437" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/：串行裁剪</text>
+<text x="817" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store：历史 / cleanup_job</text>
+<text x="1187" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-recognition：临时资产</text>
+<text x="1577" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">只在本机；N=0–100，默认5</text>
+<rect x="60" y="1253" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1260" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1291" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">账户、游客与升级</text>
+<text x="79" y="1327" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R19–R22</text>
+<text x="437" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">composition/＋Auth 用例</text>
+<text x="817" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store＋SecureStore 适配</text>
+<text x="1187" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">本机 journal / 平台密钥</text>
+<text x="1577" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：账户绑定 / OIDC</text>
+<rect x="60" y="1382" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1389" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1420" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">E2EE 同步与密钥恢复</text>
+<text x="79" y="1456" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R22 / R31 / A03</text>
+<text x="437" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋HTTP 适配</text>
+<text x="817" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store：outbox / cursor</text>
+<text x="1187" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">客户端加密；本机密钥不上云</text>
+<text x="1577" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：密文/ACK/墓碑/epoch</text>
+<rect x="60" y="1511" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1518" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1549" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">资源包与课程内容</text>
+<text x="79" y="1585" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R13 / R14 / R16 / R23 / H01</text>
+<text x="437" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋PackStore</text>
+<text x="817" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-assets＋fml-core</text>
+<text x="1187" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">tools/content/：摄入/审校/签名</text>
+<text x="1577" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">公开包分发；非私有同步</text>
+<rect x="60" y="1640" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1647" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1678" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">云识别与服务治理</text>
+<text x="79" y="1714" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">H02 / R06 / R31</text>
+<text x="437" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">adapters/：云识别适配</text>
+<text x="817" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：候选再校验</text>
+<text x="1187" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：job ID 与会话</text>
+<text x="1577" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：网关/worker/配额/GC</text>
+<rect x="60" y="1769" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1776" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1807" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">双端、预留与工程约束</text>
+<text x="79" y="1843" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R01–R03 / R15 / R17 / R18 / A04</text>
+<text x="437" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">composition/＋平台适配</text>
+<text x="817" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-ffi＋纯核心 C ABI</text>
+<text x="1187" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">性能/测试/签名/迁移恢复</text>
+<text x="1577" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">鸿蒙仅预留；YOLO 独立实验</text>
+<text x="62" y="1956" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#62728a">读法：同一行是同一功能的职责映射，并非每行都会调用后台。完整未来目录、37 项逐条验收引用及后台专属职责见配套 HTML / Markdown。</text>
+</svg>
