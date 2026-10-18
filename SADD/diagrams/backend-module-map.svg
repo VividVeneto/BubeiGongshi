@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="1800" viewBox="0 0 2040 1800" role="img" aria-labelledby="title desc">
+<title id="title">后台能力、数据平面与客户端边界</title><desc id="desc">九组后台或后台配套职责全部待实现；端到端加密同步、云识别临时明文与公开资源分发相互隔离。</desc>
+<rect width="2040" height="1800" fill="#f4f7fb"/>
+<text x="60" y="94" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="52" font-weight="700" fill="#20334e">后台能力映射与数据边界</text>
+<text x="62" y="139" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" fill="#62728a">server/ 为拟建模块化单体 + 受限 worker；B01–B09 是职责标签，不是现存目录。</text>
+<rect x="60" y="168" width="1920" height="72" rx="16" fill="#fff2d7" stroke="#fff2d7" stroke-width="2"/>
+<text x="82" y="214" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#946116">所有后台职责均未实现；云识别并不提供同步 E2EE 的明文保密性。</text>
+<rect x="60" y="276" width="1920" height="150" rx="18" fill="#eaf1fc" stroke="#eaf1fc" stroke-width="2"/>
+<text x="84" y="321" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#205ea3">客户端：presentation/ → application/ → adapters/ + fml-ffi/</text>
+<text x="84" y="372" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">账户门禁 / 逐次图像授权 / E2EE 加解密 / job_id 恢复；本机库密钥与识别历史不上云；候选仍经本地解析、量纲校验和人工确认。</text>
+<rect x="60" y="478" width="520" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="82" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#205ea3">B01  身份与账户绑定</text>
+<text x="82" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">OIDC / PKCE / token 校验</text>
+<text x="82" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">owner 必须来自可信 token</text>
+<text x="82" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">游客不能调用云识别</text>
+<rect x="626" y="478" width="664" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="648" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#205ea3">B02  恢复包装 / 设备 / 删除</text>
+<text x="648" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">仅保存加密包装、参数与版本</text>
+<text x="648" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">原始恢复码、本机密钥不上传</text>
+<text x="648" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">撤销 / epoch / 账户删除与备份清单</text>
+<rect x="1336" y="478" width="644" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1358" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B09  公开资源签名发布</text>
+<text x="1358" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">tools/content/ → 双审 / 签名包</text>
+<text x="1358" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">TUF 元数据 → 公开分发 → fml-assets</text>
+<text x="1358" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">不是私有内容同步或学习数据上传</text>
+<polyline points="310,426 310,466" fill="none" stroke="#205ea3" stroke-width="3"/>
+<polygon points="310.0,466.0 304.2,454.4 315.8,454.4" fill="#205ea3"/>
+<polyline points="950,426 950,466" fill="none" stroke="#205ea3" stroke-width="3"/>
+<polygon points="950.0,466.0 944.2,454.4 955.8,454.4" fill="#205ea3"/>
+<polyline points="1660,478 1660,438" fill="none" stroke="#16726b" stroke-width="3" stroke-dasharray="9 6"/>
+<polygon points="1660.0,438.0 1665.8,449.6 1654.2,449.6" fill="#16726b"/>
+<text x="1680" y="456" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#16726b">公开包下载</text>
+<rect x="60" y="737" width="930" height="515" rx="18" fill="#e9f4f1" stroke="#e9f4f1" stroke-width="2"/>
+<text x="84" y="785" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#16726b">数据平面 A：端到端加密同步</text>
+<rect x="86" y="824" width="400" height="238" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="108" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B03  同步网关</text>
+<text x="108" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">Push / Pull（路由待冻结）</text>
+<text x="108" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">op_id / epoch 去重</text>
+<text x="108" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">server_seq / cursor / ACK</text>
+<text x="108" y="1008" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">拒绝旧 epoch；不解密正文</text>
+<rect x="548" y="824" width="416" height="238" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="570" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">PostgreSQL / 密文事件</text>
+<text x="570" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">版本修订 / 复习事件</text>
+<text x="570" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">加密包装 / 墓碑 / 游标</text>
+<text x="570" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">客户端解密、校验、事务落库</text>
+<text x="570" y="1008" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">不收识别图片 / 本机历史</text>
+<polyline points="489,937 536,937" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="536.0,937.0 524.4,942.8 524.4,931.2" fill="#16726b"/>
+<polyline points="310,680 310,705 73,705 73,801 286,801 286,812" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="286.0,812.0 280.2,800.4 291.8,800.4" fill="#16726b"/>
+<polyline points="950,680 950,705 976,705 976,801 756,801 756,812" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="756.0,812.0 750.2,800.4 761.8,800.4" fill="#16726b"/>
+<text x="87" y="1128" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">客户端保存 outbox 并在持久 ACK 后推进；冲突头与复习重放按契约处理。服务端无</text>
+<text x="87" y="1162" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">法代做私有公式语义校验。</text>
+<rect x="1030" y="737" width="950" height="515" rx="18" fill="#f0ebf8" stroke="#f0ebf8" stroke-width="2"/>
+<text x="1054" y="785" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#6c4a98">数据平面 B：逐次授权云识别</text>
+<rect x="1056" y="824" width="398" height="194" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1078" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B04  识别任务 API</text>
+<text x="1078" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">POST 创建 / GET 查询</text>
+<text x="1078" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">POST cancel；owner 隔离</text>
+<text x="1078" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">图像 hash / 授权 / 预算</text>
+<rect x="1515" y="824" width="439" height="194" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1537" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B05  受限 worker</text>
+<text x="1537" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">任务状态 / 供应商白名单</text>
+<text x="1537" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">供应商密钥仅在服务端</text>
+<text x="1537" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">响应预算；候选视为不可信</text>
+<polyline points="1457,916 1503,916" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1503.0,916.0 1491.4,921.8 1491.4,910.2" fill="#6c4a98"/>
+<polyline points="1980,352 2005,352 2005,708 1968,708 1968,801 1254,801 1254,812" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1254.0,812.0 1248.2,800.4 1259.8,800.4" fill="#6c4a98"/>
+<rect x="1056" y="1060" width="398" height="164" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1078" y="1103" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B06  幂等 / 配额 / 费用</text>
+<text x="1078" y="1148" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">同键换图 409；预留与结算</text>
+<text x="1078" y="1180" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">UNKNOWN 不自动重复付费</text>
+<rect x="1515" y="1060" width="439" height="164" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1537" y="1103" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">外部视觉供应商</text>
+<text x="1537" y="1148" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">授权图像会以明文用于推理</text>
+<text x="1537" y="1180" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">上游留存政策必须另行核实</text>
+<polyline points="1734,1018 1734,1048" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1734.0,1048.0 1728.2,1036.4 1739.8,1036.4" fill="#6c4a98"/>
+<polyline points="1254,1018 1254,1048" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1254.0,1048.0 1248.2,1036.4 1259.8,1036.4" fill="#6c4a98"/>
+<rect x="60" y="1302" width="930" height="214" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="82" y="1345" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B08  服务运维 / 安全 / 备份恢复</text>
+<text x="82" y="1391" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">TLS、限流、参数化查询、容量 / 成本控制、依赖审计</text>
+<text x="82" y="1423" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">PostgreSQL / 受控存储备份与恢复；重放账户删除清单</text>
+<text x="82" y="1455" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">RPO / RTO 为验收目标，不是已完成能力</text>
+<rect x="1030" y="1302" width="950" height="214" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1052" y="1345" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B07  临时图 / 结果 / 费用墓碑清理</text>
+<text x="1052" y="1391" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">终态清图目标 ≤60s；崩溃 TTL ≤1h；结果 ≤24h</text>
+<text x="1052" y="1423" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">最小费用墓碑初始 30 天；媒体正文不进日志 / APM / 备份</text>
+<text x="1052" y="1455" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">本机 N 次保留、网关 TTL 和供应商留存是三个不同边界</text>
+<polyline points="1505,1252 1505,1290" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1505.0,1290.0 1499.2,1278.4 1510.8,1278.4" fill="#6c4a98"/>
+<rect x="60" y="1570" width="1920" height="164" rx="18" fill="#e8edf5" stroke="#e8edf5" stroke-width="2"/>
+<text x="84" y="1614" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#20334e">实现边界</text>
+<text x="84" y="1660" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">后台内部物理子目录、同步 HTTP 路由和部署配置尚未冻结；图示只给出设计职责。公开内容发布为后台配套工作，不要求新增私有微服务；不把现有文档检查脚本当作应用后</text>
+<text x="84" y="1695" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">端。</text>
+</svg>

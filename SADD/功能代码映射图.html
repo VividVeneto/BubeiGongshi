@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BubeiGongshi 预计功能—代码模块映射</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#20334e;font-family:"Microsoft YaHei",system-ui,sans-serif;line-height:1.65}main{max-width:1600px;margin:auto;padding:42px 30px 70px}header{border-bottom:1px solid #dbe3ef;padding-bottom:24px}h1{font-size:clamp(28px,3vw,44px);margin:0 0 8px;letter-spacing:.02em}h2{font-size:27px;margin:0 0 12px}p{margin:10px 0}.meta,small{color:#62728a}.warning{background:#fff2d7;color:#795014;border-left:5px solid #bd8a2e;padding:16px 20px;margin:24px 0;border-radius:8px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.stat{background:white;border:1px solid #dbe3ef;border-radius:12px;padding:18px 22px}.stat b{font-size:36px;display:block;color:#205ea3}.stat span{color:#62728a}nav{display:flex;gap:8px 16px;flex-wrap:wrap;margin:20px 0}a{color:#205ea3;text-underline-offset:3px}section{margin:44px 0}.diagram{margin:18px 0 8px;border:1px solid #dbe3ef;border-radius:12px;background:white;overflow:auto}.diagram svg{display:block;width:100%;height:auto;min-width:960px}.table-scroll{overflow:auto;border:1px solid #dbe3ef;border-radius:10px;background:white;margin:18px 0}table{width:100%;border-collapse:collapse;font-size:14px;min-width:1040px}th,td{text-align:left;vertical-align:top;padding:15px 14px;border-bottom:1px solid #e5ebf3}th{background:#20334e;color:white;white-space:nowrap}tbody tr:nth-child(even){background:#f6f8fc}td:first-child{min-width:165px}td:nth-last-child(2){min-width:230px}td:last-child{min-width:160px}code{font-family:Consolas,monospace;overflow-wrap:anywhere;color:#16726b}.tag{display:inline-block;padding:2px 7px;background:#e9f0fa;color:#205ea3;border-radius:5px;font-size:12px;margin:1px}.pending{display:inline-block;color:#795014;background:#fff2d7;border-radius:5px;padding:2px 6px}label{font-weight:700}input{font:inherit;width:min(100%,720px);display:block;margin-top:10px;padding:12px 16px;border:1px solid #aabbd3;border-radius:8px;background:white}.filterinfo{color:#62728a;font-size:14px}footer{margin-top:40px;border-top:1px solid #dbe3ef;padding-top:20px;color:#62728a}ul{padding-left:24px}li{margin:8px 0}@media(max-width:760px){main{padding:24px 16px}.stats{grid-template-columns:repeat(2,1fr)}.stat{padding:12px 16px}h2{font-size:23px}}@media print{body{background:white}main{max-width:none;padding:0}nav,.filterbar{display:none}.diagram svg{min-width:0}.table-scroll{overflow:visible}table{min-width:0;font-size:9px}th,td{padding:5px}section{break-inside:auto}.stats{grid-template-columns:repeat(4,1fr)}a{color:inherit}}</style>
+</head>
+<body>
+<main>
+<header>
+<h1>预计功能—代码模块映射</h1>
+<p class="meta">BubeiGongshi · 2026-10-18 · main@d1a80e94b90a · 离线、无外部资源</p>
+<p>覆盖原始需求、历史扩展、架构约束，以及没有独立页面的后台职责。v3 优先于历史 v2；目录和接口均区分“设计”与“实现”。</p>
+</header>
+<aside class="warning">
+<strong>当前没有应用或服务端实现。</strong> 预计 apps/flutter/、crates/、server/、tools/content/ 均未落地。文档校验脚本和三条研究样例不是业务后端，也不构成已发布公式库。</aside>
+<div class="stats">
+<div class="stat">
+<b>37</b>
+<span>现行需求逐项覆盖</span>
+</div>
+<div class="stat">
+<b>14</b>
+<span>预计模块 / 职责</span>
+</div>
+<div class="stat">
+<b>9</b>
+<span>后台及配套职责</span>
+</div>
+<div class="stat">
+<b>0</b>
+<span>已实现产品模块</span>
+</div>
+</div>
+<nav aria-label="图表导航">
+<a href="#overview">功能总览图</a>
+<a href="#module-section">模块目录</a>
+<a href="#requirement-section">完整需求</a>
+<a href="#client-section">平台细化</a>
+<a href="#backend-figure">后台图</a>
+<a href="#backend-section">后台清单</a>
+<a href="#legacy-section">历史差异</a>
+<a href="14-功能与代码模块映射-v3.md">Markdown 完整报告</a>
+<a href="resources/feature-code-map.json">JSON 源数据</a>
+</nav>
+<div class="filterbar">
+<label for="query">筛选全部映射表（编号 / 功能 / 模块 / 关键字）</label>
+<input id="query" type="search" placeholder="例如：R22、云识别、STORE、恢复、B07" autocomplete="off">
+<button type="button" id="clear-query">清除筛选</button>
+<p id="match-count" class="filterinfo" aria-live="polite">
+</p>
+</div>
+<section id="overview">
+<h2>功能 → 模块总览</h2>
+<p>每行是一组对应关系；同一功能并非都需要联网。</p>
+<figure class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="2020" viewBox="0 0 2040 2020" role="img" aria-labelledby="feature-module-map-title feature-module-map-desc">
+<title id="feature-module-map-title">预计功能与规划代码模块对应关系</title>
+<desc id="feature-module-map-desc">现行 v3 的十二组功能映射；全部产品模块待实现。目录缩写只代表设计中的未来路径。</desc>
+<rect width="2040" height="2020" fill="#f4f7fb"/>
+<text x="60" y="94" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="52" font-weight="700" fill="#20334e">预计功能 → 规划代码模块</text>
+<text x="62" y="137" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62728a">BubeiGongshi  ·  main@d1a80e94b90a  ·  2026-10-18</text>
+<rect x="60" y="168" width="1920" height="78" rx="16" fill="#fff2d7" stroke="#fff2d7" stroke-width="2"/>
+<text x="82" y="216" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#946116">设计覆盖 ≠ 实现完成：37 项需求均已映射；应用、Rust 核心和服务端源码均未落地。</text>
+<rect x="60" y="278" width="352" height="58" rx="9" fill="#20334e" stroke="#20334e" stroke-width="2"/>
+<text x="77" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">功能 / 需求编号</text>
+<rect x="420" y="278" width="372" height="58" rx="9" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="437" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">客户端层 / 用例入口</text>
+<rect x="800" y="278" width="362" height="58" rx="9" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="817" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">Rust 核心 / 本地服务</text>
+<rect x="1170" y="278" width="382" height="58" rx="9" fill="#16726b" stroke="#16726b" stroke-width="2"/>
+<text x="1187" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">存储 / 包 / 平台支撑</text>
+<rect x="1560" y="278" width="412" height="58" rx="9" fill="#6c4a98" stroke="#6c4a98" stroke-width="2"/>
+<text x="1577" y="314" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="700" fill="#ffffff">后台或边界</text>
+<rect x="60" y="350" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="357" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="388" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">编辑与渲染</text>
+<text x="79" y="424" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R07</text>
+<text x="437" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：latex / ast</text>
+<text x="1187" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-assets：字体与符号</text>
+<text x="1577" y="395" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无必需服务端</text>
+<rect x="60" y="479" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="486" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="517" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">公式库与变量计算</text>
+<text x="79" y="553" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R08 / R09</text>
+<text x="437" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：eval / units</text>
+<text x="1187" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：修订与索引</text>
+<text x="1577" y="524" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">本地即可使用</text>
+<rect x="60" y="608" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="615" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="646" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">量纲、单位与代入</text>
+<text x="79" y="682" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R10–R12 / A01</text>
+<text x="437" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">presentation/＋application/</text>
+<text x="817" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：types / units / ast</text>
+<text x="1187" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：单位版本/推导</text>
+<text x="1577" y="653" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无需服务端；客户端校验</text>
+<rect x="60" y="737" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="744" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="775" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">背诵与复习</text>
+<text x="79" y="811" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R04</text>
+<text x="437" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/：Review</text>
+<text x="817" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：study / FSRS</text>
+<text x="1187" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：卡片/复习事件</text>
+<text x="1577" y="782" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">可选：server 同步密文</text>
+<rect x="60" y="866" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="873" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="904" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">照片与墨迹输入</text>
+<text x="79" y="940" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R24 / R25 / R29 / R30</text>
+<text x="437" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">adapters/：ImageImport</text>
+<text x="817" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-recognition：解码/增强</text>
+<text x="1187" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">Android SAF / Windows 对话框</text>
+<text x="1577" y="911" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">无必需服务端</text>
+<rect x="60" y="995" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1002" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1033" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">本地识别与后端扩展</text>
+<text x="79" y="1069" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R05 / R06</text>
+<text x="437" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋adapters/</text>
+<text x="817" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-recognition＋fml-core</text>
+<text x="1187" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-assets：模型包</text>
+<text x="1577" y="1040" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">云模式须另行授权</text>
+<rect x="60" y="1124" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1131" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1162" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">历史与垃圾回收</text>
+<text x="79" y="1198" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R26–R28 / A02</text>
+<text x="437" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/：串行裁剪</text>
+<text x="817" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store：历史 / cleanup_job</text>
+<text x="1187" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-recognition：临时资产</text>
+<text x="1577" y="1169" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">只在本机；N=0–100，默认5</text>
+<rect x="60" y="1253" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1260" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1291" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">账户、游客与升级</text>
+<text x="79" y="1327" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R19–R22</text>
+<text x="437" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">composition/＋Auth 用例</text>
+<text x="817" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store＋SecureStore 适配</text>
+<text x="1187" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">本机 journal / 平台密钥</text>
+<text x="1577" y="1298" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：账户绑定 / OIDC</text>
+<rect x="60" y="1382" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1389" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1420" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">E2EE 同步与密钥恢复</text>
+<text x="79" y="1456" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R22 / R31 / A03</text>
+<text x="437" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋HTTP 适配</text>
+<text x="817" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-store：outbox / cursor</text>
+<text x="1187" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">客户端加密；本机密钥不上云</text>
+<text x="1577" y="1427" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：密文/ACK/墓碑/epoch</text>
+<rect x="60" y="1511" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1518" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1549" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">资源包与课程内容</text>
+<text x="79" y="1585" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R13 / R14 / R16 / R23 / H01</text>
+<text x="437" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">application/＋PackStore</text>
+<text x="817" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-assets＋fml-core</text>
+<text x="1187" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">tools/content/：摄入/审校/签名</text>
+<text x="1577" y="1556" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">公开包分发；非私有同步</text>
+<rect x="60" y="1640" width="1920" height="123" rx="9" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="1647" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1678" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">云识别与服务治理</text>
+<text x="79" y="1714" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">H02 / R06 / R31</text>
+<text x="437" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">adapters/：云识别适配</text>
+<text x="817" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-core：候选再校验</text>
+<text x="1187" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">fml-store：job ID 与会话</text>
+<text x="1577" y="1685" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">server：网关/worker/配额/GC</text>
+<rect x="60" y="1769" width="1920" height="123" rx="9" fill="#edf2f9" stroke="#edf2f9" stroke-width="2"/>
+<rect x="60" y="1776" width="6" height="109" rx="2" fill="#205ea3" stroke="#205ea3" stroke-width="2"/>
+<text x="79" y="1807" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#20334e">双端、预留与工程约束</text>
+<text x="79" y="1843" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#62728a">R01–R03 / R15 / R17 / R18 / A04</text>
+<text x="437" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">composition/＋平台适配</text>
+<text x="817" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#205ea3">fml-ffi＋纯核心 C ABI</text>
+<text x="1187" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">性能/测试/签名/迁移恢复</text>
+<text x="1577" y="1814" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#6c4a98">鸿蒙仅预留；YOLO 独立实验</text>
+<text x="62" y="1956" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#62728a">读法：同一行是同一功能的职责映射，并非每行都会调用后台。完整未来目录、37 项逐条验收引用及后台专属职责见配套 HTML / Markdown。</text>
+</svg>
+</figure>
+<p>
+<a download href="diagrams/feature-module-map.svg">下载 SVG</a> · <a download href="diagrams/feature-module-map.png">下载 PNG</a>
+</p>
+</section>
+<section id="module-section">
+<h2>规划模块与预计目录</h2>
+<p>11 个未来物理目录来自现行主设计；平台、工程、实验仅列逻辑职责。所有产品模块待实现，避免虚构源码文件。</p>
+<div class="table-scroll">
+<table id="modules">
+<thead>
+<tr>
+<th scope="col">模块</th>
+<th scope="col">预计目录（非现存）</th>
+<th scope="col">职责</th>
+<th scope="col">状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<span class="tag">UI</span>Flutter 页面与 ViewModel</td>
+<td>
+<code>apps/flutter/lib/presentation/</code>
+</td>
+<td>编辑器、公式库、计算/代入、复习、识别、历史、账户、包管理与设置页面</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">APP</span>共享用例与端口</td>
+<td>
+<code>apps/flutter/lib/application/</code>
+</td>
+<td>Import/Edit/Review/Sync 编排；FormulaEngine/StudyEngine/FormulaStore/FormulaView/FormulaRecognizer/PackStore/ImageImport/SecureStore/Auth/Sync</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">ADAPTER</span>FFI/HTTP/模型/平台适配</td>
+<td>
+<code>apps/flutter/lib/adapters/</code>
+</td>
+<td>实现端口；本地/云识别适配、平台文件与密钥、身份和同步 HTTP</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">COMPOSE</span>配置与账户作用域装配</td>
+<td>
+<code>apps/flutter/lib/composition/</code>
+</td>
+<td>启动依赖注入、账户切换、后台任务生命周期；不允许业务内全局找服务</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">CORE</span>纯领域核心</td>
+<td>
+<code>crates/fml-core/</code>
+</td>
+<td>ast / latex / types / units / eval / study；派生关系检查与中文数学语义；无 HTTP/SQLite/文件/Flutter/JNI</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">STORE</span>加密本地存储与恢复</td>
+<td>
+<code>crates/fml-store/</code>
+</td>
+<td>SQLCipher、迁移、仓储、修订/复习、outbox/cursor/tombstone、历史/资产/cleanup_job</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">ASSETS</span>统一资源包加载</td>
+<td>
+<code>crates/fml-assets/</code>
+</td>
+<td>清单、签名/hash、兼容/信任根、防攻击解包、原子激活、回退</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">RECOG</span>图像与识别本地服务</td>
+<td>
+<code>crates/fml-recognition/</code>
+</td>
+<td>受限解码/预处理、真实候选校验、本地 HMER 可选运行时适配；模型不随主包</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">FFI</span>跨语言 ABI 边界</td>
+<td>
+<code>crates/fml-ffi/</code>
+</td>
+<td>DTO/schema、句柄/generation、缓冲所有权、submit/poll/cancel 任务边界、C ABI</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">SERVER</span>模块化单体与识别 worker</td>
+<td>
+<code>server/</code>
+</td>
+<td>账户绑定、同步、识别、配额、审计；PostgreSQL＋受控对象存储；托管 OIDC/身份框架</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">CONTENT</span>离线内容工具链</td>
+<td>
+<code>tools/content/</code>
+</td>
+<td>来源/许可、数据提取、规范化/去重、AST/量纲验证、双人审校、签名打包与清单</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">PLATFORM</span>双端/鸿蒙平台端口</td>
+<td>逻辑职责；目录未冻结</td>
+<td>Android Keystore/SAF/Photo Picker/通知/生命周期；Windows DPAPI/ACL/IFileOpenDialog/DPI/单实例；鸿蒙仅预留</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">QUALITY</span>工程/性能/发布与运维</td>
+<td>逻辑职责；目录未冻结</td>
+<td>错误码/诊断/fixtures、故障注入、真机性能、CI、SemVer/锁工具链/SBOM/签名/恢复演练；具体目录未定</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="tag">EXP</span>YOLO 独立实验范围</td>
+<td>逻辑职责；目录未冻结</td>
+<td>codex/exp-yolo-recognizer 分支；新增实现、权重与运行时依赖不得进入 main，非已交付识别能力</td>
+<td>
+<span class="pending">规划未落地</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="requirement-section">
+<h2>37 项全量需求追踪</h2>
+<p>R01–R31 为原始需求，H01–H02 为历史扩展，A01–A04 为现行架构约束（不是复审缺陷编号）。T-* 是验收引用，不表示测试已通过；里程碑是建议主要落点。</p>
+<div class="table-scroll">
+<table id="requirements">
+<thead>
+<tr>
+<th scope="col">需求</th>
+<th scope="col">预计模块</th>
+<th scope="col">接口面 / 阶段</th>
+<th scope="col">当前状态</th>
+<th scope="col">实现边界 / 待做</th>
+<th scope="col">验收 / 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<strong>R01</strong>
+<br>Windows + Android</td>
+<td>
+<span class="tag">PLATFORM</span> <span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">FFI</span> <span class="tag">CORE</span>
+</td>
+<td>双端客户端<br>M0/M1/M5</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>Windows 11 x64、Android API26+ arm64；相同核心与资源包。</td>
+<td>T-PLATFORM / T-FFI<br>
+<a href="13-需求追踪与验收-v3.md#L17-L17" title="SADD/13-需求追踪与验收-v3.md">13:17–17</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R02</strong>
+<br>鸿蒙接口预留</td>
+<td>
+<span class="tag">FFI</span> <span class="tag">CORE</span> <span class="tag">PLATFORM</span>
+</td>
+<td>接口预留<br>M0</td>
+<td>
+<span class="pending">仅预留，未实现</span>
+</td>
+<td>只冻结平台无关 C ABI 与端口；HarmonyOS NAPI/HUKS 正式适配不在本期交付。</td>
+<td>T-HARMONY<br>
+<a href="13-需求追踪与验收-v3.md#L18-L18" title="SADD/13-需求追踪与验收-v3.md">13:18–18</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R03</strong>
+<br>轻量、低性能开销</td>
+<td>
+<span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">RECOG</span> <span class="tag">STORE</span> <span class="tag">ASSETS</span> <span class="tag">PLATFORM</span>
+</td>
+<td>横切性能<br>M0/M5</td>
+<td>
+<span class="pending">目标未实测</span>
+</td>
+<td>单活动图像任务、分页/LRU、按需模型；体积、P95、内存均是验收预算。</td>
+<td>T-PERF<br>
+<a href="13-需求追踪与验收-v3.md#L19-L19" title="SADD/13-需求追踪与验收-v3.md">13:19–19</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R04</strong>
+<br>强化背诵、参考不背单词流程</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>双端学习<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>回忆→揭示→四级评分→FSRS 排程；固定修订卡片、评分幂等、确定性重放。</td>
+<td>T-STUDY<br>
+<a href="13-需求追踪与验收-v3.md#L20-L20" title="SADD/13-需求追踪与验收-v3.md">13:20–20</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R05</strong>
+<br>手写公式识别</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">RECOG</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>端侧识别<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>墨迹板→本地 HMER 实际候选→人工校正；至少一个可用本地模型才算游客识别完成。</td>
+<td>T-OCR<br>
+<a href="13-需求追踪与验收-v3.md#L21-L21" title="SADD/13-需求追踪与验收-v3.md">13:21–21</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R06</strong>
+<br>预留轻量模型/LLM 识别</td>
+<td>
+<span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">RECOG</span> <span class="tag">ASSETS</span> <span class="tag">SERVER</span>
+</td>
+<td>端侧＋服务端<br>M0/M2/M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>FormulaRecognizer capabilities/取消/版本；本地运行时二选一；云端逐次授权、不自动降级上传。</td>
+<td>T-PLUGIN / T-OCR / T-CLOUD<br>
+<a href="13-需求追踪与验收-v3.md#L22-L22" title="SADD/13-需求追踪与验收-v3.md">13:22–22</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R07</strong>
+<br>公式编辑器、ISO 字符和 LaTeX</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">CORE</span> <span class="tag">ASSETS</span>
+</td>
+<td>双端编辑<br>M0/M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>Unicode/LaTeX 子集、模板、撤销重做、错误定位、FormulaView 与语义朗读；不承诺文本双射或任意 WYSIWYG。</td>
+<td>T-EDIT<br>
+<a href="13-需求追踪与验收-v3.md#L23-L23" title="SADD/13-需求追踪与验收-v3.md">13:23–23</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R08</strong>
+<br>公式库查看检索</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span> <span class="tag">ASSETS</span>
+</td>
+<td>双端公式库<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>名称/课程/标签/来源/量纲筛选；预置只读、用户修订、分页和跨账户缓存隔离。</td>
+<td>T-LIB<br>
+<a href="13-需求追踪与验收-v3.md#L24-L24" title="SADD/13-需求追踪与验收-v3.md">13:24–24</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R09</strong>
+<br>查看时变量赋值计算</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>端侧计算<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>详情赋值、单位换算、基础向量/函数求值；复杂 CAS/任意符号积分不在 V1。</td>
+<td>T-CALC<br>
+<a href="13-需求追踪与验收-v3.md#L25-L25" title="SADD/13-需求追踪与验收-v3.md">13:25–25</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R10</strong>
+<br>每式严格匹配量纲</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>端侧语义校验<br>M0/M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>SI 七维有理指数＋数学形状＋QuantityKind＋条件；Draft/Unresolved/Invalid/Verified 明确分离。</td>
+<td>T-DIM<br>
+<a href="13-需求追踪与验收-v3.md#L26-L26" title="SADD/13-需求追踪与验收-v3.md">13:26–26</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R11</strong>
+<br>录入时调整、后期自定义量纲</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>端侧单位管理<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>录入及后续编辑；命名空间/版本化、循环检查、温度点与温差、受影响修订重新校验。</td>
+<td>T-DIM / T-UNIT<br>
+<a href="13-需求追踪与验收-v3.md#L27-L27" title="SADD/13-需求追踪与验收-v3.md">13:27–27</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R12</strong>
+<br>同量纲部分作为变量代入</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>端侧推导<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>按 AST 子式选择与显式输出绑定；变量映射、alpha-renaming、条件/分支继承、无环与预算检查。</td>
+<td>T-SUB<br>
+<a href="13-需求追踪与验收-v3.md#L28-L28" title="SADD/13-需求追踪与验收-v3.md">13:28–28</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R13</strong>
+<br>同济高数到考研数学全部范围</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ASSETS</span> <span class="tag">CORE</span> <span class="tag">CONTENT</span>
+</td>
+<td>内容工程＋客户端<br>M4</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>高数＋线性代数＋概率统计；数一/数二/数三并集，教材版本和考试年份待冻结。</td>
+<td>T-CONTENT<br>
+<a href="13-需求追踪与验收-v3.md#L29-L29" title="SADD/13-需求追踪与验收-v3.md">13:29–29</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R14</strong>
+<br>大学物理</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ASSETS</span> <span class="tag">CORE</span> <span class="tag">CONTENT</span>
+</td>
+<td>内容工程＋客户端<br>M4</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>大学物理课程、适用条件、SI/符号约定；三条研究样例不构成课程库。</td>
+<td>T-CONTENT<br>
+<a href="13-需求追踪与验收-v3.md#L30-L30" title="SADD/13-需求追踪与验收-v3.md">13:30–30</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R15</strong>
+<br>高维护性、易读易排错、可靠注释</td>
+<td>
+<span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span> <span class="tag">SERVER</span> <span class="tag">FFI</span> <span class="tag">QUALITY</span>
+</td>
+<td>横切工程<br>M0–M5</td>
+<td>
+<span class="pending">规范已有，应用待实现</span>
+</td>
+<td>统一错误码、公开契约注释、ADR、脱敏复现；已有文档检查不等于应用质量测试。</td>
+<td>T-MAINT<br>
+<a href="13-需求追踪与验收-v3.md#L31-L31" title="SADD/13-需求追踪与验收-v3.md">13:31–31</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R16</strong>
+<br>搜寻开源公式库并尝试获取</td>
+<td>
+<span class="tag">CONTENT</span> <span class="tag">ASSETS</span> <span class="tag">CORE</span>
+</td>
+<td>内容工程<br>M4</td>
+<td>
+<span class="pending">研究样例已有，工具链未实现</span>
+</td>
+<td>已取得三条 Open_Physics 样例＋来源快照＋许可；摄入自动化、AST 编译、双审与生产打包未完成。</td>
+<td>T-SOURCE<br>
+<a href="13-需求追踪与验收-v3.md#L32-L32" title="SADD/13-需求追踪与验收-v3.md">13:32–32</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R17</strong>
+<br>YOLO 预案不写主分支</td>
+<td>
+<span class="tag">EXP</span> <span class="tag">RECOG</span> <span class="tag">QUALITY</span>
+</td>
+<td>独立实验分支<br>独立实验</td>
+<td>
+<span class="pending">预案分支已有，模型未实现</span>
+</td>
+<td>codex/exp-yolo-recognizer 分支存在；本次未检出/审计其详细内容；main 无新增 YOLO 实现/权重/依赖。</td>
+<td>T-EXP<br>
+<a href="13-需求追踪与验收-v3.md#L33-L33" title="SADD/13-需求追踪与验收-v3.md">13:33–33</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R18</strong>
+<br>简洁可靠版本控制</td>
+<td>
+<span class="tag">QUALITY</span> <span class="tag">FFI</span> <span class="tag">ASSETS</span> <span class="tag">STORE</span> <span class="tag">CONTENT</span>
+</td>
+<td>横切发布<br>M0/M5</td>
+<td>
+<span class="pending">规范已有，应用待实现</span>
+</td>
+<td>SemVer/ABI/AST/DB/包/模型版本矩阵、tag、锁工具链、SBOM、签名与迁移恢复；无应用 CI。</td>
+<td>T-RELEASE<br>
+<a href="13-需求追踪与验收-v3.md#L34-L34" title="SADD/13-需求追踪与验收-v3.md">13:34–34</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R19</strong>
+<br>不登录不能用</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">COMPOSE</span> <span class="tag">ADAPTER</span> <span class="tag">STORE</span> <span class="tag">SERVER</span>
+</td>
+<td>客户端＋身份服务<br>M1/M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>无身份不进核心；游客身份有效；注册退出锁库，离线解锁与云认证分开。</td>
+<td>T-ACCOUNT<br>
+<a href="13-需求追踪与验收-v3.md#L35-L35" title="SADD/13-需求追踪与验收-v3.md">13:35–35</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R20</strong>
+<br>未注册可游客、临时本地账户</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">ADAPTER</span>
+</td>
+<td>客户端本地账户<br>M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>游客数据持续本地保留，退出不自动清除；与注册账户独立加密库/目录。</td>
+<td>T-ACCOUNT<br>
+<a href="13-需求追踪与验收-v3.md#L36-L36" title="SADD/13-需求追踪与验收-v3.md">13:36–36</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R21</strong>
+<br>游客不向云端提交内容</td>
+<td>
+<span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">SERVER</span>
+</td>
+<td>客户端＋网关门禁<br>M1/M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>游客禁止上传公式/图片/偏好/诊断；主动下载公开包不附带学习数据；云识别网关拒绝游客。</td>
+<td>T-PRIVACY<br>
+<a href="13-需求追踪与验收-v3.md#L37-L37" title="SADD/13-需求追踪与验收-v3.md">13:37–37</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R22</strong>
+<br>本地保存、转注册后可同步</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">SERVER</span>
+</td>
+<td>端侧＋服务端<br>M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>upgrade journal 幂等升级/关联已有账户；独立同步授权、客户端 E2EE、outbox/ACK/游标原子提交。</td>
+<td>T-UPGRADE / T-KEY / T-SYNC<br>
+<a href="13-需求追踪与验收-v3.md#L38-L38" title="SADD/13-需求追踪与验收-v3.md">13:38–38</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R23</strong>
+<br>静态资源剥离、通用资源包加载</td>
+<td>
+<span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">ASSETS</span> <span class="tag">STORE</span> <span class="tag">CONTENT</span>
+</td>
+<td>端侧＋资源发布<br>M0/M1/M4</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>bootstrap/课程/字体/模型通用包；验签后解包、TUF 元数据、防降级、原子激活与良好版本回退。</td>
+<td>T-PACK<br>
+<a href="13-需求追踪与验收-v3.md#L39-L39" title="SADD/13-需求追踪与验收-v3.md">13:39–39</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R24</strong>
+<br>照片手写公式识别并入统一识别</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>双端照片识别<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>照片与墨迹共用输入资产/预览/识别/候选校验/入库管线，不仅接受笔画。</td>
+<td>T-OCR / T-IMAGE<br>
+<a href="13-需求追踪与验收-v3.md#L40-L40" title="SADD/13-需求追踪与验收-v3.md">13:40–40</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R25</strong>
+<br>去噪与图像增强</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">RECOG</span>
+</td>
+<td>端侧图像处理<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>EXIF/降采样/裁剪、去噪、光照归一、透视校正、可选二值化；灰度/增强对照。</td>
+<td>T-IMAGE<br>
+<a href="13-需求追踪与验收-v3.md#L41-L41" title="SADD/13-需求追踪与验收-v3.md">13:41–41</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R26</strong>
+<br>识别后保留最近记录</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">STORE</span> <span class="tag">RECOG</span> <span class="tag">ADAPTER</span>
+</td>
+<td>本机后台清理<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>按开始序号统一终态历史；事务标记 DELETING＋独立 cleanup_job，幂等文件回收与启动对账。</td>
+<td>T-GC<br>
+<a href="13-需求追踪与验收-v3.md#L42-L42" title="SADD/13-需求追踪与验收-v3.md">13:42–42</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R27</strong>
+<br>保留范围 0–100、默认 5</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">STORE</span>
+</td>
+<td>本机设置/存储<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>keep_last 整数 0–100、默认 5；UI/用例/数据库约束，无 Pin/Adopted 豁免。</td>
+<td>T-GC<br>
+<a href="13-需求追踪与验收-v3.md#L43-L43" title="SADD/13-需求追踪与验收-v3.md">13:43–43</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R28</strong>
+<br>历史含输入图片与结果</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">STORE</span> <span class="tag">RECOG</span>
+</td>
+<td>本机历史资产<br>M2</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>保存确认输入图、实际云提交图、候选/校正/诊断/版本；不进入私有同步，另存附件生命周期独立。</td>
+<td>T-GC / T-IMAGE<br>
+<a href="13-需求追踪与验收-v3.md#L44-L44" title="SADD/13-需求追踪与验收-v3.md">13:44–44</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R29</strong>
+<br>桌面文件管理器选照片</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span>
+</td>
+<td>Windows 平台<br>M2/M5</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>IFileOpenDialog 必需；原文件只读、路径不拼 shell；拖拽/剪贴板为可选入口。</td>
+<td>T-PLATFORM<br>
+<a href="13-需求追踪与验收-v3.md#L45-L45" title="SADD/13-需求追踪与验收-v3.md">13:45–45</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R30</strong>
+<br>安卓文件管理器选照片</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span>
+</td>
+<td>Android 平台<br>M2/M5</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>SAF ACTION_OPEN_DOCUMENT 必需，Photo Picker 可用；ContentResolver 复制受限私有副本并释放 URI 权限。</td>
+<td>T-PLATFORM<br>
+<a href="13-需求追踪与验收-v3.md#L46-L46" title="SADD/13-需求追踪与验收-v3.md">13:46–46</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>R31</strong>
+<br>成熟可靠、无重大安全问题</td>
+<td>
+<span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span> <span class="tag">RECOG</span> <span class="tag">ASSETS</span> <span class="tag">ADAPTER</span> <span class="tag">SERVER</span> <span class="tag">QUALITY</span>
+</td>
+<td>全链路安全<br>M0–M5</td>
+<td>
+<span class="pending">未实现，未安全验收</span>
+</td>
+<td>不可信输入、跨账户越权、AEAD/KDF、包安全、供应链、隐私/恢复演练；不宣称无漏洞。</td>
+<td>T-SECURITY / T-KEY / T-PACK<br>
+<a href="13-需求追踪与验收-v3.md#L47-L47" title="SADD/13-需求追踪与验收-v3.md">13:47–47</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>H01</strong>
+<br>仓库记录的高中数学/物理内容</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ASSETS</span> <span class="tag">CORE</span> <span class="tag">CONTENT</span>
+</td>
+<td>历史内容扩展<br>M4</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>高中数学/物理独立分包；依据仓库历史记录，不冒充本次原文且不替代大学课程。</td>
+<td>T-CONTENT<br>
+<a href="13-需求追踪与验收-v3.md#L48-L48" title="SADD/13-需求追踪与验收-v3.md">13:48–48</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>H02</strong>
+<br>仓库记录的首版云端 API LLM</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">RECOG</span> <span class="tag">CORE</span> <span class="tag">STORE</span> <span class="tag">SERVER</span>
+</td>
+<td>端侧＋云后端<br>M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>首版云端视觉模型经自有网关；逐次授权、作业幂等、UNKNOWN 不自动重复付费、临时图清理。</td>
+<td>T-CLOUD<br>
+<a href="13-需求追踪与验收-v3.md#L49-L49" title="SADD/13-需求追踪与验收-v3.md">13:49–49</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>A01</strong>
+<br>未知量纲不冒充校验通过</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">CORE</span> <span class="tag">STORE</span>
+</td>
+<td>必要架构约束<br>M0/M1</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>未知量纲不能标 Verified；不能通过显示单位或经验标签绕过语义错误。</td>
+<td>T-DIM<br>
+<a href="13-需求追踪与验收-v3.md#L50-L50" title="SADD/13-需求追踪与验收-v3.md">13:50–50</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>A02</strong>
+<br>不承诺闪存单项绝对擦除</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">STORE</span> <span class="tag">RECOG</span> <span class="tag">ADAPTER</span> <span class="tag">SERVER</span>
+</td>
+<td>必要架构约束<br>M2/M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>GC 只承诺逻辑不可访问和受控副本尽力清理；不承诺闪存/备份/供应商副本绝对擦除。</td>
+<td>T-GC / T-PRIVACY<br>
+<a href="13-需求追踪与验收-v3.md#L51-L51" title="SADD/13-需求追踪与验收-v3.md">13:51–51</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>A03</strong>
+<br>新设备可恢复且本机密钥不上云</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">STORE</span> <span class="tag">SERVER</span>
+</td>
+<td>必要架构约束<br>M0/M3</td>
+<td>
+<span class="pending">未实现</span>
+</td>
+<td>本机库/历史密钥不上云；独立同步密语或恢复码均可解锁账户根密钥，新设备生成独立库密钥。</td>
+<td>T-KEY<br>
+<a href="13-需求追踪与验收-v3.md#L52-L52" title="SADD/13-需求追踪与验收-v3.md">13:52–52</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>A04</strong>
+<br>实现前验证渲染/模型/密钥等风险</td>
+<td>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">FFI</span> <span class="tag">CORE</span> <span class="tag">RECOG</span> <span class="tag">ASSETS</span> <span class="tag">ADAPTER</span> <span class="tag">QUALITY</span>
+</td>
+<td>工程原型门槛<br>M0</td>
+<td>
+<span class="pending">待原型验证</span>
+</td>
+<td>绑定/渲染/模型/密钥/GC/包攻击等先做真实原型；当前没有 Rust/Flutter/真机测试证据。</td>
+<td>T-PLUGIN / T-FFI / T-KEY<br>
+<a href="13-需求追踪与验收-v3.md#L53-L53" title="SADD/13-需求追踪与验收-v3.md">13:53–53</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="client-section">
+<h2>平台和客户端细化职责</h2>
+<p>全部待实现。v2 章节只补充未冲突细节；可选增强不升级为当前必须能力。</p>
+<div class="table-scroll">
+<table id="client">
+<thead>
+<tr>
+<th scope="col">子功能</th>
+<th scope="col">需求 / 模块</th>
+<th scope="col">待实现职责</th>
+<th scope="col">边界 / 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<strong>D01</strong> Android 相册与文件管理器</td>
+<td>R24 / R30<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span>
+</td>
+<td>SAF ACTION_OPEN_DOCUMENT 必需；Photo Picker 可用。ContentResolver 有界流式复制到私有工作区，不在 Dart 解码全图；源文件只读。</td>
+<td>v3 必需入口；云盘来源访问不等于向应用云端上传。<br>
+<a href="10-软件架构设计-v3.md#L199-L213" title="SADD/10-软件架构设计-v3.md">10:199–213</a> / <a href="03-Android端实现规范-v2.md#L88-L117" title="SADD/03-Android端实现规范-v2.md">03:88–117</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D02</strong> Android 拍照与质量提示</td>
+<td>R24 / R25<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span>
+</td>
+<td>拍照进入统一导入/裁剪/增强/确认流程；按需 CAMERA 权限、后台释放相机、拒绝可走 SAF；模糊/阴影/曝光提示。</td>
+<td>平台细化参考；CameraX 或系统 Intent 待实现选型，不是冻结依赖。<br>
+<a href="10-软件架构设计-v3.md#L199-L218" title="SADD/10-软件架构设计-v3.md">10:199–218</a> / <a href="03-Android端实现规范-v2.md#L119-L142" title="SADD/03-Android端实现规范-v2.md">03:119–142</a> / <a href="03-Android端实现规范-v2.md#L71-L86" title="SADD/03-Android端实现规范-v2.md">03:71–86</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D03</strong> Windows 文件选择与可选入口</td>
+<td>R24 / R29<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span>
+</td>
+<td>IFileOpenDialog 为必需；有界读取、预览裁剪、临时文件清理且不删原图。拖拽、显式剪贴板、扫描增强单列可选，不常驻监视剪贴板。</td>
+<td>v3 降低了 v2 对拖拽/剪贴板的强制程度。<br>
+<a href="10-软件架构设计-v3.md#L201-L213" title="SADD/10-软件架构设计-v3.md">10:201–213</a> / <a href="04-Windows桌面端实现规范-v2.md#L72-L119" title="SADD/04-Windows桌面端实现规范-v2.md">04:72–119</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D04</strong> 双端墨迹板、触控笔与规范图</td>
+<td>R05 / R24<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">RECOG</span> <span class="tag">STORE</span>
+</td>
+<td>两端均提供墨迹板；归一化笔画或受限本地位图进入同一 FormulaRecognizer。平台采样、重采样、压力/防误触与草稿恢复需实现。</td>
+<td>v3 明确双端墨迹；旧采样率参数是参考目标，不是已实测。<br>
+<a href="10-软件架构设计-v3.md#L199-L228" title="SADD/10-软件架构设计-v3.md">10:199–228</a> / <a href="03-Android端实现规范-v2.md#L186-L204" title="SADD/03-Android端实现规范-v2.md">03:186–204</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D05</strong> 编辑、渲染、快捷键与无障碍</td>
+<td>R07 / R08<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">CORE</span> <span class="tag">ASSETS</span> <span class="tag">PLATFORM</span>
+</td>
+<td>Unicode/LaTeX 源码、模板、符号面板、撤销重做、IME、错误定位；FormulaView 成熟库渲染；AST 中文语义朗读与可访问标签。</td>
+<td>不自研字形布局，不承诺任意 WYSIWYG 或精确 DisplayList 命中。桌面快捷键/DPI 与触屏布局需落地。<br>
+<a href="10-软件架构设计-v3.md#L181-L195" title="SADD/10-软件架构设计-v3.md">10:181–195</a> / <a href="03-Android端实现规范-v2.md#L206-L216" title="SADD/03-Android端实现规范-v2.md">03:206–216</a> / <a href="04-Windows桌面端实现规范-v2.md#L161-L207" title="SADD/04-Windows桌面端实现规范-v2.md">04:161–207</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D06</strong> 草稿、复习、任务与进程恢复</td>
+<td>R01 / R04 / R05 / R15 / H02<br>
+<span class="tag">APP</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">FFI</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span>
+</td>
+<td>编辑草稿 500ms 防抖、评分立即事务；导入队列/墨迹与 job_id 可恢复；重启先账户作用域和 GC，再查询云任务，不自动重新付费；无常驻服务。</td>
+<td>worker 执行解码/推理/迁移；取消确认并释放后才销毁句柄。Windows 单实例写库。<br>
+<a href="10-软件架构设计-v3.md#L278-L285" title="SADD/10-软件架构设计-v3.md">10:278–285</a> / <a href="10-软件架构设计-v3.md#L99-L105" title="SADD/10-软件架构设计-v3.md">10:99–105</a> / <a href="03-Android端实现规范-v2.md#L173-L184" title="SADD/03-Android端实现规范-v2.md">03:173–184</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D07</strong> 本地提醒与权限自检</td>
+<td>R01 / R04<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">STORE</span>
+</td>
+<td>本地学习提醒不泄露公式；通知拒绝不阻断学习。平台通知调度与设置自检待实现，不以精确闹钟或后台常驻为前提。</td>
+<td>v3 当前最低约束；v2 自启/厂商表/Toast 为参考增强，不自动视为首版必须。<br>
+<a href="10-软件架构设计-v3.md#L278-L280" title="SADD/10-软件架构设计-v3.md">10:278–280</a> / <a href="04-Windows桌面端实现规范-v2.md#L209-L219" title="SADD/04-Windows桌面端实现规范-v2.md">04:209–219</a> / <a href="03-Android端实现规范-v2.md#L218-L232" title="SADD/03-Android端实现规范-v2.md">03:218–232</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D08</strong> 私有存储、系统密钥和备份排除</td>
+<td>R19–R22 / R31 / A03<br>
+<span class="tag">APP</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span>
+</td>
+<td>每账户加密库、目录与私有 ACL；Android Keystore/noBackup，并排除敏感系统备份及 D2D；Windows 使用当前用户 DPAPI，历史不放漫游目录，不能保证排除用户控制的系统/第三方备份；DPAPI 不等于 Hello。</td>
+<td>本机生物解锁不替代账户恢复，本机库/历史密钥不上传。<br>
+<a href="10-软件架构设计-v3.md#L276-L277" title="SADD/10-软件架构设计-v3.md">10:276–277</a> / <a href="04-Windows桌面端实现规范-v2.md#L121-L159" title="SADD/04-Windows桌面端实现规范-v2.md">04:121–159</a> / <a href="11-数据安全同步与识别生命周期-v3.md#L55-L75" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:55–75</a> / <a href="03-Android端实现规范-v2.md#L144-L171" title="SADD/03-Android端实现规范-v2.md">03:144–171</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D09</strong> 游客升级、恢复、导出及删除</td>
+<td>R20 / R22 / A03 / R31<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">COMPOSE</span> <span class="tag">STORE</span> <span class="tag">ADAPTER</span> <span class="tag">SERVER</span>
+</td>
+<td>升级 journal 可重入、已有账户根密钥不覆盖；另行授权开启同步。密语/恢复码并列包装；新设备生成独立本机库密钥。默认加密导出仅公式/复习/单位，不带识别历史和工作图。</td>
+<td>登录密码不等于同步密语；没有恢复凭据无法恢复。账户删除期限为设计目标，离线设备副本不能远程抹除。<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L55-L102" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:55–102</a> / <a href="11-数据安全同步与识别生命周期-v3.md#L130-L134" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:130–134</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D10</strong> Android 原生构建和渠道分发</td>
+<td>R01 / R03 / R18 / R31<br>
+<span class="tag">UI</span> <span class="tag">FFI</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">QUALITY</span>
+</td>
+<td>Android API26+ arm64；AAB/APK 原生库、NDK/页大小、R8 后 FFI、SQLCipher/推理库兼容需渠道验收；模型通过包安装，不塞主包。</td>
+<td>Gradle/Cargo 接法、库名及签名发布 CI 都未落地，编译成功不是完整验收。<br>
+<a href="10-软件架构设计-v3.md#L272-L283" title="SADD/10-软件架构设计-v3.md">10:272–283</a> / <a href="03-Android端实现规范-v2.md#L50-L69" title="SADD/03-Android端实现规范-v2.md">03:50–69</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D11</strong> Windows 安装、应用升级和卸载</td>
+<td>R01 / R18 / R31<br>
+<span class="tag">APP</span> <span class="tag">STORE</span> <span class="tag">ASSETS</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span> <span class="tag">QUALITY</span>
+</td>
+<td>Win11 x64 主基线；每用户签名安装器、DLL 绝对安全加载、不覆盖已加载 DLL。升级前备份并迁移、失败可恢复，卸载提供保留/导出/删除选择。</td>
+<td>Win10 22H2 仅在适用维护条件下另测；安装器工具候选和可选自启/MSIX 尚未冻结。<br>
+<a href="10-软件架构设计-v3.md#L274-L285" title="SADD/10-软件架构设计-v3.md">10:274–285</a> / <a href="04-Windows桌面端实现规范-v2.md#L221-L232" title="SADD/04-Windows桌面端实现规范-v2.md">04:221–232</a> / <a href="04-Windows桌面端实现规范-v2.md#L47-L70" title="SADD/04-Windows桌面端实现规范-v2.md">04:47–70</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D12</strong> 资源在线/离线安装和回滚</td>
+<td>R13 / R14 / R16 / R23 / H01<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">ASSETS</span> <span class="tag">STORE</span> <span class="tag">CONTENT</span> <span class="tag">QUALITY</span>
+</td>
+<td>bootstrap 离线启动；课程/模型/字体统一清单、签名/hash/兼容/来源；先验签后解包，版本只读目录和 active.json 原子激活，Windows 占用延后清理。</td>
+<td>TUF 角色、信任根轮换和 security epoch 受控回退均待实现；包通用不等于 native 二进制通用。<br>
+<a href="12-资源包内容与开源资源调查-v3.md#L9-L67" title="SADD/12-资源包内容与开源资源调查-v3.md">12:9–67</a> / <a href="03-Android端实现规范-v2.md#L257-L261" title="SADD/03-Android端实现规范-v2.md">03:257–261</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D13</strong> 云识别预览、授权和恢复</td>
+<td>R06 / R21 / H02 / R31<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span> <span class="tag">STORE</span> <span class="tag">RECOG</span> <span class="tag">CORE</span> <span class="tag">SERVER</span>
+</td>
+<td>逐次确认实际 image hash/模型/供应商/政策版本；游客禁用；供应商 key 不落端。持久化 job_id，启动先查询，UNKNOWN 不自动重付费；云推理明文不属于同步 E2EE。</td>
+<td>网关与受限 worker 详见 B04–B07；客户端仍需解析/量纲校验与人工确认。<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L173-L201" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:173–201</a> / <a href="03-Android端实现规范-v2.md#L234-L255" title="SADD/03-Android端实现规范-v2.md">03:234–255</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>D14</strong> 识别历史、保留设置和独立附件</td>
+<td>R26–R28 / A02<br>
+<span class="tag">UI</span> <span class="tag">APP</span> <span class="tag">STORE</span> <span class="tag">RECOG</span> <span class="tag">ADAPTER</span> <span class="tag">PLATFORM</span>
+</td>
+<td>按识别开始序号保留最近 N 次全部终态，N=0–100 默认5，无固定项豁免。DB 标记 DELETING/cleanup_job 后异步幂等删受控文件，重启对账；显式附件生命周期独立。</td>
+<td>N=0 终态只内存展示但在途需要 staging；不删用户原图，不宣称闪存绝对擦除，不把本机 N 当云 TTL。<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L136-L169" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:136–169</a> / <a href="04-Windows桌面端实现规范-v2.md#L264-L270" title="SADD/04-Windows桌面端实现规范-v2.md">04:264–270</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="backend-figure">
+<h2>后台职责与数据边界</h2>
+<p>所有后台能力均未实现。E2EE 同步、临时明文推理和公开包分发分开理解。</p>
+<figure class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="1800" viewBox="0 0 2040 1800" role="img" aria-labelledby="backend-module-map-title backend-module-map-desc">
+<title id="backend-module-map-title">后台能力、数据平面与客户端边界</title>
+<desc id="backend-module-map-desc">九组后台或后台配套职责全部待实现；端到端加密同步、云识别临时明文与公开资源分发相互隔离。</desc>
+<rect width="2040" height="1800" fill="#f4f7fb"/>
+<text x="60" y="94" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="52" font-weight="700" fill="#20334e">后台能力映射与数据边界</text>
+<text x="62" y="139" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" fill="#62728a">server/ 为拟建模块化单体 + 受限 worker；B01–B09 是职责标签，不是现存目录。</text>
+<rect x="60" y="168" width="1920" height="72" rx="16" fill="#fff2d7" stroke="#fff2d7" stroke-width="2"/>
+<text x="82" y="214" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#946116">所有后台职责均未实现；云识别并不提供同步 E2EE 的明文保密性。</text>
+<rect x="60" y="276" width="1920" height="150" rx="18" fill="#eaf1fc" stroke="#eaf1fc" stroke-width="2"/>
+<text x="84" y="321" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#205ea3">客户端：presentation/ → application/ → adapters/ + fml-ffi/</text>
+<text x="84" y="372" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">账户门禁 / 逐次图像授权 / E2EE 加解密 / job_id 恢复；本机库密钥与识别历史不上云；候选仍经本地解析、量纲校验和人工确认。</text>
+<rect x="60" y="478" width="520" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="82" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#205ea3">B01  身份与账户绑定</text>
+<text x="82" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">OIDC / PKCE / token 校验</text>
+<text x="82" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">owner 必须来自可信 token</text>
+<text x="82" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">游客不能调用云识别</text>
+<rect x="626" y="478" width="664" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="648" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#205ea3">B02  恢复包装 / 设备 / 删除</text>
+<text x="648" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">仅保存加密包装、参数与版本</text>
+<text x="648" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">原始恢复码、本机密钥不上传</text>
+<text x="648" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">撤销 / epoch / 账户删除与备份清单</text>
+<rect x="1336" y="478" width="644" height="202" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1358" y="521" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B09  公开资源签名发布</text>
+<text x="1358" y="567" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">tools/content/ → 双审 / 签名包</text>
+<text x="1358" y="599" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">TUF 元数据 → 公开分发 → fml-assets</text>
+<text x="1358" y="631" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">不是私有内容同步或学习数据上传</text>
+<polyline points="310,426 310,466" fill="none" stroke="#205ea3" stroke-width="3"/>
+<polygon points="310.0,466.0 304.2,454.4 315.8,454.4" fill="#205ea3"/>
+<polyline points="950,426 950,466" fill="none" stroke="#205ea3" stroke-width="3"/>
+<polygon points="950.0,466.0 944.2,454.4 955.8,454.4" fill="#205ea3"/>
+<polyline points="1660,478 1660,438" fill="none" stroke="#16726b" stroke-width="3" stroke-dasharray="9 6"/>
+<polygon points="1660.0,438.0 1665.8,449.6 1654.2,449.6" fill="#16726b"/>
+<text x="1680" y="456" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#16726b">公开包下载</text>
+<rect x="60" y="737" width="930" height="515" rx="18" fill="#e9f4f1" stroke="#e9f4f1" stroke-width="2"/>
+<text x="84" y="785" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#16726b">数据平面 A：端到端加密同步</text>
+<rect x="86" y="824" width="400" height="238" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="108" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B03  同步网关</text>
+<text x="108" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">Push / Pull（路由待冻结）</text>
+<text x="108" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">op_id / epoch 去重</text>
+<text x="108" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">server_seq / cursor / ACK</text>
+<text x="108" y="1008" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">拒绝旧 epoch；不解密正文</text>
+<rect x="548" y="824" width="416" height="238" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="570" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">PostgreSQL / 密文事件</text>
+<text x="570" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">版本修订 / 复习事件</text>
+<text x="570" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">加密包装 / 墓碑 / 游标</text>
+<text x="570" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">客户端解密、校验、事务落库</text>
+<text x="570" y="1008" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">不收识别图片 / 本机历史</text>
+<polyline points="489,937 536,937" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="536.0,937.0 524.4,942.8 524.4,931.2" fill="#16726b"/>
+<polyline points="310,680 310,705 73,705 73,801 286,801 286,812" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="286.0,812.0 280.2,800.4 291.8,800.4" fill="#16726b"/>
+<polyline points="950,680 950,705 976,705 976,801 756,801 756,812" fill="none" stroke="#16726b" stroke-width="3"/>
+<polygon points="756.0,812.0 750.2,800.4 761.8,800.4" fill="#16726b"/>
+<text x="87" y="1128" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">客户端保存 outbox 并在持久 ACK 后推进；冲突头与复习重放按契约处理。服务端无</text>
+<text x="87" y="1162" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#16726b">法代做私有公式语义校验。</text>
+<rect x="1030" y="737" width="950" height="515" rx="18" fill="#f0ebf8" stroke="#f0ebf8" stroke-width="2"/>
+<text x="1054" y="785" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#6c4a98">数据平面 B：逐次授权云识别</text>
+<rect x="1056" y="824" width="398" height="194" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1078" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B04  识别任务 API</text>
+<text x="1078" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">POST 创建 / GET 查询</text>
+<text x="1078" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">POST cancel；owner 隔离</text>
+<text x="1078" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">图像 hash / 授权 / 预算</text>
+<rect x="1515" y="824" width="439" height="194" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1537" y="867" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B05  受限 worker</text>
+<text x="1537" y="912" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">任务状态 / 供应商白名单</text>
+<text x="1537" y="944" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">供应商密钥仅在服务端</text>
+<text x="1537" y="976" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">响应预算；候选视为不可信</text>
+<polyline points="1457,916 1503,916" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1503.0,916.0 1491.4,921.8 1491.4,910.2" fill="#6c4a98"/>
+<polyline points="1980,352 2005,352 2005,708 1968,708 1968,801 1254,801 1254,812" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1254.0,812.0 1248.2,800.4 1259.8,800.4" fill="#6c4a98"/>
+<rect x="1056" y="1060" width="398" height="164" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1078" y="1103" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B06  幂等 / 配额 / 费用</text>
+<text x="1078" y="1148" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">同键换图 409；预留与结算</text>
+<text x="1078" y="1180" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">UNKNOWN 不自动重复付费</text>
+<rect x="1515" y="1060" width="439" height="164" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1537" y="1103" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">外部视觉供应商</text>
+<text x="1537" y="1148" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">授权图像会以明文用于推理</text>
+<text x="1537" y="1180" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#20334e">上游留存政策必须另行核实</text>
+<polyline points="1734,1018 1734,1048" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1734.0,1048.0 1728.2,1036.4 1739.8,1036.4" fill="#6c4a98"/>
+<polyline points="1254,1018 1254,1048" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1254.0,1048.0 1248.2,1036.4 1259.8,1036.4" fill="#6c4a98"/>
+<rect x="60" y="1302" width="930" height="214" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="82" y="1345" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#16726b">B08  服务运维 / 安全 / 备份恢复</text>
+<text x="82" y="1391" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">TLS、限流、参数化查询、容量 / 成本控制、依赖审计</text>
+<text x="82" y="1423" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">PostgreSQL / 受控存储备份与恢复；重放账户删除清单</text>
+<text x="82" y="1455" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">RPO / RTO 为验收目标，不是已完成能力</text>
+<rect x="1030" y="1302" width="950" height="214" rx="16" fill="#ffffff" stroke="#dbe3ef" stroke-width="2"/>
+<text x="1052" y="1345" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="26" font-weight="700" fill="#6c4a98">B07  临时图 / 结果 / 费用墓碑清理</text>
+<text x="1052" y="1391" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">终态清图目标 ≤60s；崩溃 TTL ≤1h；结果 ≤24h</text>
+<text x="1052" y="1423" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">最小费用墓碑初始 30 天；媒体正文不进日志 / APM / 备份</text>
+<text x="1052" y="1455" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#20334e">本机 N 次保留、网关 TTL 和供应商留存是三个不同边界</text>
+<polyline points="1505,1252 1505,1290" fill="none" stroke="#6c4a98" stroke-width="3"/>
+<polygon points="1505.0,1290.0 1499.2,1278.4 1510.8,1278.4" fill="#6c4a98"/>
+<rect x="60" y="1570" width="1920" height="164" rx="18" fill="#e8edf5" stroke="#e8edf5" stroke-width="2"/>
+<text x="84" y="1614" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#20334e">实现边界</text>
+<text x="84" y="1660" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">后台内部物理子目录、同步 HTTP 路由和部署配置尚未冻结；图示只给出设计职责。公开内容发布为后台配套工作，不要求新增私有微服务；不把现有文档检查脚本当作应用后</text>
+<text x="84" y="1695" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#20334e">端。</text>
+</svg>
+</figure>
+<p>
+<a download href="diagrams/backend-module-map.svg">下载 SVG</a> · <a download href="diagrams/backend-module-map.png">下载 PNG</a>
+</p>
+</section>
+<section id="backend-section">
+<h2>后台专属与配套职责（全部未实现）</h2>
+<p>B01–B09 仅是本图的职责编号，不是新需求或物理模块；B09 包含离线发布与公开分发配套。同步 HTTP 路由未冻结，不额外发明 API。</p>
+<div class="table-scroll">
+<table id="backend">
+<thead>
+<tr>
+<th scope="col">后台职责</th>
+<th scope="col">需求 / 模块</th>
+<th scope="col">数据流</th>
+<th scope="col">契约与待实现内容</th>
+<th scope="col">验收 / 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<strong>B01</strong> 身份验证与账户绑定</td>
+<td>R19–R22 / R31<br>
+<span class="tag">SERVER</span> <span class="tag">ADAPTER</span> <span class="tag">APP</span>
+</td>
+<td>客户端 Auth → 单体身份/绑定模块 → OIDC</td>
+<td>成熟 OIDC/身份框架；原生授权码＋PKCE；issuer/audience/expiry/账户状态；owner 来自 token</td>
+<td>T-ACCOUNT / T-UPGRADE / T-SECURITY<br>
+<a href="10-软件架构设计-v3.md#L262-L266" title="SADD/10-软件架构设计-v3.md">10:262–266</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B02</strong> 密钥包装、设备与账户删除</td>
+<td>R22 / R31 / A03<br>
+<span class="tag">SERVER</span> <span class="tag">APP</span> <span class="tag">STORE</span>
+</td>
+<td>客户端密钥恢复/删除用例 → 单体账户模块 → PostgreSQL</td>
+<td>服务端仅保存账户根密钥包装/参数；版本撤销、新 epoch、生产删除与备份删除清单；原始恢复码和本机密钥不上云</td>
+<td>T-KEY / T-SYNC / T-PRIVACY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L55-L75" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:55–75</a> / <a href="11-数据安全同步与识别生命周期-v3.md#L119-L134" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:119–134</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B03</strong> E2EE 同步网关</td>
+<td>R22 / R31<br>
+<span class="tag">SERVER</span> <span class="tag">STORE</span> <span class="tag">APP</span> <span class="tag">ADAPTER</span>
+</td>
+<td>客户端加密 outbox ⇄ 单体同步模块 ⇄ PostgreSQL 密文事件</td>
+<td>Push/Pull 契约（HTTP 路由未冻结）；(account_epoch,op_id) 去重、server_seq、opaque cursor、ACK、墓碑与旧 epoch 拒绝；内容不解密</td>
+<td>T-SYNC / T-KEY / T-PRIVACY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L104-L134" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:104–134</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B04</strong> 云识别任务 API</td>
+<td>H02 / R06 / R21 / R31<br>
+<span class="tag">SERVER</span> <span class="tag">ADAPTER</span> <span class="tag">APP</span>
+</td>
+<td>注册且逐次授权 → 识别网关 → 持久化任务</td>
+<td>POST /v1/recognition/jobs；GET /v1/recognition/jobs/{job_id}；POST /v1/recognition/jobs/{job_id}/cancel；校验 owner/授权/图像预算</td>
+<td>T-CLOUD / T-SECURITY / T-PRIVACY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L173-L187" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:173–187</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B05</strong> 识别 worker 与供应商适配</td>
+<td>H02 / R06 / R31<br>
+<span class="tag">SERVER</span> <span class="tag">RECOG</span> <span class="tag">CORE</span> <span class="tag">UI</span> <span class="tag">APP</span>
+</td>
+<td>持久化任务 → worker → 视觉供应商 → 候选结果</td>
+<td>受限并发独立 worker；端点白名单、仅服务端供应商密钥、响应/候选结构预算；SUBMITTING/RUNNING/UNKNOWN。端侧 RECOG/CORE 做语义和量纲校验，UI/APP 编排人工校正与确认。</td>
+<td>T-CLOUD / T-PLUGIN / T-SECURITY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L187-L195" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:187–195</a> / <a href="10-软件架构设计-v3.md#L60-L83" title="SADD/10-软件架构设计-v3.md">10:60–83</a> / <a href="10-软件架构设计-v3.md#L230-L234" title="SADD/10-软件架构设计-v3.md">10:230–234</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B06</strong> 幂等、配额、计费与审计</td>
+<td>H02 / R31<br>
+<span class="tag">SERVER</span>
+</td>
+<td>网关事务 → 任务＋配额 → worker 结算/对账</td>
+<td>(account_id,idempotency_key) 唯一；同键换图409，同键同图既有任务；预留/结算/UNKNOWN 对账；禁止不确定状态自动再次付费</td>
+<td>T-CLOUD / T-SECURITY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L189-L199" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:189–199</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B07</strong> 服务端临时图与结果 GC</td>
+<td>H02 / R28 / R31 / A02<br>
+<span class="tag">SERVER</span> <span class="tag">QUALITY</span>
+</td>
+<td>受控对象存储 → TTL 清理/结果过期 → 最小状态墓碑</td>
+<td>完成/失败/取消目标≤60s清图；崩溃 TTL≤1h；结果/幂等状态≤24h；最小费用 tombstone 初始30天；日志/APM/备份禁正文</td>
+<td>T-CLOUD / T-PRIVACY / T-SECURITY<br>
+<a href="11-数据安全同步与识别生命周期-v3.md#L197-L201" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:197–201</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B08</strong> 服务运维、安全与备份恢复</td>
+<td>R03 / R15 / R18 / R31<br>
+<span class="tag">SERVER</span> <span class="tag">QUALITY</span>
+</td>
+<td>单体 API＋worker → PostgreSQL/对象存储 → 加密备份与恢复演练</td>
+<td>TLS、参数化查询、限流/容量/成本配额、依赖扫描；备份恢复目标及删除清单重放；不增加微服务网格</td>
+<td>T-SECURITY / T-RELEASE / T-PERF<br>
+<a href="10-软件架构设计-v3.md#L262-L268" title="SADD/10-软件架构设计-v3.md">10:262–268</a>
+</td>
+</tr>
+<tr>
+<td>
+<strong>B09</strong> 公开资源签名发布与分发</td>
+<td>R13 / R14 / R16 / R23 / H01<br>
+<span class="tag">CONTENT</span> <span class="tag">ASSETS</span> <span class="tag">QUALITY</span>
+</td>
+<td>tools/content/ → 审校/签名发布 → 公开包分发 → fml-assets</td>
+<td>离线内容工具生成 provenance/许可清单和签名包；在线 TUF root/targets/snapshot/timestamp；公开内容/模型分发不等于用户同步</td>
+<td>T-PACK / T-SOURCE / T-CONTENT<br>
+<a href="12-资源包内容与开源资源调查-v3.md#L24-L67" title="SADD/12-资源包内容与开源资源调查-v3.md">12:24–67</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<aside class="warning">
+<strong>三个保留边界互不替代：</strong>本机 N 次历史（0–100，默认5）、自有网关临时图/结果 TTL、供应商留存政策。所有时限是待验收目标，不承诺闪存/备份/上游绝对擦除。</aside>
+</section>
+<section>
+<h2>现有工件不等于产品实现</h2>
+<div class="table-scroll">
+<table id="artifacts">
+<thead>
+<tr>
+<th scope="col">现有工件</th>
+<th scope="col">用途与边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="../tools/verify-sadd.mjs">文档一致性检查脚本</a>
+</td>
+<td>可执行现有工具；校验链接/围栏/标题/Mermaid无障碍字段/来源许可/需求测试引用；不是应用后端。</td>
+</tr>
+<tr>
+<td>
+<a href="resources/open-physics-samples.json">三条物理公式研究样例</a>
+</td>
+<td>仅研究输入，尚未 AST 编译/双人审校/发布课程包；不是完整公式库。</td>
+</tr>
+<tr>
+<td>
+<a href="resources/source-capture.json">固定来源快照与 hash</a>
+</td>
+<td>来源 revision、文件行、hash 与样例对应；不是资源下载/更新运行时。</td>
+</tr>
+<tr>
+<td>
+<a href="licenses/Open_Physics-BSD-3-Clause.txt">Open_Physics 原始许可</a>
+</td>
+<td>所选来源的版权与许可；不代表本项目或其他模型/字体已获同一许可。</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="legacy-section">
+<h2>历史设计冲突与当前边界</h2>
+<div class="table-scroll">
+<table id="legacy">
+<thead>
+<tr>
+<th scope="col">主题</th>
+<th scope="col">历史输入</th>
+<th scope="col">现行 v3 方案</th>
+<th scope="col">来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代码目录与 I/O</td>
+<td>v2 多个 fml-* crate 与 platform/* 树</td>
+<td>v3 先按五个 Rust crate＋四个 Flutter 层规划；仅 fml-core 绝对无 I/O。</td>
+<td>
+<a href="10-软件架构设计-v3.md#L66-L105" title="SADD/10-软件架构设计-v3.md">10:66–105</a>
+</td>
+</tr>
+<tr>
+<td>公式渲染</td>
+<td>自研 typeset/DisplayList/精确命中</td>
+<td>FormulaView＋成熟渲染库；文本和模板编辑为首版边界。</td>
+<td>
+<a href="10-软件架构设计-v3.md#L181-L189" title="SADD/10-软件架构设计-v3.md">10:181–189</a>
+</td>
+</tr>
+<tr>
+<td>历史回收</td>
+<td>Pinned/Adopted 免计数、只清 Normal</td>
+<td>全部终态严格最近 N；附件另存；数据库与文件使用可恢复两阶段清理。</td>
+<td>
+<a href="11-数据安全同步与识别生命周期-v3.md#L136-L169" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:136–169</a>
+</td>
+</tr>
+<tr>
+<td>量纲和代入</td>
+<td>Unknown 用于约束求解，未明确持久校验状态；跨 QuantityKind 为软警告＋用户确认，缺显式关系及条件验证</td>
+<td>Unknown 不可 Verified；数学类型/语义角色/条件和显式变量绑定必须同时检查。</td>
+<td>
+<a href="10-软件架构设计-v3.md#L132-L177" title="SADD/10-软件架构设计-v3.md">10:132–177</a> / <a href="02-软件架构设计-v2.md#L219-L240" title="SADD/02-软件架构设计-v2.md">02:219–240</a> / <a href="02-软件架构设计-v2.md#L306-L324" title="SADD/02-软件架构设计-v2.md">02:306–324</a> / <a href="06-测试与验收标准-v2.md#L60-L69" title="SADD/06-测试与验收标准-v2.md">06:60–69</a>
+</td>
+</tr>
+<tr>
+<td>账户密钥和升级</td>
+<td>登录凭据派生、包装本机库密钥上传、默认全量同步</td>
+<td>随机账户根密钥；独立密语/恢复码包装；本机密钥不上云；升级后再询问同步。</td>
+<td>
+<a href="11-数据安全同步与识别生命周期-v3.md#L24-L102" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:24–102</a>
+</td>
+</tr>
+<tr>
+<td>识别与云作业</td>
+<td>本地纯可选、简化四态和删除保证</td>
+<td>游客识别验收必须有可用本地 HMER；云 UNKNOWN/幂等/费用/TTL 独立契约。</td>
+<td>
+<a href="10-软件架构设计-v3.md#L220-L234" title="SADD/10-软件架构设计-v3.md">10:220–234</a> / <a href="11-数据安全同步与识别生命周期-v3.md#L171-L201" title="SADD/11-数据安全同步与识别生命周期-v3.md">11:171–201</a>
+</td>
+</tr>
+<tr>
+<td>平台与可选入口</td>
+<td>Win10 1809+、拖拽/剪贴板强制</td>
+<td>Win11 主基线、Win10 22H2 条件测试；文件对话框必需，拖拽/剪贴板可选。</td>
+<td>
+<a href="10-软件架构设计-v3.md#L201-L203" title="SADD/10-软件架构设计-v3.md">10:201–203</a> / <a href="10-软件架构设计-v3.md#L270-L285" title="SADD/10-软件架构设计-v3.md">10:270–285</a>
+</td>
+</tr>
+<tr>
+<td>需求、预案和里程碑</td>
+<td>历史 R01–R41、M0–M7、YOLO 简版分支名</td>
+<td>以 v3 的 37 条需求和 M0–M5 为准；YOLO 新详细预案仅 codex/exp-yolo-recognizer，未审计分支内容。</td>
+<td>
+<a href="13-需求追踪与验收-v3.md#L13-L53" title="SADD/13-需求追踪与验收-v3.md">13:13–53</a> / <a href="10-软件架构设计-v3.md#L295-L310" title="SADD/10-软件架构设计-v3.md">10:295–310</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>全部产品应用模块尚未落地；不能标记为‘已实现仅缺前端’。原有脚本用于文档检查，本次新增生成器也仅用于文档图表。</li>
+<li>本文 A01–A04 专指 13 的需求架构约束，不等于 09 复审缺陷的 A01–A17。</li>
+<li>文档明确的未来目录按原名保留；后端 B01–B09 为职责映射编号，不是新增需求 ID 或既存物理目录。</li>
+<li>v3 优先于历史 v2：不采用 v2 自研排版前置、Pin/Adopted 免计数、上传本机库密钥及默认全量同步等旧设计。v3 另明确 Unknown 不可 Verified，并强化显式关系/条件验证。供应商密钥始终仅服务端保存，不是 v2 新旧差异。</li>
+<li>本地识别模型/权重/数据许可与质量待选型；云供应商/保留政策待核实，游客不自动切云。</li>
+<li>复杂 CAS、任意符号积分、完整鸿蒙客户端、社区功能均不默认为 V1 交付；YOLO 仅实验预案。</li>
+</ul>
+</section>
+<section>
+<h2>预计实现顺序（未完成）</h2>
+<div class="table-scroll">
+<table id="milestones">
+<thead>
+<tr>
+<th scope="col">阶段</th>
+<th scope="col">主要目标</th>
+<th scope="col">实现内容</th>
+<th scope="col">重点需求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M0</td>
+<td>风险原型</td>
+<td>FFI/解析/量纲/渲染、本地模型、密钥与资源包；先冻结依赖与验收语料</td>
+<td>A04 / R02 / R03 / R06 / R07 / R10 / R23 / A03</td>
+</tr>
+<tr>
+<td>M1</td>
+<td>本地业务闭环</td>
+<td>双端编辑、库、计算、代入、复习、bootstrap、游客账户；全离线可用</td>
+<td>R01 / R04 / R07–R12 / R19–R21</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>识别与回收闭环</td>
+<td>墨迹/照片、真实本地模型、增强、候选校正、严格 N 与崩溃恢复</td>
+<td>R05 / R24–R30 / A02</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>账户与云服务</td>
+<td>游客升级/密钥恢复、E2EE 同步、云识别及后台安全/幂等/费用/清理</td>
+<td>R22 / R31 / H02 / A03</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>内容与签名发布</td>
+<td>大学四模块＋历史高中、许可/来源/章节冻结、逐式校验、双审</td>
+<td>R13 / R14 / R16 / R23 / H01</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>双端发布验收</td>
+<td>性能/隐私/安全/签名/依赖/迁移/恢复；未执行项不得标通过</td>
+<td>R01 / R03 / R15 / R18 / R31</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<footer>
+<p>来源：工作区 SADD 现行 v3 文档与未冲突历史平台参考；源链接在 GitHub 可定位行号，本地 Markdown 阅读器未必支持 #L 锚点。</p>
+<p>文档生成器只检查需求覆盖、引用、数据一致性及图形结构/布局；不验证应用行为、安全、数学正确性、性能或模型质量。新增这些图表不改变实现状态。YOLO 仅确认预案分支存在，未审计分支详细内容。</p>
+</footer>
+</main>
+<script>const search=document.getElementById('query');const groups=['requirements','modules','backend','client','legacy'];function apply(){const q=search.value.trim().toLocaleLowerCase();let count=0;for(const id of groups){for(const row of document.querySelectorAll('#'+id+' tbody tr')){const show=!q||row.textContent.toLocaleLowerCase().includes(q);row.hidden=!show;if(id==='requirements'&&show)count++;}}document.getElementById('match-count').textContent='需求匹配：'+count+' / 37。筛选同时作用于模块、后台、平台细项和历史差异表；总览图保持完整。';}search.addEventListener('input',apply);document.getElementById('clear-query').addEventListener('click',()=>{search.value='';apply();search.focus();});apply();</script>
+</body>
+</html>
