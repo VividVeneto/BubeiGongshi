@@ -1,5 +1,12 @@
-# Keep document and provenance hashes stable across Windows and Android tooling.
+# Keep document, generated artefact and provenance hashes stable across Windows and Android tooling.
+.gitattributes text eol=lf
 *.md text eol=lf
 *.json text eol=lf
 *.mjs text eol=lf
+*.js text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.svg text eol=lf
 SADD/licenses/*.txt text eol=lf
+*.png binary

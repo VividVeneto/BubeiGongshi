@@ -27,7 +27,7 @@
       "source_latex": "pV = \\nu RT",
       "normalized_latex": "p V = n_{mol} R T",
       "changes": ["将上游表示物质的量的 nu 显式命名为 n_mol", "补充单位、物理角色和条件"],
-      "assumptions": ["理想气体近平衡状态", "T 为 Kelvin 绝对温度", "R 为摩尔气体常数"],
+      "assumptions": ["理想气体，平衡态", "T 为 Kelvin 绝对温度", "R 为摩尔气体常数"],
       "symbols": {
         "p": {"meaning": "压强", "dimension": [-1, 1, -2, 0, 0, 0, 0], "unit": "Pa"},
         "V": {"meaning": "体积", "dimension": [3, 0, 0, 0, 0, 0, 0], "unit": "m^3"},

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1230" viewBox="0 0 1700 1230" role="img" aria-labelledby="bm-title bm-desc" font-family="'Microsoft YaHei','微软雅黑','Noto Sans CJK SC','Noto Sans SC','Source Han Sans SC','PingFang SC','Hiragino Sans GB',sans-serif">
+<title id="bm-title">服务端功能与外部依赖</title>
+<desc id="bm-desc">服务端功能与外部依赖：SF-01 账户绑定与令牌，调用方 platform_io、composition，外部依赖 身份服务（OIDC）、PostgreSQL；SF-02 E2EE 同步，调用方 platform_io、fml-sync、fml-crypto，外部依赖 PostgreSQL；SF-03 识别网关与 worker，调用方 platform_io、fml-recognition，外部依赖 PostgreSQL、视觉模型供应商；SF-04 资源包托管，调用方 platform_io、fml-assets，外部依赖 对象存储与静态文件 / CDN；SF-05 删除账户与备份，调用方 platform_io、composition、fml-sync，外部依赖 PostgreSQL；SF-06 监控、API 版本与备份恢复，调用方 platform_io、composition，外部依赖 PostgreSQL。</desc>
+<defs>
+<marker id="bm-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+</defs>
+<rect x="0" y="0" width="1700" height="1230" fill="#ffffff"/>
+<text x="40" y="65" font-size="22" font-weight="700" fill="#0f172a">服务端功能与外部依赖</text>
+<text x="40" y="95" font-size="14" fill="#475569">左：调用服务端的客户端模块；中：server/ 模块化单体中的服务端功能；右：外部依赖。同步只接收密文，游客数据不进入上传端口。</text>
+<text x="40" y="141" font-size="15" font-weight="700" fill="#475569">客户端模块</text>
+<text x="550" y="141" font-size="15" font-weight="700" fill="#475569">服务端功能（server/）</text>
+<text x="1300" y="141" font-size="15" font-weight="700" fill="#475569">外部依赖</text>
+<text x="40" y="1185" font-size="13" fill="#475569">箭头表示调用或依赖方向；需求与验收 ID 的完整追踪见 14 功能与代码模块映射。</text>
+<rect x="550" y="160" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="192" font-size="16" font-weight="700" fill="#0f172a">SF-01 账户绑定与令牌</text>
+<text x="564" y="219" font-size="13" fill="#0f172a">授权码 + PKCE；网关校验 issuer、audience、expiry 与账户状态；owner 由服务端从</text>
+<text x="564" y="239" font-size="13" fill="#0f172a">token 得出</text>
+<text x="564" y="265" font-size="13" fill="#1d4ed8">需求：R19、R22、R31</text>
+<text x="564" y="287" font-size="13" fill="#166534">验收：T-ACCOUNT、T-SECURITY</text>
+<rect x="550" y="328" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="360" font-size="16" font-weight="700" fill="#0f172a">SF-02 E2EE 同步</text>
+<text x="564" y="387" font-size="13" fill="#0f172a">只接收密文事件；每账户序列与 (account_epoch, op_id) 幂等，先持久化再 ACK；快照 + 增</text>
+<text x="564" y="407" font-size="13" fill="#0f172a">量恢复</text>
+<text x="564" y="433" font-size="13" fill="#1d4ed8">需求：R22、A03、R31</text>
+<text x="564" y="455" font-size="13" fill="#166534">验收：T-SYNC、T-AAD、T-SNAPSHOT、T-KEY</text>
+<rect x="550" y="496" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="528" font-size="16" font-weight="700" fill="#0f172a">SF-03 识别网关与 worker</text>
+<text x="564" y="555" font-size="13" fill="#0f172a">逐次授权后上传裁剪图；任务幂等与不确定状态；按账户、设备与 IP 配额并控制成本；worker</text>
+<text x="564" y="575" font-size="13" fill="#0f172a">限制并发</text>
+<text x="564" y="601" font-size="13" fill="#1d4ed8">需求：R06、R24、H02</text>
+<text x="564" y="623" font-size="13" fill="#166534">验收：T-CLOUD、T-COMPLY</text>
+<rect x="550" y="664" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="696" font-size="16" font-weight="700" fill="#0f172a">SF-04 资源包托管</text>
+<text x="564" y="723" font-size="13" fill="#0f172a">TUF 风格元数据 root、targets、snapshot、timestamp（timestamp 有效期 ≤7 天）；</text>
+<text x="564" y="743" font-size="13" fill="#0f172a">静态文件或 CDN 分发</text>
+<text x="564" y="769" font-size="13" fill="#1d4ed8">需求：R23、R31</text>
+<text x="564" y="791" font-size="13" fill="#166534">验收：T-PACK</text>
+<rect x="550" y="832" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="864" font-size="16" font-weight="700" fill="#0f172a">SF-05 删除账户与备份</text>
+<text x="564" y="891" font-size="13" fill="#0f172a">300 秒内重新认证；先撤销会话并阻止离线 outbox 恢复旧账户，再删除生产数据；恢复备份后重</text>
+<text x="564" y="911" font-size="13" fill="#0f172a">放删除清单</text>
+<text x="564" y="937" font-size="13" fill="#1d4ed8">需求：R22、R31</text>
+<text x="564" y="959" font-size="13" fill="#166534">验收：T-SECURITY、T-COMPLY</text>
+<rect x="550" y="1000" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="1032" font-size="16" font-weight="700" fill="#0f172a">SF-06 监控、API 版本与备份恢复</text>
+<text x="564" y="1059" font-size="13" fill="#0f172a">只采集运行指标，告警阈值见 13 §服务端监控告警阈值；路径带 /v1/，低于最低版本返回</text>
+<text x="564" y="1079" font-size="13" fill="#0f172a">HTTP 426；RPO ≤24 h、RTO ≤8 h</text>
+<text x="564" y="1105" font-size="13" fill="#1d4ed8">需求：R15、R18、R31</text>
+<text x="564" y="1127" font-size="13" fill="#166534">验收：T-RELEASE</text>
+<rect x="40" y="251" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="283" font-size="16" font-weight="700" fill="#0f172a">fml-crypto</text>
+<text x="54" y="306" font-size="13" fill="#475569">crates/fml-crypto/</text>
+<rect x="40" y="397" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="429" font-size="16" font-weight="700" fill="#0f172a">fml-recognition</text>
+<text x="54" y="452" font-size="13" fill="#475569">crates/fml-recognition/</text>
+<rect x="40" y="543" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="575" font-size="16" font-weight="700" fill="#0f172a">platform_io</text>
+<text x="54" y="598" font-size="13" fill="#475569">apps/flutter/lib/platform_io/</text>
+<rect x="40" y="689" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="721" font-size="16" font-weight="700" fill="#0f172a">fml-sync</text>
+<text x="54" y="744" font-size="13" fill="#475569">crates/fml-sync/</text>
+<rect x="40" y="835" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="867" font-size="16" font-weight="700" fill="#0f172a">composition</text>
+<text x="54" y="890" font-size="13" fill="#475569">apps/flutter/lib/composition/</text>
+<rect x="40" y="981" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="1013" font-size="16" font-weight="700" fill="#0f172a">fml-assets</text>
+<text x="54" y="1036" font-size="13" fill="#475569">crates/fml-assets/</text>
+<rect x="1300" y="397" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="428" font-size="15" font-weight="700" fill="#0f172a">身份服务（OIDC）</text>
+<text x="1314" y="452" font-size="13" fill="#475569">成熟身份服务或身份框架；登录方式见 00 D-14</text>
+<rect x="1300" y="543" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="574" font-size="15" font-weight="700" fill="#0f172a">视觉模型供应商</text>
+<text x="1314" y="598" font-size="13" fill="#475569">境内已备案、委托处理、不用于训练（00 D-10）</text>
+<rect x="1300" y="689" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="720" font-size="15" font-weight="700" fill="#0f172a">PostgreSQL</text>
+<text x="1314" y="744" font-size="13" fill="#475569">账户、同步序列、作业状态与幂等键</text>
+<rect x="1300" y="835" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="866" font-size="15" font-weight="700" fill="#0f172a">对象存储与静态文件 / CDN</text>
+<text x="1314" y="890" font-size="13" fill="#475569">资源包与 TUF 风格元数据</text>
+<line x1="400" y1="553" x2="548" y2="208" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="853" x2="548" y2="257" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="564" x2="548" y2="401" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="713" x2="548" y2="437" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="288" x2="548" y2="364" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="574" x2="548" y2="593" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="434" x2="548" y2="544" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="585" x2="548" y2="712" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="1018" x2="548" y2="761" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="595" x2="548" y2="868" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="872" x2="548" y2="941" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="738" x2="548" y2="905" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="606" x2="548" y2="1048" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="890" x2="548" y2="1097" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="208" x2="1298" y2="434" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="257" x2="1298" y2="701" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="401" x2="1298" y2="713" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="593" x2="1298" y2="726" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="544" x2="1298" y2="580" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="737" x2="1298" y2="872" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="905" x2="1298" y2="738" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="1073" x2="1298" y2="750" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+</svg>
