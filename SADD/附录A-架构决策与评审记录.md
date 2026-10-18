@@ -273,6 +273,25 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-08 | 状态机位置 | 学习组循环、升级日志、同步合并、识别会话与 GC 均为 Rust sans-I/O 状态机，平台只做 I/O | 状态机写在 Dart：难以跨端一致与单测 | — | 采纳 | CORE-19、CORE-24、CORE-26、CORE-32 |
 | ADR-V5-09 | 资源包安全 | 先验签后解包、限额与危险路径拒绝、安全序号防回滚、TUF 风格更新元数据 | 只校验整包签名：路径穿越与压缩炸弹风险 | — | 采纳 | CORE-15 |
 | ADR-V5-10 | 同步协议 | Envelope v2、outbox 与业务同事务、`(account_epoch, op_id)` 幂等、先持久化后 ACK、快照 + 增量、墓碑 180 天 | 简单全量上传：不可中断、易重复 | — | 采纳 | CORE-13、CORE-25、CORE-26 |
+| ADR-V5-11 | 邮件发信 | 注册与找回口令用 6 位邮箱验证码；服务端经 `EmailSender` 端口发信，默认阿里云邮件推送，腾讯云邮件推送为备用，测试用 Fake 实现；V1 不接入境外发信服务（筛选见 §A.4.3） | 境外长期免费服务：用户邮箱地址出境，需单独同意与出境告知，未成年人信息风险更高，国内邮箱送达不稳定；自建 SMTP：IP 信誉养护成本高，易进垃圾箱 | 境内免费额度用尽后的费用超出预算，或到达率持续偏低 | 采纳 | CORE-22、CORE-43 |
+
+### A.4.3 邮件发信供应商筛选（2026-10-18）
+
+筛选条件：支持 API 或 SMTP 发送事务邮件、有免费额度、可替换。用量估算：每次注册约 1～2 封，找回口令另计。
+
+| 供应商 | 免费额度 | 数据地域 | 结论 | 来源 |
+| --- | --- | --- | --- | --- |
+| 阿里云邮件推送（DirectMail） | 每个主账户共 2000 封（一次性），每天最多 200 封；超出按量计费 | 境内 | 默认通道 | [计费说明](https://www.alibabacloud.com/help/zh/directmail/latest/billing-methods) |
+| 腾讯云邮件推送（SES） | 每个账号共 1000 封（一次性，不限有效期）；超出按日后付费 | 境内 | 备用通道 | [计费概述](https://cloud.tencent.com/document/product/1288/47930) |
+| Brevo | 每天 300 封，长期免费；账户需审核后才能发送 | 境外 | 不接入 | [Pricing](https://www.brevo.com/pricing/) |
+| Resend | 每月 3000 封、每天 100 封，长期免费 | 境外 | 不接入 | [Pricing](https://resend.com/pricing) |
+| Mailjet | 每天 200 封、每月 6000 封（第三方实测；官网定价页未能访问核实） | 境外 | 不接入 | [第三方对比](https://www.cunzhangblog.com/emailsend) |
+| SMTP2GO | 每月 1000 封，长期免费 | 境外 | 不接入 | [Pricing](https://www.smtp2go.com/pricing/) |
+| Mailgun | 每天 100 封 | 境外 | 不接入 | [Free plan](https://help.mailgun.com/hc/en-us/articles/203068914-What-does-the-Free-plan-offer) |
+| MailerSend | 每月 500 封，需填写信用卡 | 境外 | 不接入 | [Pricing](https://www.mailersend.com/pricing) |
+| Postmark | 每月 100 封，仅供联调测试 | 境外 | 不接入 | [Pricing](https://postmarkapp.com/pricing) |
+
+结论：境内两家的免费额度都是一次性的，合计约 3000 封，用完后转按量付费；长期免费的都是境外服务。按 README §6 Q7（含未成年人）与 Q8（数据境内）的口径，V1 只接境内两家。若甲方决定接受境外服务以换取长期免费额度，只需新增一个 `EmailSender` 实现并修订本节与 ADR-V5-11，同时在隐私政策中增加出境告知与单独同意。额度与价格以各供应商控制台为准，上线前复核。
 
 ## A.5 开发前冻结清单
 
