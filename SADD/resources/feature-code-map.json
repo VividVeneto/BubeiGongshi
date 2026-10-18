@@ -1,0 +1,3281 @@
+{
+  "schema": "bubei-feature-code-map/v4",
+  "version": "v4.0",
+  "date": "2026-10-18",
+  "note": "mapping 部分由人工维护；derived 部分由 tools/generate-feature-map.py 从 13 与 10 回填，手改无效。",
+  "mapping": {
+    "docs": [
+      {
+        "id": "00",
+        "file": "00-需求基线与文档效力-v4.md",
+        "use": "功能近似条款（R04 子项）、待决事项与默认策略（D 编号）"
+      },
+      {
+        "id": "09",
+        "file": "09-架构决策与评审记录-v4.md",
+        "use": "架构决策（ADR 编号）；复审缺陷 RV 编号与本文的 A 编号无关"
+      },
+      {
+        "id": "10",
+        "file": "10-软件架构设计-v4.md",
+        "use": "模块与目录、依赖规则、端口、实体、平台差异、服务端部署与里程碑"
+      },
+      {
+        "id": "11",
+        "file": "11-数据安全同步与识别生命周期-v4.md",
+        "use": "账户与密钥、同步合并规则、识别历史保留与云识别"
+      },
+      {
+        "id": "12",
+        "file": "12-资源包内容与开源资源调查-v4.md",
+        "use": "资源包格式、签名与激活、课程内容生产"
+      },
+      {
+        "id": "13",
+        "file": "13-需求追踪与验收-v4.md",
+        "use": "需求、R04 子项、验收 ID 与最早门槛（本文唯一的需求来源）"
+      }
+    ],
+    "layers": [
+      {
+        "id": "ui",
+        "title": "界面（Dart / ArkTS）",
+        "short": "界面"
+      },
+      {
+        "id": "shell",
+        "title": "装配、绑定与平台 I/O（Dart / ArkTS）",
+        "short": "装配与平台"
+      },
+      {
+        "id": "ffi",
+        "title": "绑定面（Rust）",
+        "short": "绑定面"
+      },
+      {
+        "id": "usecase",
+        "title": "用例、状态机与仓储（Rust）",
+        "short": "用例与仓储"
+      },
+      {
+        "id": "base",
+        "title": "语义与密码基础（Rust）",
+        "short": "基础"
+      },
+      {
+        "id": "outside",
+        "title": "契约、离线工具与服务端（不在客户端依赖链内）",
+        "short": "链外"
+      }
+    ],
+    "modules": [
+      {
+        "id": "presentation",
+        "layer": "ui",
+        "path": "apps/flutter/lib/presentation/",
+        "responsibility": "页面与 ViewModel、公式输入与结构化键盘、FormulaView 渲染与无障碍",
+        "io_rule": "不直接访问数据库或 HTTP，只调用装配好的用例接口",
+        "depends_on": [
+          "composition"
+        ],
+        "refs": "10 §推荐技术栈与初始模块、§渲染与编辑取舍；09 ADR-002"
+      },
+      {
+        "id": "ohos-arkts",
+        "layer": "ui",
+        "path": "apps/ohos/",
+        "responsibility": "鸿蒙 ArkTS 原生界面（路线二，预留）；M0 双路线验证后决定是否投入",
+        "io_rule": "约束同 presentation",
+        "depends_on": [
+          "ohos-napi"
+        ],
+        "refs": "10 §鸿蒙验证路线；09 ADR-013；00 D-04"
+      },
+      {
+        "id": "platform_io",
+        "layer": "shell",
+        "path": "apps/flutter/lib/platform_io/",
+        "responsibility": "执行核心下发的 I/O 命令：HTTP、文件与系统选择器、相机、通知、平台密钥",
+        "io_rule": "不含业务规则；结果经绑定回传核心",
+        "depends_on": [],
+        "refs": "10 §推荐技术栈与初始模块、§端口契约、§平台实现与生命周期"
+      },
+      {
+        "id": "composition",
+        "layer": "shell",
+        "path": "apps/flutter/lib/composition/",
+        "responsibility": "配置、依赖装配与账户作用域：按账户打开数据库与密钥句柄",
+        "io_rule": "不含业务规则",
+        "depends_on": [
+          "platform_io",
+          "binding"
+        ],
+        "refs": "10 §推荐技术栈与初始模块；11 §账户与本地访问状态"
+      },
+      {
+        "id": "binding",
+        "layer": "shell",
+        "path": "apps/flutter/lib/binding/",
+        "responsibility": "fml-ffi 的 Dart 绑定：M0 在 flutter_rust_bridge 与 C ABI + dart:ffi 中二选一；同步快路径与长任务完成通知",
+        "io_rule": "只做编解码与回调分发",
+        "depends_on": [
+          "fml-ffi"
+        ],
+        "refs": "10 §单一绑定面与线程；09 ADR-010"
+      },
+      {
+        "id": "ohos-napi",
+        "layer": "shell",
+        "path": "apps/ohos/",
+        "responsibility": "ArkTS 经 NAPI 调用 fml-ffi 的 C ABI；平台密钥用 HUKS（预留）",
+        "io_rule": "只做编解码与回调分发",
+        "depends_on": [
+          "fml-ffi"
+        ],
+        "refs": "10 §鸿蒙验证路线；09 ADR-013"
+      },
+      {
+        "id": "fml-ffi",
+        "layer": "ffi",
+        "path": "crates/fml-ffi/",
+        "responsibility": "版本化 DTO、命令分发、句柄与缓冲区、同步快路径与完成通知；导出 abi_version、capabilities、call、submit、cancel、register_completion、free_buffer、close_handle",
+        "io_rule": "不含业务规则",
+        "depends_on": [
+          "fml-study",
+          "fml-recognition",
+          "fml-assets",
+          "fml-store",
+          "fml-sync"
+        ],
+        "refs": "10 §分层与职责归属、§单一绑定面与线程"
+      },
+      {
+        "id": "fml-study",
+        "layer": "usecase",
+        "path": "crates/fml-study/",
+        "responsibility": "FSRS 调度（Scheduler，确定性重放）；会话编排（SessionPlanner：选题、分组、组内重现、组后默写、上限、埋藏、积压削峰）；三层判分与评分映射；统计派生",
+        "io_rule": "纯函数；时间、随机种子与参数版本显式传入",
+        "depends_on": [
+          "fml-core"
+        ],
+        "refs": "10 §分层与职责归属、§学习域模型；09 ADR-008"
+      },
+      {
+        "id": "fml-recognition",
+        "layer": "usecase",
+        "path": "crates/fml-recognition/",
+        "responsibility": "识别会话状态机；图像头校验与内存安全解码；预处理与候选校验；本地推理运行时适配（feature 隔离）",
+        "io_rule": "推理适配只读已安装的模型文件",
+        "depends_on": [
+          "fml-core"
+        ],
+        "refs": "10 §分层与职责归属、§识别后端；09 ADR-007"
+      },
+      {
+        "id": "fml-assets",
+        "layer": "usecase",
+        "path": "crates/fml-assets/",
+        "responsibility": "资源包清单、验签与校验、安装与原子激活",
+        "io_rule": "只写资源目录；先验证后解包",
+        "depends_on": [
+          "fml-core"
+        ],
+        "refs": "10 §分层与职责归属、§静态资源；12 §清单、签名与激活"
+      },
+      {
+        "id": "fml-store",
+        "layer": "usecase",
+        "path": "crates/fml-store/",
+        "responsibility": "SQLCipher 连接、单写者 DB actor、迁移与备份、仓储与 outbox 表；识别历史两阶段 GC 与 cleanup_job",
+        "io_rule": "唯一持有数据库与私有资产目录写权限",
+        "depends_on": [
+          "fml-core",
+          "fml-crypto"
+        ],
+        "refs": "10 §分层与职责归属、§本地数据模型；11 §文件与数据库不能伪装成一个事务"
+      },
+      {
+        "id": "fml-sync",
+        "layer": "usecase",
+        "path": "crates/fml-sync/",
+        "responsibility": "outbox/inbox 推拉计划、事件合并与排序、快照与游标语义、游客升级 journal 状态机",
+        "io_rule": "无 I/O，输出待发请求与待写事务命令",
+        "depends_on": [
+          "fml-crypto"
+        ],
+        "refs": "10 §分层与职责归属；11 §同步协议、§游客升级事务"
+      },
+      {
+        "id": "fml-core",
+        "layer": "base",
+        "path": "crates/fml-core/",
+        "responsibility": "词法与 LaTeX 解析、AST 与规范化、TypeExpr 与量纲合一、单位、记号方案与常数集、数值计算、代入与计算链",
+        "io_rule": "纯函数；不依赖 HTTP、SQLite、文件、Flutter、JNI、NAPI",
+        "depends_on": [],
+        "refs": "10 §分层与职责归属、§公式、量纲和计算模型；09 ADR-011"
+      },
+      {
+        "id": "fml-crypto",
+        "layer": "base",
+        "path": "crates/fml-crypto/",
+        "responsibility": "密钥层级与包装、Envelope 编解码、AAD 规范字节、恢复码",
+        "io_rule": "无 I/O；平台密钥包装经端口回调，原语使用经过审计的实现",
+        "depends_on": [],
+        "refs": "10 §分层与职责归属；11 §密钥层次；09 ADR-012"
+      },
+      {
+        "id": "contracts",
+        "layer": "outside",
+        "path": "contracts/",
+        "responsibility": "DTO schema、错误码注册表、AAD 测试向量；单一来源生成 Rust、Dart、ArkTS 代码",
+        "io_rule": "只含契约与测试向量",
+        "depends_on": [],
+        "refs": "10 §推荐技术栈与初始模块、§错误码与可维护性度量"
+      },
+      {
+        "id": "tools-content",
+        "layer": "outside",
+        "path": "tools/content/",
+        "responsibility": "离线内容摄入、来源与许可登记、校验与打包，产出签名资源包",
+        "io_rule": "离线运行，不随应用发布",
+        "depends_on": [],
+        "refs": "10 §推荐技术栈与初始模块；12 §摄入与审校"
+      },
+      {
+        "id": "server",
+        "layer": "outside",
+        "path": "server/",
+        "responsibility": "模块化单体：账户绑定、同步、识别网关与 worker、配额与审计、资源包元数据与托管",
+        "io_rule": "由 token 得到 owner；同步只接收密文",
+        "depends_on": [],
+        "refs": "10 §服务端最小部署；09 ADR-003"
+      }
+    ],
+    "forbidden_dependencies": [
+      {
+        "from": [
+          "fml-core"
+        ],
+        "to": [
+          "*"
+        ],
+        "transitive": true,
+        "rule": "fml-core 不依赖任何其他模块"
+      },
+      {
+        "from": [
+          "fml-study",
+          "fml-sync",
+          "fml-crypto"
+        ],
+        "to": [
+          "fml-store"
+        ],
+        "transitive": true,
+        "rule": "fml-study、fml-sync、fml-crypto 不依赖 fml-store"
+      },
+      {
+        "from": [
+          "fml-core",
+          "fml-study",
+          "fml-recognition",
+          "fml-assets",
+          "fml-store",
+          "fml-sync",
+          "fml-crypto"
+        ],
+        "to": [
+          "fml-ffi",
+          "binding",
+          "composition",
+          "platform_io",
+          "presentation",
+          "ohos-arkts",
+          "ohos-napi"
+        ],
+        "transitive": true,
+        "rule": "Rust 核心 crate 不依赖绑定面以及 Dart、ArkTS 代码"
+      },
+      {
+        "from": [
+          "presentation",
+          "ohos-arkts"
+        ],
+        "to": [
+          "fml-store",
+          "platform_io",
+          "server"
+        ],
+        "transitive": false,
+        "rule": "界面不直接访问数据库或 HTTP，只经装配好的用例接口"
+      }
+    ],
+    "ports": [
+      {
+        "id": "FormulaEngine",
+        "owners": [
+          "fml-core"
+        ],
+        "contract": "源码 + 记号方案 + 符号表 → AST 与诊断；AST + 赋值 + 常数集 → 值与单位；有预算、无 I/O"
+      },
+      {
+        "id": "Scheduler",
+        "owners": [
+          "fml-study"
+        ],
+        "contract": "固定参数版本 + ReviewEvent 序列 → 卡片状态与下次到期；确定性重放"
+      },
+      {
+        "id": "SessionPlanner",
+        "owners": [
+          "fml-study"
+        ],
+        "contract": "StudyPlan + 到期队列 + 新卡池 + 学习日 → Session 计划；Attempt → 下一题与组状态"
+      },
+      {
+        "id": "Grader",
+        "owners": [
+          "fml-study"
+        ],
+        "contract": "题目 + 标准答案 + 可接受形式 + 作答 → 判定与依据；无法判定时返回 Undetermined"
+      },
+      {
+        "id": "FormulaStore",
+        "owners": [
+          "fml-store"
+        ],
+        "contract": "用例级命令（一命令一事务）→ 结果；单写者，不由界面拼 SQL"
+      },
+      {
+        "id": "FormulaView",
+        "owners": [
+          "presentation",
+          "ohos-arkts"
+        ],
+        "contract": "规范 LaTeX + 语义串 → 渲染与无障碍；渲染失败不删除原输入，不决定数学正确性"
+      },
+      {
+        "id": "FormulaRecognizer",
+        "owners": [
+          "fml-recognition"
+        ],
+        "contract": "受限图像或墨迹 + 模式（查找/作答）+ 后端 → 候选；能力声明、取消、超时、版本与预算"
+      },
+      {
+        "id": "FormulaDetector",
+        "owners": [
+          "fml-recognition"
+        ],
+        "contract": "整页图像 → 公式区域框；可插拔的可选能力，不可用时只提供手动框选"
+      },
+      {
+        "id": "PackStore",
+        "owners": [
+          "fml-assets"
+        ],
+        "contract": "签名包 → 验证结果与已激活版本；先验证后解包，失败保持旧包"
+      },
+      {
+        "id": "ImageImport",
+        "owners": [
+          "platform_io"
+        ],
+        "contract": "用户选中的 URI 或文件 → 私有输入资产；大小限制、只读原文件、取消清理"
+      },
+      {
+        "id": "SecureStore",
+        "owners": [
+          "platform_io",
+          "ohos-napi"
+        ],
+        "contract": "账户作用域的密钥包装与解锁（Keystore / DPAPI / HUKS）；原始密钥不返回界面"
+      },
+      {
+        "id": "AuthSync",
+        "label": "Auth / Sync 传输",
+        "owners": [
+          "platform_io",
+          "fml-sync"
+        ],
+        "contract": "身份凭证与密文事件；平台层执行、fml-sync 编排，游客不进入上传端口"
+      }
+    ],
+    "entities": [
+      {
+        "id": "FormulaItem / FormulaRevision",
+        "modules": [
+          "fml-core",
+          "fml-store"
+        ],
+        "compute": "fml-core：AST、TypeExpr 与校验状态",
+        "store": "formula_item / formula_revision（修订不可变）",
+        "sync": "同步：不可变修订 DAG，同父并发修订生成待选择记录",
+        "reqs": [
+          "R08",
+          "R10",
+          "R18"
+        ],
+        "refs": "10 §单一语义源、§本地数据模型；11 §同步协议"
+      },
+      {
+        "id": "Symbol",
+        "modules": [
+          "fml-core",
+          "fml-store"
+        ],
+        "compute": "fml-core：SymbolId、数学类型、量纲（可含量纲变量）、QuantityKind 与定义域；绑定变量用 SymbolId 而不是显示名",
+        "store": "symbol_binding",
+        "sync": "用户单位/符号：版本化定义，冲突不覆盖已引用的旧定义，需明确映射",
+        "reqs": [
+          "R07",
+          "R10",
+          "R12"
+        ],
+        "refs": "10 §单一语义源、§本地数据模型；11 §同步协议"
+      },
+      {
+        "id": "NotationProfile",
+        "modules": [
+          "fml-core",
+          "fml-assets"
+        ],
+        "compute": "fml-core：字形 → SymbolId 规则、函数记号与分布参数化约定",
+        "store": "notation_profile；包内 notation/ 条目",
+        "sync": "所用方案版本进入公式修订",
+        "reqs": [
+          "R07",
+          "R14"
+        ],
+        "refs": "10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单"
+      },
+      {
+        "id": "SymbolAlias",
+        "modules": [
+          "fml-core",
+          "fml-assets"
+        ],
+        "compute": "fml-core：SymbolId 的显示字形、LaTeX 与朗读串，按 NotationProfile 切换",
+        "store": "随 NotationProfile 条目携带",
+        "sync": "随所属方案版本",
+        "reqs": [
+          "R07",
+          "R14"
+        ],
+        "refs": "10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单"
+      },
+      {
+        "id": "ConstantSet",
+        "modules": [
+          "fml-core",
+          "fml-assets"
+        ],
+        "compute": "fml-core：exact、textbook、given 三类，取值优先级 given → textbook → exact",
+        "store": "constant_set；包内 constants/ 只含 exact 与 textbook，given 随题目条目",
+        "sync": "常数集版本进入公式修订",
+        "reqs": [
+          "R09",
+          "R14"
+        ],
+        "refs": "10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单"
+      },
+      {
+        "id": "UnitDefinition",
+        "modules": [
+          "fml-core",
+          "fml-store"
+        ],
+        "compute": "fml-core：命名空间、七维指数、scale、offset 与角度/温差语义",
+        "store": "user_unit（版本化，改定义不改变旧修订的解释）",
+        "sync": "用户单位/符号：版本化定义，冲突不覆盖已引用的旧定义，需明确映射",
+        "reqs": [
+          "R10",
+          "R11"
+        ],
+        "refs": "10 §单一语义源、§本地数据模型；11 §同步协议"
+      },
+      {
+        "id": "Derivation",
+        "modules": [
+          "fml-core",
+          "fml-store"
+        ],
+        "compute": "fml-core：来源修订、替换目标节点、变量映射、条件与分支选择；派生修订只读",
+        "store": "derivation（被引用修订按引用计数保留）",
+        "sync": "派生修订按公式修订 DAG 同步；derivation 记录未在 11 §同步协议 中单列",
+        "reqs": [
+          "R12"
+        ],
+        "refs": "10 §单一语义源、§计算器与代入、§本地数据模型"
+      },
+      {
+        "id": "CalculationPlan",
+        "modules": [
+          "fml-core",
+          "fml-store"
+        ],
+        "compute": "fml-core：有序步骤、输入绑定、输出到下游输入的映射、单位换算与所用常数集",
+        "store": "calculation_plan",
+        "sync": "未在 11 §同步协议 中单列",
+        "reqs": [
+          "R09",
+          "R12"
+        ],
+        "refs": "10 §单一语义源、§计算器与代入、§本地数据模型"
+      },
+      {
+        "id": "Book",
+        "modules": [
+          "fml-study",
+          "fml-assets",
+          "fml-store"
+        ],
+        "compute": "fml-study 按书、章节与要求层级选题；内置书随课程包",
+        "store": "book",
+        "sync": "书架的加入与移除按增删集合合并",
+        "reqs": [
+          "R04",
+          "R13",
+          "R14"
+        ],
+        "refs": "10 §学习域模型；11 §同步协议"
+      },
+      {
+        "id": "StudyPlan",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "SessionPlanner 的输入：每日新学与复习上限、组大小、完成门槛 K、学习日切换时刻与时区",
+        "store": "study_plan",
+        "sync": "计划参数按字段级逻辑时钟合并",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型；11 §同步协议"
+      },
+      {
+        "id": "Card",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "由固定 FormulaRevision 按题型派生同胞卡",
+        "store": "study_card",
+        "sync": "绑定（FormulaItem, revision）；重置递增 card_reset_epoch",
+        "reqs": [
+          "R04",
+          "R08"
+        ],
+        "refs": "10 §学习域模型；11 §同步协议"
+      },
+      {
+        "id": "Session",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "SessionPlanner 生成组序列与游标，可暂停续学",
+        "store": "study_session",
+        "sync": "不在 11 §同步协议 的实体表中；跨设备以 Attempt 与 ReviewEvent 为准",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型、§本地数据模型"
+      },
+      {
+        "id": "Attempt",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "Grader 的判定与作答原文，追加写",
+        "store": "attempt",
+        "sync": "同步：按 event_id 去重，按 card_reset_epoch、时间、device_id、device_seq 排序",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型；11 §同步协议"
+      },
+      {
+        "id": "ReviewEvent",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "由组学习结果映射的 FSRS 评分事件，Scheduler 重放",
+        "store": "review_event",
+        "sync": "同步：学习事件规则同 Attempt",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型；11 §同步协议"
+      },
+      {
+        "id": "Mastery",
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "compute": "由 Attempt 与 FSRS 状态派生的掌握状态",
+        "store": "mastery_cache（可删除重建）",
+        "sync": "不同步",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型、§本地数据模型"
+      },
+      {
+        "id": "ConfusableGroup",
+        "modules": [
+          "fml-study",
+          "fml-assets"
+        ],
+        "compute": "易混辨析题与干扰项",
+        "store": "confusable_group（多数随内容包只读）",
+        "sync": "随内容包分发",
+        "reqs": [
+          "R04"
+        ],
+        "refs": "10 §学习域模型、§本地数据模型"
+      }
+    ],
+    "requirements": {
+      "R01": {
+        "modules": [
+          "presentation",
+          "composition",
+          "binding",
+          "platform_io",
+          "fml-ffi"
+        ],
+        "ports": [
+          "FormulaView"
+        ],
+        "milestone": "M1",
+        "note": "Flutter 双端界面 + Rust 核心（09 ADR-001）；M0 锁定单一绑定面（09 ADR-010）"
+      },
+      "R02": {
+        "modules": [
+          "ohos-arkts",
+          "ohos-napi",
+          "fml-ffi",
+          "contracts"
+        ],
+        "ports": [
+          "SecureStore"
+        ],
+        "milestone": "M0",
+        "note": "C ABI 头文件与平台无关核心预留给 NAPI；M0 双路线纵切后定路线（00 D-04）"
+      },
+      "R03": {
+        "modules": [
+          "presentation",
+          "platform_io",
+          "fml-assets",
+          "fml-recognition"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "milestone": "M0",
+        "note": "无常驻服务、按需安装内容包与模型包；预算见 13 §可复现性能预算，M0 登记基线、M5 全量复测"
+      },
+      "R04": {
+        "modules": [
+          "presentation",
+          "platform_io",
+          "fml-study",
+          "fml-recognition",
+          "fml-assets",
+          "fml-store",
+          "fml-core",
+          "tools-content"
+        ],
+        "ports": [
+          "Scheduler",
+          "SessionPlanner",
+          "Grader",
+          "FormulaEngine",
+          "FormulaRecognizer",
+          "PackStore",
+          "FormulaStore",
+          "ImageImport"
+        ],
+        "milestone": "M1",
+        "note": "子项落点见下表；调度、会话编排与判分都在 fml-study，确定性可重放（09 ADR-008）"
+      },
+      "R05": {
+        "modules": [
+          "presentation",
+          "fml-recognition",
+          "platform_io"
+        ],
+        "ports": [
+          "FormulaRecognizer"
+        ],
+        "milestone": "M2",
+        "note": "墨迹输入；查找模式与作答模式，作答模式强制忠实转写"
+      },
+      "R06": {
+        "modules": [
+          "fml-recognition",
+          "platform_io",
+          "server"
+        ],
+        "ports": [
+          "FormulaRecognizer",
+          "FormulaDetector"
+        ],
+        "milestone": "M2",
+        "note": "识别后端可插拔（09 ADR-007）：云识别与本地模型分别验收；本地模型按原文预留（00 D-13）"
+      },
+      "R07": {
+        "modules": [
+          "presentation",
+          "fml-core"
+        ],
+        "ports": [
+          "FormulaEngine",
+          "FormulaView"
+        ],
+        "milestone": "M1",
+        "note": "源码/模板编辑 + FormulaView（09 ADR-002）；ISO 80000-2 符号与 LaTeX 往返；记号方案切换"
+      },
+      "R08": {
+        "modules": [
+          "presentation",
+          "fml-store",
+          "fml-core"
+        ],
+        "ports": [
+          "FormulaStore"
+        ],
+        "milestone": "M1",
+        "note": "formula_item / formula_revision；修订不可变，含回收站与导入"
+      },
+      "R09": {
+        "modules": [
+          "presentation",
+          "fml-core"
+        ],
+        "ports": [
+          "FormulaEngine"
+        ],
+        "milestone": "M1",
+        "note": "数值计算与计算链；常数取值优先级 given → textbook → exact"
+      },
+      "R10": {
+        "modules": [
+          "fml-core",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaEngine"
+        ],
+        "milestone": "M1",
+        "note": "TypeExpr 量纲合一与量纲变量（09 ADR-011）；M0 先做量纲多态原型"
+      },
+      "R11": {
+        "modules": [
+          "fml-core",
+          "fml-store",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaEngine",
+          "FormulaStore"
+        ],
+        "milestone": "M1",
+        "note": "录入时调整量纲；user_unit 版本化，改定义不改变旧修订的解释"
+      },
+      "R12": {
+        "modules": [
+          "fml-core",
+          "fml-store",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaEngine",
+          "FormulaStore"
+        ],
+        "milestone": "M1",
+        "note": "符号代入生成派生修订，calculation_plan / derivation 记录计算链（00 D-05）"
+      },
+      "R13": {
+        "modules": [
+          "tools-content",
+          "fml-assets"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "milestone": "M4",
+        "note": "课程包与公式书；内容基线版本按 00 D-17 冻结"
+      },
+      "R14": {
+        "modules": [
+          "tools-content",
+          "fml-assets",
+          "fml-core"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "milestone": "M4",
+        "note": "大学物理课程包，配套 NotationProfile 与 textbook 常数集"
+      },
+      "R15": {
+        "modules": [
+          "contracts",
+          "fml-ffi",
+          "fml-core",
+          "fml-study",
+          "fml-store"
+        ],
+        "ports": [],
+        "milestone": "M0",
+        "note": "错误码注册表、依赖图检查与可维护性度量，每个里程碑出报告"
+      },
+      "R16": {
+        "modules": [
+          "tools-content"
+        ],
+        "ports": [],
+        "milestone": "M4",
+        "note": "已完成三条样例试摄入（12 §本次获取的样例）；内容自编为主，开源只作校验（09 ADR-014）"
+      },
+      "R17": {
+        "modules": [
+          "fml-recognition"
+        ],
+        "ports": [
+          "FormulaDetector"
+        ],
+        "milestone": "M0",
+        "note": "主线只保留可插拔的 FormulaDetector 端口；YOLO 预案留在实验分支，每次合入 main 按 T-EXP 检查"
+      },
+      "R18": {
+        "modules": [
+          "fml-store",
+          "presentation",
+          "server"
+        ],
+        "ports": [
+          "FormulaStore"
+        ],
+        "milestone": "M1",
+        "note": "用户公式修订可查看、对比与恢复（00 D-12）；工程侧 SemVer、签名标签与最低版本在 M5"
+      },
+      "R19": {
+        "modules": [
+          "composition",
+          "presentation",
+          "platform_io",
+          "fml-store"
+        ],
+        "ports": [
+          "AuthSync"
+        ],
+        "milestone": "M1",
+        "note": "无身份不进入核心功能；设备注册表先于任何账户库打开"
+      },
+      "R20": {
+        "modules": [
+          "composition",
+          "fml-store",
+          "fml-crypto",
+          "platform_io"
+        ],
+        "ports": [
+          "SecureStore"
+        ],
+        "milestone": "M1",
+        "note": "游客即本地账户，独立库与密钥；本机解锁默认系统级（00 D-09）"
+      },
+      "R21": {
+        "modules": [
+          "fml-sync",
+          "composition"
+        ],
+        "ports": [
+          "AuthSync"
+        ],
+        "milestone": "M1",
+        "note": "游客不进入上传端口；按 T-PRIVACY 抓包验证"
+      },
+      "R22": {
+        "modules": [
+          "fml-store",
+          "fml-sync",
+          "fml-crypto",
+          "platform_io",
+          "server"
+        ],
+        "ports": [
+          "FormulaStore",
+          "AuthSync",
+          "SecureStore"
+        ],
+        "milestone": "M3",
+        "note": "升级 journal、E2EE outbox/inbox 与快照；设备配对 + 恢复码（09 ADR-012）"
+      },
+      "R23": {
+        "modules": [
+          "fml-assets",
+          "tools-content",
+          "server"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "milestone": "M1",
+        "note": "签名资源包与 TUF 风格元数据；先验证后解包，失败保持旧包（09 ADR-005）"
+      },
+      "R24": {
+        "modules": [
+          "platform_io",
+          "fml-recognition",
+          "presentation"
+        ],
+        "ports": [
+          "ImageImport",
+          "FormulaRecognizer"
+        ],
+        "milestone": "M2",
+        "note": "相机与系统选择器导入、内存安全解码、手动框选"
+      },
+      "R25": {
+        "modules": [
+          "fml-recognition"
+        ],
+        "ports": [
+          "FormulaRecognizer"
+        ],
+        "milestone": "M2",
+        "note": "预处理与质量提示在核心内完成，不改用户原图"
+      },
+      "R26": {
+        "modules": [
+          "fml-recognition",
+          "fml-store",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaRecognizer",
+          "FormulaStore"
+        ],
+        "milestone": "M2",
+        "note": "识别会话状态机 + 两阶段 GC；cleanup_job 独立于被删会话存在，直到清理确认"
+      },
+      "R27": {
+        "modules": [
+          "presentation",
+          "fml-store",
+          "contracts"
+        ],
+        "ports": [
+          "FormulaStore"
+        ],
+        "milestone": "M2",
+        "note": "keep_last 为整数 0–100、默认 5，界面、接口与 local_setting CHECK 三处约束"
+      },
+      "R28": {
+        "modules": [
+          "fml-store",
+          "fml-crypto",
+          "fml-recognition"
+        ],
+        "ports": [
+          "FormulaStore"
+        ],
+        "milestone": "M2",
+        "note": "历史含确认后的规范图与识别结果，独立加密；保留口径见 00 D-15"
+      },
+      "R29": {
+        "modules": [
+          "platform_io"
+        ],
+        "ports": [
+          "ImageImport"
+        ],
+        "milestone": "M1",
+        "note": "Windows 使用 IFileOpenDialog；拖拽与剪贴板为可选入口"
+      },
+      "R30": {
+        "modules": [
+          "platform_io"
+        ],
+        "ports": [
+          "ImageImport"
+        ],
+        "milestone": "M1",
+        "note": "Android 使用 SAF；Photo Picker 与相机按需权限"
+      },
+      "R31": {
+        "modules": [
+          "fml-crypto",
+          "fml-store",
+          "fml-assets",
+          "fml-recognition",
+          "platform_io",
+          "server"
+        ],
+        "ports": [
+          "SecureStore",
+          "PackStore"
+        ],
+        "milestone": "M5",
+        "note": "密钥与 AAD、签名资源包、内存安全解码与服务端越权防护；M5 做安全复核"
+      },
+      "H01": {
+        "modules": [
+          "tools-content",
+          "fml-assets"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "milestone": "M4",
+        "note": "高中数学、物理分包，见 12 §高中分包（H01）"
+      },
+      "H02": {
+        "modules": [
+          "server",
+          "fml-recognition",
+          "platform_io"
+        ],
+        "ports": [
+          "FormulaRecognizer"
+        ],
+        "milestone": "M2",
+        "note": "云识别最小链路在 M2，完整配额与审计在 M3；供应商口径见 00 D-10"
+      },
+      "A01": {
+        "modules": [
+          "fml-core",
+          "fml-study",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaEngine"
+        ],
+        "milestone": "M1",
+        "note": "校验状态区分 Unknown 与 Verified；只有 Verified 修订可出卡（00 D-16）"
+      },
+      "A02": {
+        "modules": [
+          "fml-store",
+          "fml-crypto",
+          "presentation"
+        ],
+        "ports": [
+          "FormulaStore"
+        ],
+        "milestone": "M2",
+        "note": "删除历史会话的包装密钥并清理文件；界面不承诺闪存上的绝对擦除"
+      },
+      "A03": {
+        "modules": [
+          "fml-crypto",
+          "fml-sync",
+          "platform_io",
+          "server"
+        ],
+        "ports": [
+          "SecureStore",
+          "AuthSync"
+        ],
+        "milestone": "M3",
+        "note": "账户根密钥经设备配对或恢复码解锁；本机库密钥不上云"
+      },
+      "A04": {
+        "modules": [
+          "binding",
+          "ohos-napi",
+          "fml-core",
+          "fml-study",
+          "fml-recognition",
+          "fml-crypto"
+        ],
+        "ports": [],
+        "milestone": "M0",
+        "note": "M0 实测绑定面、鸿蒙双路线、量纲多态、判分、识别后端与密钥方案"
+      }
+    },
+    "r04_items": {
+      "R04.a": {
+        "modules": [
+          "fml-study",
+          "fml-assets",
+          "fml-store",
+          "presentation"
+        ],
+        "entities": [
+          "Book",
+          "StudyPlan"
+        ],
+        "ports": [
+          "SessionPlanner"
+        ],
+        "note": "内置书随课程包、自建书入 book 表；计划默认每日新学 10、组大小 10"
+      },
+      "R04.b": {
+        "modules": [
+          "fml-study",
+          "presentation"
+        ],
+        "entities": [
+          "Session",
+          "StudyPlan"
+        ],
+        "ports": [
+          "SessionPlanner"
+        ],
+        "note": "按组学习，组大小默认 10；会话可暂停续学"
+      },
+      "R04.c": {
+        "modules": [
+          "fml-study",
+          "fml-assets",
+          "presentation"
+        ],
+        "entities": [
+          "ConfusableGroup",
+          "Attempt"
+        ],
+        "ports": [
+          "Grader"
+        ],
+        "note": "选择与辨析题客观判定；干扰项来自易混组与课程包"
+      },
+      "R04.d": {
+        "modules": [
+          "fml-study"
+        ],
+        "entities": [
+          "Attempt",
+          "Mastery"
+        ],
+        "ports": [
+          "SessionPlanner"
+        ],
+        "note": "答错插回本组靠后，连续答对 K（默认 3）次才算完成"
+      },
+      "R04.e": {
+        "modules": [
+          "fml-study",
+          "fml-recognition",
+          "presentation"
+        ],
+        "entities": [
+          "Attempt"
+        ],
+        "ports": [
+          "Grader",
+          "FormulaRecognizer"
+        ],
+        "note": "输入或手写默写，三层判分；手写走作答模式忠实转写"
+      },
+      "R04.f": {
+        "modules": [
+          "fml-assets",
+          "tools-content",
+          "presentation"
+        ],
+        "entities": [
+          "Book"
+        ],
+        "ports": [
+          "PackStore"
+        ],
+        "note": "大纲要求层级、考频与考点随课程包提供"
+      },
+      "R04.g": {
+        "modules": [
+          "fml-core",
+          "fml-assets",
+          "fml-study"
+        ],
+        "entities": [
+          "ConfusableGroup"
+        ],
+        "ports": [
+          "FormulaEngine"
+        ],
+        "note": "派生关系与公式族、易混组"
+      },
+      "R04.h": {
+        "modules": [
+          "fml-study",
+          "fml-store"
+        ],
+        "entities": [
+          "ReviewEvent",
+          "Attempt"
+        ],
+        "ports": [
+          "Scheduler"
+        ],
+        "note": "FSRS 排程；“记错了”与申诉改判以追加的纠正事件留痕"
+      },
+      "R04.i": {
+        "modules": [
+          "fml-study",
+          "presentation",
+          "platform_io"
+        ],
+        "entities": [
+          "Mastery",
+          "Attempt"
+        ],
+        "ports": [],
+        "note": "统计由 Attempt 与 ReviewEvent 派生；每日一次本地提醒"
+      },
+      "R04.j": {
+        "modules": [
+          "presentation",
+          "fml-store",
+          "fml-core",
+          "platform_io"
+        ],
+        "entities": [
+          "Book"
+        ],
+        "ports": [
+          "FormulaStore",
+          "ImageImport"
+        ],
+        "note": "自建公式书与导入，导入经系统选择器"
+      }
+    },
+    "client_surfaces": [
+      {
+        "id": "CF-01",
+        "title": "公式编辑与渲染",
+        "reqs": [
+          "R07",
+          "R10",
+          "R11",
+          "A01"
+        ],
+        "modules": [
+          "presentation",
+          "fml-core",
+          "binding"
+        ],
+        "android": "中文 IME、软键盘、公式模板键盘、触控笔",
+        "windows": "中文 IME、快捷键、100/150/200% DPI、多屏",
+        "ohos": "ArkTS 路线需重写编辑界面，核心复用",
+        "tests": [
+          "T-EDIT",
+          "T-NOTATION",
+          "T-DIM",
+          "T-USABILITY"
+        ],
+        "refs": "10 §渲染与编辑取舍、§设备覆盖与输入体验"
+      },
+      {
+        "id": "CF-02",
+        "title": "公式库与修订历史",
+        "reqs": [
+          "R08",
+          "R18"
+        ],
+        "modules": [
+          "presentation",
+          "fml-store"
+        ],
+        "android": "列表按页加载",
+        "windows": "同 Android",
+        "ohos": "—",
+        "tests": [
+          "T-LIB"
+        ],
+        "refs": "10 §本地数据模型"
+      },
+      {
+        "id": "CF-03",
+        "title": "计算器与代入",
+        "reqs": [
+          "R09",
+          "R12"
+        ],
+        "modules": [
+          "presentation",
+          "fml-core",
+          "fml-store"
+        ],
+        "android": "两端行为一致",
+        "windows": "两端行为一致",
+        "ohos": "—",
+        "tests": [
+          "T-CALC",
+          "T-SUB",
+          "T-CONST"
+        ],
+        "refs": "10 §计算器与代入"
+      },
+      {
+        "id": "CF-04",
+        "title": "组学习、默写与复习",
+        "reqs": [
+          "R04"
+        ],
+        "modules": [
+          "presentation",
+          "fml-study",
+          "fml-store"
+        ],
+        "android": "进程被杀后恢复到当前组与当前题",
+        "windows": "单实例写库，额外窗口经进程内通信",
+        "ohos": "—",
+        "tests": [
+          "T-STUDY",
+          "T-SESSION",
+          "T-GRADE"
+        ],
+        "refs": "10 §背诵闭环、§题型与判分、§平台实现与生命周期"
+      },
+      {
+        "id": "CF-05",
+        "title": "学习统计与提醒",
+        "reqs": [
+          "R04",
+          "R01"
+        ],
+        "modules": [
+          "presentation",
+          "fml-study",
+          "platform_io"
+        ],
+        "android": "每日一次本地提醒，需 POST_NOTIFICATIONS，拒绝不阻断学习；无 GMS 设备只用本地通知",
+        "windows": "安装器注册稳定的 AUMID，保证通知归属与点击激活",
+        "ohos": "—",
+        "tests": [
+          "T-STATS",
+          "T-PLATFORM"
+        ],
+        "refs": "10 §学习统计与 FSRS 个性化、§平台实现与生命周期"
+      },
+      {
+        "id": "CF-06",
+        "title": "手写与照片识别",
+        "reqs": [
+          "R05",
+          "R24",
+          "R25",
+          "H02"
+        ],
+        "modules": [
+          "presentation",
+          "platform_io",
+          "fml-recognition"
+        ],
+        "android": "相机按需权限与 Photo Picker；后台释放相机",
+        "windows": "触控笔墨迹；拖拽与剪贴板为可选入口",
+        "ohos": "—",
+        "tests": [
+          "T-OCR",
+          "T-IMAGE",
+          "T-FIDELITY",
+          "T-CLOUD"
+        ],
+        "refs": "10 §输入与图像预算、§查找模式与作答模式"
+      },
+      {
+        "id": "CF-07",
+        "title": "识别历史与严格 N",
+        "reqs": [
+          "R26",
+          "R27",
+          "R28",
+          "A02"
+        ],
+        "modules": [
+          "presentation",
+          "fml-store",
+          "fml-recognition"
+        ],
+        "android": "私有目录 noBackupFilesDir，显式排除系统备份",
+        "windows": "LocalAppData 用户账户目录与 ACL",
+        "ohos": "—",
+        "tests": [
+          "T-GC",
+          "T-PRIVACY"
+        ],
+        "refs": "11 §识别生命周期与严格 N 保留"
+      },
+      {
+        "id": "CF-08",
+        "title": "系统文件管理器导入导出",
+        "reqs": [
+          "R29",
+          "R30"
+        ],
+        "modules": [
+          "platform_io"
+        ],
+        "android": "SAF 必须；拒绝权限后仍可经系统选择器导入",
+        "windows": "IFileOpenDialog 必须",
+        "ohos": "—",
+        "tests": [
+          "T-PLATFORM"
+        ],
+        "refs": "10 §平台实现与生命周期"
+      },
+      {
+        "id": "CF-09",
+        "title": "账户、游客与本机解锁",
+        "reqs": [
+          "R19",
+          "R20",
+          "R21"
+        ],
+        "modules": [
+          "presentation",
+          "composition",
+          "platform_io",
+          "fml-store",
+          "fml-crypto"
+        ],
+        "android": "Android Keystore，记录硬件安全等级",
+        "windows": "DPAPI 用户作用域，不等同 Windows Hello",
+        "ohos": "HUKS（预留）",
+        "tests": [
+          "T-ACCOUNT",
+          "T-UNLOCK",
+          "T-PRIVACY"
+        ],
+        "refs": "11 §账户与本地访问状态、§本机解锁因素"
+      },
+      {
+        "id": "CF-10",
+        "title": "注册升级、设备配对与同步",
+        "reqs": [
+          "R22",
+          "A03"
+        ],
+        "modules": [
+          "presentation",
+          "fml-sync",
+          "fml-crypto",
+          "fml-store",
+          "platform_io"
+        ],
+        "android": "同步只在前台、用户操作或应用恢复时触发，不做周期轮询",
+        "windows": "同 Android",
+        "ohos": "—",
+        "tests": [
+          "T-UPGRADE",
+          "T-GUESTMERGE",
+          "T-KEY",
+          "T-AAD",
+          "T-SYNC",
+          "T-SNAPSHOT"
+        ],
+        "refs": "11 §游客升级与多端同步；10 §平台实现与生命周期"
+      },
+      {
+        "id": "CF-11",
+        "title": "资源包安装与更新",
+        "reqs": [
+          "R23"
+        ],
+        "modules": [
+          "fml-assets",
+          "platform_io",
+          "presentation"
+        ],
+        "android": "与 Windows 加载同一资源包",
+        "windows": "与 Android 加载同一资源包",
+        "ohos": "—",
+        "tests": [
+          "T-PACK"
+        ],
+        "refs": "10 §静态资源；12 §清单、签名与激活"
+      },
+      {
+        "id": "CF-12",
+        "title": "安装、分发与生命周期",
+        "reqs": [
+          "R01",
+          "R03",
+          "R18"
+        ],
+        "modules": [
+          "platform_io",
+          "composition",
+          "binding"
+        ],
+        "android": "签名 APK/AAB；只申请 CAMERA、POST_NOTIFICATIONS、INTERNET；API 26+",
+        "windows": "每用户签名安装器，无需管理员权限；DLL 绝对路径安全加载",
+        "ohos": "—",
+        "tests": [
+          "T-PLATFORM",
+          "T-PERF",
+          "T-RELEASE",
+          "T-FFI"
+        ],
+        "refs": "10 §平台实现与生命周期、§发布、自更新与最低版本"
+      },
+      {
+        "id": "CF-13",
+        "title": "鸿蒙预留",
+        "reqs": [
+          "R02"
+        ],
+        "modules": [
+          "ohos-arkts",
+          "ohos-napi",
+          "fml-ffi"
+        ],
+        "android": "—",
+        "windows": "—",
+        "ohos": "Flutter OHOS 移植或 ArkTS + NAPI；M0 纵切后定路线（00 D-04）",
+        "tests": [
+          "T-HARMONY",
+          "T-OHOS"
+        ],
+        "refs": "10 §鸿蒙验证路线；09 ADR-013"
+      }
+    ],
+    "externals": [
+      {
+        "id": "idp",
+        "label": "身份服务（OIDC）",
+        "note": "成熟身份服务或身份框架；登录方式见 00 D-14"
+      },
+      {
+        "id": "postgres",
+        "label": "PostgreSQL",
+        "note": "账户、同步序列、作业状态与幂等键"
+      },
+      {
+        "id": "object-store",
+        "label": "对象存储与静态文件 / CDN",
+        "note": "资源包与 TUF 风格元数据"
+      },
+      {
+        "id": "vision",
+        "label": "视觉模型供应商",
+        "note": "境内已备案、委托处理、不用于训练（00 D-10）"
+      }
+    ],
+    "server_features": [
+      {
+        "id": "SF-01",
+        "title": "账户绑定与令牌",
+        "contract": "授权码 + PKCE；网关校验 issuer、audience、expiry 与账户状态；owner 由服务端从 token 得出",
+        "client_modules": [
+          "platform_io",
+          "composition"
+        ],
+        "externals": [
+          "idp",
+          "postgres"
+        ],
+        "reqs": [
+          "R19",
+          "R22",
+          "R31"
+        ],
+        "tests": [
+          "T-ACCOUNT",
+          "T-SECURITY"
+        ],
+        "refs": "10 §服务端最小部署；09 ADR-003"
+      },
+      {
+        "id": "SF-02",
+        "title": "E2EE 同步",
+        "contract": "只接收密文事件；每账户序列与 (account_epoch, op_id) 幂等，先持久化再 ACK；快照 + 增量恢复",
+        "client_modules": [
+          "platform_io",
+          "fml-sync",
+          "fml-crypto"
+        ],
+        "externals": [
+          "postgres"
+        ],
+        "reqs": [
+          "R22",
+          "A03",
+          "R31"
+        ],
+        "tests": [
+          "T-SYNC",
+          "T-AAD",
+          "T-SNAPSHOT",
+          "T-KEY"
+        ],
+        "refs": "11 §同步协议；09 ADR-012"
+      },
+      {
+        "id": "SF-03",
+        "title": "识别网关与 worker",
+        "contract": "逐次授权后上传裁剪图；任务幂等与不确定状态；按账户、设备与 IP 配额并控制成本；worker 限制并发",
+        "client_modules": [
+          "platform_io",
+          "fml-recognition"
+        ],
+        "externals": [
+          "postgres",
+          "vision"
+        ],
+        "reqs": [
+          "R06",
+          "R24",
+          "H02"
+        ],
+        "tests": [
+          "T-CLOUD",
+          "T-COMPLY"
+        ],
+        "refs": "11 §云识别授权、任务与费用"
+      },
+      {
+        "id": "SF-04",
+        "title": "资源包托管",
+        "contract": "TUF 风格元数据 root、targets、snapshot、timestamp（timestamp 有效期 ≤7 天）；静态文件或 CDN 分发",
+        "client_modules": [
+          "platform_io",
+          "fml-assets"
+        ],
+        "externals": [
+          "object-store"
+        ],
+        "reqs": [
+          "R23",
+          "R31"
+        ],
+        "tests": [
+          "T-PACK"
+        ],
+        "refs": "10 §静态资源；12 §信任根、防降级和回退"
+      },
+      {
+        "id": "SF-05",
+        "title": "删除账户与备份",
+        "contract": "300 秒内重新认证；先撤销会话并阻止离线 outbox 恢复旧账户，再删除生产数据；恢复备份后重放删除清单",
+        "client_modules": [
+          "platform_io",
+          "composition",
+          "fml-sync"
+        ],
+        "externals": [
+          "postgres"
+        ],
+        "reqs": [
+          "R22",
+          "R31"
+        ],
+        "tests": [
+          "T-SECURITY",
+          "T-COMPLY"
+        ],
+        "refs": "11 §删除账户与备份"
+      },
+      {
+        "id": "SF-06",
+        "title": "监控、API 版本与备份恢复",
+        "contract": "只采集运行指标，告警阈值见 13 §服务端监控告警阈值；路径带 /v1/，低于最低版本返回 HTTP 426；RPO ≤24 h、RTO ≤8 h",
+        "client_modules": [
+          "platform_io",
+          "composition"
+        ],
+        "externals": [
+          "postgres"
+        ],
+        "reqs": [
+          "R15",
+          "R18",
+          "R31"
+        ],
+        "tests": [
+          "T-RELEASE"
+        ],
+        "refs": "10 §服务端最小部署、§发布、自更新与最低版本"
+      }
+    ],
+    "revision_log": [
+      {
+        "ids": "V5.1（00 D-03）",
+        "landing": "§代码模块与职责（八个 crate 承载 Rust 无 I/O 核心，09 ADR-009）"
+      },
+      {
+        "ids": "V1.1、V2.2（00 D-02）",
+        "landing": "§学习域与公式语义实体、§需求—模块—验收追踪（R04 子项落点，09 ADR-008）"
+      },
+      {
+        "ids": "V5.4（00 D-04）",
+        "landing": "§客户端功能面与平台差异（CF-13 鸿蒙双路线，09 ADR-013）"
+      },
+      {
+        "ids": "TA-05",
+        "landing": "§生成、校验与复现（以 LF 写出，.gitattributes 覆盖全部生成物）"
+      },
+      {
+        "ids": "TA-06",
+        "landing": "§生成、校验与复现（不读取字体文件，SVG 使用字体回退栈）"
+      },
+      {
+        "ids": "TA-07",
+        "landing": "§生成、校验与复现（显式校验代替 assert，--check 不写盘，原子替换写入）"
+      },
+      {
+        "ids": "TA-08",
+        "landing": "§服务端功能与外部依赖（服务端图与表由 JSON 生成）"
+      },
+      {
+        "ids": "TA-09、TA-10",
+        "landing": "§生成、校验与复现（计数由数据计算；输出禁止控制字符、行号引用与外部请求）"
+      },
+      {
+        "ids": "TA-11、TA-12、TA-13",
+        "landing": "全文：交叉引用改为文档号加章节名（如 10 §端口契约），不再使用行号锚点"
+      },
+      {
+        "ids": "TA-14",
+        "landing": "§需求—模块—验收追踪（13 设计定位中的章节名在生成时校验）"
+      },
+      {
+        "ids": "TA-15",
+        "landing": "§用途与生成方式（A 编号与 RV 编号说明）"
+      },
+      {
+        "ids": "TA-16、TA-17",
+        "landing": "§客户端功能面与平台差异、§服务端功能与外部依赖（验收 ID 必须取自所映射需求在 13 中的验收 ID）"
+      },
+      {
+        "ids": "TA-18、TA-19、TA-20",
+        "landing": "§生成、校验与复现（HTML 按编号精确筛选、表格区域可键盘聚焦、CSP）"
+      },
+      {
+        "ids": "TA-21",
+        "landing": "§功能—模块总览（图由 JSON 布局生成，只连接相邻层或同层相邻模块）"
+      }
+    ]
+  },
+  "derived": {
+    "counts": {
+      "requirements": 37,
+      "r04_items": 10,
+      "tests": 42,
+      "sub_ids": 14,
+      "modules": 17,
+      "ports": 12,
+      "entities": 16,
+      "client_surfaces": 13,
+      "server_features": 6,
+      "externals": 4
+    },
+    "requirements": [
+      {
+        "id": "R01",
+        "title": "Windows 与 Android 双平台",
+        "design": "10 §推荐技术栈与初始模块、§单一绑定面与线程、§设备覆盖与输入体验",
+        "tests": [
+          "T-PLATFORM",
+          "T-FFI"
+        ]
+      },
+      {
+        "id": "R02",
+        "title": "预留鸿蒙接口",
+        "design": "10 §鸿蒙验证路线；09 ADR-013",
+        "tests": [
+          "T-HARMONY",
+          "T-OHOS"
+        ]
+      },
+      {
+        "id": "R03",
+        "title": "软件轻量",
+        "design": "10 §目标、范围与质量属性；13 §可复现性能预算",
+        "tests": [
+          "T-PERF"
+        ]
+      },
+      {
+        "id": "R04",
+        "title": "以不背单词为原型，功能近似（子项见下表）",
+        "design": "00 §功能近似条款（R04 子项）；10 §学习域模型、§背诵闭环、§题型与判分、§学习统计与 FSRS 个性化",
+        "tests": [
+          "T-STUDY",
+          "T-SESSION",
+          "T-GRADE",
+          "T-STATS"
+        ]
+      },
+      {
+        "id": "R05",
+        "title": "手写公式识别",
+        "design": "10 §输入与图像预算、§识别后端、§查找模式与作答模式、§识别质量口径",
+        "tests": [
+          "T-OCR",
+          "T-FIDELITY"
+        ]
+      },
+      {
+        "id": "R06",
+        "title": "预留轻量模型与 LLM 识别接入",
+        "design": "10 §端口契约、§识别后端；00 D-13",
+        "tests": [
+          "T-PLUGIN",
+          "T-OCR",
+          "T-CLOUD"
+        ]
+      },
+      {
+        "id": "R07",
+        "title": "公式编辑器支持 ISO 规范与 LaTeX",
+        "design": "10 §输入与解析、§渲染与编辑取舍、§记号方案与常数集",
+        "tests": [
+          "T-EDIT",
+          "T-NOTATION",
+          "T-USABILITY"
+        ]
+      },
+      {
+        "id": "R08",
+        "title": "公式库",
+        "design": "10 §编辑器、公式库和学习流程",
+        "tests": [
+          "T-LIB"
+        ]
+      },
+      {
+        "id": "R09",
+        "title": "变量赋值计算",
+        "design": "10 §计算器与代入、§记号方案与常数集",
+        "tests": [
+          "T-CALC",
+          "T-CONST"
+        ]
+      },
+      {
+        "id": "R10",
+        "title": "每个公式严格匹配量纲",
+        "design": "10 §类型与校验状态",
+        "tests": [
+          "T-DIM",
+          "T-POLY"
+        ]
+      },
+      {
+        "id": "R11",
+        "title": "录入时可调整量纲，后期可自定义",
+        "design": "10 §类型与校验状态",
+        "tests": [
+          "T-DIM",
+          "T-UNIT"
+        ]
+      },
+      {
+        "id": "R12",
+        "title": "同量纲部分可代入其他公式作为变量",
+        "design": "10 §计算器与代入",
+        "tests": [
+          "T-SUB",
+          "T-POLY"
+        ]
+      },
+      {
+        "id": "R13",
+        "title": "高等数学：同济课本范围到考研数学全部范围",
+        "design": "12 §课程基线与覆盖矩阵、附录 A",
+        "tests": [
+          "T-CONTENT"
+        ]
+      },
+      {
+        "id": "R14",
+        "title": "大学物理",
+        "design": "12 §大学物理分解；10 §记号方案与常数集",
+        "tests": [
+          "T-CONTENT",
+          "T-NOTATION",
+          "T-CONST"
+        ]
+      },
+      {
+        "id": "R15",
+        "title": "可维护",
+        "design": "10 §错误码与可维护性度量、§依赖风险",
+        "tests": [
+          "T-MAINT"
+        ]
+      },
+      {
+        "id": "R16",
+        "title": "搜寻开源公式库并尝试获取资源",
+        "design": "12 §实际开源公式资源调查；09 ADR-014",
+        "tests": [
+          "T-SOURCE"
+        ]
+      },
+      {
+        "id": "R17",
+        "title": "YOLO 方案不进主分支",
+        "design": "12 §模型、许可与供应链门禁；实验分支文档",
+        "tests": [
+          "T-EXP"
+        ]
+      },
+      {
+        "id": "R18",
+        "title": "版本控制",
+        "design": "10 §发布、自更新与最低版本；用户公式修订历史（00 D-12）",
+        "tests": [
+          "T-RELEASE",
+          "T-LIB"
+        ]
+      },
+      {
+        "id": "R19",
+        "title": "不登录不能使用",
+        "design": "11 §账户与本地访问状态",
+        "tests": [
+          "T-ACCOUNT"
+        ]
+      },
+      {
+        "id": "R20",
+        "title": "游客为临时本地账户",
+        "design": "11 §账户与本地访问状态、§本机解锁因素、§设备注册表",
+        "tests": [
+          "T-ACCOUNT",
+          "T-UNLOCK"
+        ]
+      },
+      {
+        "id": "R21",
+        "title": "游客数据不上云",
+        "design": "11 §保证范围与数据分类",
+        "tests": [
+          "T-PRIVACY"
+        ]
+      },
+      {
+        "id": "R22",
+        "title": "本地保存，转注册后同步",
+        "design": "11 §游客升级事务、§游客并入已有账户、§密钥层次、§同步协议",
+        "tests": [
+          "T-UPGRADE",
+          "T-GUESTMERGE",
+          "T-KEY",
+          "T-AAD",
+          "T-SYNC",
+          "T-SNAPSHOT"
+        ]
+      },
+      {
+        "id": "R23",
+        "title": "资源包与程序剥离",
+        "design": "12 §通用资源包的边界、§清单、签名与激活；10 §静态资源",
+        "tests": [
+          "T-PACK"
+        ]
+      },
+      {
+        "id": "R24",
+        "title": "照片识别",
+        "design": "10 §输入与图像预算、§识别后端",
+        "tests": [
+          "T-OCR",
+          "T-IMAGE"
+        ]
+      },
+      {
+        "id": "R25",
+        "title": "图像去噪与增强",
+        "design": "10 §输入与图像预算",
+        "tests": [
+          "T-IMAGE",
+          "T-OCR"
+        ]
+      },
+      {
+        "id": "R26",
+        "title": "保留最近的识别记录",
+        "design": "11 §识别生命周期与严格 N 保留",
+        "tests": [
+          "T-GC"
+        ]
+      },
+      {
+        "id": "R27",
+        "title": "保留数 0–100，默认 5",
+        "design": "11 §会话和计数口径",
+        "tests": [
+          "T-GC"
+        ]
+      },
+      {
+        "id": "R28",
+        "title": "记录包含图片与识别结果",
+        "design": "11 §保留的内容",
+        "tests": [
+          "T-GC",
+          "T-IMAGE"
+        ]
+      },
+      {
+        "id": "R29",
+        "title": "桌面端调用系统文件管理器",
+        "design": "10 §平台实现与生命周期",
+        "tests": [
+          "T-PLATFORM"
+        ]
+      },
+      {
+        "id": "R30",
+        "title": "安卓端调用系统文件管理器",
+        "design": "10 §平台实现与生命周期",
+        "tests": [
+          "T-PLATFORM"
+        ]
+      },
+      {
+        "id": "R31",
+        "title": "无重大安全问题",
+        "design": "11 全文；10 §安全、诊断与维护；12 §清单、签名与激活",
+        "tests": [
+          "T-SECURITY",
+          "T-KEY",
+          "T-AAD",
+          "T-PACK",
+          "T-COMPLY"
+        ]
+      },
+      {
+        "id": "H01",
+        "title": "高中数学、物理（历史扩展）",
+        "design": "00 §历史记录与范围解释；12 §高中分包（H01）",
+        "tests": [
+          "T-CONTENT"
+        ]
+      },
+      {
+        "id": "H02",
+        "title": "首版接入云端 LLM 识别（历史扩展）",
+        "design": "00 D-10、D-13；11 §云识别授权、任务与费用",
+        "tests": [
+          "T-CLOUD",
+          "T-COMPLY"
+        ]
+      },
+      {
+        "id": "A01",
+        "title": "未知量纲不得冒充已校验",
+        "design": "10 §类型与校验状态",
+        "tests": [
+          "T-DIM",
+          "T-POLY"
+        ]
+      },
+      {
+        "id": "A02",
+        "title": "不承诺闪存上的绝对擦除",
+        "design": "11 §保留的内容、§文件与数据库不能伪装成一个事务",
+        "tests": [
+          "T-GC",
+          "T-PRIVACY"
+        ]
+      },
+      {
+        "id": "A03",
+        "title": "新设备可恢复，本机密钥不上云",
+        "design": "11 §密钥层次、§密钥轮换、设备吊销与恢复",
+        "tests": [
+          "T-KEY",
+          "T-SNAPSHOT"
+        ]
+      },
+      {
+        "id": "A04",
+        "title": "高风险路径在实现前验证",
+        "design": "09 §必须先完成的工程验证（M0）",
+        "tests": [
+          "T-PLUGIN",
+          "T-FFI",
+          "T-KEY",
+          "T-OHOS",
+          "T-POLY",
+          "T-GRADE"
+        ]
+      }
+    ],
+    "r04_items": [
+      {
+        "id": "R04.a",
+        "title": "书与计划",
+        "content": "书与计划：按教材章节、考试大纲（数一/数二/数三）、大学物理基本要求或自建组织公式书；每日新学与复习目标、考试日期",
+        "design": "10 §学习域模型；12 §课程基线与覆盖矩阵",
+        "tests": [
+          "T-SESSION",
+          "T-CONTENT"
+        ]
+      },
+      {
+        "id": "R04.b",
+        "title": "分组学习",
+        "content": "分组学习：一组若干公式，组内多轮",
+        "design": "10 §背诵闭环",
+        "tests": [
+          "T-SESSION",
+          "T-STUDY"
+        ]
+      },
+      {
+        "id": "R04.c",
+        "title": "客观辨识",
+        "content": "客观辨识：看名称或情境选公式、看公式选名称；干扰项取自易错变体并经人工审校",
+        "design": "10 §题型与判分",
+        "tests": [
+          "T-GRADE",
+          "T-STUDY"
+        ]
+      },
+      {
+        "id": "R04.d",
+        "title": "错题重现与掌握判据",
+        "content": "错题重现与掌握判据：答错组内重现，达到判据才完成新学进入复习",
+        "design": "10 §背诵闭环、§学习统计与 FSRS 个性化",
+        "tests": [
+          "T-SESSION",
+          "T-STATS"
+        ]
+      },
+      {
+        "id": "R04.e",
+        "title": "组后默写",
+        "content": "组后默写：模板编辑器或手写，按数学等价判分，可只默写错题",
+        "design": "10 §题型与判分、§查找模式与作答模式",
+        "tests": [
+          "T-GRADE",
+          "T-FIDELITY"
+        ]
+      },
+      {
+        "id": "R04.f",
+        "title": "考试语境",
+        "content": "考试语境：大纲要求层级、考频、数一二三差异、例题与真题情境（只存出处与自编改写）",
+        "design": "12 §知识点与范围标签、§条目字段、§版权边界",
+        "tests": [
+          "T-CONTENT"
+        ]
+      },
+      {
+        "id": "R04.g",
+        "title": "关联记忆",
+        "content": "关联记忆：派生树（一般式→特例→推论）与易混公式组辨析",
+        "design": "10 §学习域模型、§题型与判分",
+        "tests": [
+          "T-STUDY",
+          "T-CONTENT"
+        ]
+      },
+      {
+        "id": "R04.h",
+        "title": "复习排程与改判",
+        "content": "复习排程与改判：FSRS，复习优先于新学；客观结果自动映射评分，“记错了”与申诉改判留痕",
+        "design": "10 §背诵闭环、§学习统计与 FSRS 个性化",
+        "tests": [
+          "T-STUDY",
+          "T-SESSION"
+        ]
+      },
+      {
+        "id": "R04.i",
+        "title": "统计与坚持",
+        "content": "统计与坚持：日/周/月学习量与时长、章节完成率、掌握度、复习积压、连续天数、本地提醒（组队打卡不做）",
+        "design": "10 §学习统计与 FSRS 个性化",
+        "tests": [
+          "T-STATS"
+        ]
+      },
+      {
+        "id": "R04.j",
+        "title": "自建与导入",
+        "content": "自建与导入：自建公式书，LaTeX/CSV 批量导入并给出校验报告",
+        "design": "10 §学习域模型",
+        "tests": [
+          "T-LIB"
+        ]
+      }
+    ],
+    "tests": [
+      {
+        "id": "T-EDIT",
+        "object": "编辑器、冻结语法与 ISO 80000-2 符号三级",
+        "section": "13 §正确性验收",
+        "gate": "M0 原型，M1 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R07"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-01"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-NOTATION",
+        "object": "记号方案切换与记号歧义诊断",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R07",
+          "R14"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-01"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-DIM",
+        "object": "量纲检查与诊断",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R10",
+          "R11",
+          "A01"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-01"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-POLY",
+        "object": "量纲多态实例化与约束冲突",
+        "section": "13 §正确性验收",
+        "gate": "M0 原型，M1 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R10",
+          "R12",
+          "A01",
+          "A04"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-UNIT",
+        "object": "单位、温度与角度",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R11"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-SUB",
+        "object": "同量纲代入与派生修订",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R12"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-03"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-CALC",
+        "object": "计算器与计算链",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R09"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-03"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-CONST",
+        "object": "常数集与有效数字",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R09",
+          "R14"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-03"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-LIB",
+        "object": "公式库、修订历史、回收站与导入",
+        "section": "13 §正确性验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R08",
+          "R18"
+        ],
+        "r04_items": [
+          "R04.j"
+        ],
+        "client_surfaces": [
+          "CF-02"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-STUDY",
+        "object": "学习闭环与 FSRS 个性化",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R04"
+        ],
+        "r04_items": [
+          "R04.b",
+          "R04.c",
+          "R04.g",
+          "R04.h"
+        ],
+        "client_surfaces": [
+          "CF-04"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-SESSION",
+        "object": "组学习、上限、埋藏、积压与评分映射",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R04"
+        ],
+        "r04_items": [
+          "R04.a",
+          "R04.b",
+          "R04.d",
+          "R04.h"
+        ],
+        "client_surfaces": [
+          "CF-04"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-GRADE",
+        "object": "数学等价判分",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M0 样例，M1 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R04",
+          "A04"
+        ],
+        "r04_items": [
+          "R04.c",
+          "R04.e"
+        ],
+        "client_surfaces": [
+          "CF-04"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-STATS",
+        "object": "统计口径一致性与学习效果试点",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M1 统计，M3 试点",
+        "sub_ids": [],
+        "requirements": [
+          "R04"
+        ],
+        "r04_items": [
+          "R04.d",
+          "R04.i"
+        ],
+        "client_surfaces": [
+          "CF-05"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-CONTENT",
+        "object": "课程覆盖与内容质量",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M4",
+        "sub_ids": [],
+        "requirements": [
+          "R13",
+          "R14",
+          "H01"
+        ],
+        "r04_items": [
+          "R04.a",
+          "R04.f",
+          "R04.g"
+        ],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-USABILITY",
+        "object": "公式输入可用性、渲染覆盖与数学朗读",
+        "section": "13 §学习流程、判分与内容验收",
+        "gate": "M0 原型，M1 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R07"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-01"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-PLUGIN",
+        "object": "识别后端可插拔",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M0 原型，M2 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R06",
+          "A04"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-OCR",
+        "object": "识别质量",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M0 基线，M2 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R05",
+          "R06",
+          "R24",
+          "R25"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-06"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-FIDELITY",
+        "object": "作答模式忠实转写",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M2",
+        "sub_ids": [],
+        "requirements": [
+          "R05"
+        ],
+        "r04_items": [
+          "R04.e"
+        ],
+        "client_surfaces": [
+          "CF-06"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-IMAGE",
+        "object": "图像导入、解码与预处理",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M2",
+        "sub_ids": [],
+        "requirements": [
+          "R24",
+          "R25",
+          "R28"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-06"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-GC",
+        "object": "识别历史保留、清理与外流检查（T-GC-01–T-GC-03）",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M2",
+        "sub_ids": [
+          "T-GC-01",
+          "T-GC-02",
+          "T-GC-03"
+        ],
+        "requirements": [
+          "R26",
+          "R27",
+          "R28",
+          "A02"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-07"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-CLOUD",
+        "object": "云识别授权、幂等与留存（T-CLOUD-01–T-CLOUD-03）",
+        "section": "13 §识别、图片与 GC 验收",
+        "gate": "M2 最小链路，M3 完整",
+        "sub_ids": [
+          "T-CLOUD-01",
+          "T-CLOUD-02",
+          "T-CLOUD-03"
+        ],
+        "requirements": [
+          "R06",
+          "H02"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-06"
+        ],
+        "server_features": [
+          "SF-03"
+        ]
+      },
+      {
+        "id": "T-ACCOUNT",
+        "object": "账户、游客与账户隔离",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R19",
+          "R20"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-09"
+        ],
+        "server_features": [
+          "SF-01"
+        ]
+      },
+      {
+        "id": "T-UNLOCK",
+        "object": "本机解锁两档与恢复",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M1 默认档，M3 应用锁",
+        "sub_ids": [],
+        "requirements": [
+          "R20"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-09"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-UPGRADE",
+        "object": "游客升级事务",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M3",
+        "sub_ids": [],
+        "requirements": [
+          "R22"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-GUESTMERGE",
+        "object": "游客并入已有账户",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M3",
+        "sub_ids": [],
+        "requirements": [
+          "R22"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-KEY",
+        "object": "设备配对、恢复码、密语与导出包（T-KEY-01–T-KEY-03）",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M0 原型，M3 通过",
+        "sub_ids": [
+          "T-KEY-01",
+          "T-KEY-02",
+          "T-KEY-03"
+        ],
+        "requirements": [
+          "R22",
+          "R31",
+          "A03",
+          "A04"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": [
+          "SF-02"
+        ]
+      },
+      {
+        "id": "T-AAD",
+        "object": "同步信封与 AAD",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M3",
+        "sub_ids": [],
+        "requirements": [
+          "R22",
+          "R31"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": [
+          "SF-02"
+        ]
+      },
+      {
+        "id": "T-SYNC",
+        "object": "同步合并与协议边界（T-SYNC-01、T-SYNC-02）",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M3",
+        "sub_ids": [
+          "T-SYNC-01",
+          "T-SYNC-02"
+        ],
+        "requirements": [
+          "R22"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": [
+          "SF-02"
+        ]
+      },
+      {
+        "id": "T-SNAPSHOT",
+        "object": "快照 + 增量恢复",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M3",
+        "sub_ids": [],
+        "requirements": [
+          "R22",
+          "A03"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-10"
+        ],
+        "server_features": [
+          "SF-02"
+        ]
+      },
+      {
+        "id": "T-PRIVACY",
+        "object": "隐私与数据外流",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M1 游客，M3 同步，M5 复测",
+        "sub_ids": [],
+        "requirements": [
+          "R21",
+          "A02"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-07",
+          "CF-09"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-PACK",
+        "object": "资源包签名、解包与跨端一致（T-PACK-01–T-PACK-03）",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M1",
+        "sub_ids": [
+          "T-PACK-01",
+          "T-PACK-02",
+          "T-PACK-03"
+        ],
+        "requirements": [
+          "R23",
+          "R31"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-11"
+        ],
+        "server_features": [
+          "SF-04"
+        ]
+      },
+      {
+        "id": "T-SECURITY",
+        "object": "安全复核与故障演练",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "M5",
+        "sub_ids": [],
+        "requirements": [
+          "R31"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": [
+          "SF-01",
+          "SF-05"
+        ]
+      },
+      {
+        "id": "T-COMPLY",
+        "object": "合规门禁",
+        "section": "13 §账户、同步与安全验收",
+        "gate": "对应功能开放前；M5 全部",
+        "sub_ids": [],
+        "requirements": [
+          "R31",
+          "H02"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": [
+          "SF-03",
+          "SF-05"
+        ]
+      },
+      {
+        "id": "T-PERF",
+        "object": "性能、体积与能耗预算",
+        "section": "13 §可复现性能预算",
+        "gate": "M0 基线，M2 识别项，M5 全量",
+        "sub_ids": [],
+        "requirements": [
+          "R03"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-12"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-PLATFORM",
+        "object": "平台适配、文件管理器与权限",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M1，M5 发布包复测",
+        "sub_ids": [],
+        "requirements": [
+          "R01",
+          "R29",
+          "R30"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-05",
+          "CF-08",
+          "CF-12"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-FFI",
+        "object": "绑定契约",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M0 原型，M1 通过",
+        "sub_ids": [],
+        "requirements": [
+          "R01",
+          "A04"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-12"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-HARMONY",
+        "object": "鸿蒙接口预留",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M1",
+        "sub_ids": [],
+        "requirements": [
+          "R02"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-13"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-OHOS",
+        "object": "鸿蒙路线技术验证",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M0",
+        "sub_ids": [],
+        "requirements": [
+          "R02",
+          "A04"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-13"
+        ],
+        "server_features": []
+      },
+      {
+        "id": "T-MAINT",
+        "object": "可维护性度量",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "每个里程碑",
+        "sub_ids": [],
+        "requirements": [
+          "R15"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-SOURCE",
+        "object": "开源资源与条目来源可追溯",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M4",
+        "sub_ids": [],
+        "requirements": [
+          "R16"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-EXP",
+        "object": "实验分支隔离",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "每次合入 main",
+        "sub_ids": [],
+        "requirements": [
+          "R17"
+        ],
+        "r04_items": [],
+        "client_surfaces": [],
+        "server_features": []
+      },
+      {
+        "id": "T-RELEASE",
+        "object": "版本控制、发布与更新",
+        "section": "13 §平台、工程与发布门槛",
+        "gate": "M5",
+        "sub_ids": [],
+        "requirements": [
+          "R18"
+        ],
+        "r04_items": [],
+        "client_surfaces": [
+          "CF-12"
+        ],
+        "server_features": [
+          "SF-06"
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "id": "M0",
+        "name": "架构原型",
+        "requirements": [
+          "R02",
+          "R03",
+          "R15",
+          "R17",
+          "A04"
+        ],
+        "first_tests": [
+          "T-EDIT",
+          "T-POLY",
+          "T-GRADE",
+          "T-USABILITY",
+          "T-PLUGIN",
+          "T-OCR",
+          "T-KEY",
+          "T-PERF",
+          "T-FFI",
+          "T-OHOS"
+        ]
+      },
+      {
+        "id": "M1",
+        "name": "本地闭环",
+        "requirements": [
+          "R01",
+          "R04",
+          "R07",
+          "R08",
+          "R09",
+          "R10",
+          "R11",
+          "R12",
+          "R18",
+          "R19",
+          "R20",
+          "R21",
+          "R23",
+          "R29",
+          "R30",
+          "A01"
+        ],
+        "first_tests": [
+          "T-NOTATION",
+          "T-DIM",
+          "T-UNIT",
+          "T-SUB",
+          "T-CALC",
+          "T-CONST",
+          "T-LIB",
+          "T-STUDY",
+          "T-SESSION",
+          "T-STATS",
+          "T-ACCOUNT",
+          "T-UNLOCK",
+          "T-PRIVACY",
+          "T-PACK",
+          "T-PLATFORM",
+          "T-HARMONY"
+        ]
+      },
+      {
+        "id": "M2",
+        "name": "识别闭环",
+        "requirements": [
+          "R05",
+          "R06",
+          "R24",
+          "R25",
+          "R26",
+          "R27",
+          "R28",
+          "H02",
+          "A02"
+        ],
+        "first_tests": [
+          "T-FIDELITY",
+          "T-IMAGE",
+          "T-GC",
+          "T-CLOUD"
+        ]
+      },
+      {
+        "id": "M3",
+        "name": "账户与服务",
+        "requirements": [
+          "R22",
+          "A03"
+        ],
+        "first_tests": [
+          "T-UPGRADE",
+          "T-GUESTMERGE",
+          "T-AAD",
+          "T-SYNC",
+          "T-SNAPSHOT"
+        ]
+      },
+      {
+        "id": "M4",
+        "name": "内容",
+        "requirements": [
+          "R13",
+          "R14",
+          "R16",
+          "H01"
+        ],
+        "first_tests": [
+          "T-CONTENT",
+          "T-SOURCE"
+        ]
+      },
+      {
+        "id": "M5",
+        "name": "发布",
+        "requirements": [
+          "R31"
+        ],
+        "first_tests": [
+          "T-SECURITY",
+          "T-RELEASE"
+        ]
+      }
+    ],
+    "module_requirements": {
+      "presentation": [
+        "R01",
+        "R03",
+        "R04",
+        "R05",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R18",
+        "R19",
+        "R24",
+        "R26",
+        "R27",
+        "A01",
+        "A02"
+      ],
+      "ohos-arkts": [
+        "R02"
+      ],
+      "platform_io": [
+        "R01",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R19",
+        "R20",
+        "R22",
+        "R24",
+        "R29",
+        "R30",
+        "R31",
+        "H02",
+        "A03"
+      ],
+      "composition": [
+        "R01",
+        "R19",
+        "R20",
+        "R21"
+      ],
+      "binding": [
+        "R01",
+        "A04"
+      ],
+      "ohos-napi": [
+        "R02",
+        "A04"
+      ],
+      "fml-ffi": [
+        "R01",
+        "R02",
+        "R15"
+      ],
+      "fml-study": [
+        "R04",
+        "R15",
+        "A01",
+        "A04"
+      ],
+      "fml-recognition": [
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R17",
+        "R24",
+        "R25",
+        "R26",
+        "R28",
+        "R31",
+        "H02",
+        "A04"
+      ],
+      "fml-assets": [
+        "R03",
+        "R04",
+        "R13",
+        "R14",
+        "R23",
+        "R31",
+        "H01"
+      ],
+      "fml-store": [
+        "R04",
+        "R08",
+        "R11",
+        "R12",
+        "R15",
+        "R18",
+        "R19",
+        "R20",
+        "R22",
+        "R26",
+        "R27",
+        "R28",
+        "R31",
+        "A02"
+      ],
+      "fml-sync": [
+        "R21",
+        "R22",
+        "A03"
+      ],
+      "fml-core": [
+        "R04",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R14",
+        "R15",
+        "A01",
+        "A04"
+      ],
+      "fml-crypto": [
+        "R20",
+        "R22",
+        "R28",
+        "R31",
+        "A02",
+        "A03",
+        "A04"
+      ],
+      "contracts": [
+        "R02",
+        "R15",
+        "R27"
+      ],
+      "tools-content": [
+        "R04",
+        "R13",
+        "R14",
+        "R16",
+        "R23",
+        "H01"
+      ],
+      "server": [
+        "R06",
+        "R18",
+        "R22",
+        "R23",
+        "R31",
+        "H02",
+        "A03"
+      ]
+    },
+    "port_requirements": {
+      "FormulaEngine": [
+        "R04",
+        "R07",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "A01"
+      ],
+      "Scheduler": [
+        "R04"
+      ],
+      "SessionPlanner": [
+        "R04"
+      ],
+      "Grader": [
+        "R04"
+      ],
+      "FormulaStore": [
+        "R04",
+        "R08",
+        "R11",
+        "R12",
+        "R18",
+        "R22",
+        "R26",
+        "R27",
+        "R28",
+        "A02"
+      ],
+      "FormulaView": [
+        "R01",
+        "R07"
+      ],
+      "FormulaRecognizer": [
+        "R04",
+        "R05",
+        "R06",
+        "R24",
+        "R25",
+        "R26",
+        "H02"
+      ],
+      "FormulaDetector": [
+        "R06",
+        "R17"
+      ],
+      "PackStore": [
+        "R03",
+        "R04",
+        "R13",
+        "R14",
+        "R23",
+        "R31",
+        "H01"
+      ],
+      "ImageImport": [
+        "R04",
+        "R24",
+        "R29",
+        "R30"
+      ],
+      "SecureStore": [
+        "R02",
+        "R20",
+        "R22",
+        "R31",
+        "A03"
+      ],
+      "AuthSync": [
+        "R19",
+        "R21",
+        "R22",
+        "A03"
+      ]
+    }
+  }
+}

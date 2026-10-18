@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-YOLZFmMIgQfNNoxFNyoAxCVgqkO34rvJunTyuCDfzs8='; script-src 'sha256-JTP9W2EqWHzpihx7jQqikdHHvxk2mz3f5SRed4nq4Hw='; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>14 功能与代码模块映射 v4.0 · BubeiGongshi</title>
+<style>*{box-sizing:border-box}
+html{scroll-padding-top:8rem}
+body{margin:0;font-family:"Microsoft YaHei","微软雅黑","Noto Sans CJK SC","Noto Sans SC","Source Han Sans SC","PingFang SC","Hiragino Sans GB",sans-serif;font-size:16px;line-height:1.6;color:#1f2937;background:#ffffff}
+a{color:#1d4ed8;text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,.table-scroll:focus-visible,main:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}
+.skip{position:absolute;left:-10000px;top:0;padding:8px 12px;background:#ffffff;border:2px solid #1d4ed8;z-index:20}
+.skip:focus{left:12px;top:12px}
+header,main,footer{max-width:1280px;margin:0 auto;padding:0 20px}
+header{padding-top:24px}
+h1{font-size:28px;line-height:1.3;margin:0 0 8px}
+h2{font-size:22px;line-height:1.35;margin:40px 0 12px;padding-top:12px;border-top:1px solid #d5dce6}
+h3{font-size:18px;margin:28px 0 10px}
+.meta,.note,.help,.count,figcaption{color:#4b5563}
+nav ul{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;margin:12px 0 0;padding:0}
+.filter{position:sticky;top:0;z-index:10;background:#ffffff;border-bottom:1px solid #d5dce6;margin-top:16px}
+.filter-inner{max-width:1280px;margin:0 auto;padding:10px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.filter label{font-weight:700}
+.filter input{font:inherit;min-width:18rem;padding:6px 10px;border:2px solid #6b7c93;border-radius:6px;color:#1f2937;background:#ffffff}
+.filter button{font:inherit;padding:6px 14px;border:2px solid #6b7c93;border-radius:6px;color:#1f2937;background:#f4f7fb;cursor:pointer}
+.filter .help,.filter .status{margin:0;flex-basis:100%;font-size:14px}
+.filter .status{color:#1f2937}
+figure{margin:16px 0}
+figure svg{display:block;width:100%;height:auto;border:1px solid #d5dce6;border-radius:8px}
+.table-scroll{overflow-x:auto;margin:12px 0 24px;border:1px solid #d5dce6;border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:1100px;font-size:14px;line-height:1.55}
+caption{caption-side:top;text-align:left;font-weight:700;padding:8px 10px}
+th,td{border-top:1px solid #d5dce6;padding:6px 10px;text-align:left;vertical-align:top}
+thead th{background:#eef2f7;white-space:nowrap}
+tbody th{font-weight:700;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8fafc}
+code{font-family:Consolas,"Cascadia Mono","Noto Sans Mono",monospace;font-size:0.92em}
+@media print{.filter,.skip,nav{display:none}.table-scroll{overflow:visible}table{min-width:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header>
+<h1>14 功能与代码模块映射 v4.0</h1>
+<p class="meta">BubeiGongshi · 2026-10-18 · 需求到计划代码模块、端口、实体与验收 ID 的映射，由 13、10 与映射数据生成</p>
+<nav aria-label="本页目录"><ul>
+<li><a href="#sec-purpose">用途与生成方式</a></li>
+<li><a href="#sec-overview">功能—模块总览</a></li>
+<li><a href="#sec-modules">代码模块与职责</a></li>
+<li><a href="#sec-ports">端口与归属</a></li>
+<li><a href="#sec-entities">学习域与公式语义实体</a></li>
+<li><a href="#sec-trace">需求—模块—验收追踪</a></li>
+<li><a href="#sec-client">客户端功能面与平台差异</a></li>
+<li><a href="#sec-server">服务端功能与外部依赖</a></li>
+<li><a href="#sec-milestones">里程碑落地顺序</a></li>
+<li><a href="#sec-repro">生成、校验与复现</a></li>
+</ul></nav>
+</header>
+<div class="filter" id="filter" role="search" hidden>
+<div class="filter-inner">
+<label for="q">筛选</label>
+<input id="q" type="search" autocomplete="off" spellcheck="false" aria-describedby="q-help">
+<button type="button" id="q-clear">清除</button>
+<p id="q-help" class="help">输入编号（如 R04.c、T-GC、CF-06、M2、D-04）按编号精确匹配，输入其他文字按包含匹配；多个词用空格分隔，需同时满足。筛选作用于本页全部表格。</p>
+<p id="q-status" class="status" role="status" aria-live="polite"></p>
+</div>
+</div>
+<main id="main" tabindex="-1">
+<section aria-labelledby="sec-purpose">
+<h2 id="sec-purpose">用途与生成方式</h2>
+<p>本页是 <a href="14-功能与代码模块映射-v4.md">14 功能与代码模块映射 v4.0</a> 的离线浏览版本，内容相同：每条需求由哪些计划模块、端口和实体承载，以哪些验收 ID 证明。需求、设计定位与验收 ID 取自 13，模块、依赖与端口以 10 为准；路径都是未来实现规划，仓库当前不含应用源码。</p>
+<p>映射数据见 <a href="resources/feature-code-map.json">resources/feature-code-map.json</a>（mapping 人工维护，derived 由生成器回填）；本页、14 文档与两张 SVG 由 <code>tools/generate-feature-map.py</code> 生成，不要手改。</p>
+<ul>
+<li><a href="00-需求基线与文档效力-v4.md">00 需求基线与文档效力 v4.0</a>：功能近似条款（R04 子项）、待决事项与默认策略（D 编号）</li>
+<li><a href="09-架构决策与评审记录-v4.md">09 架构决策与评审记录 v4.0</a>：架构决策（ADR 编号）；复审缺陷 RV 编号与本文的 A 编号无关</li>
+<li><a href="10-软件架构设计-v4.md">10 软件架构设计 v4.0</a>：模块与目录、依赖规则、端口、实体、平台差异、服务端部署与里程碑</li>
+<li><a href="11-数据安全同步与识别生命周期-v4.md">11 数据安全、同步与识别生命周期 v4.0</a>：账户与密钥、同步合并规则、识别历史保留与云识别</li>
+<li><a href="12-资源包内容与开源资源调查-v4.md">12 资源包、课程内容与开源资源调查 v4.0</a>：资源包格式、签名与激活、课程内容生产</li>
+<li><a href="13-需求追踪与验收-v4.md">13 需求追踪、验证与交付门槛 v4.0</a>：需求、R04 子项、验收 ID 与最早门槛（本文唯一的需求来源）</li>
+</ul>
+</section>
+<section aria-labelledby="sec-overview">
+<h2 id="sec-overview">功能—模块总览</h2>
+<p>计划模块分为 6 层。实线箭头是编译期依赖，只允许自上而下；同层箭头是同一层内的装配关系；虚线框中的模块不在客户端依赖链内。框内“需求”由需求映射反查得到。</p>
+<figure aria-labelledby="fig-feature">
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1749" viewBox="0 0 1700 1749" role="img" aria-labelledby="fm-title fm-desc" font-family="'Microsoft YaHei','微软雅黑','Noto Sans CJK SC','Noto Sans SC','Source Han Sans SC','PingFang SC','Hiragino Sans GB',sans-serif">
+<title id="fm-title">功能—模块总览</title>
+<desc id="fm-desc">计划模块自上而下分层，界面：presentation、ohos-arkts；装配与平台：platform_io、composition、binding、ohos-napi；绑定面：fml-ffi；用例与仓储：fml-study、fml-recognition、fml-assets、fml-store、fml-sync；基础：fml-core、fml-crypto；链外：contracts、tools-content、server。编译期依赖：presentation → composition、ohos-arkts → ohos-napi、composition → platform_io、composition → binding、binding → fml-ffi、ohos-napi → fml-ffi、fml-ffi → fml-study、fml-ffi → fml-recognition、fml-ffi → fml-assets、fml-ffi → fml-store、fml-ffi → fml-sync、fml-study → fml-core、fml-recognition → fml-core、fml-assets → fml-core、fml-store → fml-core、fml-store → fml-crypto、fml-sync → fml-crypto。</desc>
+<defs>
+<marker id="fm-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+</defs>
+<rect x="0" y="0" width="1700" height="1749" fill="#ffffff"/>
+<rect x="40" y="124" width="1620" height="210" rx="12" fill="#f8fafc"/>
+<text x="54" y="159" font-size="15" font-weight="700" fill="#0f172a">界面（Dart /</text>
+<text x="54" y="181" font-size="15" font-weight="700" fill="#0f172a">ArkTS）</text>
+<rect x="40" y="382" width="1620" height="230" rx="12" fill="#eef2f7"/>
+<text x="54" y="417" font-size="15" font-weight="700" fill="#0f172a">装配、绑定与平台</text>
+<text x="54" y="439" font-size="15" font-weight="700" fill="#0f172a">I/O（Dart /</text>
+<text x="54" y="461" font-size="15" font-weight="700" fill="#0f172a">ArkTS）</text>
+<rect x="40" y="660" width="1620" height="211" rx="12" fill="#f8fafc"/>
+<text x="54" y="695" font-size="15" font-weight="700" fill="#0f172a">绑定面（Rust）</text>
+<rect x="40" y="919" width="1620" height="274" rx="12" fill="#eef2f7"/>
+<text x="54" y="954" font-size="15" font-weight="700" fill="#0f172a">用例、状态机与仓储</text>
+<text x="54" y="976" font-size="15" font-weight="700" fill="#0f172a">（Rust）</text>
+<rect x="40" y="1241" width="1620" height="190" rx="12" fill="#f8fafc"/>
+<text x="54" y="1276" font-size="15" font-weight="700" fill="#0f172a">语义与密码基础</text>
+<text x="54" y="1298" font-size="15" font-weight="700" fill="#0f172a">（Rust）</text>
+<rect x="40" y="1479" width="1620" height="190" rx="12" fill="#eef2f7" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 6"/>
+<text x="54" y="1514" font-size="15" font-weight="700" fill="#0f172a">契约、离线工具与服</text>
+<text x="54" y="1536" font-size="15" font-weight="700" fill="#0f172a">务端（不在客户端依</text>
+<text x="54" y="1558" font-size="15" font-weight="700" fill="#0f172a">赖链内）</text>
+<text x="40" y="65" font-size="22" font-weight="700" fill="#0f172a">功能—模块总览</text>
+<text x="40" y="95" font-size="14" fill="#475569">计划模块，仓库当前不含应用源码。实线箭头：编译期依赖，只允许自上而下；同层箭头：装配关系；虚线框：不在客户端依赖链内；框内“需求”为承载的需求编号。</text>
+<text x="40" y="1704" font-size="13" fill="#475569">依赖规则、端口与需求追踪见 14 功能与代码模块映射；本图由 tools/generate-feature-map.py 从映射数据生成。</text>
+<rect x="400" y="142" width="520" height="174" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="414" y="175" font-size="17" font-weight="700" fill="#0f172a">presentation</text>
+<text x="414" y="199" font-size="13" fill="#475569">apps/flutter/lib/presentation/</text>
+<text x="414" y="228" font-size="14" fill="#0f172a">页面与 ViewModel、公式输入与结构化键盘、FormulaView 渲染与无障</text>
+<text x="414" y="249" font-size="14" fill="#0f172a">碍</text>
+<text x="414" y="277" font-size="13" fill="#1d4ed8">需求：R01、R03、R04、R05、R07、R08、R09、R10、R11、R12、R18、</text>
+<text x="414" y="297" font-size="13" fill="#1d4ed8">R19、R24、R26、R27、A01、A02</text>
+<rect x="956" y="142" width="520" height="174" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="175" font-size="17" font-weight="700" fill="#0f172a">ohos-arkts</text>
+<text x="970" y="199" font-size="13" fill="#475569">apps/ohos/</text>
+<text x="970" y="228" font-size="14" fill="#0f172a">鸿蒙 ArkTS 原生界面（路线二，预留）；M0 双路线验证后决定是否投入</text>
+<text x="970" y="256" font-size="13" fill="#1d4ed8">需求：R02</text>
+<rect x="234" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="248" y="433" font-size="17" font-weight="700" fill="#0f172a">platform_io</text>
+<text x="248" y="457" font-size="13" fill="#475569">apps/flutter/lib/platform_io/</text>
+<text x="248" y="486" font-size="14" fill="#0f172a">执行核心下发的 I/O 命令：HTTP、文件与系</text>
+<text x="248" y="507" font-size="14" fill="#0f172a">统选择器、相机、通知、平台密钥</text>
+<text x="248" y="535" font-size="13" fill="#1d4ed8">需求：R01、R03、R04、R05、R06、R19、</text>
+<text x="248" y="555" font-size="13" fill="#1d4ed8">R20、R22、R24、R29、R30、R31、H02、</text>
+<text x="248" y="575" font-size="13" fill="#1d4ed8">A03</text>
+<rect x="595" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="609" y="433" font-size="17" font-weight="700" fill="#0f172a">composition</text>
+<text x="609" y="457" font-size="13" fill="#475569">apps/flutter/lib/composition/</text>
+<text x="609" y="486" font-size="14" fill="#0f172a">配置、依赖装配与账户作用域：按账户打开数据</text>
+<text x="609" y="507" font-size="14" fill="#0f172a">库与密钥句柄</text>
+<text x="609" y="535" font-size="13" fill="#1d4ed8">需求：R01、R19、R20、R21</text>
+<rect x="956" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="433" font-size="17" font-weight="700" fill="#0f172a">binding</text>
+<text x="970" y="457" font-size="13" fill="#475569">apps/flutter/lib/binding/</text>
+<text x="970" y="486" font-size="14" fill="#0f172a">fml-ffi 的 Dart 绑定：M0 在</text>
+<text x="970" y="507" font-size="14" fill="#0f172a">flutter_rust_bridge 与 C ABI + dart:ffi</text>
+<text x="970" y="528" font-size="14" fill="#0f172a">中二选一；同步快路径与长任务完成通知</text>
+<text x="970" y="556" font-size="13" fill="#1d4ed8">需求：R01、A04</text>
+<rect x="1317" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1331" y="433" font-size="17" font-weight="700" fill="#0f172a">ohos-napi</text>
+<text x="1331" y="457" font-size="13" fill="#475569">apps/ohos/</text>
+<text x="1331" y="486" font-size="14" fill="#0f172a">ArkTS 经 NAPI 调用 fml-ffi 的 C ABI；</text>
+<text x="1331" y="507" font-size="14" fill="#0f172a">平台密钥用 HUKS（预留）</text>
+<text x="1331" y="535" font-size="13" fill="#1d4ed8">需求：R02、A04</text>
+<rect x="678" y="678" width="520" height="175" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="692" y="711" font-size="17" font-weight="700" fill="#0f172a">fml-ffi</text>
+<text x="692" y="735" font-size="13" fill="#475569">crates/fml-ffi/</text>
+<text x="692" y="764" font-size="14" fill="#0f172a">版本化 DTO、命令分发、句柄与缓冲区、同步快路径与完成通知；导出</text>
+<text x="692" y="785" font-size="14" fill="#0f172a">abi_version、capabilities、call、submit、cancel、</text>
+<text x="692" y="806" font-size="14" fill="#0f172a">register_completion、free_buffer、close_handle</text>
+<text x="692" y="834" font-size="13" fill="#1d4ed8">需求：R01、R02、R15</text>
+<rect x="236" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="250" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-study</text>
+<text x="250" y="994" font-size="13" fill="#475569">crates/fml-study/</text>
+<text x="250" y="1023" font-size="14" fill="#0f172a">FSRS 调度（Scheduler，确定</text>
+<text x="250" y="1044" font-size="14" fill="#0f172a">性重放）；会话编排</text>
+<text x="250" y="1065" font-size="14" fill="#0f172a">（SessionPlanner：选题、分</text>
+<text x="250" y="1086" font-size="14" fill="#0f172a">组、组内重现、组后默写、上限、埋</text>
+<text x="250" y="1107" font-size="14" fill="#0f172a">藏、积压削峰）；三层判分与评分映</text>
+<text x="250" y="1128" font-size="14" fill="#0f172a">射；统计派生</text>
+<text x="250" y="1156" font-size="13" fill="#1d4ed8">需求：R04、R15、A01、A04</text>
+<rect x="524" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="538" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-recognition</text>
+<text x="538" y="994" font-size="13" fill="#475569">crates/fml-recognition/</text>
+<text x="538" y="1023" font-size="14" fill="#0f172a">识别会话状态机；图像头校验与内存</text>
+<text x="538" y="1044" font-size="14" fill="#0f172a">安全解码；预处理与候选校验；本地</text>
+<text x="538" y="1065" font-size="14" fill="#0f172a">推理运行时适配（feature 隔离）</text>
+<text x="538" y="1093" font-size="13" fill="#1d4ed8">需求：R03、R04、R05、R06、</text>
+<text x="538" y="1113" font-size="13" fill="#1d4ed8">R17、R24、R25、R26、R28、</text>
+<text x="538" y="1133" font-size="13" fill="#1d4ed8">R31、H02、A04</text>
+<rect x="812" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="826" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-assets</text>
+<text x="826" y="994" font-size="13" fill="#475569">crates/fml-assets/</text>
+<text x="826" y="1023" font-size="14" fill="#0f172a">资源包清单、验签与校验、安装与原</text>
+<text x="826" y="1044" font-size="14" fill="#0f172a">子激活</text>
+<text x="826" y="1072" font-size="13" fill="#1d4ed8">需求：R03、R04、R13、R14、</text>
+<text x="826" y="1092" font-size="13" fill="#1d4ed8">R23、R31、H01</text>
+<rect x="1100" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1114" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-store</text>
+<text x="1114" y="994" font-size="13" fill="#475569">crates/fml-store/</text>
+<text x="1114" y="1023" font-size="14" fill="#0f172a">SQLCipher 连接、单写者 DB</text>
+<text x="1114" y="1044" font-size="14" fill="#0f172a">actor、迁移与备份、仓储与</text>
+<text x="1114" y="1065" font-size="14" fill="#0f172a">outbox 表；识别历史两阶段 GC</text>
+<text x="1114" y="1086" font-size="14" fill="#0f172a">与 cleanup_job</text>
+<text x="1114" y="1114" font-size="13" fill="#1d4ed8">需求：R04、R08、R11、R12、</text>
+<text x="1114" y="1134" font-size="13" fill="#1d4ed8">R15、R18、R19、R20、R22、</text>
+<text x="1114" y="1154" font-size="13" fill="#1d4ed8">R26、R27、R28、R31、A02</text>
+<rect x="1388" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1402" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-sync</text>
+<text x="1402" y="994" font-size="13" fill="#475569">crates/fml-sync/</text>
+<text x="1402" y="1023" font-size="14" fill="#0f172a">outbox/inbox 推拉计划、事件合</text>
+<text x="1402" y="1044" font-size="14" fill="#0f172a">并与排序、快照与游标语义、游客升</text>
+<text x="1402" y="1065" font-size="14" fill="#0f172a">级 journal 状态机</text>
+<text x="1402" y="1093" font-size="13" fill="#1d4ed8">需求：R21、R22、A03</text>
+<rect x="400" y="1259" width="520" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="414" y="1292" font-size="17" font-weight="700" fill="#0f172a">fml-core</text>
+<text x="414" y="1316" font-size="13" fill="#475569">crates/fml-core/</text>
+<text x="414" y="1345" font-size="14" fill="#0f172a">词法与 LaTeX 解析、AST 与规范化、TypeExpr 与量纲合一、单位、记号</text>
+<text x="414" y="1366" font-size="14" fill="#0f172a">方案与常数集、数值计算、代入与计算链</text>
+<text x="414" y="1394" font-size="13" fill="#1d4ed8">需求：R04、R07、R08、R09、R10、R11、R12、R14、R15、A01、A04</text>
+<rect x="956" y="1259" width="520" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="1292" font-size="17" font-weight="700" fill="#0f172a">fml-crypto</text>
+<text x="970" y="1316" font-size="13" fill="#475569">crates/fml-crypto/</text>
+<text x="970" y="1345" font-size="14" fill="#0f172a">密钥层级与包装、Envelope 编解码、AAD 规范字节、恢复码</text>
+<text x="970" y="1373" font-size="13" fill="#1d4ed8">需求：R20、R22、R28、R31、A02、A03、A04</text>
+<rect x="234" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="248" y="1530" font-size="17" font-weight="700" fill="#0f172a">contracts</text>
+<text x="248" y="1554" font-size="13" fill="#475569">contracts/</text>
+<text x="248" y="1583" font-size="14" fill="#0f172a">DTO schema、错误码注册表、AAD 测试向量；单一来源生成</text>
+<text x="248" y="1604" font-size="14" fill="#0f172a">Rust、Dart、ArkTS 代码</text>
+<text x="248" y="1632" font-size="13" fill="#1d4ed8">需求：R02、R15、R27</text>
+<rect x="715" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="729" y="1530" font-size="17" font-weight="700" fill="#0f172a">tools-content</text>
+<text x="729" y="1554" font-size="13" fill="#475569">tools/content/</text>
+<text x="729" y="1583" font-size="14" fill="#0f172a">离线内容摄入、来源与许可登记、校验与打包，产出签名资源包</text>
+<text x="729" y="1611" font-size="13" fill="#1d4ed8">需求：R04、R13、R14、R16、R23、H01</text>
+<rect x="1196" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1210" y="1530" font-size="17" font-weight="700" fill="#0f172a">server</text>
+<text x="1210" y="1554" font-size="13" fill="#475569">server/</text>
+<text x="1210" y="1583" font-size="14" fill="#0f172a">模块化单体：账户绑定、同步、识别网关与 worker、配额与审</text>
+<text x="1210" y="1604" font-size="14" fill="#0f172a">计、资源包元数据与托管</text>
+<text x="1210" y="1632" font-size="13" fill="#1d4ed8">需求：R06、R18、R22、R23、R31、H02、A03</text>
+<line x1="660" y1="316" x2="757" y2="398" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1216" y1="316" x2="1479" y2="398" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1118" y1="594" x2="851" y2="676" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1479" y1="594" x2="1024" y2="676" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="764" y1="853" x2="362" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="851" y1="853" x2="650" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="938" y1="853" x2="938" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1024" y1="853" x2="1226" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1111" y1="853" x2="1514" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="362" y1="1175" x2="504" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="650" y1="1175" x2="608" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="938" y1="1175" x2="712" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1184" y1="1175" x2="816" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1268" y1="1175" x2="1129" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1514" y1="1175" x2="1302" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="595" y1="497" x2="561" y2="497" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="920" y1="497" x2="954" y2="497" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+</svg>
+<figcaption id="fig-feature">功能—模块总览，与 14 文档中的图相同。 <a href="diagrams/feature-module-map.svg">单独打开 SVG</a></figcaption>
+</figure>
+</section>
+<section aria-labelledby="sec-modules">
+<h2 id="sec-modules">代码模块与职责</h2>
+<p>目录与职责同 10 §推荐技术栈与初始模块、§分层与职责归属。Rust crate 不直接做 I/O：网络、文件选择、通知与平台密钥由 platform_io 执行核心下发的命令（09 ADR-009）。“承载需求”由需求映射反查得到。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-modules-cap">
+<table id="tbl-modules" data-filter="">
+<caption id="tbl-modules-cap">代码模块与职责 <span class="count" id="tbl-modules-count">共 17 行</span></caption>
+<thead><tr><th scope="col">模块</th><th scope="col">层</th><th scope="col">计划路径</th><th scope="col">职责</th><th scope="col">I/O 规则</th><th scope="col">直接依赖</th><th scope="col">承载需求</th><th scope="col">设计定位</th></tr></thead>
+<tbody>
+<tr data-ids="A01 A02 ADR-002 R01 R03 R04 R04.a R04.b R04.c R04.e R04.f R04.i R04.j R05 R07 R08 R09 R10 R11 R12 R18 R19 R24 R26 R27"><th scope="row"><code>presentation</code></th><td>界面</td><td><code>apps/flutter/lib/presentation/</code></td><td>页面与 ViewModel、公式输入与结构化键盘、FormulaView 渲染与无障碍</td><td>不直接访问数据库或 HTTP，只调用装配好的用例接口</td><td>composition</td><td>R01、R03、R04、R05、R07、R08、R09、R10、R11、R12、R18、R19、R24、R26、R27、A01、A02</td><td>10 §推荐技术栈与初始模块、§渲染与编辑取舍；09 ADR-002</td></tr>
+<tr data-ids="ADR-013 D-04 M0 R02"><th scope="row"><code>ohos-arkts</code></th><td>界面</td><td><code>apps/ohos/</code></td><td>鸿蒙 ArkTS 原生界面（路线二，预留）；M0 双路线验证后决定是否投入</td><td>约束同 presentation</td><td>ohos-napi</td><td>R02</td><td>10 §鸿蒙验证路线；09 ADR-013；00 D-04</td></tr>
+<tr data-ids="A03 H02 R01 R03 R04 R04.i R04.j R05 R06 R19 R20 R22 R24 R29 R30 R31"><th scope="row"><code>platform_io</code></th><td>装配与平台</td><td><code>apps/flutter/lib/platform_io/</code></td><td>执行核心下发的 I/O 命令：HTTP、文件与系统选择器、相机、通知、平台密钥</td><td>不含业务规则；结果经绑定回传核心</td><td>—</td><td>R01、R03、R04、R05、R06、R19、R20、R22、R24、R29、R30、R31、H02、A03</td><td>10 §推荐技术栈与初始模块、§端口契约、§平台实现与生命周期</td></tr>
+<tr data-ids="R01 R19 R20 R21"><th scope="row"><code>composition</code></th><td>装配与平台</td><td><code>apps/flutter/lib/composition/</code></td><td>配置、依赖装配与账户作用域：按账户打开数据库与密钥句柄</td><td>不含业务规则</td><td>platform_io、binding</td><td>R01、R19、R20、R21</td><td>10 §推荐技术栈与初始模块；11 §账户与本地访问状态</td></tr>
+<tr data-ids="A04 ADR-010 M0 R01"><th scope="row"><code>binding</code></th><td>装配与平台</td><td><code>apps/flutter/lib/binding/</code></td><td>fml-ffi 的 Dart 绑定：M0 在 flutter_rust_bridge 与 C ABI + dart:ffi 中二选一；同步快路径与长任务完成通知</td><td>只做编解码与回调分发</td><td>fml-ffi</td><td>R01、A04</td><td>10 §单一绑定面与线程；09 ADR-010</td></tr>
+<tr data-ids="A04 ADR-013 R02"><th scope="row"><code>ohos-napi</code></th><td>装配与平台</td><td><code>apps/ohos/</code></td><td>ArkTS 经 NAPI 调用 fml-ffi 的 C ABI；平台密钥用 HUKS（预留）</td><td>只做编解码与回调分发</td><td>fml-ffi</td><td>R02、A04</td><td>10 §鸿蒙验证路线；09 ADR-013</td></tr>
+<tr data-ids="R01 R02 R15"><th scope="row"><code>fml-ffi</code></th><td>绑定面</td><td><code>crates/fml-ffi/</code></td><td>版本化 DTO、命令分发、句柄与缓冲区、同步快路径与完成通知；导出 abi_version、capabilities、call、submit、cancel、register_completion、free_buffer、close_handle</td><td>不含业务规则</td><td>fml-study、fml-recognition、fml-assets、fml-store、fml-sync</td><td>R01、R02、R15</td><td>10 §分层与职责归属、§单一绑定面与线程</td></tr>
+<tr data-ids="A01 A04 ADR-008 R04 R04.a R04.b R04.c R04.d R04.e R04.g R04.h R04.i R15"><th scope="row"><code>fml-study</code></th><td>用例与仓储</td><td><code>crates/fml-study/</code></td><td>FSRS 调度（Scheduler，确定性重放）；会话编排（SessionPlanner：选题、分组、组内重现、组后默写、上限、埋藏、积压削峰）；三层判分与评分映射；统计派生</td><td>纯函数；时间、随机种子与参数版本显式传入</td><td>fml-core</td><td>R04、R15、A01、A04</td><td>10 §分层与职责归属、§学习域模型；09 ADR-008</td></tr>
+<tr data-ids="A04 ADR-007 H02 R03 R04 R04.e R05 R06 R17 R24 R25 R26 R28 R31"><th scope="row"><code>fml-recognition</code></th><td>用例与仓储</td><td><code>crates/fml-recognition/</code></td><td>识别会话状态机；图像头校验与内存安全解码；预处理与候选校验；本地推理运行时适配（feature 隔离）</td><td>推理适配只读已安装的模型文件</td><td>fml-core</td><td>R03、R04、R05、R06、R17、R24、R25、R26、R28、R31、H02、A04</td><td>10 §分层与职责归属、§识别后端；09 ADR-007</td></tr>
+<tr data-ids="H01 R03 R04 R04.a R04.c R04.f R04.g R13 R14 R23 R31"><th scope="row"><code>fml-assets</code></th><td>用例与仓储</td><td><code>crates/fml-assets/</code></td><td>资源包清单、验签与校验、安装与原子激活</td><td>只写资源目录；先验证后解包</td><td>fml-core</td><td>R03、R04、R13、R14、R23、R31、H01</td><td>10 §分层与职责归属、§静态资源；12 §清单、签名与激活</td></tr>
+<tr data-ids="A02 R04 R04.a R04.h R04.j R08 R11 R12 R15 R18 R19 R20 R22 R26 R27 R28 R31"><th scope="row"><code>fml-store</code></th><td>用例与仓储</td><td><code>crates/fml-store/</code></td><td>SQLCipher 连接、单写者 DB actor、迁移与备份、仓储与 outbox 表；识别历史两阶段 GC 与 cleanup_job</td><td>唯一持有数据库与私有资产目录写权限</td><td>fml-core、fml-crypto</td><td>R04、R08、R11、R12、R15、R18、R19、R20、R22、R26、R27、R28、R31、A02</td><td>10 §分层与职责归属、§本地数据模型；11 §文件与数据库不能伪装成一个事务</td></tr>
+<tr data-ids="A03 R21 R22"><th scope="row"><code>fml-sync</code></th><td>用例与仓储</td><td><code>crates/fml-sync/</code></td><td>outbox/inbox 推拉计划、事件合并与排序、快照与游标语义、游客升级 journal 状态机</td><td>无 I/O，输出待发请求与待写事务命令</td><td>fml-crypto</td><td>R21、R22、A03</td><td>10 §分层与职责归属；11 §同步协议、§游客升级事务</td></tr>
+<tr data-ids="A01 A04 ADR-011 R04 R04.g R04.j R07 R08 R09 R10 R11 R12 R14 R15"><th scope="row"><code>fml-core</code></th><td>基础</td><td><code>crates/fml-core/</code></td><td>词法与 LaTeX 解析、AST 与规范化、TypeExpr 与量纲合一、单位、记号方案与常数集、数值计算、代入与计算链</td><td>纯函数；不依赖 HTTP、SQLite、文件、Flutter、JNI、NAPI</td><td>—</td><td>R04、R07、R08、R09、R10、R11、R12、R14、R15、A01、A04</td><td>10 §分层与职责归属、§公式、量纲和计算模型；09 ADR-011</td></tr>
+<tr data-ids="A02 A03 A04 ADR-012 R20 R22 R28 R31"><th scope="row"><code>fml-crypto</code></th><td>基础</td><td><code>crates/fml-crypto/</code></td><td>密钥层级与包装、Envelope 编解码、AAD 规范字节、恢复码</td><td>无 I/O；平台密钥包装经端口回调，原语使用经过审计的实现</td><td>—</td><td>R20、R22、R28、R31、A02、A03、A04</td><td>10 §分层与职责归属；11 §密钥层次；09 ADR-012</td></tr>
+<tr data-ids="R02 R15 R27"><th scope="row"><code>contracts</code></th><td>链外</td><td><code>contracts/</code></td><td>DTO schema、错误码注册表、AAD 测试向量；单一来源生成 Rust、Dart、ArkTS 代码</td><td>只含契约与测试向量</td><td>—</td><td>R02、R15、R27</td><td>10 §推荐技术栈与初始模块、§错误码与可维护性度量</td></tr>
+<tr data-ids="H01 R04 R04.f R13 R14 R16 R23"><th scope="row"><code>tools-content</code></th><td>链外</td><td><code>tools/content/</code></td><td>离线内容摄入、来源与许可登记、校验与打包，产出签名资源包</td><td>离线运行，不随应用发布</td><td>—</td><td>R04、R13、R14、R16、R23、H01</td><td>10 §推荐技术栈与初始模块；12 §摄入与审校</td></tr>
+<tr data-ids="A03 ADR-003 H02 R06 R18 R22 R23 R31"><th scope="row"><code>server</code></th><td>链外</td><td><code>server/</code></td><td>模块化单体：账户绑定、同步、识别网关与 worker、配额与审计、资源包元数据与托管</td><td>由 token 得到 owner；同步只接收密文</td><td>—</td><td>R06、R18、R22、R23、R31、H02、A03</td><td>10 §服务端最小部署；09 ADR-003</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="sub-deps">依赖约束</h3>
+<ul>
+<li>fml-core 不依赖任何其他模块（含传递依赖）。</li>
+<li>fml-study、fml-sync、fml-crypto 不依赖 fml-store（含传递依赖）。</li>
+<li>Rust 核心 crate 不依赖绑定面以及 Dart、ArkTS 代码（含传递依赖）。</li>
+<li>界面不直接访问数据库或 HTTP，只经装配好的用例接口（只限直接依赖）。</li>
+<li>生成器按以上规则检查映射数据中的 depends_on，并拒绝循环依赖；实现阶段由 CI 检查 crate 依赖图与 Dart 包导入（10 §分层与职责归属、§错误码与可维护性度量）。</li>
+</ul>
+</section>
+<section aria-labelledby="sec-ports">
+<h2 id="sec-ports">端口与归属</h2>
+<p>端口名与归属同 10 §端口契约，契约摘要只列输入与输出，失败语义以 10 为准；“用到的需求”与“用到的 R04 子项”由映射反查得到。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-ports-cap">
+<table id="tbl-ports" data-filter="">
+<caption id="tbl-ports-cap">端口与归属 <span class="count" id="tbl-ports-count">共 12 行</span></caption>
+<thead><tr><th scope="col">端口</th><th scope="col">归属模块</th><th scope="col">契约摘要</th><th scope="col">用到的需求</th><th scope="col">用到的 R04 子项</th></tr></thead>
+<tbody>
+<tr data-ids="A01 R04 R04.g R07 R09 R10 R11 R12"><th scope="row">FormulaEngine</th><td>fml-core</td><td>源码 + 记号方案 + 符号表 → AST 与诊断；AST + 赋值 + 常数集 → 值与单位；有预算、无 I/O</td><td>R04、R07、R09、R10、R11、R12、A01</td><td>R04.g</td></tr>
+<tr data-ids="R04 R04.h"><th scope="row">Scheduler</th><td>fml-study</td><td>固定参数版本 + ReviewEvent 序列 → 卡片状态与下次到期；确定性重放</td><td>R04</td><td>R04.h</td></tr>
+<tr data-ids="R04 R04.a R04.b R04.d"><th scope="row">SessionPlanner</th><td>fml-study</td><td>StudyPlan + 到期队列 + 新卡池 + 学习日 → Session 计划；Attempt → 下一题与组状态</td><td>R04</td><td>R04.a、R04.b、R04.d</td></tr>
+<tr data-ids="R04 R04.c R04.e"><th scope="row">Grader</th><td>fml-study</td><td>题目 + 标准答案 + 可接受形式 + 作答 → 判定与依据；无法判定时返回 Undetermined</td><td>R04</td><td>R04.c、R04.e</td></tr>
+<tr data-ids="A02 R04 R04.j R08 R11 R12 R18 R22 R26 R27 R28"><th scope="row">FormulaStore</th><td>fml-store</td><td>用例级命令（一命令一事务）→ 结果；单写者，不由界面拼 SQL</td><td>R04、R08、R11、R12、R18、R22、R26、R27、R28、A02</td><td>R04.j</td></tr>
+<tr data-ids="R01 R07"><th scope="row">FormulaView</th><td>presentation、ohos-arkts</td><td>规范 LaTeX + 语义串 → 渲染与无障碍；渲染失败不删除原输入，不决定数学正确性</td><td>R01、R07</td><td>—</td></tr>
+<tr data-ids="H02 R04 R04.e R05 R06 R24 R25 R26"><th scope="row">FormulaRecognizer</th><td>fml-recognition</td><td>受限图像或墨迹 + 模式（查找/作答）+ 后端 → 候选；能力声明、取消、超时、版本与预算</td><td>R04、R05、R06、R24、R25、R26、H02</td><td>R04.e</td></tr>
+<tr data-ids="R06 R17"><th scope="row">FormulaDetector</th><td>fml-recognition</td><td>整页图像 → 公式区域框；可插拔的可选能力，不可用时只提供手动框选</td><td>R06、R17</td><td>—</td></tr>
+<tr data-ids="H01 R03 R04 R04.f R13 R14 R23 R31"><th scope="row">PackStore</th><td>fml-assets</td><td>签名包 → 验证结果与已激活版本；先验证后解包，失败保持旧包</td><td>R03、R04、R13、R14、R23、R31、H01</td><td>R04.f</td></tr>
+<tr data-ids="R04 R04.j R24 R29 R30"><th scope="row">ImageImport</th><td>platform_io</td><td>用户选中的 URI 或文件 → 私有输入资产；大小限制、只读原文件、取消清理</td><td>R04、R24、R29、R30</td><td>R04.j</td></tr>
+<tr data-ids="A03 R02 R20 R22 R31"><th scope="row">SecureStore</th><td>platform_io、ohos-napi</td><td>账户作用域的密钥包装与解锁（Keystore / DPAPI / HUKS）；原始密钥不返回界面</td><td>R02、R20、R22、R31、A03</td><td>—</td></tr>
+<tr data-ids="A03 R19 R21 R22"><th scope="row">Auth / Sync 传输</th><td>platform_io、fml-sync</td><td>身份凭证与密文事件；平台层执行、fml-sync 编排，游客不进入上传端口</td><td>R19、R21、R22、A03</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section aria-labelledby="sec-entities">
+<h2 id="sec-entities">学习域与公式语义实体</h2>
+<p>实体名同 10 §单一语义源、§学习域模型，不使用别名；存储表同 10 §本地数据模型，合并规则同 11 §同步协议；“R04 子项”由子项映射反查得到。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-entities-cap">
+<table id="tbl-entities" data-filter="">
+<caption id="tbl-entities-cap">学习域与公式语义实体 <span class="count" id="tbl-entities-count">共 16 行</span></caption>
+<thead><tr><th scope="col">实体</th><th scope="col">计算与规则</th><th scope="col">本地存储</th><th scope="col">同步</th><th scope="col">模块</th><th scope="col">需求</th><th scope="col">R04 子项</th><th scope="col">设计定位</th></tr></thead>
+<tbody>
+<tr data-ids="R08 R10 R18"><th scope="row">FormulaItem / FormulaRevision</th><td>fml-core：AST、TypeExpr 与校验状态</td><td>formula_item / formula_revision（修订不可变）</td><td>同步：不可变修订 DAG，同父并发修订生成待选择记录</td><td>fml-core、fml-store</td><td>R08、R10、R18</td><td>—</td><td>10 §单一语义源、§本地数据模型；11 §同步协议</td></tr>
+<tr data-ids="R07 R10 R12"><th scope="row">Symbol</th><td>fml-core：SymbolId、数学类型、量纲（可含量纲变量）、QuantityKind 与定义域；绑定变量用 SymbolId 而不是显示名</td><td>symbol_binding</td><td>用户单位/符号：版本化定义，冲突不覆盖已引用的旧定义，需明确映射</td><td>fml-core、fml-store</td><td>R07、R10、R12</td><td>—</td><td>10 §单一语义源、§本地数据模型；11 §同步协议</td></tr>
+<tr data-ids="R07 R14"><th scope="row">NotationProfile</th><td>fml-core：字形 → SymbolId 规则、函数记号与分布参数化约定</td><td>notation_profile；包内 notation/ 条目</td><td>所用方案版本进入公式修订</td><td>fml-core、fml-assets</td><td>R07、R14</td><td>—</td><td>10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单</td></tr>
+<tr data-ids="R07 R14"><th scope="row">SymbolAlias</th><td>fml-core：SymbolId 的显示字形、LaTeX 与朗读串，按 NotationProfile 切换</td><td>随 NotationProfile 条目携带</td><td>随所属方案版本</td><td>fml-core、fml-assets</td><td>R07、R14</td><td>—</td><td>10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单</td></tr>
+<tr data-ids="R09 R14"><th scope="row">ConstantSet</th><td>fml-core：exact、textbook、given 三类，取值优先级 given → textbook → exact</td><td>constant_set；包内 constants/ 只含 exact 与 textbook，given 随题目条目</td><td>常数集版本进入公式修订</td><td>fml-core、fml-assets</td><td>R09、R14</td><td>—</td><td>10 §记号方案与常数集；12 §包内的记号方案、常数集与符号清单</td></tr>
+<tr data-ids="R10 R11"><th scope="row">UnitDefinition</th><td>fml-core：命名空间、七维指数、scale、offset 与角度/温差语义</td><td>user_unit（版本化，改定义不改变旧修订的解释）</td><td>用户单位/符号：版本化定义，冲突不覆盖已引用的旧定义，需明确映射</td><td>fml-core、fml-store</td><td>R10、R11</td><td>—</td><td>10 §单一语义源、§本地数据模型；11 §同步协议</td></tr>
+<tr data-ids="R12"><th scope="row">Derivation</th><td>fml-core：来源修订、替换目标节点、变量映射、条件与分支选择；派生修订只读</td><td>derivation（被引用修订按引用计数保留）</td><td>派生修订按公式修订 DAG 同步；derivation 记录未在 11 §同步协议 中单列</td><td>fml-core、fml-store</td><td>R12</td><td>—</td><td>10 §单一语义源、§计算器与代入、§本地数据模型</td></tr>
+<tr data-ids="R09 R12"><th scope="row">CalculationPlan</th><td>fml-core：有序步骤、输入绑定、输出到下游输入的映射、单位换算与所用常数集</td><td>calculation_plan</td><td>未在 11 §同步协议 中单列</td><td>fml-core、fml-store</td><td>R09、R12</td><td>—</td><td>10 §单一语义源、§计算器与代入、§本地数据模型</td></tr>
+<tr data-ids="R04 R04.a R04.f R04.j R13 R14"><th scope="row">Book</th><td>fml-study 按书、章节与要求层级选题；内置书随课程包</td><td>book</td><td>书架的加入与移除按增删集合合并</td><td>fml-study、fml-assets、fml-store</td><td>R04、R13、R14</td><td>R04.a、R04.f、R04.j</td><td>10 §学习域模型；11 §同步协议</td></tr>
+<tr data-ids="R04 R04.a R04.b"><th scope="row">StudyPlan</th><td>SessionPlanner 的输入：每日新学与复习上限、组大小、完成门槛 K、学习日切换时刻与时区</td><td>study_plan</td><td>计划参数按字段级逻辑时钟合并</td><td>fml-study、fml-store</td><td>R04</td><td>R04.a、R04.b</td><td>10 §学习域模型；11 §同步协议</td></tr>
+<tr data-ids="R04 R08"><th scope="row">Card</th><td>由固定 FormulaRevision 按题型派生同胞卡</td><td>study_card</td><td>绑定（FormulaItem, revision）；重置递增 card_reset_epoch</td><td>fml-study、fml-store</td><td>R04、R08</td><td>—</td><td>10 §学习域模型；11 §同步协议</td></tr>
+<tr data-ids="R04 R04.b"><th scope="row">Session</th><td>SessionPlanner 生成组序列与游标，可暂停续学</td><td>study_session</td><td>不在 11 §同步协议 的实体表中；跨设备以 Attempt 与 ReviewEvent 为准</td><td>fml-study、fml-store</td><td>R04</td><td>R04.b</td><td>10 §学习域模型、§本地数据模型</td></tr>
+<tr data-ids="R04 R04.c R04.d R04.e R04.h R04.i"><th scope="row">Attempt</th><td>Grader 的判定与作答原文，追加写</td><td>attempt</td><td>同步：按 event_id 去重，按 card_reset_epoch、时间、device_id、device_seq 排序</td><td>fml-study、fml-store</td><td>R04</td><td>R04.c、R04.d、R04.e、R04.h、R04.i</td><td>10 §学习域模型；11 §同步协议</td></tr>
+<tr data-ids="R04 R04.h"><th scope="row">ReviewEvent</th><td>由组学习结果映射的 FSRS 评分事件，Scheduler 重放</td><td>review_event</td><td>同步：学习事件规则同 Attempt</td><td>fml-study、fml-store</td><td>R04</td><td>R04.h</td><td>10 §学习域模型；11 §同步协议</td></tr>
+<tr data-ids="R04 R04.d R04.i"><th scope="row">Mastery</th><td>由 Attempt 与 FSRS 状态派生的掌握状态</td><td>mastery_cache（可删除重建）</td><td>不同步</td><td>fml-study、fml-store</td><td>R04</td><td>R04.d、R04.i</td><td>10 §学习域模型、§本地数据模型</td></tr>
+<tr data-ids="R04 R04.c R04.g"><th scope="row">ConfusableGroup</th><td>易混辨析题与干扰项</td><td>confusable_group（多数随内容包只读）</td><td>随内容包分发</td><td>fml-study、fml-assets</td><td>R04</td><td>R04.c、R04.g</td><td>10 §学习域模型、§本地数据模型</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section aria-labelledby="sec-trace">
+<h2 id="sec-trace">需求—模块—验收追踪</h2>
+<p>需求、设计定位与验收 ID 原样取自 13 §原始需求追踪，13 中以“本文”指代自身的章节引用在此写作以 13 开头；模块、端口、落地里程碑与说明来自映射数据。落地里程碑指主要功能首次交付的阶段，各验收 ID 的最早门槛见 §验收 ID 反查。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-requirements-cap">
+<table id="tbl-requirements" data-filter="">
+<caption id="tbl-requirements-cap">需求—模块—验收追踪 <span class="count" id="tbl-requirements-count">共 37 行</span></caption>
+<thead><tr><th scope="col">ID</th><th scope="col">需求</th><th scope="col">设计定位</th><th scope="col">模块</th><th scope="col">端口</th><th scope="col">落地里程碑</th><th scope="col">验收 ID</th><th scope="col">说明</th></tr></thead>
+<tbody>
+<tr data-ids="ADR-001 ADR-010 M0 M1 R01 T-FFI T-PLATFORM"><th scope="row">R01</th><td>Windows 与 Android 双平台</td><td>10 §推荐技术栈与初始模块、§单一绑定面与线程、§设备覆盖与输入体验</td><td>presentation、composition、binding、platform_io、fml-ffi</td><td>FormulaView</td><td>M1</td><td>T-PLATFORM、T-FFI</td><td>Flutter 双端界面 + Rust 核心（09 ADR-001）；M0 锁定单一绑定面（09 ADR-010）</td></tr>
+<tr data-ids="ADR-013 D-04 M0 R02 T-HARMONY T-OHOS"><th scope="row">R02</th><td>预留鸿蒙接口</td><td>10 §鸿蒙验证路线；09 ADR-013</td><td>ohos-arkts、ohos-napi、fml-ffi、contracts</td><td>SecureStore</td><td>M0</td><td>T-HARMONY、T-OHOS</td><td>C ABI 头文件与平台无关核心预留给 NAPI；M0 双路线纵切后定路线（00 D-04）</td></tr>
+<tr data-ids="M0 M5 R03 T-PERF"><th scope="row">R03</th><td>软件轻量</td><td>10 §目标、范围与质量属性；13 §可复现性能预算</td><td>presentation、platform_io、fml-assets、fml-recognition</td><td>PackStore</td><td>M0</td><td>T-PERF</td><td>无常驻服务、按需安装内容包与模型包；预算见 13 §可复现性能预算，M0 登记基线、M5 全量复测</td></tr>
+<tr data-ids="ADR-008 M1 R04 T-GRADE T-SESSION T-STATS T-STUDY"><th scope="row">R04</th><td>以不背单词为原型，功能近似（子项见下表）</td><td>00 §功能近似条款（R04 子项）；10 §学习域模型、§背诵闭环、§题型与判分、§学习统计与 FSRS 个性化</td><td>presentation、platform_io、fml-study、fml-recognition、fml-assets、fml-store、fml-core、tools-content</td><td>Scheduler、SessionPlanner、Grader、FormulaEngine、FormulaRecognizer、PackStore、FormulaStore、ImageImport</td><td>M1</td><td>T-STUDY、T-SESSION、T-GRADE、T-STATS</td><td>子项落点见下表；调度、会话编排与判分都在 fml-study，确定性可重放（09 ADR-008）</td></tr>
+<tr data-ids="M2 R05 T-FIDELITY T-OCR"><th scope="row">R05</th><td>手写公式识别</td><td>10 §输入与图像预算、§识别后端、§查找模式与作答模式、§识别质量口径</td><td>presentation、fml-recognition、platform_io</td><td>FormulaRecognizer</td><td>M2</td><td>T-OCR、T-FIDELITY</td><td>墨迹输入；查找模式与作答模式，作答模式强制忠实转写</td></tr>
+<tr data-ids="ADR-007 D-13 M2 R06 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03 T-OCR T-PLUGIN"><th scope="row">R06</th><td>预留轻量模型与 LLM 识别接入</td><td>10 §端口契约、§识别后端；00 D-13</td><td>fml-recognition、platform_io、server</td><td>FormulaRecognizer、FormulaDetector</td><td>M2</td><td>T-PLUGIN、T-OCR、T-CLOUD</td><td>识别后端可插拔（09 ADR-007）：云识别与本地模型分别验收；本地模型按原文预留（00 D-13）</td></tr>
+<tr data-ids="ADR-002 M1 R07 T-EDIT T-NOTATION T-USABILITY"><th scope="row">R07</th><td>公式编辑器支持 ISO 规范与 LaTeX</td><td>10 §输入与解析、§渲染与编辑取舍、§记号方案与常数集</td><td>presentation、fml-core</td><td>FormulaEngine、FormulaView</td><td>M1</td><td>T-EDIT、T-NOTATION、T-USABILITY</td><td>源码/模板编辑 + FormulaView（09 ADR-002）；ISO 80000-2 符号与 LaTeX 往返；记号方案切换</td></tr>
+<tr data-ids="M1 R08 T-LIB"><th scope="row">R08</th><td>公式库</td><td>10 §编辑器、公式库和学习流程</td><td>presentation、fml-store、fml-core</td><td>FormulaStore</td><td>M1</td><td>T-LIB</td><td>formula_item / formula_revision；修订不可变，含回收站与导入</td></tr>
+<tr data-ids="M1 R09 T-CALC T-CONST"><th scope="row">R09</th><td>变量赋值计算</td><td>10 §计算器与代入、§记号方案与常数集</td><td>presentation、fml-core</td><td>FormulaEngine</td><td>M1</td><td>T-CALC、T-CONST</td><td>数值计算与计算链；常数取值优先级 given → textbook → exact</td></tr>
+<tr data-ids="ADR-011 M0 M1 R10 T-DIM T-POLY"><th scope="row">R10</th><td>每个公式严格匹配量纲</td><td>10 §类型与校验状态</td><td>fml-core、presentation</td><td>FormulaEngine</td><td>M1</td><td>T-DIM、T-POLY</td><td>TypeExpr 量纲合一与量纲变量（09 ADR-011）；M0 先做量纲多态原型</td></tr>
+<tr data-ids="M1 R11 T-DIM T-UNIT"><th scope="row">R11</th><td>录入时可调整量纲，后期可自定义</td><td>10 §类型与校验状态</td><td>fml-core、fml-store、presentation</td><td>FormulaEngine、FormulaStore</td><td>M1</td><td>T-DIM、T-UNIT</td><td>录入时调整量纲；user_unit 版本化，改定义不改变旧修订的解释</td></tr>
+<tr data-ids="D-05 M1 R12 T-POLY T-SUB"><th scope="row">R12</th><td>同量纲部分可代入其他公式作为变量</td><td>10 §计算器与代入</td><td>fml-core、fml-store、presentation</td><td>FormulaEngine、FormulaStore</td><td>M1</td><td>T-SUB、T-POLY</td><td>符号代入生成派生修订，calculation_plan / derivation 记录计算链（00 D-05）</td></tr>
+<tr data-ids="D-17 M4 R13 T-CONTENT"><th scope="row">R13</th><td>高等数学：同济课本范围到考研数学全部范围</td><td>12 §课程基线与覆盖矩阵、附录 A</td><td>tools-content、fml-assets</td><td>PackStore</td><td>M4</td><td>T-CONTENT</td><td>课程包与公式书；内容基线版本按 00 D-17 冻结</td></tr>
+<tr data-ids="M4 R14 T-CONST T-CONTENT T-NOTATION"><th scope="row">R14</th><td>大学物理</td><td>12 §大学物理分解；10 §记号方案与常数集</td><td>tools-content、fml-assets、fml-core</td><td>PackStore</td><td>M4</td><td>T-CONTENT、T-NOTATION、T-CONST</td><td>大学物理课程包，配套 NotationProfile 与 textbook 常数集</td></tr>
+<tr data-ids="M0 R15 T-MAINT"><th scope="row">R15</th><td>可维护</td><td>10 §错误码与可维护性度量、§依赖风险</td><td>contracts、fml-ffi、fml-core、fml-study、fml-store</td><td>—</td><td>M0</td><td>T-MAINT</td><td>错误码注册表、依赖图检查与可维护性度量，每个里程碑出报告</td></tr>
+<tr data-ids="ADR-014 M4 R16 T-SOURCE"><th scope="row">R16</th><td>搜寻开源公式库并尝试获取资源</td><td>12 §实际开源公式资源调查；09 ADR-014</td><td>tools-content</td><td>—</td><td>M4</td><td>T-SOURCE</td><td>已完成三条样例试摄入（12 §本次获取的样例）；内容自编为主，开源只作校验（09 ADR-014）</td></tr>
+<tr data-ids="M0 R17 T-EXP"><th scope="row">R17</th><td>YOLO 方案不进主分支</td><td>12 §模型、许可与供应链门禁；实验分支文档</td><td>fml-recognition</td><td>FormulaDetector</td><td>M0</td><td>T-EXP</td><td>主线只保留可插拔的 FormulaDetector 端口；YOLO 预案留在实验分支，每次合入 main 按 T-EXP 检查</td></tr>
+<tr data-ids="D-12 M1 M5 R18 T-LIB T-RELEASE"><th scope="row">R18</th><td>版本控制</td><td>10 §发布、自更新与最低版本；用户公式修订历史（00 D-12）</td><td>fml-store、presentation、server</td><td>FormulaStore</td><td>M1</td><td>T-RELEASE、T-LIB</td><td>用户公式修订可查看、对比与恢复（00 D-12）；工程侧 SemVer、签名标签与最低版本在 M5</td></tr>
+<tr data-ids="M1 R19 T-ACCOUNT"><th scope="row">R19</th><td>不登录不能使用</td><td>11 §账户与本地访问状态</td><td>composition、presentation、platform_io、fml-store</td><td>Auth / Sync 传输</td><td>M1</td><td>T-ACCOUNT</td><td>无身份不进入核心功能；设备注册表先于任何账户库打开</td></tr>
+<tr data-ids="D-09 M1 R20 T-ACCOUNT T-UNLOCK"><th scope="row">R20</th><td>游客为临时本地账户</td><td>11 §账户与本地访问状态、§本机解锁因素、§设备注册表</td><td>composition、fml-store、fml-crypto、platform_io</td><td>SecureStore</td><td>M1</td><td>T-ACCOUNT、T-UNLOCK</td><td>游客即本地账户，独立库与密钥；本机解锁默认系统级（00 D-09）</td></tr>
+<tr data-ids="M1 R21 T-PRIVACY"><th scope="row">R21</th><td>游客数据不上云</td><td>11 §保证范围与数据分类</td><td>fml-sync、composition</td><td>Auth / Sync 传输</td><td>M1</td><td>T-PRIVACY</td><td>游客不进入上传端口；按 T-PRIVACY 抓包验证</td></tr>
+<tr data-ids="ADR-012 M3 R22 T-AAD T-GUESTMERGE T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-SNAPSHOT T-SYNC T-SYNC-01 T-SYNC-02 T-UPGRADE"><th scope="row">R22</th><td>本地保存，转注册后同步</td><td>11 §游客升级事务、§游客并入已有账户、§密钥层次、§同步协议</td><td>fml-store、fml-sync、fml-crypto、platform_io、server</td><td>FormulaStore、Auth / Sync 传输、SecureStore</td><td>M3</td><td>T-UPGRADE、T-GUESTMERGE、T-KEY、T-AAD、T-SYNC、T-SNAPSHOT</td><td>升级 journal、E2EE outbox/inbox 与快照；设备配对 + 恢复码（09 ADR-012）</td></tr>
+<tr data-ids="ADR-005 M1 R23 T-PACK T-PACK-01 T-PACK-02 T-PACK-03"><th scope="row">R23</th><td>资源包与程序剥离</td><td>12 §通用资源包的边界、§清单、签名与激活；10 §静态资源</td><td>fml-assets、tools-content、server</td><td>PackStore</td><td>M1</td><td>T-PACK</td><td>签名资源包与 TUF 风格元数据；先验证后解包，失败保持旧包（09 ADR-005）</td></tr>
+<tr data-ids="M2 R24 T-IMAGE T-OCR"><th scope="row">R24</th><td>照片识别</td><td>10 §输入与图像预算、§识别后端</td><td>platform_io、fml-recognition、presentation</td><td>ImageImport、FormulaRecognizer</td><td>M2</td><td>T-OCR、T-IMAGE</td><td>相机与系统选择器导入、内存安全解码、手动框选</td></tr>
+<tr data-ids="M2 R25 T-IMAGE T-OCR"><th scope="row">R25</th><td>图像去噪与增强</td><td>10 §输入与图像预算</td><td>fml-recognition</td><td>FormulaRecognizer</td><td>M2</td><td>T-IMAGE、T-OCR</td><td>预处理与质量提示在核心内完成，不改用户原图</td></tr>
+<tr data-ids="M2 R26 T-GC T-GC-01 T-GC-02 T-GC-03"><th scope="row">R26</th><td>保留最近的识别记录</td><td>11 §识别生命周期与严格 N 保留</td><td>fml-recognition、fml-store、presentation</td><td>FormulaRecognizer、FormulaStore</td><td>M2</td><td>T-GC</td><td>识别会话状态机 + 两阶段 GC；cleanup_job 独立于被删会话存在，直到清理确认</td></tr>
+<tr data-ids="M2 R27 T-GC T-GC-01 T-GC-02 T-GC-03"><th scope="row">R27</th><td>保留数 0–100，默认 5</td><td>11 §会话和计数口径</td><td>presentation、fml-store、contracts</td><td>FormulaStore</td><td>M2</td><td>T-GC</td><td>keep_last 为整数 0–100、默认 5，界面、接口与 local_setting CHECK 三处约束</td></tr>
+<tr data-ids="D-15 M2 R28 T-GC T-GC-01 T-GC-02 T-GC-03 T-IMAGE"><th scope="row">R28</th><td>记录包含图片与识别结果</td><td>11 §保留的内容</td><td>fml-store、fml-crypto、fml-recognition</td><td>FormulaStore</td><td>M2</td><td>T-GC、T-IMAGE</td><td>历史含确认后的规范图与识别结果，独立加密；保留口径见 00 D-15</td></tr>
+<tr data-ids="M1 R29 T-PLATFORM"><th scope="row">R29</th><td>桌面端调用系统文件管理器</td><td>10 §平台实现与生命周期</td><td>platform_io</td><td>ImageImport</td><td>M1</td><td>T-PLATFORM</td><td>Windows 使用 IFileOpenDialog；拖拽与剪贴板为可选入口</td></tr>
+<tr data-ids="M1 R30 T-PLATFORM"><th scope="row">R30</th><td>安卓端调用系统文件管理器</td><td>10 §平台实现与生命周期</td><td>platform_io</td><td>ImageImport</td><td>M1</td><td>T-PLATFORM</td><td>Android 使用 SAF；Photo Picker 与相机按需权限</td></tr>
+<tr data-ids="M5 R31 T-AAD T-COMPLY T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-PACK T-PACK-01 T-PACK-02 T-PACK-03 T-SECURITY"><th scope="row">R31</th><td>无重大安全问题</td><td>11 全文；10 §安全、诊断与维护；12 §清单、签名与激活</td><td>fml-crypto、fml-store、fml-assets、fml-recognition、platform_io、server</td><td>SecureStore、PackStore</td><td>M5</td><td>T-SECURITY、T-KEY、T-AAD、T-PACK、T-COMPLY</td><td>密钥与 AAD、签名资源包、内存安全解码与服务端越权防护；M5 做安全复核</td></tr>
+<tr data-ids="H01 M4 T-CONTENT"><th scope="row">H01</th><td>高中数学、物理（历史扩展）</td><td>00 §历史记录与范围解释；12 §高中分包（H01）</td><td>tools-content、fml-assets</td><td>PackStore</td><td>M4</td><td>T-CONTENT</td><td>高中数学、物理分包，见 12 §高中分包（H01）</td></tr>
+<tr data-ids="D-10 D-13 H02 M2 M3 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03 T-COMPLY"><th scope="row">H02</th><td>首版接入云端 LLM 识别（历史扩展）</td><td>00 D-10、D-13；11 §云识别授权、任务与费用</td><td>server、fml-recognition、platform_io</td><td>FormulaRecognizer</td><td>M2</td><td>T-CLOUD、T-COMPLY</td><td>云识别最小链路在 M2，完整配额与审计在 M3；供应商口径见 00 D-10</td></tr>
+<tr data-ids="A01 D-16 M1 T-DIM T-POLY"><th scope="row">A01</th><td>未知量纲不得冒充已校验</td><td>10 §类型与校验状态</td><td>fml-core、fml-study、presentation</td><td>FormulaEngine</td><td>M1</td><td>T-DIM、T-POLY</td><td>校验状态区分 Unknown 与 Verified；只有 Verified 修订可出卡（00 D-16）</td></tr>
+<tr data-ids="A02 M2 T-GC T-GC-01 T-GC-02 T-GC-03 T-PRIVACY"><th scope="row">A02</th><td>不承诺闪存上的绝对擦除</td><td>11 §保留的内容、§文件与数据库不能伪装成一个事务</td><td>fml-store、fml-crypto、presentation</td><td>FormulaStore</td><td>M2</td><td>T-GC、T-PRIVACY</td><td>删除历史会话的包装密钥并清理文件；界面不承诺闪存上的绝对擦除</td></tr>
+<tr data-ids="A03 M3 T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-SNAPSHOT"><th scope="row">A03</th><td>新设备可恢复，本机密钥不上云</td><td>11 §密钥层次、§密钥轮换、设备吊销与恢复</td><td>fml-crypto、fml-sync、platform_io、server</td><td>SecureStore、Auth / Sync 传输</td><td>M3</td><td>T-KEY、T-SNAPSHOT</td><td>账户根密钥经设备配对或恢复码解锁；本机库密钥不上云</td></tr>
+<tr data-ids="A04 M0 T-FFI T-GRADE T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-OHOS T-PLUGIN T-POLY"><th scope="row">A04</th><td>高风险路径在实现前验证</td><td>09 §必须先完成的工程验证（M0）</td><td>binding、ohos-napi、fml-core、fml-study、fml-recognition、fml-crypto</td><td>—</td><td>M0</td><td>T-PLUGIN、T-FFI、T-KEY、T-OHOS、T-POLY、T-GRADE</td><td>M0 实测绑定面、鸿蒙双路线、量纲多态、判分、识别后端与密钥方案</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="sub-r04">R04 功能近似子项落点</h3>
+<p>子项内容、设计定位与验收 ID 取自 13 §R04 功能近似子项，条款原文见 00 §功能近似条款（R04 子项）；实体、模块、端口与说明来自映射数据。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-r04-cap">
+<table id="tbl-r04" data-filter="">
+<caption id="tbl-r04-cap">R04 功能近似子项落点 <span class="count" id="tbl-r04-count">共 10 行</span></caption>
+<thead><tr><th scope="col">子项</th><th scope="col">内容</th><th scope="col">设计定位</th><th scope="col">实体</th><th scope="col">模块</th><th scope="col">端口</th><th scope="col">验收 ID</th><th scope="col">说明</th></tr></thead>
+<tbody>
+<tr data-ids="R04 R04.a T-CONTENT T-SESSION"><th scope="row">R04.a</th><td>书与计划：按教材章节、考试大纲（数一/数二/数三）、大学物理基本要求或自建组织公式书；每日新学与复习目标、考试日期</td><td>10 §学习域模型；12 §课程基线与覆盖矩阵</td><td>Book、StudyPlan</td><td>fml-study、fml-assets、fml-store、presentation</td><td>SessionPlanner</td><td>T-SESSION、T-CONTENT</td><td>内置书随课程包、自建书入 book 表；计划默认每日新学 10、组大小 10</td></tr>
+<tr data-ids="R04 R04.b T-SESSION T-STUDY"><th scope="row">R04.b</th><td>分组学习：一组若干公式，组内多轮</td><td>10 §背诵闭环</td><td>Session、StudyPlan</td><td>fml-study、presentation</td><td>SessionPlanner</td><td>T-SESSION、T-STUDY</td><td>按组学习，组大小默认 10；会话可暂停续学</td></tr>
+<tr data-ids="R04 R04.c T-GRADE T-STUDY"><th scope="row">R04.c</th><td>客观辨识：看名称或情境选公式、看公式选名称；干扰项取自易错变体并经人工审校</td><td>10 §题型与判分</td><td>ConfusableGroup、Attempt</td><td>fml-study、fml-assets、presentation</td><td>Grader</td><td>T-GRADE、T-STUDY</td><td>选择与辨析题客观判定；干扰项来自易混组与课程包</td></tr>
+<tr data-ids="R04 R04.d T-SESSION T-STATS"><th scope="row">R04.d</th><td>错题重现与掌握判据：答错组内重现，达到判据才完成新学进入复习</td><td>10 §背诵闭环、§学习统计与 FSRS 个性化</td><td>Attempt、Mastery</td><td>fml-study</td><td>SessionPlanner</td><td>T-SESSION、T-STATS</td><td>答错插回本组靠后，连续答对 K（默认 3）次才算完成</td></tr>
+<tr data-ids="R04 R04.e T-FIDELITY T-GRADE"><th scope="row">R04.e</th><td>组后默写：模板编辑器或手写，按数学等价判分，可只默写错题</td><td>10 §题型与判分、§查找模式与作答模式</td><td>Attempt</td><td>fml-study、fml-recognition、presentation</td><td>Grader、FormulaRecognizer</td><td>T-GRADE、T-FIDELITY</td><td>输入或手写默写，三层判分；手写走作答模式忠实转写</td></tr>
+<tr data-ids="R04 R04.f T-CONTENT"><th scope="row">R04.f</th><td>考试语境：大纲要求层级、考频、数一二三差异、例题与真题情境（只存出处与自编改写）</td><td>12 §知识点与范围标签、§条目字段、§版权边界</td><td>Book</td><td>fml-assets、tools-content、presentation</td><td>PackStore</td><td>T-CONTENT</td><td>大纲要求层级、考频与考点随课程包提供</td></tr>
+<tr data-ids="R04 R04.g T-CONTENT T-STUDY"><th scope="row">R04.g</th><td>关联记忆：派生树（一般式→特例→推论）与易混公式组辨析</td><td>10 §学习域模型、§题型与判分</td><td>ConfusableGroup</td><td>fml-core、fml-assets、fml-study</td><td>FormulaEngine</td><td>T-STUDY、T-CONTENT</td><td>派生关系与公式族、易混组</td></tr>
+<tr data-ids="R04 R04.h T-SESSION T-STUDY"><th scope="row">R04.h</th><td>复习排程与改判：FSRS，复习优先于新学；客观结果自动映射评分，“记错了”与申诉改判留痕</td><td>10 §背诵闭环、§学习统计与 FSRS 个性化</td><td>ReviewEvent、Attempt</td><td>fml-study、fml-store</td><td>Scheduler</td><td>T-STUDY、T-SESSION</td><td>FSRS 排程；“记错了”与申诉改判以追加的纠正事件留痕</td></tr>
+<tr data-ids="R04 R04.i T-STATS"><th scope="row">R04.i</th><td>统计与坚持：日/周/月学习量与时长、章节完成率、掌握度、复习积压、连续天数、本地提醒（组队打卡不做）</td><td>10 §学习统计与 FSRS 个性化</td><td>Mastery、Attempt</td><td>fml-study、presentation、platform_io</td><td>—</td><td>T-STATS</td><td>统计由 Attempt 与 ReviewEvent 派生；每日一次本地提醒</td></tr>
+<tr data-ids="R04 R04.j T-LIB"><th scope="row">R04.j</th><td>自建与导入：自建公式书，LaTeX/CSV 批量导入并给出校验报告</td><td>10 §学习域模型</td><td>Book</td><td>presentation、fml-store、fml-core、platform_io</td><td>FormulaStore、ImageImport</td><td>T-LIB</td><td>自建公式书与导入，导入经系统选择器</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="sub-tests">验收 ID 反查</h3>
+<p>验收对象、所在章节与最早门槛取自 13 §验收 ID 总表与里程碑，子编号是 13 中定义的细分用例；需求、R04 子项、客户端功能面与服务端功能由映射反查得到。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-tests-cap">
+<table id="tbl-tests" data-filter="">
+<caption id="tbl-tests-cap">验收 ID 反查 <span class="count" id="tbl-tests-count">共 42 行</span></caption>
+<thead><tr><th scope="col">验收 ID</th><th scope="col">子编号</th><th scope="col">验收对象</th><th scope="col">所在章节</th><th scope="col">最早门槛</th><th scope="col">需求</th><th scope="col">R04 子项</th><th scope="col">客户端功能面</th><th scope="col">服务端功能</th></tr></thead>
+<tbody>
+<tr data-ids="CF-01 M0 M1 R07 T-EDIT"><th scope="row">T-EDIT</th><td>—</td><td>编辑器、冻结语法与 ISO 80000-2 符号三级</td><td>13 §正确性验收</td><td>M0 原型，M1 通过</td><td>R07</td><td>—</td><td>CF-01</td><td>—</td></tr>
+<tr data-ids="CF-01 M1 R07 R14 T-NOTATION"><th scope="row">T-NOTATION</th><td>—</td><td>记号方案切换与记号歧义诊断</td><td>13 §正确性验收</td><td>M1</td><td>R07、R14</td><td>—</td><td>CF-01</td><td>—</td></tr>
+<tr data-ids="A01 CF-01 M1 R10 R11 T-DIM"><th scope="row">T-DIM</th><td>—</td><td>量纲检查与诊断</td><td>13 §正确性验收</td><td>M1</td><td>R10、R11、A01</td><td>—</td><td>CF-01</td><td>—</td></tr>
+<tr data-ids="A01 A04 M0 M1 R10 R12 T-POLY"><th scope="row">T-POLY</th><td>—</td><td>量纲多态实例化与约束冲突</td><td>13 §正确性验收</td><td>M0 原型，M1 通过</td><td>R10、R12、A01、A04</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="M1 R11 T-UNIT"><th scope="row">T-UNIT</th><td>—</td><td>单位、温度与角度</td><td>13 §正确性验收</td><td>M1</td><td>R11</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="CF-03 M1 R12 T-SUB"><th scope="row">T-SUB</th><td>—</td><td>同量纲代入与派生修订</td><td>13 §正确性验收</td><td>M1</td><td>R12</td><td>—</td><td>CF-03</td><td>—</td></tr>
+<tr data-ids="CF-03 M1 R09 T-CALC"><th scope="row">T-CALC</th><td>—</td><td>计算器与计算链</td><td>13 §正确性验收</td><td>M1</td><td>R09</td><td>—</td><td>CF-03</td><td>—</td></tr>
+<tr data-ids="CF-03 M1 R09 R14 T-CONST"><th scope="row">T-CONST</th><td>—</td><td>常数集与有效数字</td><td>13 §正确性验收</td><td>M1</td><td>R09、R14</td><td>—</td><td>CF-03</td><td>—</td></tr>
+<tr data-ids="CF-02 M1 R04 R04.j R08 R18 T-LIB"><th scope="row">T-LIB</th><td>—</td><td>公式库、修订历史、回收站与导入</td><td>13 §正确性验收</td><td>M1</td><td>R08、R18</td><td>R04.j</td><td>CF-02</td><td>—</td></tr>
+<tr data-ids="CF-04 M1 R04 R04.b R04.c R04.g R04.h T-STUDY"><th scope="row">T-STUDY</th><td>—</td><td>学习闭环与 FSRS 个性化</td><td>13 §学习流程、判分与内容验收</td><td>M1</td><td>R04</td><td>R04.b、R04.c、R04.g、R04.h</td><td>CF-04</td><td>—</td></tr>
+<tr data-ids="CF-04 M1 R04 R04.a R04.b R04.d R04.h T-SESSION"><th scope="row">T-SESSION</th><td>—</td><td>组学习、上限、埋藏、积压与评分映射</td><td>13 §学习流程、判分与内容验收</td><td>M1</td><td>R04</td><td>R04.a、R04.b、R04.d、R04.h</td><td>CF-04</td><td>—</td></tr>
+<tr data-ids="A04 CF-04 M0 M1 R04 R04.c R04.e T-GRADE"><th scope="row">T-GRADE</th><td>—</td><td>数学等价判分</td><td>13 §学习流程、判分与内容验收</td><td>M0 样例，M1 通过</td><td>R04、A04</td><td>R04.c、R04.e</td><td>CF-04</td><td>—</td></tr>
+<tr data-ids="CF-05 M1 M3 R04 R04.d R04.i T-STATS"><th scope="row">T-STATS</th><td>—</td><td>统计口径一致性与学习效果试点</td><td>13 §学习流程、判分与内容验收</td><td>M1 统计，M3 试点</td><td>R04</td><td>R04.d、R04.i</td><td>CF-05</td><td>—</td></tr>
+<tr data-ids="H01 M4 R04 R04.a R04.f R04.g R13 R14 T-CONTENT"><th scope="row">T-CONTENT</th><td>—</td><td>课程覆盖与内容质量</td><td>13 §学习流程、判分与内容验收</td><td>M4</td><td>R13、R14、H01</td><td>R04.a、R04.f、R04.g</td><td>—</td><td>—</td></tr>
+<tr data-ids="CF-01 M0 M1 R07 T-USABILITY"><th scope="row">T-USABILITY</th><td>—</td><td>公式输入可用性、渲染覆盖与数学朗读</td><td>13 §学习流程、判分与内容验收</td><td>M0 原型，M1 通过</td><td>R07</td><td>—</td><td>CF-01</td><td>—</td></tr>
+<tr data-ids="A04 M0 M2 R06 T-PLUGIN"><th scope="row">T-PLUGIN</th><td>—</td><td>识别后端可插拔</td><td>13 §识别、图片与 GC 验收</td><td>M0 原型，M2 通过</td><td>R06、A04</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="CF-06 M0 M2 R05 R06 R24 R25 T-OCR"><th scope="row">T-OCR</th><td>—</td><td>识别质量</td><td>13 §识别、图片与 GC 验收</td><td>M0 基线，M2 通过</td><td>R05、R06、R24、R25</td><td>—</td><td>CF-06</td><td>—</td></tr>
+<tr data-ids="CF-06 M2 R04 R04.e R05 T-FIDELITY"><th scope="row">T-FIDELITY</th><td>—</td><td>作答模式忠实转写</td><td>13 §识别、图片与 GC 验收</td><td>M2</td><td>R05</td><td>R04.e</td><td>CF-06</td><td>—</td></tr>
+<tr data-ids="CF-06 M2 R24 R25 R28 T-IMAGE"><th scope="row">T-IMAGE</th><td>—</td><td>图像导入、解码与预处理</td><td>13 §识别、图片与 GC 验收</td><td>M2</td><td>R24、R25、R28</td><td>—</td><td>CF-06</td><td>—</td></tr>
+<tr data-ids="A02 CF-07 M2 R26 R27 R28 T-GC T-GC-01 T-GC-02 T-GC-03"><th scope="row">T-GC</th><td>T-GC-01、T-GC-02、T-GC-03</td><td>识别历史保留、清理与外流检查（T-GC-01–T-GC-03）</td><td>13 §识别、图片与 GC 验收</td><td>M2</td><td>R26、R27、R28、A02</td><td>—</td><td>CF-07</td><td>—</td></tr>
+<tr data-ids="CF-06 H02 M2 M3 R06 SF-03 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03"><th scope="row">T-CLOUD</th><td>T-CLOUD-01、T-CLOUD-02、T-CLOUD-03</td><td>云识别授权、幂等与留存（T-CLOUD-01–T-CLOUD-03）</td><td>13 §识别、图片与 GC 验收</td><td>M2 最小链路，M3 完整</td><td>R06、H02</td><td>—</td><td>CF-06</td><td>SF-03</td></tr>
+<tr data-ids="CF-09 M1 R19 R20 SF-01 T-ACCOUNT"><th scope="row">T-ACCOUNT</th><td>—</td><td>账户、游客与账户隔离</td><td>13 §账户、同步与安全验收</td><td>M1</td><td>R19、R20</td><td>—</td><td>CF-09</td><td>SF-01</td></tr>
+<tr data-ids="CF-09 M1 M3 R20 T-UNLOCK"><th scope="row">T-UNLOCK</th><td>—</td><td>本机解锁两档与恢复</td><td>13 §账户、同步与安全验收</td><td>M1 默认档，M3 应用锁</td><td>R20</td><td>—</td><td>CF-09</td><td>—</td></tr>
+<tr data-ids="CF-10 M3 R22 T-UPGRADE"><th scope="row">T-UPGRADE</th><td>—</td><td>游客升级事务</td><td>13 §账户、同步与安全验收</td><td>M3</td><td>R22</td><td>—</td><td>CF-10</td><td>—</td></tr>
+<tr data-ids="CF-10 M3 R22 T-GUESTMERGE"><th scope="row">T-GUESTMERGE</th><td>—</td><td>游客并入已有账户</td><td>13 §账户、同步与安全验收</td><td>M3</td><td>R22</td><td>—</td><td>CF-10</td><td>—</td></tr>
+<tr data-ids="A03 A04 CF-10 M0 M3 R22 R31 SF-02 T-KEY T-KEY-01 T-KEY-02 T-KEY-03"><th scope="row">T-KEY</th><td>T-KEY-01、T-KEY-02、T-KEY-03</td><td>设备配对、恢复码、密语与导出包（T-KEY-01–T-KEY-03）</td><td>13 §账户、同步与安全验收</td><td>M0 原型，M3 通过</td><td>R22、R31、A03、A04</td><td>—</td><td>CF-10</td><td>SF-02</td></tr>
+<tr data-ids="CF-10 M3 R22 R31 SF-02 T-AAD"><th scope="row">T-AAD</th><td>—</td><td>同步信封与 AAD</td><td>13 §账户、同步与安全验收</td><td>M3</td><td>R22、R31</td><td>—</td><td>CF-10</td><td>SF-02</td></tr>
+<tr data-ids="CF-10 M3 R22 SF-02 T-SYNC T-SYNC-01 T-SYNC-02"><th scope="row">T-SYNC</th><td>T-SYNC-01、T-SYNC-02</td><td>同步合并与协议边界（T-SYNC-01、T-SYNC-02）</td><td>13 §账户、同步与安全验收</td><td>M3</td><td>R22</td><td>—</td><td>CF-10</td><td>SF-02</td></tr>
+<tr data-ids="A03 CF-10 M3 R22 SF-02 T-SNAPSHOT"><th scope="row">T-SNAPSHOT</th><td>—</td><td>快照 + 增量恢复</td><td>13 §账户、同步与安全验收</td><td>M3</td><td>R22、A03</td><td>—</td><td>CF-10</td><td>SF-02</td></tr>
+<tr data-ids="A02 CF-07 CF-09 M1 M3 M5 R21 T-PRIVACY"><th scope="row">T-PRIVACY</th><td>—</td><td>隐私与数据外流</td><td>13 §账户、同步与安全验收</td><td>M1 游客，M3 同步，M5 复测</td><td>R21、A02</td><td>—</td><td>CF-07、CF-09</td><td>—</td></tr>
+<tr data-ids="CF-11 M1 R23 R31 SF-04 T-PACK T-PACK-01 T-PACK-02 T-PACK-03"><th scope="row">T-PACK</th><td>T-PACK-01、T-PACK-02、T-PACK-03</td><td>资源包签名、解包与跨端一致（T-PACK-01–T-PACK-03）</td><td>13 §账户、同步与安全验收</td><td>M1</td><td>R23、R31</td><td>—</td><td>CF-11</td><td>SF-04</td></tr>
+<tr data-ids="M5 R31 SF-01 SF-05 T-SECURITY"><th scope="row">T-SECURITY</th><td>—</td><td>安全复核与故障演练</td><td>13 §账户、同步与安全验收</td><td>M5</td><td>R31</td><td>—</td><td>—</td><td>SF-01、SF-05</td></tr>
+<tr data-ids="H02 M5 R31 SF-03 SF-05 T-COMPLY"><th scope="row">T-COMPLY</th><td>—</td><td>合规门禁</td><td>13 §账户、同步与安全验收</td><td>对应功能开放前；M5 全部</td><td>R31、H02</td><td>—</td><td>—</td><td>SF-03、SF-05</td></tr>
+<tr data-ids="CF-12 M0 M2 M5 R03 T-PERF"><th scope="row">T-PERF</th><td>—</td><td>性能、体积与能耗预算</td><td>13 §可复现性能预算</td><td>M0 基线，M2 识别项，M5 全量</td><td>R03</td><td>—</td><td>CF-12</td><td>—</td></tr>
+<tr data-ids="CF-05 CF-08 CF-12 M1 M5 R01 R29 R30 T-PLATFORM"><th scope="row">T-PLATFORM</th><td>—</td><td>平台适配、文件管理器与权限</td><td>13 §平台、工程与发布门槛</td><td>M1，M5 发布包复测</td><td>R01、R29、R30</td><td>—</td><td>CF-05、CF-08、CF-12</td><td>—</td></tr>
+<tr data-ids="A04 CF-12 M0 M1 R01 T-FFI"><th scope="row">T-FFI</th><td>—</td><td>绑定契约</td><td>13 §平台、工程与发布门槛</td><td>M0 原型，M1 通过</td><td>R01、A04</td><td>—</td><td>CF-12</td><td>—</td></tr>
+<tr data-ids="CF-13 M1 R02 T-HARMONY"><th scope="row">T-HARMONY</th><td>—</td><td>鸿蒙接口预留</td><td>13 §平台、工程与发布门槛</td><td>M1</td><td>R02</td><td>—</td><td>CF-13</td><td>—</td></tr>
+<tr data-ids="A04 CF-13 M0 R02 T-OHOS"><th scope="row">T-OHOS</th><td>—</td><td>鸿蒙路线技术验证</td><td>13 §平台、工程与发布门槛</td><td>M0</td><td>R02、A04</td><td>—</td><td>CF-13</td><td>—</td></tr>
+<tr data-ids="R15 T-MAINT"><th scope="row">T-MAINT</th><td>—</td><td>可维护性度量</td><td>13 §平台、工程与发布门槛</td><td>每个里程碑</td><td>R15</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="M4 R16 T-SOURCE"><th scope="row">T-SOURCE</th><td>—</td><td>开源资源与条目来源可追溯</td><td>13 §平台、工程与发布门槛</td><td>M4</td><td>R16</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="R17 T-EXP"><th scope="row">T-EXP</th><td>—</td><td>实验分支隔离</td><td>13 §平台、工程与发布门槛</td><td>每次合入 main</td><td>R17</td><td>—</td><td>—</td><td>—</td></tr>
+<tr data-ids="CF-12 M5 R18 SF-06 T-RELEASE"><th scope="row">T-RELEASE</th><td>—</td><td>版本控制、发布与更新</td><td>13 §平台、工程与发布门槛</td><td>M5</td><td>R18</td><td>—</td><td>CF-12</td><td>SF-06</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section aria-labelledby="sec-client">
+<h2 id="sec-client">客户端功能面与平台差异</h2>
+<p>Android 与 Windows 共用 Flutter 界面与 Rust 核心，平台差异集中在 platform_io 与安装分发（10 §平台实现与生命周期）；鸿蒙为预留路线，M0 纵切后定路线（00 D-04）。功能面的验收 ID 只取所映射需求在 13 中的验收 ID。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-client-cap">
+<table id="tbl-client" data-filter="">
+<caption id="tbl-client-cap">客户端功能面与平台差异 <span class="count" id="tbl-client-count">共 13 行</span></caption>
+<thead><tr><th scope="col">编号</th><th scope="col">功能面</th><th scope="col">需求</th><th scope="col">模块</th><th scope="col">Android</th><th scope="col">Windows</th><th scope="col">鸿蒙（预留）</th><th scope="col">验收 ID</th><th scope="col">设计定位</th></tr></thead>
+<tbody>
+<tr data-ids="A01 CF-01 R07 R10 R11 T-DIM T-EDIT T-NOTATION T-USABILITY"><th scope="row">CF-01</th><td>公式编辑与渲染</td><td>R07、R10、R11、A01</td><td>presentation、fml-core、binding</td><td>中文 IME、软键盘、公式模板键盘、触控笔</td><td>中文 IME、快捷键、100/150/200% DPI、多屏</td><td>ArkTS 路线需重写编辑界面，核心复用</td><td>T-EDIT、T-NOTATION、T-DIM、T-USABILITY</td><td>10 §渲染与编辑取舍、§设备覆盖与输入体验</td></tr>
+<tr data-ids="CF-02 R08 R18 T-LIB"><th scope="row">CF-02</th><td>公式库与修订历史</td><td>R08、R18</td><td>presentation、fml-store</td><td>列表按页加载</td><td>同 Android</td><td>—</td><td>T-LIB</td><td>10 §本地数据模型</td></tr>
+<tr data-ids="CF-03 R09 R12 T-CALC T-CONST T-SUB"><th scope="row">CF-03</th><td>计算器与代入</td><td>R09、R12</td><td>presentation、fml-core、fml-store</td><td>两端行为一致</td><td>两端行为一致</td><td>—</td><td>T-CALC、T-SUB、T-CONST</td><td>10 §计算器与代入</td></tr>
+<tr data-ids="CF-04 R04 T-GRADE T-SESSION T-STUDY"><th scope="row">CF-04</th><td>组学习、默写与复习</td><td>R04</td><td>presentation、fml-study、fml-store</td><td>进程被杀后恢复到当前组与当前题</td><td>单实例写库，额外窗口经进程内通信</td><td>—</td><td>T-STUDY、T-SESSION、T-GRADE</td><td>10 §背诵闭环、§题型与判分、§平台实现与生命周期</td></tr>
+<tr data-ids="CF-05 R01 R04 T-PLATFORM T-STATS"><th scope="row">CF-05</th><td>学习统计与提醒</td><td>R04、R01</td><td>presentation、fml-study、platform_io</td><td>每日一次本地提醒，需 POST_NOTIFICATIONS，拒绝不阻断学习；无 GMS 设备只用本地通知</td><td>安装器注册稳定的 AUMID，保证通知归属与点击激活</td><td>—</td><td>T-STATS、T-PLATFORM</td><td>10 §学习统计与 FSRS 个性化、§平台实现与生命周期</td></tr>
+<tr data-ids="CF-06 H02 R05 R24 R25 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03 T-FIDELITY T-IMAGE T-OCR"><th scope="row">CF-06</th><td>手写与照片识别</td><td>R05、R24、R25、H02</td><td>presentation、platform_io、fml-recognition</td><td>相机按需权限与 Photo Picker；后台释放相机</td><td>触控笔墨迹；拖拽与剪贴板为可选入口</td><td>—</td><td>T-OCR、T-IMAGE、T-FIDELITY、T-CLOUD</td><td>10 §输入与图像预算、§查找模式与作答模式</td></tr>
+<tr data-ids="A02 CF-07 R26 R27 R28 T-GC T-GC-01 T-GC-02 T-GC-03 T-PRIVACY"><th scope="row">CF-07</th><td>识别历史与严格 N</td><td>R26、R27、R28、A02</td><td>presentation、fml-store、fml-recognition</td><td>私有目录 noBackupFilesDir，显式排除系统备份</td><td>LocalAppData 用户账户目录与 ACL</td><td>—</td><td>T-GC、T-PRIVACY</td><td>11 §识别生命周期与严格 N 保留</td></tr>
+<tr data-ids="CF-08 R29 R30 T-PLATFORM"><th scope="row">CF-08</th><td>系统文件管理器导入导出</td><td>R29、R30</td><td>platform_io</td><td>SAF 必须；拒绝权限后仍可经系统选择器导入</td><td>IFileOpenDialog 必须</td><td>—</td><td>T-PLATFORM</td><td>10 §平台实现与生命周期</td></tr>
+<tr data-ids="CF-09 R19 R20 R21 T-ACCOUNT T-PRIVACY T-UNLOCK"><th scope="row">CF-09</th><td>账户、游客与本机解锁</td><td>R19、R20、R21</td><td>presentation、composition、platform_io、fml-store、fml-crypto</td><td>Android Keystore，记录硬件安全等级</td><td>DPAPI 用户作用域，不等同 Windows Hello</td><td>HUKS（预留）</td><td>T-ACCOUNT、T-UNLOCK、T-PRIVACY</td><td>11 §账户与本地访问状态、§本机解锁因素</td></tr>
+<tr data-ids="A03 CF-10 R22 T-AAD T-GUESTMERGE T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-SNAPSHOT T-SYNC T-SYNC-01 T-SYNC-02 T-UPGRADE"><th scope="row">CF-10</th><td>注册升级、设备配对与同步</td><td>R22、A03</td><td>presentation、fml-sync、fml-crypto、fml-store、platform_io</td><td>同步只在前台、用户操作或应用恢复时触发，不做周期轮询</td><td>同 Android</td><td>—</td><td>T-UPGRADE、T-GUESTMERGE、T-KEY、T-AAD、T-SYNC、T-SNAPSHOT</td><td>11 §游客升级与多端同步；10 §平台实现与生命周期</td></tr>
+<tr data-ids="CF-11 R23 T-PACK T-PACK-01 T-PACK-02 T-PACK-03"><th scope="row">CF-11</th><td>资源包安装与更新</td><td>R23</td><td>fml-assets、platform_io、presentation</td><td>与 Windows 加载同一资源包</td><td>与 Android 加载同一资源包</td><td>—</td><td>T-PACK</td><td>10 §静态资源；12 §清单、签名与激活</td></tr>
+<tr data-ids="CF-12 R01 R03 R18 T-FFI T-PERF T-PLATFORM T-RELEASE"><th scope="row">CF-12</th><td>安装、分发与生命周期</td><td>R01、R03、R18</td><td>platform_io、composition、binding</td><td>签名 APK/AAB；只申请 CAMERA、POST_NOTIFICATIONS、INTERNET；API 26+</td><td>每用户签名安装器，无需管理员权限；DLL 绝对路径安全加载</td><td>—</td><td>T-PLATFORM、T-PERF、T-RELEASE、T-FFI</td><td>10 §平台实现与生命周期、§发布、自更新与最低版本</td></tr>
+<tr data-ids="ADR-013 CF-13 D-04 M0 R02 T-HARMONY T-OHOS"><th scope="row">CF-13</th><td>鸿蒙预留</td><td>R02</td><td>ohos-arkts、ohos-napi、fml-ffi</td><td>—</td><td>—</td><td>Flutter OHOS 移植或 ArkTS + NAPI；M0 纵切后定路线（00 D-04）</td><td>T-HARMONY、T-OHOS</td><td>10 §鸿蒙验证路线；09 ADR-013</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section aria-labelledby="sec-server">
+<h2 id="sec-server">服务端功能与外部依赖</h2>
+<p>server/ 是模块化单体（09 ADR-003），同步只接收密文（09 ADR-004），游客数据不进入任何上传端口。下图左列是调用服务端的客户端模块，右列是外部依赖。</p>
+<figure aria-labelledby="fig-backend">
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1230" viewBox="0 0 1700 1230" role="img" aria-labelledby="bm-title bm-desc" font-family="'Microsoft YaHei','微软雅黑','Noto Sans CJK SC','Noto Sans SC','Source Han Sans SC','PingFang SC','Hiragino Sans GB',sans-serif">
+<title id="bm-title">服务端功能与外部依赖</title>
+<desc id="bm-desc">服务端功能与外部依赖：SF-01 账户绑定与令牌，调用方 platform_io、composition，外部依赖 身份服务（OIDC）、PostgreSQL；SF-02 E2EE 同步，调用方 platform_io、fml-sync、fml-crypto，外部依赖 PostgreSQL；SF-03 识别网关与 worker，调用方 platform_io、fml-recognition，外部依赖 PostgreSQL、视觉模型供应商；SF-04 资源包托管，调用方 platform_io、fml-assets，外部依赖 对象存储与静态文件 / CDN；SF-05 删除账户与备份，调用方 platform_io、composition、fml-sync，外部依赖 PostgreSQL；SF-06 监控、API 版本与备份恢复，调用方 platform_io、composition，外部依赖 PostgreSQL。</desc>
+<defs>
+<marker id="bm-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+</defs>
+<rect x="0" y="0" width="1700" height="1230" fill="#ffffff"/>
+<text x="40" y="65" font-size="22" font-weight="700" fill="#0f172a">服务端功能与外部依赖</text>
+<text x="40" y="95" font-size="14" fill="#475569">左：调用服务端的客户端模块；中：server/ 模块化单体中的服务端功能；右：外部依赖。同步只接收密文，游客数据不进入上传端口。</text>
+<text x="40" y="141" font-size="15" font-weight="700" fill="#475569">客户端模块</text>
+<text x="550" y="141" font-size="15" font-weight="700" fill="#475569">服务端功能（server/）</text>
+<text x="1300" y="141" font-size="15" font-weight="700" fill="#475569">外部依赖</text>
+<text x="40" y="1185" font-size="13" fill="#475569">箭头表示调用或依赖方向；需求与验收 ID 的完整追踪见 14 功能与代码模块映射。</text>
+<rect x="550" y="160" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="192" font-size="16" font-weight="700" fill="#0f172a">SF-01 账户绑定与令牌</text>
+<text x="564" y="219" font-size="13" fill="#0f172a">授权码 + PKCE；网关校验 issuer、audience、expiry 与账户状态；owner 由服务端从</text>
+<text x="564" y="239" font-size="13" fill="#0f172a">token 得出</text>
+<text x="564" y="265" font-size="13" fill="#1d4ed8">需求：R19、R22、R31</text>
+<text x="564" y="287" font-size="13" fill="#166534">验收：T-ACCOUNT、T-SECURITY</text>
+<rect x="550" y="328" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="360" font-size="16" font-weight="700" fill="#0f172a">SF-02 E2EE 同步</text>
+<text x="564" y="387" font-size="13" fill="#0f172a">只接收密文事件；每账户序列与 (account_epoch, op_id) 幂等，先持久化再 ACK；快照 + 增</text>
+<text x="564" y="407" font-size="13" fill="#0f172a">量恢复</text>
+<text x="564" y="433" font-size="13" fill="#1d4ed8">需求：R22、A03、R31</text>
+<text x="564" y="455" font-size="13" fill="#166534">验收：T-SYNC、T-AAD、T-SNAPSHOT、T-KEY</text>
+<rect x="550" y="496" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="528" font-size="16" font-weight="700" fill="#0f172a">SF-03 识别网关与 worker</text>
+<text x="564" y="555" font-size="13" fill="#0f172a">逐次授权后上传裁剪图；任务幂等与不确定状态；按账户、设备与 IP 配额并控制成本；worker</text>
+<text x="564" y="575" font-size="13" fill="#0f172a">限制并发</text>
+<text x="564" y="601" font-size="13" fill="#1d4ed8">需求：R06、R24、H02</text>
+<text x="564" y="623" font-size="13" fill="#166534">验收：T-CLOUD、T-COMPLY</text>
+<rect x="550" y="664" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="696" font-size="16" font-weight="700" fill="#0f172a">SF-04 资源包托管</text>
+<text x="564" y="723" font-size="13" fill="#0f172a">TUF 风格元数据 root、targets、snapshot、timestamp（timestamp 有效期 ≤7 天）；</text>
+<text x="564" y="743" font-size="13" fill="#0f172a">静态文件或 CDN 分发</text>
+<text x="564" y="769" font-size="13" fill="#1d4ed8">需求：R23、R31</text>
+<text x="564" y="791" font-size="13" fill="#166534">验收：T-PACK</text>
+<rect x="550" y="832" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="864" font-size="16" font-weight="700" fill="#0f172a">SF-05 删除账户与备份</text>
+<text x="564" y="891" font-size="13" fill="#0f172a">300 秒内重新认证；先撤销会话并阻止离线 outbox 恢复旧账户，再删除生产数据；恢复备份后重</text>
+<text x="564" y="911" font-size="13" fill="#0f172a">放删除清单</text>
+<text x="564" y="937" font-size="13" fill="#1d4ed8">需求：R22、R31</text>
+<text x="564" y="959" font-size="13" fill="#166534">验收：T-SECURITY、T-COMPLY</text>
+<rect x="550" y="1000" width="600" height="146" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="564" y="1032" font-size="16" font-weight="700" fill="#0f172a">SF-06 监控、API 版本与备份恢复</text>
+<text x="564" y="1059" font-size="13" fill="#0f172a">只采集运行指标，告警阈值见 13 §服务端监控告警阈值；路径带 /v1/，低于最低版本返回</text>
+<text x="564" y="1079" font-size="13" fill="#0f172a">HTTP 426；RPO ≤24 h、RTO ≤8 h</text>
+<text x="564" y="1105" font-size="13" fill="#1d4ed8">需求：R15、R18、R31</text>
+<text x="564" y="1127" font-size="13" fill="#166534">验收：T-RELEASE</text>
+<rect x="40" y="251" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="283" font-size="16" font-weight="700" fill="#0f172a">fml-crypto</text>
+<text x="54" y="306" font-size="13" fill="#475569">crates/fml-crypto/</text>
+<rect x="40" y="397" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="429" font-size="16" font-weight="700" fill="#0f172a">fml-recognition</text>
+<text x="54" y="452" font-size="13" fill="#475569">crates/fml-recognition/</text>
+<rect x="40" y="543" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="575" font-size="16" font-weight="700" fill="#0f172a">platform_io</text>
+<text x="54" y="598" font-size="13" fill="#475569">apps/flutter/lib/platform_io/</text>
+<rect x="40" y="689" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="721" font-size="16" font-weight="700" fill="#0f172a">fml-sync</text>
+<text x="54" y="744" font-size="13" fill="#475569">crates/fml-sync/</text>
+<rect x="40" y="835" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="867" font-size="16" font-weight="700" fill="#0f172a">composition</text>
+<text x="54" y="890" font-size="13" fill="#475569">apps/flutter/lib/composition/</text>
+<rect x="40" y="981" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="54" y="1013" font-size="16" font-weight="700" fill="#0f172a">fml-assets</text>
+<text x="54" y="1036" font-size="13" fill="#475569">crates/fml-assets/</text>
+<rect x="1300" y="397" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="428" font-size="15" font-weight="700" fill="#0f172a">身份服务（OIDC）</text>
+<text x="1314" y="452" font-size="13" fill="#475569">成熟身份服务或身份框架；登录方式见 00 D-14</text>
+<rect x="1300" y="543" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="574" font-size="15" font-weight="700" fill="#0f172a">视觉模型供应商</text>
+<text x="1314" y="598" font-size="13" fill="#475569">境内已备案、委托处理、不用于训练（00 D-10）</text>
+<rect x="1300" y="689" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="720" font-size="15" font-weight="700" fill="#0f172a">PostgreSQL</text>
+<text x="1314" y="744" font-size="13" fill="#475569">账户、同步序列、作业状态与幂等键</text>
+<rect x="1300" y="835" width="360" height="74" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+<text x="1314" y="866" font-size="15" font-weight="700" fill="#0f172a">对象存储与静态文件 / CDN</text>
+<text x="1314" y="890" font-size="13" fill="#475569">资源包与 TUF 风格元数据</text>
+<line x1="400" y1="553" x2="548" y2="208" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="853" x2="548" y2="257" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="564" x2="548" y2="401" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="713" x2="548" y2="437" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="288" x2="548" y2="364" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="574" x2="548" y2="593" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="434" x2="548" y2="544" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="585" x2="548" y2="712" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="1018" x2="548" y2="761" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="595" x2="548" y2="868" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="872" x2="548" y2="941" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="738" x2="548" y2="905" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="606" x2="548" y2="1048" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="400" y1="890" x2="548" y2="1097" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="208" x2="1298" y2="434" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="257" x2="1298" y2="701" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="401" x2="1298" y2="713" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="593" x2="1298" y2="726" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="544" x2="1298" y2="580" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="737" x2="1298" y2="872" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="905" x2="1298" y2="738" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+<line x1="1150" y1="1073" x2="1298" y2="750" stroke="#475569" stroke-width="1.6" marker-end="url(#bm-arrow)"/>
+</svg>
+<figcaption id="fig-backend">服务端功能与外部依赖，与 14 文档中的图相同。 <a href="diagrams/backend-module-map.svg">单独打开 SVG</a></figcaption>
+</figure>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-server-cap">
+<table id="tbl-server" data-filter="">
+<caption id="tbl-server-cap">服务端功能 <span class="count" id="tbl-server-count">共 6 行</span></caption>
+<thead><tr><th scope="col">编号</th><th scope="col">服务端功能</th><th scope="col">契约</th><th scope="col">客户端模块</th><th scope="col">外部依赖</th><th scope="col">需求</th><th scope="col">验收 ID</th><th scope="col">设计定位</th></tr></thead>
+<tbody>
+<tr data-ids="ADR-003 R19 R22 R31 SF-01 T-ACCOUNT T-SECURITY"><th scope="row">SF-01</th><td>账户绑定与令牌</td><td>授权码 + PKCE；网关校验 issuer、audience、expiry 与账户状态；owner 由服务端从 token 得出</td><td>platform_io、composition</td><td>身份服务（OIDC）、PostgreSQL</td><td>R19、R22、R31</td><td>T-ACCOUNT、T-SECURITY</td><td>10 §服务端最小部署；09 ADR-003</td></tr>
+<tr data-ids="A03 ADR-012 R22 R31 SF-02 T-AAD T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-SNAPSHOT T-SYNC T-SYNC-01 T-SYNC-02"><th scope="row">SF-02</th><td>E2EE 同步</td><td>只接收密文事件；每账户序列与 (account_epoch, op_id) 幂等，先持久化再 ACK；快照 + 增量恢复</td><td>platform_io、fml-sync、fml-crypto</td><td>PostgreSQL</td><td>R22、A03、R31</td><td>T-SYNC、T-AAD、T-SNAPSHOT、T-KEY</td><td>11 §同步协议；09 ADR-012</td></tr>
+<tr data-ids="H02 R06 R24 SF-03 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03 T-COMPLY"><th scope="row">SF-03</th><td>识别网关与 worker</td><td>逐次授权后上传裁剪图；任务幂等与不确定状态；按账户、设备与 IP 配额并控制成本；worker 限制并发</td><td>platform_io、fml-recognition</td><td>PostgreSQL、视觉模型供应商</td><td>R06、R24、H02</td><td>T-CLOUD、T-COMPLY</td><td>11 §云识别授权、任务与费用</td></tr>
+<tr data-ids="R23 R31 SF-04 T-PACK T-PACK-01 T-PACK-02 T-PACK-03"><th scope="row">SF-04</th><td>资源包托管</td><td>TUF 风格元数据 root、targets、snapshot、timestamp（timestamp 有效期 ≤7 天）；静态文件或 CDN 分发</td><td>platform_io、fml-assets</td><td>对象存储与静态文件 / CDN</td><td>R23、R31</td><td>T-PACK</td><td>10 §静态资源；12 §信任根、防降级和回退</td></tr>
+<tr data-ids="R22 R31 SF-05 T-COMPLY T-SECURITY"><th scope="row">SF-05</th><td>删除账户与备份</td><td>300 秒内重新认证；先撤销会话并阻止离线 outbox 恢复旧账户，再删除生产数据；恢复备份后重放删除清单</td><td>platform_io、composition、fml-sync</td><td>PostgreSQL</td><td>R22、R31</td><td>T-SECURITY、T-COMPLY</td><td>11 §删除账户与备份</td></tr>
+<tr data-ids="R15 R18 R31 SF-06 T-RELEASE"><th scope="row">SF-06</th><td>监控、API 版本与备份恢复</td><td>只采集运行指标，告警阈值见 13 §服务端监控告警阈值；路径带 /v1/，低于最低版本返回 HTTP 426；RPO ≤24 h、RTO ≤8 h</td><td>platform_io、composition</td><td>PostgreSQL</td><td>R15、R18、R31</td><td>T-RELEASE</td><td>10 §服务端最小部署、§发布、自更新与最低版本</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="sub-externals">外部依赖</h3>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-externals-cap">
+<table id="tbl-externals" data-filter="">
+<caption id="tbl-externals-cap">外部依赖 <span class="count" id="tbl-externals-count">共 4 行</span></caption>
+<thead><tr><th scope="col">外部依赖</th><th scope="col">说明</th><th scope="col">使用方</th></tr></thead>
+<tbody>
+<tr data-ids="D-14 SF-01"><th scope="row">身份服务（OIDC）</th><td>成熟身份服务或身份框架；登录方式见 00 D-14</td><td>SF-01</td></tr>
+<tr data-ids="SF-01 SF-02 SF-03 SF-05 SF-06"><th scope="row">PostgreSQL</th><td>账户、同步序列、作业状态与幂等键</td><td>SF-01、SF-02、SF-03、SF-05、SF-06</td></tr>
+<tr data-ids="SF-04"><th scope="row">对象存储与静态文件 / CDN</th><td>资源包与 TUF 风格元数据</td><td>SF-04</td></tr>
+<tr data-ids="D-10 SF-03"><th scope="row">视觉模型供应商</th><td>境内已备案、委托处理、不用于训练（00 D-10）</td><td>SF-03</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section aria-labelledby="sec-milestones">
+<h2 id="sec-milestones">里程碑落地顺序</h2>
+<p>阶段名同 10 §版本、里程碑与交付；“落地的需求”按映射中的落地里程碑归类，“首次提交证据的验收 ID”按 13 最早门槛中的第一个阶段归类。</p>
+<div class="table-scroll" role="region" tabindex="0" aria-labelledby="tbl-milestones-cap">
+<table id="tbl-milestones" data-filter="">
+<caption id="tbl-milestones-cap">里程碑落地顺序 <span class="count" id="tbl-milestones-count">共 6 行</span></caption>
+<thead><tr><th scope="col">里程碑</th><th scope="col">落地的需求</th><th scope="col">首次提交证据的验收 ID</th></tr></thead>
+<tbody>
+<tr data-ids="A04 M0 R02 R03 R15 R17 T-EDIT T-FFI T-GRADE T-KEY T-KEY-01 T-KEY-02 T-KEY-03 T-OCR T-OHOS T-PERF T-PLUGIN T-POLY T-USABILITY"><th scope="row">M0 架构原型</th><td>R02、R03、R15、R17、A04</td><td>T-EDIT、T-POLY、T-GRADE、T-USABILITY、T-PLUGIN、T-OCR、T-KEY、T-PERF、T-FFI、T-OHOS</td></tr>
+<tr data-ids="A01 M1 R01 R04 R07 R08 R09 R10 R11 R12 R18 R19 R20 R21 R23 R29 R30 T-ACCOUNT T-CALC T-CONST T-DIM T-HARMONY T-LIB T-NOTATION T-PACK T-PACK-01 T-PACK-02 T-PACK-03 T-PLATFORM T-PRIVACY T-SESSION T-STATS T-STUDY T-SUB T-UNIT T-UNLOCK"><th scope="row">M1 本地闭环</th><td>R01、R04、R07、R08、R09、R10、R11、R12、R18、R19、R20、R21、R23、R29、R30、A01</td><td>T-NOTATION、T-DIM、T-UNIT、T-SUB、T-CALC、T-CONST、T-LIB、T-STUDY、T-SESSION、T-STATS、T-ACCOUNT、T-UNLOCK、T-PRIVACY、T-PACK、T-PLATFORM、T-HARMONY</td></tr>
+<tr data-ids="A02 H02 M2 R05 R06 R24 R25 R26 R27 R28 T-CLOUD T-CLOUD-01 T-CLOUD-02 T-CLOUD-03 T-FIDELITY T-GC T-GC-01 T-GC-02 T-GC-03 T-IMAGE"><th scope="row">M2 识别闭环</th><td>R05、R06、R24、R25、R26、R27、R28、H02、A02</td><td>T-FIDELITY、T-IMAGE、T-GC、T-CLOUD</td></tr>
+<tr data-ids="A03 M3 R22 T-AAD T-GUESTMERGE T-SNAPSHOT T-SYNC T-SYNC-01 T-SYNC-02 T-UPGRADE"><th scope="row">M3 账户与服务</th><td>R22、A03</td><td>T-UPGRADE、T-GUESTMERGE、T-AAD、T-SYNC、T-SNAPSHOT</td></tr>
+<tr data-ids="H01 M4 R13 R14 R16 T-CONTENT T-SOURCE"><th scope="row">M4 内容</th><td>R13、R14、R16、H01</td><td>T-CONTENT、T-SOURCE</td></tr>
+<tr data-ids="M5 R31 T-RELEASE T-SECURITY"><th scope="row">M5 发布</th><td>R31</td><td>T-SECURITY、T-RELEASE</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">不按单一阶段归类的验收 ID：T-COMPLY（对应功能开放前；M5 全部）；T-MAINT（每个里程碑）；T-EXP（每次合入 main）。</p>
+</section>
+<section aria-labelledby="sec-repro">
+<h2 id="sec-repro">生成、校验与复现</h2>
+<ul>
+<li>运行 <code>python tools/generate-feature-map.py</code> 写出有变化的文件；加 <code>--check</code> 只比对不写盘，退出码 0 表示一致、1 表示漂移、2 表示输入无效。</li>
+<li>生成时对照 13 与 10 校验需求、R04 子项、验收 ID、目录树、端口与实体，并逐条校验文档号加章节名的交叉引用。</li>
+<li>本页可离线使用：内容安全策略禁止一切外部请求，样式与脚本按哈希放行；不运行脚本时表格照常完整显示。</li>
+<li>规模：37 条需求、10 个 R04 子项、42 个验收 ID（另有 14 个子编号）、17 个计划模块、12 个端口、16 个实体、13 个客户端功能面、6 个服务端功能、4 个外部依赖。</li>
+</ul>
+</section>
+</main>
+<footer>
+<p class="note">由 <code>tools/generate-feature-map.py</code> 从 13、10 与映射数据生成；文字版见 <a href="14-功能与代码模块映射-v4.md">14 功能与代码模块映射 v4.0</a>。</p>
+</footer>
+<script>(function () {
+  'use strict';
+  var box = document.getElementById('filter');
+  var input = document.getElementById('q');
+  var clear = document.getElementById('q-clear');
+  var status = document.getElementById('q-status');
+  if (!box || !input || !clear || !status) { return; }
+  var tables = Array.prototype.slice.call(document.querySelectorAll('table[data-filter]'));
+  var idPattern = /^(?:r\d{2}(?:\.[a-j])?|[ha]\d{2}|t-[a-z]+(?:-\d{2})?|cf-\d{2}|sf-\d{2}|m\d|d-\d{2}|adr-\d{3})$/;
+  function matches(row, terms) {
+    var ids = ' ' + (row.getAttribute('data-ids') || '').toLowerCase() + ' ';
+    var text = row.textContent.toLowerCase();
+    for (var i = 0; i < terms.length; i += 1) {
+      var term = terms[i];
+      var hit = idPattern.test(term) ? ids.indexOf(' ' + term + ' ') !== -1 : text.indexOf(term) !== -1;
+      if (!hit) { return false; }
+    }
+    return true;
+  }
+  function apply() {
+    var terms = input.value.toLowerCase().split(/\s+/).filter(function (t) { return t.length > 0; });
+    var shown = 0;
+    var total = 0;
+    tables.forEach(function (table) {
+      var rows = table.tBodies[0].rows;
+      var visible = 0;
+      for (var i = 0; i < rows.length; i += 1) {
+        var ok = terms.length === 0 || matches(rows[i], terms);
+        rows[i].hidden = !ok;
+        if (ok) { visible += 1; }
+      }
+      var counter = document.getElementById(table.id + '-count');
+      if (counter) {
+        counter.textContent = terms.length === 0 ? '共 ' + rows.length + ' 行' : '显示 ' + visible + ' / ' + rows.length + ' 行';
+      }
+      shown += visible;
+      total += rows.length;
+    });
+    status.textContent = terms.length === 0 ? '未筛选，共 ' + total + ' 行。' : '筛选后显示 ' + shown + ' / ' + total + ' 行。';
+  }
+  box.hidden = false;
+  input.addEventListener('input', apply);
+  clear.addEventListener('click', function () { input.value = ''; apply(); input.focus(); });
+  apply();
+})();
+</script>
+</body>
+</html>

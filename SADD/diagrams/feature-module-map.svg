@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1749" viewBox="0 0 1700 1749" role="img" aria-labelledby="fm-title fm-desc" font-family="'Microsoft YaHei','微软雅黑','Noto Sans CJK SC','Noto Sans SC','Source Han Sans SC','PingFang SC','Hiragino Sans GB',sans-serif">
+<title id="fm-title">功能—模块总览</title>
+<desc id="fm-desc">计划模块自上而下分层，界面：presentation、ohos-arkts；装配与平台：platform_io、composition、binding、ohos-napi；绑定面：fml-ffi；用例与仓储：fml-study、fml-recognition、fml-assets、fml-store、fml-sync；基础：fml-core、fml-crypto；链外：contracts、tools-content、server。编译期依赖：presentation → composition、ohos-arkts → ohos-napi、composition → platform_io、composition → binding、binding → fml-ffi、ohos-napi → fml-ffi、fml-ffi → fml-study、fml-ffi → fml-recognition、fml-ffi → fml-assets、fml-ffi → fml-store、fml-ffi → fml-sync、fml-study → fml-core、fml-recognition → fml-core、fml-assets → fml-core、fml-store → fml-core、fml-store → fml-crypto、fml-sync → fml-crypto。</desc>
+<defs>
+<marker id="fm-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+</defs>
+<rect x="0" y="0" width="1700" height="1749" fill="#ffffff"/>
+<rect x="40" y="124" width="1620" height="210" rx="12" fill="#f8fafc"/>
+<text x="54" y="159" font-size="15" font-weight="700" fill="#0f172a">界面（Dart /</text>
+<text x="54" y="181" font-size="15" font-weight="700" fill="#0f172a">ArkTS）</text>
+<rect x="40" y="382" width="1620" height="230" rx="12" fill="#eef2f7"/>
+<text x="54" y="417" font-size="15" font-weight="700" fill="#0f172a">装配、绑定与平台</text>
+<text x="54" y="439" font-size="15" font-weight="700" fill="#0f172a">I/O（Dart /</text>
+<text x="54" y="461" font-size="15" font-weight="700" fill="#0f172a">ArkTS）</text>
+<rect x="40" y="660" width="1620" height="211" rx="12" fill="#f8fafc"/>
+<text x="54" y="695" font-size="15" font-weight="700" fill="#0f172a">绑定面（Rust）</text>
+<rect x="40" y="919" width="1620" height="274" rx="12" fill="#eef2f7"/>
+<text x="54" y="954" font-size="15" font-weight="700" fill="#0f172a">用例、状态机与仓储</text>
+<text x="54" y="976" font-size="15" font-weight="700" fill="#0f172a">（Rust）</text>
+<rect x="40" y="1241" width="1620" height="190" rx="12" fill="#f8fafc"/>
+<text x="54" y="1276" font-size="15" font-weight="700" fill="#0f172a">语义与密码基础</text>
+<text x="54" y="1298" font-size="15" font-weight="700" fill="#0f172a">（Rust）</text>
+<rect x="40" y="1479" width="1620" height="190" rx="12" fill="#eef2f7" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 6"/>
+<text x="54" y="1514" font-size="15" font-weight="700" fill="#0f172a">契约、离线工具与服</text>
+<text x="54" y="1536" font-size="15" font-weight="700" fill="#0f172a">务端（不在客户端依</text>
+<text x="54" y="1558" font-size="15" font-weight="700" fill="#0f172a">赖链内）</text>
+<text x="40" y="65" font-size="22" font-weight="700" fill="#0f172a">功能—模块总览</text>
+<text x="40" y="95" font-size="14" fill="#475569">计划模块，仓库当前不含应用源码。实线箭头：编译期依赖，只允许自上而下；同层箭头：装配关系；虚线框：不在客户端依赖链内；框内“需求”为承载的需求编号。</text>
+<text x="40" y="1704" font-size="13" fill="#475569">依赖规则、端口与需求追踪见 14 功能与代码模块映射；本图由 tools/generate-feature-map.py 从映射数据生成。</text>
+<rect x="400" y="142" width="520" height="174" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="414" y="175" font-size="17" font-weight="700" fill="#0f172a">presentation</text>
+<text x="414" y="199" font-size="13" fill="#475569">apps/flutter/lib/presentation/</text>
+<text x="414" y="228" font-size="14" fill="#0f172a">页面与 ViewModel、公式输入与结构化键盘、FormulaView 渲染与无障</text>
+<text x="414" y="249" font-size="14" fill="#0f172a">碍</text>
+<text x="414" y="277" font-size="13" fill="#1d4ed8">需求：R01、R03、R04、R05、R07、R08、R09、R10、R11、R12、R18、</text>
+<text x="414" y="297" font-size="13" fill="#1d4ed8">R19、R24、R26、R27、A01、A02</text>
+<rect x="956" y="142" width="520" height="174" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="175" font-size="17" font-weight="700" fill="#0f172a">ohos-arkts</text>
+<text x="970" y="199" font-size="13" fill="#475569">apps/ohos/</text>
+<text x="970" y="228" font-size="14" fill="#0f172a">鸿蒙 ArkTS 原生界面（路线二，预留）；M0 双路线验证后决定是否投入</text>
+<text x="970" y="256" font-size="13" fill="#1d4ed8">需求：R02</text>
+<rect x="234" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="248" y="433" font-size="17" font-weight="700" fill="#0f172a">platform_io</text>
+<text x="248" y="457" font-size="13" fill="#475569">apps/flutter/lib/platform_io/</text>
+<text x="248" y="486" font-size="14" fill="#0f172a">执行核心下发的 I/O 命令：HTTP、文件与系</text>
+<text x="248" y="507" font-size="14" fill="#0f172a">统选择器、相机、通知、平台密钥</text>
+<text x="248" y="535" font-size="13" fill="#1d4ed8">需求：R01、R03、R04、R05、R06、R19、</text>
+<text x="248" y="555" font-size="13" fill="#1d4ed8">R20、R22、R24、R29、R30、R31、H02、</text>
+<text x="248" y="575" font-size="13" fill="#1d4ed8">A03</text>
+<rect x="595" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="609" y="433" font-size="17" font-weight="700" fill="#0f172a">composition</text>
+<text x="609" y="457" font-size="13" fill="#475569">apps/flutter/lib/composition/</text>
+<text x="609" y="486" font-size="14" fill="#0f172a">配置、依赖装配与账户作用域：按账户打开数据</text>
+<text x="609" y="507" font-size="14" fill="#0f172a">库与密钥句柄</text>
+<text x="609" y="535" font-size="13" fill="#1d4ed8">需求：R01、R19、R20、R21</text>
+<rect x="956" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="433" font-size="17" font-weight="700" fill="#0f172a">binding</text>
+<text x="970" y="457" font-size="13" fill="#475569">apps/flutter/lib/binding/</text>
+<text x="970" y="486" font-size="14" fill="#0f172a">fml-ffi 的 Dart 绑定：M0 在</text>
+<text x="970" y="507" font-size="14" fill="#0f172a">flutter_rust_bridge 与 C ABI + dart:ffi</text>
+<text x="970" y="528" font-size="14" fill="#0f172a">中二选一；同步快路径与长任务完成通知</text>
+<text x="970" y="556" font-size="13" fill="#1d4ed8">需求：R01、A04</text>
+<rect x="1317" y="400" width="325" height="194" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1331" y="433" font-size="17" font-weight="700" fill="#0f172a">ohos-napi</text>
+<text x="1331" y="457" font-size="13" fill="#475569">apps/ohos/</text>
+<text x="1331" y="486" font-size="14" fill="#0f172a">ArkTS 经 NAPI 调用 fml-ffi 的 C ABI；</text>
+<text x="1331" y="507" font-size="14" fill="#0f172a">平台密钥用 HUKS（预留）</text>
+<text x="1331" y="535" font-size="13" fill="#1d4ed8">需求：R02、A04</text>
+<rect x="678" y="678" width="520" height="175" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="692" y="711" font-size="17" font-weight="700" fill="#0f172a">fml-ffi</text>
+<text x="692" y="735" font-size="13" fill="#475569">crates/fml-ffi/</text>
+<text x="692" y="764" font-size="14" fill="#0f172a">版本化 DTO、命令分发、句柄与缓冲区、同步快路径与完成通知；导出</text>
+<text x="692" y="785" font-size="14" fill="#0f172a">abi_version、capabilities、call、submit、cancel、</text>
+<text x="692" y="806" font-size="14" fill="#0f172a">register_completion、free_buffer、close_handle</text>
+<text x="692" y="834" font-size="13" fill="#1d4ed8">需求：R01、R02、R15</text>
+<rect x="236" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="250" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-study</text>
+<text x="250" y="994" font-size="13" fill="#475569">crates/fml-study/</text>
+<text x="250" y="1023" font-size="14" fill="#0f172a">FSRS 调度（Scheduler，确定</text>
+<text x="250" y="1044" font-size="14" fill="#0f172a">性重放）；会话编排</text>
+<text x="250" y="1065" font-size="14" fill="#0f172a">（SessionPlanner：选题、分</text>
+<text x="250" y="1086" font-size="14" fill="#0f172a">组、组内重现、组后默写、上限、埋</text>
+<text x="250" y="1107" font-size="14" fill="#0f172a">藏、积压削峰）；三层判分与评分映</text>
+<text x="250" y="1128" font-size="14" fill="#0f172a">射；统计派生</text>
+<text x="250" y="1156" font-size="13" fill="#1d4ed8">需求：R04、R15、A01、A04</text>
+<rect x="524" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="538" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-recognition</text>
+<text x="538" y="994" font-size="13" fill="#475569">crates/fml-recognition/</text>
+<text x="538" y="1023" font-size="14" fill="#0f172a">识别会话状态机；图像头校验与内存</text>
+<text x="538" y="1044" font-size="14" fill="#0f172a">安全解码；预处理与候选校验；本地</text>
+<text x="538" y="1065" font-size="14" fill="#0f172a">推理运行时适配（feature 隔离）</text>
+<text x="538" y="1093" font-size="13" fill="#1d4ed8">需求：R03、R04、R05、R06、</text>
+<text x="538" y="1113" font-size="13" fill="#1d4ed8">R17、R24、R25、R26、R28、</text>
+<text x="538" y="1133" font-size="13" fill="#1d4ed8">R31、H02、A04</text>
+<rect x="812" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="826" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-assets</text>
+<text x="826" y="994" font-size="13" fill="#475569">crates/fml-assets/</text>
+<text x="826" y="1023" font-size="14" fill="#0f172a">资源包清单、验签与校验、安装与原</text>
+<text x="826" y="1044" font-size="14" fill="#0f172a">子激活</text>
+<text x="826" y="1072" font-size="13" fill="#1d4ed8">需求：R03、R04、R13、R14、</text>
+<text x="826" y="1092" font-size="13" fill="#1d4ed8">R23、R31、H01</text>
+<rect x="1100" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1114" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-store</text>
+<text x="1114" y="994" font-size="13" fill="#475569">crates/fml-store/</text>
+<text x="1114" y="1023" font-size="14" fill="#0f172a">SQLCipher 连接、单写者 DB</text>
+<text x="1114" y="1044" font-size="14" fill="#0f172a">actor、迁移与备份、仓储与</text>
+<text x="1114" y="1065" font-size="14" fill="#0f172a">outbox 表；识别历史两阶段 GC</text>
+<text x="1114" y="1086" font-size="14" fill="#0f172a">与 cleanup_job</text>
+<text x="1114" y="1114" font-size="13" fill="#1d4ed8">需求：R04、R08、R11、R12、</text>
+<text x="1114" y="1134" font-size="13" fill="#1d4ed8">R15、R18、R19、R20、R22、</text>
+<text x="1114" y="1154" font-size="13" fill="#1d4ed8">R26、R27、R28、R31、A02</text>
+<rect x="1388" y="937" width="252" height="238" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1402" y="970" font-size="17" font-weight="700" fill="#0f172a">fml-sync</text>
+<text x="1402" y="994" font-size="13" fill="#475569">crates/fml-sync/</text>
+<text x="1402" y="1023" font-size="14" fill="#0f172a">outbox/inbox 推拉计划、事件合</text>
+<text x="1402" y="1044" font-size="14" fill="#0f172a">并与排序、快照与游标语义、游客升</text>
+<text x="1402" y="1065" font-size="14" fill="#0f172a">级 journal 状态机</text>
+<text x="1402" y="1093" font-size="13" fill="#1d4ed8">需求：R21、R22、A03</text>
+<rect x="400" y="1259" width="520" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="414" y="1292" font-size="17" font-weight="700" fill="#0f172a">fml-core</text>
+<text x="414" y="1316" font-size="13" fill="#475569">crates/fml-core/</text>
+<text x="414" y="1345" font-size="14" fill="#0f172a">词法与 LaTeX 解析、AST 与规范化、TypeExpr 与量纲合一、单位、记号</text>
+<text x="414" y="1366" font-size="14" fill="#0f172a">方案与常数集、数值计算、代入与计算链</text>
+<text x="414" y="1394" font-size="13" fill="#1d4ed8">需求：R04、R07、R08、R09、R10、R11、R12、R14、R15、A01、A04</text>
+<rect x="956" y="1259" width="520" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="970" y="1292" font-size="17" font-weight="700" fill="#0f172a">fml-crypto</text>
+<text x="970" y="1316" font-size="13" fill="#475569">crates/fml-crypto/</text>
+<text x="970" y="1345" font-size="14" fill="#0f172a">密钥层级与包装、Envelope 编解码、AAD 规范字节、恢复码</text>
+<text x="970" y="1373" font-size="13" fill="#1d4ed8">需求：R20、R22、R28、R31、A02、A03、A04</text>
+<rect x="234" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="248" y="1530" font-size="17" font-weight="700" fill="#0f172a">contracts</text>
+<text x="248" y="1554" font-size="13" fill="#475569">contracts/</text>
+<text x="248" y="1583" font-size="14" fill="#0f172a">DTO schema、错误码注册表、AAD 测试向量；单一来源生成</text>
+<text x="248" y="1604" font-size="14" fill="#0f172a">Rust、Dart、ArkTS 代码</text>
+<text x="248" y="1632" font-size="13" fill="#1d4ed8">需求：R02、R15、R27</text>
+<rect x="715" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="729" y="1530" font-size="17" font-weight="700" fill="#0f172a">tools-content</text>
+<text x="729" y="1554" font-size="13" fill="#475569">tools/content/</text>
+<text x="729" y="1583" font-size="14" fill="#0f172a">离线内容摄入、来源与许可登记、校验与打包，产出签名资源包</text>
+<text x="729" y="1611" font-size="13" fill="#1d4ed8">需求：R04、R13、R14、R16、R23、H01</text>
+<rect x="1196" y="1497" width="445" height="154" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+<text x="1210" y="1530" font-size="17" font-weight="700" fill="#0f172a">server</text>
+<text x="1210" y="1554" font-size="13" fill="#475569">server/</text>
+<text x="1210" y="1583" font-size="14" fill="#0f172a">模块化单体：账户绑定、同步、识别网关与 worker、配额与审</text>
+<text x="1210" y="1604" font-size="14" fill="#0f172a">计、资源包元数据与托管</text>
+<text x="1210" y="1632" font-size="13" fill="#1d4ed8">需求：R06、R18、R22、R23、R31、H02、A03</text>
+<line x1="660" y1="316" x2="757" y2="398" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1216" y1="316" x2="1479" y2="398" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1118" y1="594" x2="851" y2="676" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1479" y1="594" x2="1024" y2="676" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="764" y1="853" x2="362" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="851" y1="853" x2="650" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="938" y1="853" x2="938" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1024" y1="853" x2="1226" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1111" y1="853" x2="1514" y2="935" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="362" y1="1175" x2="504" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="650" y1="1175" x2="608" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="938" y1="1175" x2="712" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1184" y1="1175" x2="816" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1268" y1="1175" x2="1129" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="1514" y1="1175" x2="1302" y2="1257" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="595" y1="497" x2="561" y2="497" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+<line x1="920" y1="497" x2="954" y2="497" stroke="#475569" stroke-width="1.6" marker-end="url(#fm-arrow)"/>
+</svg>
