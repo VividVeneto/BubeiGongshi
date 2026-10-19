@@ -218,7 +218,7 @@ app/windows/
   runner/flutter_window.cpp OnCreate 中按“每个平台卡一行”调用 RegisterXxxChannel(messenger, hwnd)；通道名前缀 "fml/windows/"
   runner/Runner.rc          FileVersion/ProductVersion 取 pubspec 版本；ProductName "BubeiGongshi"
   runner/runner.exe.manifest  dpiAwareness PerMonitorV2；supportedOS Windows 10
-  toolchain.versions        msvc=、windows_sdk=、rust=、cmake=、flutter= 的锁定版本（每行 key=value）
+  toolchain.versions        msvc=、windows_sdk=、cmake=、inno= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
 构建命令：flutter build windows --release --dart-define=FML_API_HOST=<host> --dart-define=FML_PACK_HOST=<host>
 ```
 
@@ -229,7 +229,7 @@ app/windows/
 - `fmlcore.dll` 静态链接 C 运行时（`+crt-static`），不依赖另行安装的 VC++ 运行库；Flutter 自带的 `msvcp140.dll` 等按 Flutter 模板随包分发。
 - 目标架构 x64；ARM64 原生构建不在 V1 范围（ARM64 设备以仿真运行，不做专项承诺）。
 - Release 构建 MSVC 链接参数含 `/Brepro`，与 Rust 的路径重映射一起使 DLL 可复现。
-- 外部前提：Visual Studio 生成工具、Windows SDK、Rust 工具链与 Flutter SDK 的具体版本随 ADR-V5-15 在 M0 锁定。
+- 外部前提：Visual Studio 生成工具（MSVC）、Windows SDK、CMake、Inno Setup 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`；Rust 与 Flutter 以 CORE-01 的 `rust-toolchain.toml`、`app/.flutter-version` 为准。
 
 **验收标准**
 - [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
@@ -292,7 +292,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 不写 `C:\Program Files` 与 HKLM，不请求管理员权限；安装器与卸载器都不访问网络。
 - 安装包不含供应商 API Key、测试密钥与调试符号；体积门禁由 WIN-12 `check_artifacts.py` 按 CORE-01 预算表“安装包”行执行。
 - 界面语言简体中文：使用 Inno Setup 非官方翻译 `ChineseSimplified.isl`（随许可证一并入库于 `installer/windows/`），自定义文本写在 `[CustomMessages]`。
-- 外部前提：Inno Setup 6.x 具体版本随 ADR-V5-15 锁定；AppId GUID 在 M0 生成后写入脚本且永不更改。
+- 外部前提：Inno Setup 6.x 具体版本见 `app/windows/toolchain.versions` 的 `inno=`（WIN-01，ADR-V5-15）；AppId GUID 在 M0 生成后写入脚本且永不更改。
 
 **验收标准**
 - [R01] 在标准用户（非管理员）账户上安装，无 UAC 提示；开始菜单快捷方式启动应用；Windows 10 1709 上安装器拒绝运行。
@@ -1109,7 +1109,7 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 - 输入方式：初值取 `interactionMode`，之后以本卡事件与 CORE-55 根部 `Listener` 的指针种类共同决定（平台源事件优先，CORE-55 e）；切换只改密度与提示，不改分档、不移动焦点。
 - 不调用 `SystemChrome`、不判断 `Platform.isWindows` 于共享界面；所有 Windows 判断限于 `app/lib/platform/windows/` 与 `app/windows/`。
 - 性能：通道调用不阻塞 UI 线程；标题栏只在参数变化时调用；相关预算为 CORE-01 预算表“点击到可见反馈（按压态出现）”“作答到判定反馈（提交到判定条出现，含判分）”“转场与动效”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”Windows 列，由 WIN-13 测量。
-- 外部前提：系统高对比度与“文本大小”经 Flutter Windows 嵌入层上报为 `MediaQuery.highContrast` 与 `textScaler`、精确式触摸板上报为 `PointerPanZoom`、滚轮距离随系统滚动行数，均在 M0 锁定 Flutter 版本（ADR-V5-15）后核实；不满足的项记入附录 D，需要时按 README §8.4 先修订 CORE-55 增加接缝。
+- 外部前提：系统高对比度与“文本大小”经 Flutter Windows 嵌入层上报为 `MediaQuery.highContrast` 与 `textScaler`、精确式触摸板上报为 `PointerPanZoom`、滚轮距离随系统滚动行数，均在 CORE-01 写入 `app/.flutter-version`（ADR-V5-15）后核实；不满足的项记入附录 D，需要时按 README §8.4 先修订 CORE-55 增加接缝。
 - 产品取舍（2026-10-19 甲方确认）：高对比度跟随系统见 README §6 Q22、最小窗口 600×500 Q24、学习流程默认按键 Q28、Windows 11 标题栏着色 Q30。
 
 **验收标准**
@@ -1314,7 +1314,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。
 - 代码签名不保证立即获得 SmartScreen 信誉；发布说明不承诺 EV 证书一定消除拦截。
 - 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-03）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12）。
-- 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本随 ADR-V5-15 锁定。
+- 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本见 `app/windows/toolchain.versions`（WIN-01，ADR-V5-15）。
 
 **验收标准**
 - [R01] `verify_signatures.ps1` 对构建输出与安装器全部通过；把一个未签名 DLL 放入目录后退出 1。
@@ -1411,7 +1411,7 @@ tools/perf/windows/
 **接口契约**
 
 - 构建：`cmake -S installer/windows/launcher -B build/launcher` 后 `cmake --build build/launcher --config Release`；输出 `BubeiGongshi.exe`。只链接 Windows 系统库，不链接 Flutter/Rust/安装器；首版协议固定 launcher_protocol=1，常规更新不替换正在运行的固定启动器，协议升级须另立 ADR 与迁移安装器；WIN-02 用 /DLauncher 消费制品，因此不存在 WIN-02 ↔ WIN-03 循环。
-- 路径：installRoot 与用户数据 database 根分别按 WIN-02 的布局说明（下游只读引用，格式见本卡）与 WIN-07 的 StoreArea.database；安装根为 %LOCALAPPDATA%\Programs\BubeiGongshi。版本号严格 SemVer，禁止路径字符。journal/标记均位于安装根；备份在同卷数据根 staging\updates\db-backup-<C>，先完成一致快照再启动 N，包含 SQLite WAL/SHM（所有应用进程退出后复制整个 database 目录）。
+- 路径：installRoot 与用户数据 database 根分别按 WIN-02 的布局说明（下游只读引用，格式见本卡）与 WIN-07 的 StoreArea.database；安装根为 %LOCALAPPDATA%\Programs\BubeiGongshi。版本号严格 SemVer，禁止路径字符。journal/标记均位于安装根；备份在同卷数据根 staging\updates\db-backup-<C>，先完成一致快照再启动 N，包含 SQLite WAL/SHM（所有应用进程退出后复制整个 database 目录，以及 WIN-07 StoreArea.packs 下 CORE-15 的 pack_meta.db 与其 -wal/-shm；不含 security_state.json 与包版本目录，下表“database”均指这一备份集）。
 - 命令：无参数/用户参数启动应用；`--install-after-exit <installer> --pid <u32> --created <u64 FILETIME>` 打开 SYNCHRONIZE|PROCESS_QUERY_LIMITED_INFORMATION 句柄并核验创建时间，通过仅本用户可访问的命名管道回 armed；最多等待 30 s，确认进程结束且 SingleInstance 不存在后启动 Inno /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /UPDATE=1。非零退出保留 C、记录日志并提示；成功保留 pending 等下次启动。不阻塞 UI 线程、不仅按 PID 轮询。
 - firstFrameHooks 消费的 `--confirm-healthy <nonce> --version N` 是特例：只允许匹配 journal.verifying 的 N/nonce 且目标 PID/创建时间仍存活时原子写 healthy.json={version,nonce}，不取得 Launcher mutex、不改变 journal；普通启动不能用此分支切换版本。
 - 普通/安装/恢复模式从入口到完成持有 `Local\BubeiGongshi.Launcher` mutex；拿不到时只按 WIN-06 的 WM_COPYDATA 协议激活现有窗口，没有窗口则提示“正在安装或恢复，请稍后”，不碰文件、不启动第二个验证进程。应用自身 SingleInstance 互斥独立，返回码 10 表示转发，不能据此认定 N 崩溃或恢复数据；验证时遇到 10 中止本轮并保留 journal，待所有实例退出再恢复。

@@ -243,14 +243,14 @@ v5 的主要变化：
 
 ### 6.1 待确认事项
 
-v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 已于 2026-10-19 按暂行默认值确认，移入上表；Q31 为 2026-10-19 补充 Windows 外接数位板时新增，同日按暂行默认确认并移入上表；v5.3 新增待确认事项见 §6.1（Q32 起）。日后新发现的同类事项编号续排，列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
+v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 已于 2026-10-19 按暂行默认值确认，移入上表；Q31 为 2026-10-19 补充 Windows 外接数位板时新增，同日按暂行默认确认并移入上表；v5.3 新增待确认事项 Q32 起列入下表。日后新发现的同类事项编号续排，列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
 
 | 编号 | 事项 | 暂行默认值（正文采用） | 待选方案 | 影响模块卡 |
 | --- | --- | --- | --- | --- |
 | Q32 | Unresolved 修订的保存 | 可正式保存但须确认，仍不可计算/代入/出卡；Invalid/Draft 只存草稿 | 全部只存草稿 | CORE-14、CORE-38 |
-
 | Q33 | 学习会话选卡策略 | CORE-19 稳定排序与分组规则：复习先于新学，错题共享复习额度，突击单独计，不重复扣默写 | 另定来源/排序/配额 | CORE-19、CORE-39 |
 | Q34 | FSRS外围学习步长 | 同卡同学习日一次有效排程；学习/重学使用一个跨学习日步骤，不设分钟步骤 | 允许当日分钟级学习与重复调度，须同时改FS-04 | CORE-17、CORE-19 |
+| Q35 | 用户自建公式的要求层级 | 无资源包要求层级的自建条目按“掌握”出卡（回忆与应用题型） | 按“理解”只出辨识题型；或保存时让用户选择层级 | CORE-17、CORE-38 |
 
 ### 6.2 M0 工程定案
 
@@ -304,7 +304,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 
 | 阶段 | 开工前必须采纳的 ADR | 可经 Fake 端口先行的待定 ADR / 真实交付门槛 |
 | --- | --- | --- |
-| S0 | V5-15；CORE-01 当天核实版本并写锁定文件后其他 S0 卡才开工 | 无 |
+| S0 | V5-15；CORE-01 当天核实版本并写 `rust-toolchain.toml`、`app/.flutter-version`、`tools/toolchain.versions`、`tools/requirements.txt` 后其他 S0 卡才开工；AND-01、WIN-01 开工时写各自 `toolchain.versions`；第三方 crate/Dart 包由首张使用卡锁入 `Cargo.lock`/`pubspec.lock` | 无 |
 | S1 | V5-17、V5-19 | 无 |
 | S2 | V5-14、V5-20、V5-25 | Casdoor 实际部署须通过 CORE-22 契约测试，Fake 只允许编码验收 |
 | S3、S4 | 沿用已采纳决策 | 内容生产前提见附录 C，不以空内容假充完成 |
@@ -412,8 +412,8 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-11 | 公式间代入、推导链与计算链 | 端侧核心 | Rust crate | `crates/fml-derive/` | S1 |
 | CORE-12 | 排版 DisplayList | 端侧核心 | Rust crate | `crates/fml-typeset/` | S1 |
 | CORE-13 | 本地库 Schema、单写者与迁移 | 端侧核心 | Rust crate | `crates/fml-store/` | S2 |
-| CORE-14 | 公式库仓储 | 端侧核心 | Rust crate | `crates/fml-store/src/library/`（附属 `crates/fml-ffi/src/ops/units.rs`） | S3 |
-| CORE-15 | 资源包格式、验签与安装 | 端侧核心 | Rust crate | `crates/fml-pack/` | S4 |
+| CORE-14 | 公式库仓储 | 端侧核心 | Rust crate | `crates/fml-store/src/library/`（附属 `crates/fml-ffi/src/ops/units_user.rs`） | S3 |
+| CORE-15 | 资源包格式、验签与安装 | 端侧核心 | Rust crate | `crates/fml-pack/`（附属 `crates/fml-ffi/src/ops/pack.rs`） | S4 |
 | CORE-17 | 卡片生成与 FSRS 排程 | 端侧核心 | Rust crate | `crates/fml-srs/`、`crates/fml-store/src/study/cards.rs` | S4 |
 | CORE-18 | 三层判分器 | 端侧核心 | Rust crate | `crates/fml-grade/` | S4 |
 | CORE-19 | 学习会话与组学习循环 | 端侧核心 | Rust crate | `crates/fml-study/`、`crates/fml-store/src/study/sessions.rs` | S4 |
