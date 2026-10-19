@@ -20,7 +20,7 @@
 | 03 Windows 端 | 14 | 0 | 12 | 1 | 1 | 0 |
 
 - 新增卡（11 张）：CORE-45 邮箱验证码与发信（自 CORE-22 拆出）、CORE-46 同步与升级协调器（自 CORE-26 拆出）、CORE-47 设置页与账户安全界面（自 CORE-36 拆出）、CORE-48 计算器、代入与计算链界面（自 CORE-38 拆出）、CORE-49 学习统计、提醒设置与自建书界面（自 CORE-39 拆出）、CORE-50 识别结果、云端确认与识别历史界面（自 CORE-40 拆出）、CORE-51 资源包下载、导入与管理界面（自 AND-10、WIN-11 抽出两端共用部分）、CORE-52 公式复制格式与富格式导出（2026-10-19 按 README §6 Q12 确认新增）、CORE-53 LaTeX 命令补全、CORE-54 公式库批量选择与批量操作（2026-10-19 按 README §6 Q16 确认新增）、WIN-14 快捷键自定义（2026-10-19 按 README §6 Q11 确认新增）。
-- 撤销卡：AND-10、WIN-11。两卡的内容是两端相同的 Dart 行为，并入 CORE-50、CORE-51，平台差异只剩端口实现（ADR-V5-19（待定））。编号不复用。
+- 撤销卡：AND-10、WIN-11。两卡的内容是两端相同的 Dart 行为，并入 CORE-50、CORE-51，平台差异只剩端口实现（ADR-V5-19）。编号不复用。
 - 现行卡数：74 张（公共核心 51、Android 11、Windows 12）。
 
 ## D.3 共性修订
@@ -30,18 +30,18 @@
 3. 性能类验收只引用 CORE-01 全局资源预算表的行名；预算表补“本地模型识别”“本地模型首次加载”两行。
 4. 验收标签统一为方括号形式，功能近似条款写作 `[R04][R04.h]`；README §5 最后一列按各卡验收标签重新生成。
 5. 规模超出或跨多个构建单元的卡：拆卡，或在规模中写明主包与附属的行数（README §8.5 a）。
-6. 外部前提统一写在“实现约束”末条；版本号在 M0 按 ADR-V5-15（待定）锁定，文档不写未核实的版本号。
+6. 外部前提统一写在“实现约束”末条；版本号在 M0 按 ADR-V5-15锁定，文档不写未核实的版本号。
 7. 新发现的产品取舍列为 README §6 Q11～Q15（2026-10-19 均已确认），纯工程选择列为 ADR-V5-12～20（待定）。
 
 ## D.4 公共核心
 
 | 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
 | --- | --- | --- | --- | --- |
-| CORE-01 | 仓库骨架与工程约定 | 已修订 | 补命名约定与提交约定（type(模块编号): 摘要）；外部前提（工具链版本按 ADR-V5-15（待定） M0 锁定）；验收补 [R23] | — |
+| CORE-01 | 仓库骨架与工程约定 | 已修订 | 补命名约定与提交约定（type(模块编号): 摘要）；外部前提（工具链版本按 ADR-V5-15 M0 锁定）；验收补 [R23] | — |
 | CORE-02 | 错误码注册表与诊断模型 | 已修订 | 注册表字段表（code/namespace/severity/message_key/retryable/since/deprecated_since/http_status）与取值规则；FmlError JSON 形态（FFI 与服务端共用）；规模拆分主包与附属；新增 JSON 往返验收 | — |
 | CORE-03 | C ABI 与 Dart 绑定 | 已修订 | FFI 返回码表（-1～-6 含触发条件）、fml_cancel 语义、回调线程与并发上限 64、capabilities 示例、DTO 映射规则（全局适用）；Dart CancelToken/FfiException/FfiCancelled 定义；CoreBinding.open(CoreLibrarySpec) 与 spec（多 isolate）、fml_call 线程安全、Dart DTO 归属规则 | — |
 | CORE-04 | 平台端口契约 | 已修订 | （追加）组装原语 FeatureRegistry、CompositionContext、Installer、StartupHook，使各卡安装点不依赖编号更大的 CORE-36；规模 440 | — |
-| CORE-05 | 公式 AST 与修订模型 | 已修订 | 补全 AST 辅助类型（NumberLiteral、UnitRef、各运算枚举、FunctionId 规范名）；从 CORE-07/09 迁入存储形类型 SymbolEnv/SymbolDecl/TypeDecl/MathKind/Validation/ConfirmRecord 以消除前向引用；CancelFlag；check_limits、from_canonical_json；规范 JSON 规则与 AST-01～05 向量；错误码表；FormulaItem 增 course，FormulaRevision 增 draft（CORE-14 需要）；FormulaNode 增 Hole(u16)（ADR-V5-17（待定）） | — |
+| CORE-05 | 公式 AST 与修订模型 | 已修订 | 补全 AST 辅助类型（NumberLiteral、UnitRef、各运算枚举、FunctionId 规范名）；从 CORE-07/09 迁入存储形类型 SymbolEnv/SymbolDecl/TypeDecl/MathKind/Validation/ConfirmRecord 以消除前向引用；CancelFlag；check_limits、from_canonical_json；规范 JSON 规则与 AST-01～05 向量；错误码表；FormulaItem 增 course，FormulaRevision 增 draft（CORE-14 需要）；FormulaNode 增 Hole(u16)（ADR-V5-17） | — |
 | CORE-06 | LaTeX 子集解析与导出 | 已修订 | RawSymbol/RawHint 定义；engine.parse/engine.export DTO；错误码触发条件表；LX-01～10 往返向量；性能项改引 CORE-01 预算行；外部前提 cargo-fuzz nightly；白名单增 \fmlhole、错误码 PARSE_HOLE_UNFILLED、向量 LX-11 | — |
 | CORE-07 | 符号表、记号方案与常数集 | 已修订 | SymbolEnv 等存储形类型迁至 CORE-05，本卡保留绑定与常数逻辑 | — |
 | CORE-08 | 量纲与单位 | 已修订 | 量纲文本语法与 parse/to_text；UnitRegistryMut、UnitDefinition 定义；错误码触发条件（新增 UNIT_DIM_SYNTAX、UNIT_IN_USE、UNIT_DUPLICATE）；新增量纲文本验收；新增 units.list_user、units.delete_user（单位页需要） | — |
@@ -58,7 +58,7 @@
 | CORE-19 | 学习会话与组学习循环 | 已修订 | 补 BookSource、Chapter、AnswerMode、QuestionDto、QuestionSource、Distractor、RatingMap、GroupSummary、GroupState；计划字段取值范围；重现位置；各 op 请求响应；5 张表；错误码触发条件；验收补子需求标签、续学边界与自建书（R04.j）；新增界面边界 DTO（UiAnswer、AnswerSubmission、SessionInput、QuestionView 不含标准答案、UiCommand 含 Feedback/NeedSelfRate、RelatedFormula、TodayInfo）、Attempt.self_knew、op 表（books.get/update/delete、plan.get、today）、错误码 STUDY_BOOK_READ_ONLY、STUDY_INPUT_INVALID；Undetermined 自评流程明确 | — |
 | CORE-20 | 学习统计、掌握度与本地提醒 | 已修订 | 补 Granularity、DayStat、MasteryDistribution、StatsCache；指标口径；新增 stats.due_count 与 STUDY_STATS_RANGE_INVALID；stats_cache 表；验收补 [R04.d][R04.i]；规模声明跨语言附属；新增安装点说明（installers.dart 追加一行） | — |
 | CORE-21 | 密钥体系与加密原语 | 已修订 | 补 KeyPurpose/HKDF info、Sealed 字节格式、AAD CBOR 规则、恢复码改为 26 位数据 + 1 位 Crockford mod-37 校验（27 位）、口令策略、KdfParams 默认值、错误触发条件、KV-01～07 测试向量与外部前提 | — |
-| CORE-22 | 服务端骨架与身份认证 | 已修订（拆分） | 原卡约 700 行超限：验证码与发信拆为 CORE-45；补全端点请求/响应、令牌有效期、EmailCodeService 端口、Dart ApiClient/TokenStore、表结构、错误码触发条件表；身份服务形态记 ADR-V5-14（待定）；新增 GET /v1/devices（设备管理界面需要） | ADR-V5-14（待定） M0 定案 |
+| CORE-22 | 服务端骨架与身份认证 | 已修订（拆分） | 原卡约 700 行超限：验证码与发信拆为 CORE-45；补全端点请求/响应、令牌有效期、EmailCodeService 端口、Dart ApiClient/TokenStore、表结构、错误码触发条件表；身份服务形态记 ADR-V5-14；新增 GET /v1/devices（设备管理界面需要） | ADR-V5-14 M0 定案 |
 | CORE-23 | 账户状态、登录边界与本机解锁 | 已修订 | 补 GuestLocked 状态与启动规则、device_registry 表、BlobKind 与平台密钥别名约定（与 AND-03 一致）、op 请求/响应表、注册/找回口令/验证码用例、TokenStore 实现、错误码触发条件；去掉应用自有 PIN（改由系统认证），附属声明 | AND-03/WIN-04 须提供 fml://auth/callback 深链 |
 | CORE-24 | 游客转注册与游客并入 | 已修订 | 补 UpgradeMode/AccountKeyMaterial/StepInput/KeyOutput、abandon、步骤完成条件与重入表、upgrade_journal/account_key_wrap/account_key 表、MergeInto 两种本地情形、UUIDv5 命名空间与 name 编码、op、错误码触发条件；原 UpgradeIo 回调改为“调用方传入网络结果”的纯本地步进（核心无 Rust→Dart 网络回调），联网协调归新卡 CORE-46 | — |
 | CORE-25 | 服务端同步存储与账户删除 | 已修订 | 补全端点请求/响应（新增 sync/reset、keys/min-version、删除状态查询）、Envelope 字段类型表、游标格式、表结构、配额数值、删除状态机、错误码触发条件表与外部前提；验收补快照、重置、越权 | 对象存储产品随 CORE-43 选定 |
@@ -114,7 +114,7 @@
 | 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
 | --- | --- | --- | --- | --- |
 | WIN-01 | 工程与构建 | 已修订 | 入口改为 CORE-04 runPlatformApp + CoreLibrarySpec（ABI 校验与“核心不可用”页归 CORE-04）；明确 CMake/cargo 集成、通道注册约定（每卡一行，前缀 fml/windows/）、ports_windows 先 Fake 后逐行替换、+crt-static 与 /Brepro；验收加可复现与无 VC 运行库依赖 | — |
-| WIN-02 | 安装器与卸载 | 已修订 | 安装器定为 Inno Setup 6（ADR-V5-12（待定））；定义版本子目录与 current.txt/pending.txt 布局、ISCC 参数、AppMutex、/UPDATE=1 更新模式、降级拦截、空间检查、卸载窗体与清理范围；依赖由 WIN-07 改为 WIN-01（消除平台依赖方向违例） | AppId GUID 在 M0 生成 |
+| WIN-02 | 安装器与卸载 | 已修订 | 安装器定为 Inno Setup 6（ADR-V5-12）；定义版本子目录与 current.txt/pending.txt 布局、ISCC 参数、AppMutex、/UPDATE=1 更新模式、降级拦截、空间检查、卸载窗体与清理范围；依赖由 WIN-07 改为 WIN-01（消除平台依赖方向违例） | AppId GUID 在 M0 生成 |
 | WIN-03 | 自更新与启动器 | 已修订 | 原卡缺更新清单格式、校验与回滚机制：新增 update.json 格式、WindowsUpdater 状态机与签名者校验、退出时安装、固定路径启动器（首启 120 s 健康确认、数据库备份与回滚、保留 2 个版本）；启动器为附属构建单元（installer/windows/launcher） | 签名证书主体 CN（kExpectedPublisher）在 M0 登记 |
 | WIN-04 | 文件导入、拖拽与导出 | 已修订 | 依赖去掉 CORE-30、WIN-07（LocalFileStore 注入）；新增 DocumentPicker 实现与 ImageDropSource 接缝实现；定义通道方法、超限与 HEIC（WIC）规则、文件夹一层扫描确认、导出 .fmlpart 原子改名 | HEIC 依赖用户安装 HEIF 扩展 |
 | WIN-05 | 剪贴板与多格式复制 | 已修订 | 实现 CORE-04 ClipboardAdapter 与 CORE-52 FormulaClipboardWriter（2026-10-19 按 Q12 确认改写）：一次写入 MathML（三种格式名）、CF_HTML、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex；粘贴图片读 PNG/CF_DIBV5/CF_DIB；修正错误码名为 PARSE_FORBIDDEN_COMMAND | Office 识别 MathML 剪贴板格式名的行为在 M0 用 Microsoft 365 验证；手动粘贴矩阵结果待记入 |
@@ -124,7 +124,7 @@
 | WIN-09 | 应用内提醒、托盘与开机自启 | 已修订 | 定义应用内定时规则（同日一次、时间变化与睡眠唤醒补发窗口 2 h）、托盘通道与菜单、通知点击、关闭到托盘与开机自启；不再使用 Toast COM 激活 | 应用完全退出时不提醒（设置区说明） |
 | WIN-10 | 网络传输 | 已修订 | 改为纯传输实现（与 AND-09 同构，dart:io HttpClient、静态系统代理、续传、取消、异常映射）；云识别调用移至 CORE-34；移到 S2 | PAC 自动代理不支持 |
 | WIN-11 | 资源包获取与识别历史平台存储 | 已撤销 | 资源包下载与管理并入 CORE-51，存储检查与历史清理并入 CORE-50、CORE-32；两端共用同一 Dart 实现；编号不复用 | — |
-| WIN-12 | 代码签名与发布检查 | 已修订 | 定义 build_release.ps1 编排、sign.ps1（硬件令牌或云签名）、签名者核对、制品门禁、PDB 归档与 update.json 生成；MSIX 不采用（ADR-V5-12（待定））；依赖加 WIN-03 | 签名证书与时间戳服务由甲方在 S7 前提供 |
+| WIN-12 | 代码签名与发布检查 | 已修订 | 定义 build_release.ps1 编排、sign.ps1（硬件令牌或云签名）、签名者核对、制品门禁、PDB 归档与 update.json 生成；MSIX 不采用（ADR-V5-12）；依赖加 WIN-03 | 签名证书与时间戳服务由甲方在 S7 前提供 |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 测量项按 CORE-01 预算表行名对应，预算值只在 CORE-01 维护；定义测试、脚本、环境矩阵与报告模板；tools/perf/windows 为附属 | — |
 | WIN-14 | 快捷键自定义 | 已修订（新增卡，2026-10-19） | 按 Q11 确认新增：设置页“快捷键”区、录制对话框（录制期间暂停分发）、冲突检测与替换、保留键拒绝、单项与全部恢复默认、偏好 keymap.v1（只存与默认不同的命令） | — |
 
@@ -136,7 +136,7 @@
 
 | 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
 | --- | --- | --- | --- | --- |
-| CORE-55 | 界面设计系统与主题 | 新增 | 设计原则 P1～P6（对应甲方要求 1～4 与 R42.a～f）；令牌与 ThemeExtension；5 套原创预设主题色浅/深色值与 WCAG AA 对比度表（脚本验证全部通过）；固定语义色；外观偏好 appearance.v1 按设备保存；InputModality 与密度；宽度分档、矮高度与设备尺寸表（含平板最短边 ≥ 600 dp、Windows 最小 600×500）；核心组件；关键页面分档布局；流畅性规则；无障碍；AND-13、WIN-15 需实现/登记的接缝清单；平台无关命令接缝 FmlCommandScope / FmlCommands 与可选 ShortcutLabelSource（ShortcutHint、AnswerOption 按命令 ID 显示键位） | 界面性能预算数值按 ADR-V5-25（待定）M0 实测定案；产品取舍见 README §6 Q21–Q24、Q27（已按默认确认） |
+| CORE-55 | 界面设计系统与主题 | 新增 | 设计原则 P1～P6（对应甲方要求 1～4 与 R42.a～f）；令牌与 ThemeExtension；5 套原创预设主题色浅/深色值与 WCAG AA 对比度表（脚本验证全部通过）；固定语义色；外观偏好 appearance.v1 按设备保存；InputModality 与密度；宽度分档、矮高度与设备尺寸表（含平板最短边 ≥ 600 dp、Windows 最小 600×500）；核心组件；关键页面分档布局；流畅性规则；无障碍；AND-13、WIN-15 需实现/登记的接缝清单；平台无关命令接缝 FmlCommandScope / FmlCommands 与可选 ShortcutLabelSource（ShortcutHint、AnswerOption 按命令 ID 显示键位） | 界面性能预算数值按 ADR-V5-25M0 实测定案；产品取舍见 README §6 Q21–Q24、Q27（已按默认确认） |
 | CORE-01 | 仓库骨架与工程约定 | 已修订 | 全局资源预算表新增界面性能 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换），口径不变（ADR-V5-25） | ADR-V5-25 待定，M0 真机实测后定案（AND-12、WIN-13 已加测这 5 行） |
 | CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订 | 主题移交 CORE-55，只留接入；主导航顺序改为学习、公式库、识别、设置，落地 /study；installDesign 列为第一个安装点；mainCommon 先加载外观偏好；依赖加 CORE-55；新增 R42.a/e 验收 | 产品取舍见 README §6 Q21、Q26（已按默认确认） |
 | CORE-37 | 公式渲染组件与编辑器 | 已修订 | 依赖加 CORE-55；控件密度、公式颜色取令牌；defaultEditorMode 为平台判断唯一例外（Q13）；新增 R42.d 验收 | — |
@@ -173,3 +173,15 @@
 | WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 目标与范围加入外接数位板；统一笔侧键规则（书写区内按住侧键落笔为擦除，书写区外点按为右键菜单，笔长按不模拟右键）；修正 isEraser：Flutter 中第一侧键为 kPrimaryStylusButton，原稿只判 kSecondaryStylusButton；新增 PenDevice、PenStatus、WindowsPenStatus 与通道 fml/windows/pen（GetPointerDevices 枚举、Wintab32.dll 存在检测、WM_POINTERDEVICECHANGE）；关闭系统长按右键与笔势；设置区“笔与数位板”（order 65）显示设备与开启 Windows Ink 提示；新增 1 条 Widget 测试与 2 条数位板手动验收；规模 340 → 460 行 | 书写区外侧键点按能否上报为次键点击须 M0 核实，不满足时经“更多”按钮打开菜单；手写页内不主动弹出开启提示（需 CORE-40 新增接缝，本次未做），提示只在设置区 |
 | WIN-15 | Windows 桌面交互与窗口适配 | 已修订 | d 表“右键菜单”改为笔侧键点按（书写区外）并引用 WIN-08 侧键规则；新增“触控笔与数位板”行；新增外接数位板输入方式切换手动验收 | — |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 环境矩阵加外接数位板（Windows Ink 开与关各一轮，含双显示器映射）；新增 [R06] 验收：数位板上测“手写墨迹上屏”并勾选 WIN-08 数位板手动项 | — |
+
+## D.9 v5.3 评审意见处理记录
+
+处理状态描述本轮意见，不代表整卡就绪；逐卡当前结论见 §D.10。
+
+| 索引 | 严重度 | 结论 | 落点 | 说明 |
+| --- | --- | --- | --- | --- |
+| U-F07 | 阻断 | 已修订 | ADR-V5-15；README §8.3 | 采纳锁定机制，S0 开工当天核实兼容稳定版 |
+| U-F08 | 高 | 已修订 | 附录 A §A.4.2/4；README §8.3 | 区分已采纳与 Fake 可先行、真实交付门槛 |
+| B-F-04 | 阻断 | 已修订 | CORE-22；ADR-V5-14 | Casdoor 唯一凭据与令牌所有者，注册不再返回授权码 |
+| B-F-13 | 高 | 已修订 | CORE-22、25 | 拆分客户端重登与服务端近期认证；定义 auth_time |
+| U-F15 | 阻断 | 已修订 | CORE-35；附录 C §C.5.1 | Fake 编码验收，真实模型保留 M-MODEL 交付门槛 |

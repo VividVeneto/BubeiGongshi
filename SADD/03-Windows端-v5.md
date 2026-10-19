@@ -205,7 +205,7 @@ app/windows/
 - `fmlcore.dll` 静态链接 C 运行时（`+crt-static`），不依赖另行安装的 VC++ 运行库；Flutter 自带的 `msvcp140.dll` 等按 Flutter 模板随包分发。
 - 目标架构 x64；ARM64 原生构建不在 V1 范围（ARM64 设备以仿真运行，不做专项承诺）。
 - Release 构建 MSVC 链接参数含 `/Brepro`，与 Rust 的路径重映射一起使 DLL 可复现。
-- 外部前提：Visual Studio 生成工具、Windows SDK、Rust 工具链与 Flutter SDK 的具体版本随 ADR-V5-15（待定） 在 M0 锁定。
+- 外部前提：Visual Studio 生成工具、Windows SDK、Rust 工具链与 Flutter SDK 的具体版本随 ADR-V5-15 在 M0 锁定。
 
 **验收标准**
 - [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
@@ -221,7 +221,7 @@ app/windows/
 **目标**：用 Inno Setup 提供按用户安装、无需管理员权限的官方安装器；卸载默认保留用户数据，删除数据须用户明确选择并二次确认。
 
 **范围**
-- 包含：`installer/windows/bubeigongshi.iss` 安装脚本（ADR-V5-12（待定） 选定 Inno Setup 6）；安装布局与 `current.txt`；开始菜单快捷方式与 AppUserModelId；更新模式参数 `/UPDATE=1`；安装前空间检查与降级拦截；卸载选项与清理；简体中文界面文本。
+- 包含：`installer/windows/bubeigongshi.iss` 安装脚本（ADR-V5-12 选定 Inno Setup 6）；安装布局与 `current.txt`；开始菜单快捷方式与 AppUserModelId；更新模式参数 `/UPDATE=1`；安装前空间检查与降级拦截；卸载选项与清理；简体中文界面文本。
 - 不包含：启动器与更新流程（WIN-03）；代码签名与构建脚本（WIN-12 调用 ISCC 并签名）；数据库迁移（CORE-13）。
 
 **依赖**：CORE-01、CORE-02、CORE-42、WIN-01
@@ -263,7 +263,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 不写 `C:\Program Files` 与 HKLM，不请求管理员权限；安装器与卸载器都不访问网络。
 - 安装包不含供应商 API Key、测试密钥与调试符号；体积门禁由 WIN-12 `check_artifacts.py` 按 CORE-01 预算表“安装包”行执行。
 - 界面语言简体中文：使用 Inno Setup 非官方翻译 `ChineseSimplified.isl`（随许可证一并入库于 `installer/windows/`），自定义文本写在 `[CustomMessages]`。
-- 外部前提：Inno Setup 6.x 具体版本随 ADR-V5-15（待定） 锁定；AppId GUID 在 M0 生成后写入脚本且永不更改。
+- 外部前提：Inno Setup 6.x 具体版本随 ADR-V5-15 锁定；AppId GUID 在 M0 生成后写入脚本且永不更改。
 
 **验收标准**
 - [R01] 在标准用户（非管理员）账户上安装，无 UAC 提示；开始菜单快捷方式启动应用；Windows 10 1709 上安装器拒绝运行。
@@ -1249,7 +1249,7 @@ taps()：notifyClick 时发送一次；同时 show 主窗口（WIN-06 通道 sho
 
 **范围**
 - 包含：`tools/release/windows/` 下的构建编排、签名、签名验证、制品检查、更新清单生成与 PDB 归档脚本；Windows 发布检查清单项。
-- 不包含：版本号写入、哈希汇总与 SBOM（CORE-42）；安装脚本（WIN-02）；启动器源码（WIN-03）；更新清单的托管（CORE-43）；MSIX（ADR-V5-12（待定） 不采用）。
+- 不包含：版本号写入、哈希汇总与 SBOM（CORE-42）；安装脚本（WIN-02）；启动器源码（WIN-03）；更新清单的托管（CORE-43）；MSIX（ADR-V5-12 不采用）。
 
 **依赖**：CORE-01、CORE-02、CORE-42、WIN-02、WIN-03
 
@@ -1281,8 +1281,8 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 **实现约束**
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。
 - 代码签名不保证立即获得 SmartScreen 信誉；发布说明不承诺 EV 证书一定消除拦截。
-- 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-03）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12（待定））。
-- 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本随 ADR-V5-15（待定） 锁定。
+- 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-03）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12）。
+- 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本随 ADR-V5-15 锁定。
 
 **验收标准**
 - [R01] `verify_signatures.ps1` 对构建输出与安装器全部通过；把一个未签名 DLL 放入目录后退出 1。
