@@ -288,16 +288,12 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-23 | LaTeX 命令补全与公式库批量操作 | 两项都在共享界面实现、两端一致：补全由 CORE-53 经 CORE-37 `LatexSourceAssist` 接入，候选只来自 CORE-06 白名单子集的数据文件，键入 `\` 或 `\begin{` 自动弹出，不设手动触发键；批量操作由 CORE-54 经 CORE-38 `LibraryListDecorator` 接入，按键沿用文件管理器习惯，Rust 侧 `library.batch` 单个写事务执行、可取消并整批回滚、一次最多 10000 条；同时补齐 CORE-14 的条目元数据修改（`library.update_meta`）与回收站查询（`SearchQuery.trashed`） | 用 Ctrl+Space 手动触发补全：与中文输入法切换键冲突；允许用户自定义宏扩充补全：与 CORE-06 禁止宏定义冲突；批量操作逐条调用单项 op：一万条需上万次跨语言调用且无法整体回滚；只在 Windows 实现：接实体键盘的 Android 设备体验不一致 | 甲方要求自定义片段、补全与列表按键可自定义，或批量导出、批量复制进入 V1 时 | 采纳（甲方 2026-10-19 确认，README §6 Q16） | CORE-14、CORE-37、CORE-38、CORE-53、CORE-54、WIN-08 |
 | ADR-V5-24 | 界面设计语言与自适应策略 | 交互取“不背单词”的灵感：一屏一事、主操作在拇指可及区、作答后即时而克制的反馈、低打扰；视觉为原创（5 套以传统颜料命名的预设主题色、“公式台面”展示区、线性图标与系统黑体），不复制原型的配色、图标、插画与版式；两端共用 CORE-55 的一套令牌、组件与页面布局，布局只按窗口宽度分档（< 600、600–959、≥ 960）与矮高度（高 < 480）决定，控件密度只按输入方式（touch、pointer、stylus）决定，共享界面不判断平台；Android 手机与平板都随系统旋转，平板指最短边 ≥ 600 dp（README §6 Q17、Q18）；主题色 5 套、外观模式浅色 / 深色 / 跟随系统，按设备保存、不同步（Q19、Q20），所有组合满足 WCAG 2.1 AA；平台差异只经 AND-13、WIN-15 实现的接缝接入（输入方式、触感、动效缩放、偏好存储、系统栏与标题栏跟随） | Android 用 Material、Windows 用 Fluent 各自原生：两套组件、两套黄金图与文案，页面卡要么做平台分支（违反 CORE-01 依赖规则 5 与 ADR-V5-19）要么写两遍，同一用户在两端看到不同的作答反馈，违背双端风格统一（R42.d），Fluent 还需引入第三方包；Android 12+ 动态取色：主题色由壁纸决定，对比度与语义色（正确 / 错误 / 掌握度）无法预先验证，可能与壁纸色相近而误读，Windows 无对应能力，两端外观不一致，且与“可选 4～6 套主题色”重复；手机锁竖屏：只需一套竖屏布局、实现最省，但外接键盘、支架与横握时无法使用，与 Q17 冲突，拍照页单独锁竖屏会在旋转时来回闪烁；按平台而非尺寸布局：Windows 窄窗口、Android 平板横屏与折叠屏展开都得不到合适布局，只能继续加分支；照搬原型视觉：版权与商标风险，且单词卡版式不适合公式 | 甲方要求动态取色或品牌色、主导航入口超过 4 个、试点（§A.6）中主操作可达性或判定反馈理解率不达标，或新增平台需要新的输入方式时 | 采纳（甲方 2026-10-19 确认，README §6 Q17～Q20；色值、令牌与布局细则以 CORE-55 为准） | CORE-55、CORE-36～CORE-40、CORE-47～CORE-54、AND-05、AND-13、WIN-06、WIN-15 |
 | ADR-V5-25 | 界面性能预算 | 采纳 CORE-01 的五行界面预算，M0 实测作为达标证据而非另行采纳前提；Windows 集成测试使用 Profile，Release 外部采样验证发布性能（WIN-13）；未达标记缺陷并复评本 ADR | 不设界面指标、只做“流畅”主观验收：无法回归，退化到发布后才被发现；统一按一帧（16 ms）设硬阈值：判分与排版本身已占 25–50 ms，中端 Android 无法达成，只能用骨架屏掩盖；只在 Windows 测：中端 Android 才是瓶颈，结论不可代表两端 | M0 基准设备实测任一行连续 3 轮不达标，或需求负责人更换基准设备时 | 采纳（甲方 2026-10-19 确认） | CORE-01、CORE-39、CORE-55、AND-12、WIN-13 |
-
 | ADR-V5-26 | S1 数据与领域编排 | 内置最小数据和 EngineContext 归 CORE-56（fml-ffi）；ConstantValue 下沉 CORE-05，领域算法不放宽依赖；CORE-28 整体前移 S2，经 GuardContext 注入账户，后续功能自登记钩子 | 等 S4 包才初始化：S1/S2 无法验收；领域引入解析器：违反依赖边界 | 数据或上下文无法在约 450 行内交付时先拆卡 | 采纳 | CORE-05、09、10、28、36、56 |
-
 | ADR-V5-27 | 跨卡格式与精确数值 | AST 字段穷举、确定性 ID 归 CORE-05，WrapRecord 确定性 CBOR 归 CORE-21；Rational 使用 i128，JSON 以十进制字符串传输；RecognitionMode wire 归 CORE-33 | i64 无法表示 SI 定义值；各卡自定编码破坏备份与同步 | 真实数据超 i128 或 schema 升级时评估 | 采纳 | CORE-02、05、08、14、21、25、33 |
-
 | ADR-V5-28 | 持久化与同步真值 | 档案事务提交业务/时钟/outbox；跨设备无全局事件序，缓存变更代数失效全算；升级以档案journal为准补投影设备注册表；包元数据全设备一库；历史密钥只存平台槽位，SessionKey独立随机并AEAD包装 | 跨SQLite文件假原子、账户级包安全水位或明文历史密钥会造成恢复/防回滚冲突 | 数据规模导致全量统计不可达预算时评估向量缓存 | 采纳 | CORE-13、14、15、20、24、26、32 |
-
 | ADR-V5-29 | FSRS API 与状态包装 | 算法基准固定 fsrs=6.6.2，使用FSRS::new/next_states/memory_state/compute_parameters；学习状态按CORE-17表由项目包装，不引入rs-fsrs；Burn仅该版本dev-dependency（官方docs.rs核实2026-10-19），包体仍测产物。此算法/向量固定版是V5-15通用最新稳定规则的明确例外，升级先修此ADR及向量 | 照抄不存在的整套调度API无法生成FS向量；另引状态机破坏同日重复规则 | Q34改变或库升级时重审，真实实现补锁文件与独立FS参照输出 | 采纳 | CORE-17；README Q34 |
-
 | ADR-V5-30 | Dart分层、网络构造与主题入口 | ui只放Widget/绘制，VM/用例/DTO在lib特性目录，composition负责构造；网络构造名单唯一文件归CORE-01；FmlTheme.of返回8项聚合FmlTokens，缺扩展明确失败 | 放宽ui绑定会让平台/传输渗入，双扫描白名单会误伤平台实现 | 新平台或新主题令牌时修订对应契约 | 采纳 | CORE-01、28、37～55、41；AGENTS |
+| ADR-V5-31 | Windows启动与安装时序 | 启动器独立WIN-16、互斥+原子文件+journal补偿；首帧托盘/健康早于解锁；安装前持句柄等待旧进程；Profile集成与Release外部采样；参数按Flutter模板传Dart main，协议1常规更新不覆盖启动器 | order95健康会因用户等待误回滚；恢复失败不能启动损坏库 | 启动器协议升级、恢复范围或健康定义改变时重审 | 采纳 | CORE-04/36；WIN-01/02/03/06/09/13/16；补充见§A.4.5 |
 
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
@@ -316,6 +312,29 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | Postmark | 每月 100 封，仅供联调测试 | 境外 | 不接入 | [Pricing](https://postmarkapp.com/pricing) |
 
 结论：境内两家的免费额度都是一次性的，合计约 3000 封，用完后转按量付费；长期免费的都是境外服务。按 README §6 Q7（含未成年人）与 Q8（数据境内）的口径，V1 只接境内两家。甲方已于 2026-10-18 确认维持境内方案；免费额度用完后按量付费，上线预算需包含这部分费用。今后若改用境外服务，须甲方重新确认，届时新增一个 `EmailSender` 实现并修订本节与 ADR-V5-11，同时在隐私政策中增加出境告知与单独同意。额度与价格以各供应商控制台为准，上线前复核。
+
+### A.4.4 v5.3 决策与身份服务筛选（2026-10-19）
+
+D1：采纳开工时锁定规则（V5-15）；D2：Casdoor（V5-14）；D3：Fake 验收编码、M-MODEL 验收真实模型（V5-13）；D4：Inno Setup 6（V5-12）；D5：非采购方案采纳，V5-13/16/18 经 Fake 隔离；D6：文档 v5.3，仅本地 main 按组提交，不推送、不打标签。以上均由甲方在本轮逐项确认。
+
+| 候选 | 许可与简中 | 账户与 OIDC | 境内发信接缝 | 资源与维护评估 |
+| --- | --- | --- | --- | --- |
+| Casdoor（采用） | Apache-2.0；含中文 UI | 邮箱口令、验证码、找回、PKCE；具体版本需契约验收 | 邮件 provider；本项目验证码经 CORE-45，不启用绕过该门面的公共注册/找回路径 | Go 服务加数据库；组件少，预计维护成本最低，尚无本项目压测数据 |
+| Keycloak | Apache-2.0；支持本地化 | 注册、验证、找回、PKCE；六位码需流程扩展 | SMTP 或受测 provider 扩展 | 官方建议小型生产容器 2 GB；扩展与 JVM 运维量较大 |
+| ZITADEL | 当前主分支 AGPL-3.0；简中覆盖待验收 | 自托管、邮箱口令、验证码与 PKCE | SMTP 或受测通知适配 | 许可与自托管升级需维护，无本项目资源实测 |
+| Hydra + Kratos | 两者 Apache-2.0；简中 UI 自行交付 | Hydra 管 OIDC，Kratos 管账户、验证和找回 | 自托管 courier/SMTP 适配 | 两服务及登录同意 UI，组件与自建界面最多 |
+
+各项均可部署在境内；不得据此推定默认无遥测、默认六位码策略或默认支持本项目 auth_time/刷新轮换。CORE-22 开工锁定 Casdoor 版本、镜像 digest 与配置，契约测试覆盖 PKCE、刷新令牌轮换/重放、六位码、找回吊销、auth_time 与 prompt=login；缺项只能用受测适配补齐，变更产品须修订 V5-14。无合格实测证据时仅 Fake 编码通过，真实认证上线被门槛阻断。Casdoor 原生邮件路径必须禁用或指向内部受认证适配器，不能绕过 EmailSender。
+
+官方核实入口（查询 2026-10-19；实现开工复核具体版本）：[Casdoor 源码与许可证](https://github.com/casdoor/casdoor)、[邮件 provider](https://casdoor.org/docs/provider/email/overview/)、[Keycloak 管理指南](https://www.keycloak.org/docs/latest/server_admin/index.html)、[内存建议](https://www.keycloak.org/server/containers)、[ZITADEL 许可证](https://github.com/zitadel/zitadel/blob/main/LICENSE)、[Hydra](https://github.com/ory/hydra)、[Kratos](https://github.com/ory/kratos)。维护成本为本项目组件数量与定制量的工程判断，不是官方基准。
+
+### A.4.5 ADR-V5-31 Windows启动与恢复补充（2026-10-19）
+
+WIN-16 独立于安装器；WIN-02 消费其制品，WIN-03 仅负责下载与协议。先持进程句柄等待退出，再启动 Inno，保留 AppMutex。firstFrameHooks 独立于顺序解锁/同步；托盘先创建再允许隐藏，健康按版本+本轮 nonce 确认。journal 记录原子单文件动作，进程结束后才恢复，恢复失败保留唯一备份并进入救援，不启动损坏库。
+
+2026-10-19 官方核对：[Inno AppMutex](https://jrsoftware.org/ishelp/topic_setup_appmutex.htm) 在启动时检查互斥；[退出码](https://jrsoftware.org/ishelp/topic_setupexitcodes.htm) 的 5 也包含 Abort，非零均未完成；[MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw) 支持 REPLACE_EXISTING/WRITE_THROUGH；[TerminateProcess](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) 是异步终止，须再等待进程句柄。它们不提供多文件事务，故定义恢复 journal。
+
+WIN-13 的集成驱动改为 Profile；Release 用外部启动/版本/签名冒烟与日志采样。[Flutter build modes](https://docs.flutter.dev/testing/build-modes) 区分 Profile 分析与 Release 发布，[integration_test 官方驱动示例](https://docs.flutter.dev/testing/integration-tests) 通过测试驱动采集。禁 GPU 以专用矩阵机 Basic Display Adapter 实测并登记，不使用无依据的 FLUTTER_ENGINE_SWITCH 环境变量。工具链锁定后先跑最小驱动探针，未通过不得称矩阵就绪。命令行透传使用[Flutter官方Windows runner模板](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/templates/app/windows.tmpl/runner/main.cpp.tmpl)的GetCommandLineArguments与DartProject.set_dart_entrypoint_arguments，由WIN-01交付Dart main(List<String>)参数快照，不读取VM参数冒充用户命令。
 
 ## A.5 开发前冻结清单
 
@@ -337,26 +356,3 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | 日期 | 项目 | 版本 | 环境与样本 | 结果 | 结论与后续动作 |
 | --- | --- | --- | --- | --- | --- |
 | — | （尚无记录） | — | — | — | — |
-
-### A.4.4 v5.3 决策与身份服务筛选（2026-10-19）
-
-D1：采纳开工时锁定规则（V5-15）；D2：Casdoor（V5-14）；D3：Fake 验收编码、M-MODEL 验收真实模型（V5-13）；D4：Inno Setup 6（V5-12）；D5：非采购方案采纳，V5-13/16/18 经 Fake 隔离；D6：文档 v5.3，仅本地 main 按组提交，不推送、不打标签。以上均由甲方在本轮逐项确认。
-
-| 候选 | 许可与简中 | 账户与 OIDC | 境内发信接缝 | 资源与维护评估 |
-| --- | --- | --- | --- | --- |
-| Casdoor（采用） | Apache-2.0；含中文 UI | 邮箱口令、验证码、找回、PKCE；具体版本需契约验收 | 邮件 provider；本项目验证码经 CORE-45，不启用绕过该门面的公共注册/找回路径 | Go 服务加数据库；组件少，预计维护成本最低，尚无本项目压测数据 |
-| Keycloak | Apache-2.0；支持本地化 | 注册、验证、找回、PKCE；六位码需流程扩展 | SMTP 或受测 provider 扩展 | 官方建议小型生产容器 2 GB；扩展与 JVM 运维量较大 |
-| ZITADEL | 当前主分支 AGPL-3.0；简中覆盖待验收 | 自托管、邮箱口令、验证码与 PKCE | SMTP 或受测通知适配 | 许可与自托管升级需维护，无本项目资源实测 |
-| Hydra + Kratos | 两者 Apache-2.0；简中 UI 自行交付 | Hydra 管 OIDC，Kratos 管账户、验证和找回 | 自托管 courier/SMTP 适配 | 两服务及登录同意 UI，组件与自建界面最多 |
-
-各项均可部署在境内；不得据此推定默认无遥测、默认六位码策略或默认支持本项目 auth_time/刷新轮换。CORE-22 开工锁定 Casdoor 版本、镜像 digest 与配置，契约测试覆盖 PKCE、刷新令牌轮换/重放、六位码、找回吊销、auth_time 与 prompt=login；缺项只能用受测适配补齐，变更产品须修订 V5-14。无合格实测证据时仅 Fake 编码通过，真实认证上线被门槛阻断。Casdoor 原生邮件路径必须禁用或指向内部受认证适配器，不能绕过 EmailSender。
-
-官方核实入口（查询 2026-10-19；实现开工复核具体版本）：[Casdoor 源码与许可证](https://github.com/casdoor/casdoor)、[邮件 provider](https://casdoor.org/docs/provider/email/overview/)、[Keycloak 管理指南](https://www.keycloak.org/docs/latest/server_admin/index.html)、[内存建议](https://www.keycloak.org/server/containers)、[ZITADEL 许可证](https://github.com/zitadel/zitadel/blob/main/LICENSE)、[Hydra](https://github.com/ory/hydra)、[Kratos](https://github.com/ory/kratos)。维护成本为本项目组件数量与定制量的工程判断，不是官方基准。
-
-### ADR-V5-31 Windows 启动、安装与恢复时序（采纳，2026-10-19）
-
-WIN-16 独立于安装器；WIN-02 消费其制品，WIN-03 仅负责下载与协议。先持进程句柄等待退出，再启动 Inno，保留 AppMutex。firstFrameHooks 独立于顺序解锁/同步；托盘先创建再允许隐藏，健康按版本+本轮 nonce 确认。journal 记录原子单文件动作，进程结束后才恢复，恢复失败保留唯一备份并进入救援，不启动损坏库。
-
-2026-10-19 官方核对：[Inno AppMutex](https://jrsoftware.org/ishelp/topic_setup_appmutex.htm) 在启动时检查互斥；[退出码](https://jrsoftware.org/ishelp/topic_setupexitcodes.htm) 的 5 也包含 Abort，非零均未完成；[MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw) 支持 REPLACE_EXISTING/WRITE_THROUGH；[TerminateProcess](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) 是异步终止，须再等待进程句柄。它们不提供多文件事务，故定义恢复 journal。
-
-WIN-13 的集成驱动改为 Profile；Release 用外部启动/版本/签名冒烟与日志采样。[Flutter build modes](https://docs.flutter.dev/testing/build-modes) 区分 Profile 分析与 Release 发布，[integration_test 官方驱动示例](https://docs.flutter.dev/testing/integration-tests) 通过测试驱动采集。禁 GPU 以专用矩阵机 Basic Display Adapter 实测并登记，不使用无依据的 FLUTTER_ENGINE_SWITCH 环境变量。工具链锁定后先跑最小驱动探针，未通过不得称矩阵就绪。

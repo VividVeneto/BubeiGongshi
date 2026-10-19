@@ -1,6 +1,6 @@
-# 03 Windows 端 v5
+# 03 Windows 端 v5.3
 
-> 版本：v5.2.1 ｜ 修订日期：2026-10-19 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
+> 版本：v5.3 ｜ 修订日期：2026-10-19 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
 > 关联文档：[README](README.md)（需求基线与追踪总表）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[附录 A 架构决策与评审记录](附录A-架构决策与评审记录.md)。
 > 契约归属：本文只定义 Windows 专属模块。公共契约（端口接口、FFI、DTO、错误码、表结构、服务端 API）只在 01 中定义；本文引用时写“CORE-xx §章节”，并内联实现时要调用的关键签名，不重新定义。
 
@@ -139,10 +139,10 @@ graph TD
 | WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 约 430 行 |
 | WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15 | 约 340 行 |
 | WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06 | 约 440 行 |
+| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 约 480 行 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
-| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 约 480 行 |
 
 ## 4. 端口实现映射
 
@@ -1342,7 +1342,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 | 测量项 | 预算表行 | 方法 |
 | --- | --- | --- |
 | 冷启动 | 冷启动到首页 | 进程启动到首页首帧（`FML_PERF_MARK` 日志） |
-| 公式解析、量纲校验、单式排版 | 公式解析（≤256 节点）、量纲校验、单式排版 | `core.submit` 计时，CORE-06/09/12 契约向量各 200 次 |
+| 公式解析、量纲校验、单式排版 | 公式解析（≤256 节点）、量纲校验、单式排版 | `core.submit` 计时，CORE-06/09/12 契约向量各至少1000次 |
 | 公式库搜索 | 公式库搜索首屏（10000 条） | 预置 10000 条公式的库 |
 | 列表滚动 | 列表滚动 | `watchPerformance` 帧时间，100%、125%、150%、175%、200% DPI 各一次 |
 | 手写 | 手写墨迹上屏 | 合成指针事件到帧呈现 |
@@ -1358,7 +1358,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 
 ```text
 app/integration_test/windows/
-  perf_test.dart              上表各项；每项 ≥ 20 次采样，输出 build/perf/windows-<机型>.json：[{row, p50, p95, samples}]
+  perf_test.dart              上表各项；UI项≥20次，冷启动≥30次、核心操作≥1000次、图片≥100张，输出 build/perf/windows-<机型>.json：[{row, p50, p95, samples}]
   consistency_test.dart       读 CORE-06 与 CORE-09 契约向量中的公式（至少 50 条），输出 AST JSON、诊断码与 NodePath 到
                               build/consistency/windows.json，与 AND-12 的 android.json 由 tools/perf/windows/compare.py 比对
   soft_render_test.dart       在专用矩阵机切换到 Microsoft Basic Display Adapter 后运行冒烟与滚动测量；记录 DXGI 适配器名，不能仅凭远程桌面宣称禁用 GPU
@@ -1377,7 +1377,7 @@ tools/perf/windows/
 - 错误码：测试与脚本不新增错误码。
 
 **实现约束**
-- integration_test 用 Profile：flutter drive -d windows --profile --driver=test_driver/integration_test.dart --target=integration_test/windows/perf_test.dart（consistency/soft_render 同理，驱动使用 integrationDriver 写出结果）；不依赖 Release 的 VM service。Release 由外部进程脚本采集启动/版本/签名/内存及 FML_PERF_MARK 时间日志，界面操作按 checklist 执行；不开放远程测试端口。每项至少 20 次采样，报告 P50 与 P95；不达标项须修复，或在附录 A 记录豁免（含原因、影响与复测计划）。
+- integration_test 用 Profile：flutter drive -d windows --profile --driver=test_driver/integration_test.dart --target=integration_test/windows/perf_test.dart（consistency/soft_render 同理，驱动使用 integrationDriver 写出结果）；不依赖 Release 的 VM service。Release 由外部进程脚本采集启动/版本/签名/内存及 FML_PERF_MARK 时间日志，界面操作按 checklist 执行；不开放远程测试端口。UI项至少20次，冷启动/核心/图片优先遵守CORE-01的30/1000/100样本口径，报告 P50 与 P95；不达标项须修复，或在附录 A 记录豁免（含原因、影响与复测计划）。
 - 预算值不复制到脚本或测试中；测试只输出测量值，判定由 `summarize.py` 读取 CORE-01 完成。
 - 不在 CI 每次提交运行全矩阵；CI 只在 Windows 构建机上运行 `perf_test.dart` 的冒烟子集（冷启动、解析）作 Profile 趋势记录；Release 签名制品另跑外部冒烟。
 
