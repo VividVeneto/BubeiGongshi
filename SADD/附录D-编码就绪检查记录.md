@@ -1,7 +1,7 @@
-# 附录 D：编码就绪检查记录 v5.1
+# 附录 D：编码就绪检查记录 v5.2
 
-> 版本：v5.1 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q11～Q16 确认后的修订） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
-> 关联文档：[README](README.md)（§8.5 就绪定义、§6 已确认与待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～23）。
+> 版本：v5.2 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q11～Q16 确认后的修订与 v5.2 界面设计修订，见 D.7） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
+> 关联文档：[README](README.md)（§8.5 就绪定义、§6 已确认与待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～25）。
 
 ## D.1 检查方法
 
@@ -120,10 +120,45 @@
 | WIN-05 | 剪贴板与多格式复制 | 已修订 | 实现 CORE-04 ClipboardAdapter 与 CORE-52 FormulaClipboardWriter（2026-10-19 按 Q12 确认改写）：一次写入 MathML（三种格式名）、CF_HTML、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex；粘贴图片读 PNG/CF_DIBV5/CF_DIB；修正错误码名为 PARSE_FORBIDDEN_COMMAND | Office 识别 MathML 剪贴板格式名的行为在 M0 用 Microsoft 365 验证；手动粘贴矩阵结果待记入 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | 已修订 | 补全通道契约、paused/resumed 判定、低内存通知、关闭流程（closeRequested → 托盘或退出）、单实例与窗口位置规则；新增 WindowsPrefs、TrayPresence 接缝、WindowsShell.exitApp 与设置区；布局断点与深色模式归共享界面 | 关闭窗口默认退出、首次关闭不询问，按 README §6 Q15（待确认） |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | 已修订 | 定义 DPAPI 包装格式、.applock 的 Windows Hello 签名派生第二层、StoreArea 目录表、受保护 DACL、错误映射与“安全说明”设置区；依赖加 CORE-36 | — |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器与全局快捷键、笔输入策略；原卡引用的 EditorActions 不存在，已删除；2026-10-19 按 Q11 确认：默认键位改为贴近 Word 与 LaTeX 编辑器（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Shift+Z），新增 ShortcutCommand、KeyChord、Keymap、defaultKeymap、保留键规则与 KeymapHolder，只读帮助区移交 WIN-14，规模约 360 | Q16 确认后补全与批量操作由 CORE-53、CORE-54 在共享界面实现，本卡把其按键列为保留（Ctrl+T、Shift+F10 不可分配）；Flutter Windows 笔事件上报需 M0 验证 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器与全局快捷键、笔输入策略；原卡引用的 EditorActions 不存在，已删除；2026-10-19 按 Q11 确认：默认键位改为贴近 Word 与 LaTeX 编辑器（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Shift+Z），新增 ShortcutCommand、KeyChord、Keymap、defaultKeymap、保留键规则与 KeymapHolder，只读帮助区移交 WIN-14，规模约 360 | Q16 确认后补全与批量操作由 CORE-53、CORE-54 在共享界面实现，本卡把其按键列为保留（Ctrl+T、Shift+F10 不可分配）；Flutter Windows 笔事件上报需 M0 验证；v5.2 修订见 D.7 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | 已修订 | 定义应用内定时规则（同日一次、时间变化与睡眠唤醒补发窗口 2 h）、托盘通道与菜单、通知点击、关闭到托盘与开机自启；不再使用 Toast COM 激活 | 应用完全退出时不提醒（设置区说明） |
 | WIN-10 | 网络传输 | 已修订 | 改为纯传输实现（与 AND-09 同构，dart:io HttpClient、静态系统代理、续传、取消、异常映射）；云识别调用移至 CORE-34；移到 S2 | PAC 自动代理不支持 |
 | WIN-11 | 资源包获取与识别历史平台存储 | 已撤销 | 资源包下载与管理并入 CORE-51，存储检查与历史清理并入 CORE-50、CORE-32；两端共用同一 Dart 实现；编号不复用 | — |
 | WIN-12 | 代码签名与发布检查 | 已修订 | 定义 build_release.ps1 编排、sign.ps1（硬件令牌或云签名）、签名者核对、制品门禁、PDB 归档与 update.json 生成；MSIX 不采用（ADR-V5-12（待定））；依赖加 WIN-03 | 签名证书与时间戳服务由甲方在 S7 前提供 |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 测量项按 CORE-01 预算表行名对应，预算值只在 CORE-01 维护；定义测试、脚本、环境矩阵与报告模板；tools/perf/windows 为附属 | — |
 | WIN-14 | 快捷键自定义 | 已修订（新增卡，2026-10-19） | 按 Q11 确认新增：设置页“快捷键”区、录制对话框（录制期间暂停分发）、冲突检测与替换、保留键拒绝、单项与全部恢复默认、偏好 keymap.v1（只存与默认不同的命令） | — |
+
+## D.7 v5.2 界面设计修订（2026-10-19）
+
+- 范围：新增 CORE-55、AND-13、WIN-15，联动修订界面卡与平台卡；检查方法同 D.1，依赖方向规则改为“无环且依赖卡阶段不晚于本卡”（README §8.5 b、01 §1）。
+- 结果：81 张卡，机械检查 0 项问题；新增 3 张卡均为“新增”，受影响卡均为“已修订”，无待确认阻塞（Q21–Q30 按暂行默认值撰写）。
+- 本表晚于 D.4～D.6；同一张卡两处都有记录时以本表为准（如 WIN-08 的全局导航键位已改为 Ctrl+1 学习、Ctrl+2 公式库、Ctrl+3 识别、Ctrl+4 设置）。
+
+| 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
+| --- | --- | --- | --- | --- |
+| CORE-55 | 界面设计系统与主题 | 新增 | 设计原则 P1～P6（对应甲方要求 1～4 与 R42.a～f）；令牌与 ThemeExtension；5 套原创预设主题色浅/深色值与 WCAG AA 对比度表（脚本验证全部通过）；固定语义色；外观偏好 appearance.v1 按设备保存；InputModality 与密度；宽度分档、矮高度与设备尺寸表（含平板最短边 ≥ 600 dp、Windows 最小 600×500）；核心组件；关键页面分档布局；流畅性规则；无障碍；AND-13、WIN-15 需实现/登记的接缝清单；平台无关命令接缝 FmlCommandScope / FmlCommands 与可选 ShortcutLabelSource（ShortcutHint、AnswerOption 按命令 ID 显示键位） | 界面性能预算数值按 ADR-V5-25（待定）M0 实测定案；产品取舍按 README §6 Q21–Q24、Q27 暂行默认值撰写 |
+| CORE-01 | 仓库骨架与工程约定 | 已修订 | 全局资源预算表新增界面性能 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换），口径不变（ADR-V5-25） | ADR-V5-25 待定，M0 真机实测后定案（AND-12、WIN-13 已加测这 5 行） |
+| CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订 | 主题移交 CORE-55，只留接入；主导航顺序改为学习、公式库、识别、设置，落地 /study；installDesign 列为第一个安装点；mainCommon 先加载外观偏好；依赖加 CORE-55；新增 R42.a/e 验收 | 产品取舍按 README §6 Q21、Q26 暂行默认值撰写 |
+| CORE-37 | 公式渲染组件与编辑器 | 已修订 | 依赖加 CORE-55；控件密度、公式颜色取令牌；defaultEditorMode 为平台判断唯一例外（Q13）；新增 R42.d 验收 | — |
+| CORE-38 | 公式库界面 | 已修订 | 依赖加 CORE-55；expanded 下 TwoPane 列表与详情并排；骨架屏；新增 R42.e 验收 | — |
+| CORE-39 | 学习会话界面 | 已修订 | 依赖加 CORE-55；作答选项、判定条、单主按钮、触感接缝；新增 R42.a/b/c/e 验收；学习命令 ID 表 StudyCommands（study.primary、option1～4、rateKnew/rateForgot、skip、pause、appeal、prevQuestion/nextQuestion），各状态以 FmlCommandScope 声明，新增 R42.b 命令验收 | — |
+| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 已修订 | 依赖加 CORE-55；画布放入输入区、深色墨迹、stylus 不滚动、长等待可取消；新增 R42.d 验收 | — |
+| CORE-47 | 设置页与账户安全界面 | 已修订 | 依赖加 CORE-55；新增外观子页 /settings/appearance（AppearancePicker），设置首页第一组“外观”；新增 R42.f 验收 | — |
+| CORE-48 | 计算器、代入与计算链界面 | 已修订 | 依赖加 CORE-55；/calc 无 revision 时为空状态并跳转 /library；新增 R42.e 验收 | — |
+| CORE-49 | 学习统计、提醒设置与自建书界面 | 已修订 | 依赖加 CORE-55；掌握度四色与热力图五档改取 FmlSemanticColors；新增 R42.f 验收 | — |
+| CORE-50 | 识别结果、云端确认与识别历史界面 | 已修订 | 依赖加 CORE-55；实现约束加视觉与交互遵守 CORE-55 与 expanded 布局 | — |
+| CORE-51 | 资源包下载、导入与管理界面 | 已修订 | 依赖加 CORE-55；进度与失败提示改用 CORE-55 组件 | — |
+| CORE-52 | 公式复制格式与富格式导出 | 已修订 | 依赖加 CORE-55；界面元素用 CORE-55 组件 | — |
+| CORE-53 | LaTeX 命令补全 | 已修订 | 依赖加 CORE-55；弹层表面、阴影与行高取令牌 | — |
+| CORE-54 | 公式库批量选择与批量操作 | 已修订 | 依赖加 CORE-55；长按增加可见“选择”按钮等价；撤销提示条用 showFmlToast；新增 R42.b 验收 | — |
+| AND-13 | Android 触摸交互与横竖屏适配 | 新增 | 实现 CORE-55 接缝：InputModalitySource 恒 touch、UiFeedbackSink 触感（performHapticFeedback，应用内 haptics 开关与系统触摸振动设置同时为开才触发，同 kind 80 ms 节流，触感映射表含 API 26～29 降级）、MotionScaleSource（ANIMATOR_DURATION_SCALE 与变化监听）；不登记 DevicePrefStore（用默认 FileDevicePrefStore，位于 noBackupFilesDir 排除备份）；AndroidSystemBars 订阅 resolvedChanges 统一系统栏与 edge-to-edge；MainActivity 窗口属性表（不锁方向、resizeableActivity、configChanges 含 uiMode/fontScale、adjustResize、预测性返回）为唯一定义；启动主题、shortEdges 挖孔模式、内边距与软键盘表、系统返回对照表（均有可见按钮等价）、屏幕方向表；旋转与分屏不重建、清单外变化走 AND-05 恢复；依赖 CORE-01、02、04、36、55，AND-01、02、05，阶段 S2，约 380 行 | 横屏时输入法不进入全屏提取界面为外部前提（M0 核实）；产品取舍按 README §6 Q22、Q25～Q27 暂行默认值撰写 |
+| AND-02 | 权限与清单 | 已修订 | 范围加入 AND-13 窗口属性的写入与审计；清单固定项加窗口属性（不声明 screenOrientation、resizeableActivity=true、configChanges 与 AND-13 一致，CameraActivity 同样不锁方向）；审计脚本增加窗口属性违规检查；新增 R42.e 验收；规模 230 → 245 行 | — |
+| AND-04 | 相机 | 已修订 | CameraActivity 由“竖屏锁定”改为跟随系统旋转（Q17）：旋转不重建不重绑相机，PreviewView 自动校正，OrientationEventListener 设 targetRotation（锁定竖屏横持拍摄仍正立，只写 EXIF 由 CORE-30 修正），快门竖屏在底部、横屏在右侧，触控目标 ≥ 48 dp；新增 R42.e 验收；规模 400 → 420 行 | — |
+| AND-05 | 生命周期、进程恢复与运行时信息 | 已修订 | 系统栏、edge-to-edge 与启动主题移交 AND-13（原“由共享主题调用 setSystemUIOverlayStyle”删除）；configChanges 改为引用 AND-13 属性表；写明与 AND-13 的两条状态保持路径衔接；新增“不保留活动”重建回原路由的 R42.e 验收 | — |
+| AND-07 | 手写与编辑器的 Android 适配 | 已修订 | TemplateBar 高 44 → 48 dp（CORE-55 触摸最小目标）；横屏软键盘下快捷栏表现；触控笔由 CORE-55 InputModalityScope 切换、画布不设手势排除区（引用 AND-13）；新增 R42.b、R42.e 验收 | — |
+| AND-12 | 性能、能耗与真机矩阵 | 已修订 | 依赖加 AND-13；测量表新增 CORE-01 界面 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换）及对应测试文件；结果 JSON 加 orientation；真机矩阵要求至少一台手机与一台平板各测竖屏与横屏、一台挖孔屏、手势与三键导航；新增 R42.c、R42.e 验收；规模 420 → 490 行 | README §6 Q17 影响卡可补 AND-12 |
+| WIN-15 | Windows 桌面交互与窗口适配 | 新增 | 实现 CORE-55 接缝：WindowsInputModalitySource（pointer；Windows 10 平板模式或二合一平板姿态 SM_CONVERTIBLESLATEMODE=0 时 touch，WM_SETTINGCHANGE 事件切换密度）、WindowsMotionScale（SPI_GETCLIENTAREAANIMATION）、WindowsDevicePrefStore（映射 WIN-06 WindowsPrefs，appearance.v1 含 haptics 原样保存）、WindowsShortcutLabels（ShortcutLabelSource）；不登记 UiFeedbackSink（外观页不显示触感开关）；全应用唯一 ShellKeyHandler WindowsKeyRouter（WIN-08 WindowsShellKeys 经 attach 挂入）；KeyChord 自 WIN-08 移入；学习流程键盘命令表 StudyCommand（ID 逐字等于 CORE-39 StudyCommands：Ctrl+Enter 主操作、1～4/A～D 选项、Y/N 自评、Ctrl+Shift+S/P/M 跳过/暂停/记错了、Ctrl+PageUp/PageDown 默写换题）及分发规则（焦点在文本框或输入法组合中不分发无修饰键、按住重复不触发）；WindowsTitleBar 跟随 resolvedChanges（DWMWA 19/20，Win11 底色与文字色，高对比度交还系统）；最小窗口 600×500 逻辑像素按 DPI 换算并受工作区约束；Windows 窗口尺寸与 CORE-55 分档对照表；焦点、悬停、右键菜单、滚轮与精确式触摸板、触屏、深浅色、高对比度、文本大小、DPI 对照验收表；原生 interaction_channel.cpp；依赖 CORE-01、02、04、36、55，WIN-01、06，阶段 S2，约 440 行 | 高对比度、文本大小、PointerPanZoom 与滚轮行数经 Flutter Windows 嵌入层上报为外部前提（M0 核实）；CORE-39 StudyCommands 与本卡 a 表 ID 逐字对应，由两卡各自的表测试保证（本卡在 S2，不依赖 S4 的 CORE-39） |
+| WIN-06 | 窗口、DPI、生命周期与单实例 | 已修订 | “不包含”中布局断点、深色模式、高对比度与字体缩放改指 CORE-55，最小窗口、标题栏深浅色、输入方式与设备偏好接缝改指 WIN-15；设备级偏好列表加入外观 appearance.v1 | — |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | KeyChord 定义移交 WIN-15（本卡引用）；WindowsShellKeys 不再登记为 ShellKeyHandler，改为挂入 WIN-15 WindowsKeyRouter；全局导航由 Ctrl+1～5（公式库/计算/学习/识别/设置）改为 Ctrl+1～4（学习/公式库/识别/设置，同 CORE-36 新导航顺序），删除 goCalc，Ctrl+5 默认不分配；依赖加 WIN-15；R19 验收改为 Ctrl+1→/study 等；规模 360 → 340 行 | — |
+| WIN-14 | 快捷键自定义 | 已修订 | 依赖加 WIN-15；新增 BindableCommand（AppCommand / StudyKeyCommand）与 KeymapSet，学习命令并入 keymap.v1（持久化键为命令 ID，如 study.pause）；设置区分“编辑器”“全局”“学习”三组；规则 ② 增加 unmodifiedAllowed 学习命令可用无修饰字母与数字的例外；录制时同时暂停 KeymapHolder 与 WindowsKeyRouter；新增学习键位冲突与持久化 R42.b 验收，录制期按 Ctrl+1 不导航；规模 300 → 340 行 | — |
+| WIN-13 | 性能与环境矩阵 | 已修订 | 依赖加 WIN-15；测量表新增 CORE-01 界面 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换）；列表滚动与窗口尺寸变化覆盖 DPI 100%～200%（含 125%、175%）与跨显示器；环境矩阵加二合一平板姿态切换与系统对比度主题冒烟；新增 R42.c、R42.e、R42.f 验收；规模 400 → 430 行 | — |
