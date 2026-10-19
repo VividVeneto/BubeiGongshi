@@ -9,7 +9,7 @@
 ## 文档位置
 
 - `SADD/README.md`：需求基线、追踪总表（§5）、已确认与待确认事项（§6）、使用说明与就绪定义（§8）。
-- `SADD/README.md` §8.6 前后端编程索引：全部模块卡按前端（Flutter/Dart：共享界面、平台层）、端侧核心（Rust）、后端（server/）、工程与发布（tools/、.github/）分组，列出代码目录、阶段与工具链；开会话前先查本卡属于哪一类。
+- `SADD/README.md` §8.6 前后端编程索引：全部模块卡按前端（Flutter/Dart：共享界面、平台层）、端侧核心（Rust）、后端（server/）、工程与发布（tools/、.github/、installer/独立C++启动器）分组，列出代码目录、阶段与工具链；开会话前先查本卡属于哪一类。
 - `SADD/01-公共核心-v5.md`：CORE 模块卡（公共契约只在此定义）；`SADD/02-Android端-v5.md`：AND 模块卡；`SADD/03-Windows端-v5.md`：WIN 模块卡。
 - `SADD/附录A-架构决策与评审记录.md`：ADR；`SADD/附录D-编码就绪检查记录.md`：逐卡就绪结论与遗留问题。
 
@@ -60,4 +60,4 @@ Python（tools/）
   python tools/ci/run_all.py        # 依次运行全部 CI 检查脚本（CORE-41）
 ```
 
-为验收标准中的每一条写出自动化测试；无法自动化的手动步骤写成 checklist 放在 PR 描述中。工具链版本见 `rust-toolchain.toml` 与各 `toolchain.versions`（ADR-V5-15）。
+为验收标准中的每一条写出自动化测试；无法自动化的手动步骤写成 checklist 放在 PR 描述中。工具链版本见 `rust-toolchain.toml`、`app/.flutter-version` 与各 `toolchain.versions`（ADR-V5-15）。
