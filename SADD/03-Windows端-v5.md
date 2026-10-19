@@ -392,7 +392,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
   Dart 收到的调用：lifecycle {event: "resumed"|"paused"|"lowMemory"}、closeRequested
 事件来源：WM_SIZE SIZE_MINIMIZED 或窗口隐藏 → paused；还原、显示 → resumed（失去焦点不算 paused）；
           CreateMemoryResourceNotification(LowMemoryResourceNotification) + RegisterWaitForSingleObject（一次性，60 s 后重新登记）→ lowMemory
-关闭：WM_CLOSE 不直接销毁，改发 closeRequested；Dart 按偏好 window.close_action（"exit" 默认，见 README §6 Q15（待确认）；或 "tray"，后者仅 TrayPresence 已登记时生效）
+关闭：WM_CLOSE 不直接销毁，改发 closeRequested；Dart 按偏好 window.close_action（"exit" 默认，见 README §6 Q15；或 "tray"，后者仅 TrayPresence 已登记时生效）
       调 TrayPresence.hideToTray() 或 WindowsShell.exitApp()
 单实例：main.cpp 在创建窗口前 CreateMutexW(L"Local\\BubeiGongshi.SingleInstance")；已存在 → FindWindowW(L"BubeiGongshiMainWindow", nullptr)，
         发送 WM_COPYDATA（命令行）后退出；已运行实例收到后 SW_RESTORE + SetForegroundWindow
