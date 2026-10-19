@@ -1,6 +1,6 @@
 # 03 Windows 端 v5
 
-> 版本：v5.1 ｜ 修订日期：2026-10-18 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
+> 版本：v5.1 ｜ 修订日期：2026-10-19 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
 > 关联文档：[README](README.md)（需求基线与追踪总表）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[附录 A 架构决策与评审记录](附录A-架构决策与评审记录.md)。
 > 契约归属：本文只定义 Windows 专属模块。公共契约（端口接口、FFI、DTO、错误码、表结构、服务端 API）只在 01 中定义；本文引用时写“CORE-xx §章节”，并内联实现时要调用的关键签名，不重新定义。
 
@@ -14,7 +14,7 @@ Windows 端的职责边界：
 - 不得在 C++/C# 或 Windows 专属 Dart 代码中实现公式解析、量纲与单位、排版、判分、FSRS、同步合并、资源包验签或识别后处理；这些只调用 Rust 核心（经 CORE-03 §4 的 `CoreBinding`）。
 - Windows 专属 Dart 代码放在 `app/lib/platform/windows/`，原生代码放在 `app/windows/`；共享界面 `app/lib/ui/` 中不得出现 `Platform.isWindows` 分支。
 - 桌面端的输入优先级与 Android 不同：LaTeX 源码 > 结构化模板 > 图片/手写导入（默认模式由 CORE-37 `defaultEditorMode` 按 `RuntimeInfo` 决定）。
-- 平台专属界面行为只经接缝接入：`PlatformPorts.platformInstallers`（CORE-04）登记 `EditorPlatformBindings`、`InkInputPolicy`（CORE-37、CORE-40）、`ShellKeyHandler`、`SettingsSections`、`AppNavigator`（CORE-36）、`FormulaRichCopy`（CORE-37）、`ImageDropSource`（CORE-50）；不修改共享界面文件。
+- 平台专属界面行为只经接缝接入：`PlatformPorts.platformInstallers`（CORE-04）登记 `EditorPlatformBindings`、`InkInputPolicy`（CORE-37、CORE-40）、`ShellKeyHandler`、`SettingsSections`、`AppNavigator`（CORE-36）、`FormulaClipboardWriter`（CORE-52）、`ImageDropSource`（CORE-50）；不修改共享界面文件。
 
 ## 1. 模块依赖图
 
@@ -26,7 +26,7 @@ graph TD
   W02["WIN-02 安装器与卸载"]
   W03["WIN-03 自更新与启动器"]
   W04["WIN-04 文件导入、拖拽与导出"]
-  W05["WIN-05 剪贴板与富格式复制"]
+  W05["WIN-05 剪贴板与多格式复制"]
   W06["WIN-06 窗口、DPI、生命周期与单实例"]
   W07["WIN-07 本地存储、DPAPI 与 Windows Hello"]
   W08["WIN-08 编辑器快捷键、输入法与笔输入"]
@@ -41,6 +41,7 @@ graph TD
   C21["CORE-21 密钥体系"]
   C36["CORE-36 应用壳与组装层"]
   C37["CORE-37 编辑器"]
+  C52["CORE-52 复制格式导出"]
   C40["CORE-40 手写与裁剪界面"]
   C42["CORE-42 发布流水线"]
   C43["CORE-43 服务端部署与分发"]
@@ -55,7 +56,7 @@ graph TD
   W04 --> C04
   W04 --> C50
   W05 --> W04
-  W05 --> C37
+  W05 --> C52
   W06 --> W01
   W06 --> C36
   W07 --> W01
@@ -90,7 +91,7 @@ graph TD
 | S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本与运行时快照） |
 | S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10 | 单实例、高 DPI 窗口与位置恢复；加密库落盘、DPAPI 与 Hello 包装可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
-| S5 识别与云识别 | WIN-04、WIN-05、WIN-08 | 文件、拖放、剪贴板导入；富格式复制；快捷键与笔输入 |
+| S5 识别与云识别 | WIN-04、WIN-05、WIN-08 | 文件、拖放、剪贴板导入；多格式复制；快捷键与笔输入 |
 | S7 发布 | WIN-02、WIN-03、WIN-12、WIN-13 | 签名安装器、卸载、自更新与回滚演练；环境矩阵达标 |
 
 ## 3. 模块索引
@@ -101,7 +102,7 @@ graph TD
 | WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、02、42，WIN-01 | 约 300 行 |
 | WIN-03 | 自更新与启动器 | `app/lib/platform/windows/update/`（附属 `installer/windows/launcher/`） | CORE-01、02、04、36、43，WIN-02 | 约 480 行 |
 | WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、02、04、50 | 约 450 行 |
-| WIN-05 | 剪贴板与富格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、02、04、37，WIN-04 | 约 300 行 |
+| WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、02、04、52，WIN-04 | 约 320 行 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、02、04、36，WIN-01 | 约 420 行 |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、02、04、13、21、36，WIN-01 | 约 450 行 |
 | WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/` | CORE-01、02、04、36、37、40 | 约 300 行 |
@@ -123,12 +124,12 @@ graph TD
 | `DocumentPicker` | `IFileOpenDialog` 按扩展名过滤 | WIN-04 |
 | `FileExporter` | `IFileSaveDialog`，默认“文档” | WIN-04 |
 | `CameraController` | 不实现，抛 `PLATFORM_UNSUPPORTED`（桌面端用文件、拖放、剪贴板导入） | WIN-04 |
-| `ClipboardAdapter` | 文本经 Flutter `Clipboard`；图片读取 PNG / CF_DIBV5 / CF_DIB | WIN-05 |
+| `ClipboardAdapter` | 文本经 Flutter `Clipboard`；图片读取 PNG / CF_DIBV5 / CF_DIB；复制公式写 MathML、HTML、SVG、PNG、CF_DIB、Unicode 文本与 text/x-latex | WIN-05 |
 | `AppLifecycle`、`RuntimeInfo` | 窗口消息、低内存通知；`RtlGetVersion`、DXGI | WIN-06 |
 | `NotificationScheduler` | 应用内定时 + 托盘通知（`NIF_INFO`）+ 任务栏闪烁 | WIN-09 |
 | `HttpTransport` | `dart:io` `HttpClient`（系统 CA、系统静态代理），由 CORE-28 `NetworkGuard` 包裹 | WIN-10 |
 
-共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaRichCopy`（WIN-05）、`EditorPlatformBindings` / `ShellKeyHandler` / `InkInputPolicy`（WIN-08）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（60）加入。
+共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `ShellKeyHandler` / `InkInputPolicy`（WIN-08）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（60）加入。
 
 ---
 
@@ -580,19 +581,19 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 
 **规模**：约 450 行；`app/lib/platform/windows/picker/` 与 `app/windows/runner/file_dialog.cpp`（同属 `app/` 构建单元）。
 
-### WIN-05 剪贴板与富格式复制
+### WIN-05 剪贴板与多格式复制
 
-**目标**：只在用户显式操作时访问剪贴板；支持粘贴文本与图片；复制公式时同时提供 LaTeX 文本与渲染图片。
+**目标**：只在用户显式操作时访问剪贴板；支持粘贴文本与图片；复制公式时一次写入多种 Windows 常见剪贴板格式，由粘贴目标自动选用（README §6 Q12）。
 
 **范围**
-- 包含：`ClipboardAdapter` 端口实现（文本经 Flutter `Clipboard`，图片经原生通道）；`WindowsRichCopy`（实现 CORE-37 `FormulaRichCopy`）与登记。
-- 不包含：粘贴文本的解析与安全预算（CORE-37 `paste` → CORE-06）；粘贴图片后的裁剪（CORE-40/50）；公式绘制（CORE-37 `paintDisplayList`）。
+- 包含：`ClipboardAdapter` 端口实现（文本经 Flutter `Clipboard`，图片经原生通道）；`WindowsFormulaClipboard`（实现 CORE-52 `FormulaClipboardWriter`）与登记；CF_HTML 包装。
+- 不包含：各格式内容的生成（CORE-52）；复制按钮与“复制为”菜单（CORE-37）；粘贴文本的解析与安全预算（CORE-37 `paste` → CORE-06）；粘贴图片后的裁剪（CORE-40/50）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、WIN-04
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-52、WIN-04
 
 **接口契约**
 
-实现的端口与接缝（逐字摘录，定义见 CORE-04、CORE-37）：
+实现的端口与接缝（逐字摘录，定义见 CORE-04、CORE-52）：
 
 ```dart
 abstract interface class ClipboardAdapter {
@@ -600,17 +601,18 @@ abstract interface class ClipboardAdapter {
   Future<void> writeText(String text);
   Future<ImportedImage?> readImage();                         // 剪贴板无图片或平台不支持时返回 null
 }
-abstract interface class FormulaRichCopy {
-  Future<void> copy({required String latex, required DisplayListDto display}); }
-void paintDisplayList(Canvas canvas, DisplayListDto display, {double scale = 1.0});   // CORE-37
+abstract interface class FormulaClipboardWriter {
+  Future<bool> write(FormulaClipboardPayload payload);         // 字段定义见 CORE-52 FormulaClipboardPayload
+}
 ```
 
 本卡实现（`app/lib/platform/windows/clipboard/`）：
 
 ```dart
 final class WindowsClipboard implements ClipboardAdapter { WindowsClipboard(this.files); final LocalFileStore files; }
-final class WindowsRichCopy implements FormulaRichCopy { const WindowsRichCopy(); }
-void installWindowsClipboard(CompositionContext ctx) => ctx.features.register<FormulaRichCopy>(const WindowsRichCopy());
+final class WindowsFormulaClipboard implements FormulaClipboardWriter { const WindowsFormulaClipboard(); }   // write 恒返回 false（由应用显示“已复制”）
+void installWindowsClipboard(CompositionContext ctx) =>
+    ctx.features.register<FormulaClipboardWriter>(const WindowsFormulaClipboard());
 // 追加到 ports_windows.dart 的 platformInstallers
 ```
 
@@ -619,30 +621,48 @@ MethodChannel "fml/windows/clipboard"（app/windows/runner/clipboard_channel.cpp
   readImage {dest_dir}  → {mime: "image/png", size, path} 或 null
                          依次尝试注册格式 "PNG"、CF_DIBV5、CF_DIB；DIB 经 WIC 编码为 PNG；写入 dest_dir\<UUID>.png；
                          像素数 > 4000 万 → 不写文件，返回 {mime, size: 0}（readBytes 抛 PLATFORM_FILE_TOO_LARGE）
-  setFormula {latex, png} → null
-                         OpenClipboard → EmptyClipboard → CF_UNICODETEXT = latex；注册格式 "text/x-latex" = UTF-8 latex；
-                         注册格式 "PNG" = png 原字节；CF_DIB = png 合成到白底后的 32 位 DIB；任一步失败 → 抛 PLATFORM_IO（剪贴板保持清空前的内容不保证）
+  setFormula {text?, latex?, mathml?, html?, svg?, png?} → null      （png 为字节；其余为字符串；缺省字段不写）
+                         OpenClipboard（失败时每 50 ms 重试，最多 5 次）→ EmptyClipboard → 依次 SetClipboardData：
+                           mathml → 注册格式 "MathML Presentation"、"MathML"、"application/mathml+xml"（UTF-8，无 BOM）
+                           html   → 注册格式 "HTML Format"（CF_HTML：Version/StartHTML/EndHTML/StartFragment/EndFragment 头 + UTF-8）
+                           svg    → 注册格式 "image/svg+xml"（UTF-8）
+                           png    → 注册格式 "PNG" = 原字节；CF_DIB = 合成到白底后的 32 位 DIB
+                           text   → CF_UNICODETEXT
+                           latex  → 注册格式 "text/x-latex"（UTF-8）
+                         → CloseClipboard；任一步失败 → 抛 PLATFORM_IO
 WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('text/plain')；
                   readImage 的 dest_dir = root(staging)\tmp-import（与 WIN-04 共用清理规则），返回的 ImportedImage 有效期 1 h
-WindowsRichCopy.copy：PictureRecorder 上以 scale = 3 调用 paintDisplayList（四周留 8 逻辑像素、透明背景）→ toImage → PNG 字节 → setFormula
 ```
+
+- 粘贴目标的选用（由目标程序决定，本卡只保证格式齐全）：
+
+| 粘贴目标 | 预期取用的格式 | 得到 |
+| --- | --- | --- |
+| 记事本、VS Code、终端、聊天输入框的纯文本 | CF_UNICODETEXT | LaTeX 源码 |
+| Word / PowerPoint / OneNote（Microsoft 365） | MathML 格式（优先）或 PNG | 可编辑公式（不认 MathML 时为图片） |
+| 浏览器富文本编辑框、邮件客户端 | HTML Format | 公式图片（alt 为 LaTeX） |
+| 画图、截图标注、QQ/微信图片粘贴 | PNG 或 CF_DIB | 公式图片 |
+| Inkscape 等矢量软件 | image/svg+xml | 矢量公式 |
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_IO`、`PLATFORM_FILE_TOO_LARGE`；本卡不新增错误码。
 
 **实现约束**
 - 只在用户按 Ctrl+V / Ctrl+C 或点击“粘贴”“复制公式”时访问剪贴板；不注册剪贴板监听（`AddClipboardFormatListener`），不读取剪贴板历史。
+- 一次复制在同一次 `OpenClipboard` 内写完全部格式，先写信息量大的格式（顺序见上）；不使用延迟渲染（`SetClipboardData(fmt, NULL)`），应用退出后内容仍可粘贴。
+- 不写应用私有格式；不设置“复制后自动清空”；不设置 `ExcludeClipboardContentFromMonitorProcessing` 等隐藏标记（剪贴板历史由用户的系统设置决定）。
 - 剪贴板内容与复制的公式不写入日志（CORE-28 日志规则）。
 - 粘贴的图片只返回 `ImportedImage`，是否进入裁剪由调用方决定（CORE-50 先进入裁剪预览，不直接识别）。
-- 复制图片的分辨率固定为 3 倍逻辑尺寸；不提供 Unicode 数学文本格式、应用私有公式引用格式与复制后自动清空（见 README §6 Q12（待确认））。
+- 外部前提：Office 识别的 MathML 剪贴板格式名（"MathML Presentation"、"MathML"）与可编辑公式转换行为在 M0 用 Microsoft 365 当前通道验证并记入附录 D；不识别时 Word 退回 PNG，不影响其余目标。
 
 **验收标准**
 - [R37] 手动：用截图工具复制公式区域，在识别页按 Ctrl+V 进入裁剪预览；从画图复制（仅 CF_DIB）同样可粘贴。
-- [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_COMMAND_FORBIDDEN` 并定位（经 CORE-37 `paste`）。
-- [R08] 在公式详情点“复制公式”后：记事本粘贴得到 LaTeX 源码；画图与 Word 粘贴得到清晰的公式图片。
+- [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_FORBIDDEN_COMMAND` 并定位（经 CORE-37 `paste`）。
+- [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，七种格式（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在且内容逐字节等于输入；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
+- [R08] 手动矩阵（结果记入附录 D）：在公式详情点“复制公式”后，记事本得到 LaTeX 源码；Word 得到可编辑公式或清晰图片；画图得到图片；浏览器富文本框得到图片；“复制为 → Unicode 文本”在记事本得到 Unicode 文本。
 - [R20] 粘贴与复制后检查 `logs\`，不含剪贴板文本与公式源码。
 - [R01] CORE-04 `ClipboardAdapter` 契约套件在 Windows 上通过；剪贴板为空时 `readImage` 返回 null。
 
-**规模**：约 300 行；`app/lib/platform/windows/clipboard/` 与 `app/windows/runner/clipboard_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 320 行；`app/lib/platform/windows/clipboard/` 与 `app/windows/runner/clipboard_channel.cpp`（同属 `app/` 构建单元）。
 
 ### WIN-08 编辑器快捷键、输入法与笔输入
 

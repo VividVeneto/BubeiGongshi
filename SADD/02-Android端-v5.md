@@ -1,6 +1,6 @@
 # 02 Android 端 v5
 
-> 版本：v5.1 ｜ 修订日期：2026-10-18 ｜ 适用范围：Android 手机与平板（minSdk 26，即 Android 8.0 及以上）。
+> 版本：v5.1 ｜ 修订日期：2026-10-19 ｜ 适用范围：Android 手机与平板（minSdk 26，即 Android 8.0 及以上）。
 > 关联文档：[README](README.md)（需求基线与追踪总表）、[01 公共核心](01-公共核心-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A 架构决策与评审记录](附录A-架构决策与评审记录.md)。
 > 契约归属：本文只定义 Android 专属模块。公共契约（端口接口、FFI、DTO、错误码、表结构、服务端 API）只在 01 中定义；本文引用时写“CORE-xx §章节”，并内联实现时要调用的关键签名，不重新定义。
 
@@ -40,6 +40,7 @@ graph TD
   C37["CORE-37 编辑器"]
   C40["CORE-40 识别界面"]
   C42["CORE-42 发布流水线"]
+  C52["CORE-52 复制格式导出"]
   A01 --> C03
   A01 --> C04
   A02 --> A01
@@ -49,6 +50,7 @@ graph TD
   A06 --> C13
   A06 --> C21
   A03 --> C04
+  A03 --> C52
   A04 --> A02
   A07 --> C04
   A07 --> C37
@@ -84,7 +86,7 @@ graph TD
 | --- | --- | --- | --- | --- |
 | AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、02、03、04 | 约 300 行 |
 | AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、02、04，AND-01 | 约 230 行 |
-| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、02、04 | 约 450 行 |
+| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、02、04、52 | 约 500 行 |
 | AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、02、04，AND-02 | 约 400 行 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、02、04、36，AND-01 | 约 250 行 |
 | AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、02、04、13、21，AND-01 | 约 420 行 |
@@ -106,7 +108,7 @@ CORE-04 §4 的每个端口（共 12 个）在 Android 上由下表的卡实现�
 | `LocalFileStore` | `noBackupFilesDir` 下按 `StoreArea` 分目录 | AND-06 |
 | `BiometricPrompt` | AndroidX Biometric（BIOMETRIC_STRONG 或设备凭据） | AND-06 |
 | `ImagePicker` | Photo Picker、ACTION_PICK、SAF `ACTION_OPEN_DOCUMENT` | AND-03 |
-| `ClipboardAdapter` | ClipboardManager（文本；图片 URI 只读一次） | AND-03 |
+| `ClipboardAdapter` | ClipboardManager（文本；图片 URI 只读一次）；复制公式写 text/plain、text/html 与 image/png（经 FileProvider） | AND-03 |
 | `FileExporter` | SAF `ACTION_CREATE_DOCUMENT` | AND-03 |
 | `DocumentPicker` | SAF `ACTION_OPEN_DOCUMENT`（按扩展名映射 MIME 过滤） | AND-03 |
 | `CameraController` | CameraX | AND-04 |
@@ -232,7 +234,7 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 | `POST_NOTIFICATIONS`（Android 13+） | 用户开启复习提醒时 |
 
 - 错误码：调用方在 `denied/permanentlyDenied` 时由端口抛 `PLATFORM_PERMISSION_DENIED`（CORE-04 登记），本卡不新增错误码。
-- 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器 `exported="false"`）。
+- 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器、AND-03 的剪贴板 `FileProvider` 均为 `exported="false"`）。
 
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
@@ -392,17 +394,17 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 
 ### AND-03 相册、文件导入与导出
 
-**目标**：用系统选择器从相册与文件管理器导入图片和文档（不申请存储权限），提供剪贴板与导出文件能力。
+**目标**：用系统选择器从相册与文件管理器导入图片和文档（不申请存储权限），提供剪贴板（含公式多格式复制）与导出文件能力。
 
 **范围**
-- 包含：`ImagePicker`、`DocumentPicker`、`ClipboardAdapter`、`FileExporter` 端口实现；Photo Picker / SAF 选择；HEIC/HEIF 转 JPEG；临时副本管理；Kotlin 侧 `ImportBridge.kt`。
-- 不包含：图片探测、解码与预处理（CORE-30，由 CORE-40 调用）；裁剪与识别界面（CORE-40）；私有目录的位置（经注入的 CORE-04 `LocalFileStore` 接口取得，实现在 AND-06）。
+- 包含：`ImagePicker`、`DocumentPicker`、`ClipboardAdapter`、`FileExporter` 端口实现；`AndroidFormulaClipboard`（实现 CORE-52 `FormulaClipboardWriter`，README §6 Q12）与登记；Photo Picker / SAF 选择；HEIC/HEIF 转 JPEG；临时副本管理；Kotlin 侧 `ImportBridge.kt`；剪贴板图片用的 `FileProvider` 清单条目。
+- 不包含：图片探测、解码与预处理（CORE-30，由 CORE-40 调用）；裁剪与识别界面（CORE-40）；私有目录的位置（经注入的 CORE-04 `LocalFileStore` 接口取得，实现在 AND-06）；复制格式内容的生成（CORE-52）。
 
-**依赖**：CORE-01、CORE-02、CORE-04
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-52
 
 **接口契约**
 
-实现的端口（CORE-04，逐字摘录；`ImportedImage`、`PickedDocument` 定义见 CORE-04）：
+实现的端口与接缝（CORE-04、CORE-52，逐字摘录；`ImportedImage`、`PickedDocument` 定义见 CORE-04，`FormulaClipboardPayload` 见 CORE-52）：
 
 ```dart
 abstract interface class ImagePicker {
@@ -420,6 +422,9 @@ abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
 }
+abstract interface class FormulaClipboardWriter {
+  Future<bool> write(FormulaClipboardPayload payload);
+}
 ```
 
 本卡实现（`app/lib/platform/android/picker/`）：
@@ -429,6 +434,9 @@ final class AndroidImagePicker implements ImagePicker { AndroidImagePicker(); }
 final class AndroidClipboard implements ClipboardAdapter { AndroidClipboard(); }      // 文本经 Flutter Clipboard；图片经通道
 final class AndroidFileExporter implements FileExporter { AndroidFileExporter(); }
 final class AndroidDocumentPicker implements DocumentPicker { AndroidDocumentPicker(this.files); final LocalFileStore files; }
+final class AndroidFormulaClipboard implements FormulaClipboardWriter { const AndroidFormulaClipboard(); }   // API 33+ 返回 true（系统显示复制预览）
+void installAndroidClipboard(CompositionContext ctx) =>
+    ctx.features.register<FormulaClipboardWriter>(const AndroidFormulaClipboard());   // 追加到 ports_android.dart 的 platformInstallers
 // ports_android.dart 中以 AndroidDocumentPicker(<AND-06 的 LocalFileStore 实例>) 组装
 ```
 
@@ -445,6 +453,11 @@ MethodChannel "fml/android/import"（ImportBridge.kt）
   writeChunk   {uri, bytes, append}     → null      Dart 按 64 KiB 分块推送；任一块失败抛 PLATFORM_IO 并删除已写文档
   openDocument {mimes}                  → {name, size, uri} 或 null
   copyDocument {uri, dest_path, max}    → null      超过 max 中止并删除目标，抛 PLATFORM_FILE_TOO_LARGE
+  setFormula   {text?, html?, png?}     → {system_feedback: bool}
+               png 写入 cacheDir/clip/<UUID>.png（先删除该目录中旧文件，只保留最近一次），经 FileProvider（authority ${applicationId}.clip）取 content URI；
+               ClipData(ClipDescription("公式", [text 有 → text/plain，html 有 → text/html，png 有 → image/png]),
+                        ClipData.Item(text, html, null, pngUri))；只有 png 时用 ClipData.newUri（复制为图片）；
+               ClipboardManager.setPrimaryClip；system_feedback = SDK_INT ≥ 33；mathml、svg、latex 字段 Android 不写（无通用接收方）
 扩展名 → MIME：fmlbackup → application/octet-stream；csv → text/csv；tex、txt → text/plain；json → application/json；png → image/png
 DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 → PLATFORM_FILE_TYPE_MISMATCH；
                 复制到 root(StoreArea.staging)/<UUID>.<ext>，返回 PickedDocument
@@ -457,7 +470,9 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 - Dart/Kotlin 层除 HEIC 转换外不解码图片；HEIC 解码在原生侧降采样输出，不把全尺寸 Bitmap 交给 Dart。
 - `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束时删除副本；应用启动时清空 `cacheDir/tmp-import/`（在 `AndroidImagePicker` 构造时异步执行）。
 - 只删除本应用创建的副本，绝不删除或修改相册与文件管理器中的原始文件；不向相册写入。
-- 剪贴板只在用户点击“粘贴”时读取，不在后台监听。
+- 剪贴板只在用户点击“粘贴”时读取、点击“复制公式”时写入，不在后台监听；不写应用私有 MIME，不设置复制后自动清空，不设置 `EXTRA_IS_SENSITIVE`。
+- 附属清单条目：`<provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.clip" android:exported="false" android:grantUriPermissions="true">`，路径文件 `res/xml/clip_paths.xml` 只含 `<cache-path name="clip" path="clip/"/>`；同步把该 provider 加入 AND-02 `check_android_manifest.py` 白名单（与 AND-08 登记 receiver 的做法相同）。
+- 外部前提：粘贴方读取主剪贴项时由系统临时授予 content URI 读权限（`ClipboardService` 的 URI 授权）；M0 在基准设备上用微信、QQ、系统便签验证图片粘贴并记入附录 D，不支持图片粘贴的应用取 text/plain。
 
 **验收标准**
 - [R38] 手动：分别通过 Photo Picker 与 SAF 选择图片，均返回 `ImportedImage`；全程未出现存储权限请求。
@@ -466,8 +481,10 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 - [R36] 导入并完成识别后，原始相册图片的哈希与修改时间不变。
 - [R27] `saveAs` 经 SAF 保存 50 MiB 流后文件哈希与源一致；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 文件时抛 `PLATFORM_FILE_TYPE_MISMATCH`。
 - [R01] CORE-04 的 `ImagePicker`、`ClipboardAdapter`、`FileExporter`、`DocumentPicker` 契约套件在真机通过（选择器步骤用 UI Automator 驱动）。
+- [R08] 仪器测试：以 CORE-52 夹具负载 `write` 后读回主剪贴项：描述含 text/plain、text/html、image/png，`coerceToText` 为 LaTeX 源码，`htmlText` 等于负载 html，URI 可经 `ContentResolver` 读出与负载相同的 PNG；连续复制两次后 `cacheDir/clip/` 只剩 1 个文件；“复制为图片”只有 image/png。
+- [R08] 手动矩阵（结果记入附录 D）：“复制公式”后在系统便签/备忘录粘贴得到 LaTeX 或图片、在微信输入框粘贴得到 LaTeX 文本、“复制为 → 图片”后在支持图片粘贴的聊天应用得到公式图片。
 
-**规模**：约 450 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`（同属 `app/` 构建单元）。
+**规模**：约 500 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`、`AndroidManifest.xml` 的 provider 条目与 `res/xml/clip_paths.xml`（同属 `app/` 构建单元），附属：`tools/ci/check_android_manifest.py` 白名单一行。
 
 ### AND-04 相机
 
