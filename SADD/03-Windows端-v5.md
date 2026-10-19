@@ -210,7 +210,7 @@ PlatformPorts buildWindowsPorts();
 
 ```text
 app/windows/
-  CMakeLists.txt            BINARY_NAME = "bubeigongshi_app"（固定名 BubeiGongshi.exe 留给 WIN-03 启动器）
+  CMakeLists.txt            BINARY_NAME = "bubeigongshi_app"（固定名 BubeiGongshi.exe 留给 WIN-16 启动器）
   rust.cmake                add_custom_command：cargo build -p fml-ffi --release --target x86_64-pc-windows-msvc
                             （RUSTFLAGS 含 -C target-feature=+crt-static 与 --remap-path-prefix），产物 fmlcore.dll 经 install(FILES) 放到 exe 同目录；
                             cargo 退出码非 0 → CMake 构建失败并原样输出
@@ -511,7 +511,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 | `StoreArea` | Windows 位置 | 使用者 |
 | --- | --- | --- |
-| database | `%LOCALAPPDATA%\BubeiGongshi\database\` | `<profile_id>.db` 与 WAL（CORE-13、CORE-23）、`device_registry.db`（CORE-23）；WIN-03 启动器按此路径备份 |
+| database | `%LOCALAPPDATA%\BubeiGongshi\database\` | `<profile_id>.db` 与 WAL（CORE-13、CORE-23）、`device_registry.db`（CORE-23）；WIN-16 启动器按此路径备份 |
 | packs | `…\packs\` | 已验证的资源包（CORE-15） |
 | recognition | `…\recognition\` | 识别历史密文资产（CORE-32） |
 | staging | `…\staging\` | 导入、下载与导出暂存；更新下载在 `staging\updates\`（WIN-03） |
@@ -1281,7 +1281,7 @@ taps()：notifyClick 时发送一次；同时 show 主窗口（WIN-06 通道 sho
 
 **范围**
 - 包含：`tools/release/windows/` 下的构建编排、签名、签名验证、制品检查、更新清单生成与 PDB 归档脚本；Windows 发布检查清单项。
-- 不包含：版本号写入、哈希汇总与 SBOM（CORE-42）；安装脚本（WIN-02）；启动器源码（WIN-03）；更新清单的托管（CORE-43）；MSIX（ADR-V5-12 不采用）。
+- 不包含：版本号写入、哈希汇总与 SBOM（CORE-42）；安装脚本（WIN-02）；启动器源码（WIN-16）；更新清单的托管（CORE-43）；MSIX（ADR-V5-12 不采用）。
 
 **依赖**：CORE-01、CORE-02、CORE-42、WIN-02、WIN-03
 

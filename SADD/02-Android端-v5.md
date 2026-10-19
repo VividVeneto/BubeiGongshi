@@ -341,7 +341,7 @@ AndroidManifest 中 MainActivity 的 configChanges、resizeableActivity、window
 
 - 本卡不新增错误码；通道调用失败时 `snapshot()` 返回 `availMemBytes=0`、`gpuAvailable=false` 的保底值，不抛异常。
 
-- 测试诊断通道 fml/android/lifecycle 的 createCount() → int，由 MainActivity.onCreate 自增；同进程计数起始 1，进程重启重新计数；AND-13 windowMetrics 只转发此值。
+- 测试诊断通道 fml/android/lifecycle 的 createCount() → int，由 MainActivity.onCreate 自增；同进程计数起始 1，进程重启重新计数；AND-13 windowMetrics 只转发此值。createCount 只在 debug 与 profile 构建（`BuildConfig.BUILD_TYPE != "release"`）中响应，release 构建返回 notImplemented，trimMemory 事件不受影响。
 
 **实现约束**
 - 不使用常驻服务和前台服务；后台不做周期性网络轮询。
