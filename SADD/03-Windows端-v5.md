@@ -771,7 +771,7 @@ WindowsInkPolicy：
 - 不处理无 Ctrl 或 Alt 修饰的字符键（学习页不带修饰的选项与自评键由 WIN-15 处理）；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-37），本卡不另做 IME 处理；不注册系统级热键（`RegisterHotKey`）。
 - 手写延迟预算见 CORE-01 预算表“手写墨迹上屏”（Windows ≤ 40 ms），由 WIN-13 测量。
 - 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`）；M0 在锁定的 Flutter 版本上验证，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。
-- 待确认的产品取舍（按暂行默认值撰写）：计算页不设全局快捷键（Ctrl+5 默认不分配）见 README §6 Q29（待确认）。
+- 产品取舍（2026-10-19 甲方确认）：计算页不设全局快捷键（Ctrl+5 默认不分配）见 README §6 Q29。
 
 **验收标准**
 - [R08] Widget 测试：在 `FormulaEditor` 中按 Ctrl+/ 后源码为 `\frac{\fmlhole}{\fmlhole}`，按 Tab 选区移到第二个空位；Ctrl+Shift+= 插入上标、Ctrl+= 插入下标；Ctrl+E 切换模式；表中每个编辑器命令触发对应动作；Ctrl+Shift+Z 与 Ctrl+Y 都执行重做。
@@ -942,7 +942,7 @@ final class WindowsTitleBar {
   WindowsTitleBar(this.appearance, this._channel);
   Future<void> attach();                            // 首帧回调中按 appearance.resolved 设一次，并订阅 resolvedChanges；与上次参数相同则不调用
 }
-abstract final class WindowsWindowLimits { static const Size minLogical = Size(600, 500); }   // README §6 Q24（待确认）暂行默认值
+abstract final class WindowsWindowLimits { static const Size minLogical = Size(600, 500); }   // README §6 Q24
 // install.dart
 void installWindowsInteraction(CompositionContext ctx);
 // 登记 StudyKeymapHolder、WindowsKeyRouter（作为 ShellKeyHandler 与自身类型各登记一次）、WindowsShortcutLabels、
@@ -1034,12 +1034,12 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 - `defaultStudyBindings` 是学习键位默认值的唯一来源；WIN-14 设置区、`ShortcutHint` 文本与“恢复默认”都由它与 `StudyKeymapHolder` 渲染。
 - 设备偏好：登记 `WindowsDevicePrefStore`，`appearance.v1`（含 `haptics` 字段，Windows 上无意义但原样保存）写入 WIN-06 的 `HKCU\Software\BubeiGongshi\Prefs`；不写 `%LOCALAPPDATA%` 下的 `device_prefs/`，卸载时随整键删除（WIN-02），不进同步与备份（README §6 Q19）。
 - 标题栏：全应用只有 `WindowsTitleBar` 调用 `titleBar`；Windows 10 只切深浅色，Windows 11 另设底色与文字色；不自绘标题栏、不扩展客户区（保留系统贴靠布局与窗口按钮）。
-- 最小窗口：600 × 500 逻辑像素（见 README §6 Q24（待确认），按暂行默认值），在启动首帧前设置；拖动缩放与跨 DPI 移动时由 runner 按当前 DPI 换算；工作区更小时以工作区为限，此时 CORE-55 的矮高度档生效。
+- 最小窗口：600 × 500 逻辑像素（见 README §6 Q24），在启动首帧前设置；拖动缩放与跨 DPI 移动时由 runner 按当前 DPI 换算；工作区更小时以工作区为限，此时 CORE-55 的矮高度档生效。
 - 输入方式：初值取 `interactionMode`，之后以本卡事件与 CORE-55 根部 `Listener` 的指针种类共同决定（平台源事件优先，CORE-55 e）；切换只改密度与提示，不改分档、不移动焦点。
 - 不调用 `SystemChrome`、不判断 `Platform.isWindows` 于共享界面；所有 Windows 判断限于 `app/lib/platform/windows/` 与 `app/windows/`。
 - 性能：通道调用不阻塞 UI 线程；标题栏只在参数变化时调用；相关预算为 CORE-01 预算表“点击到可见反馈（按压态出现）”“作答到判定反馈（提交到判定条出现，含判分）”“转场与动效”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”Windows 列，由 WIN-13 测量。
 - 外部前提：系统高对比度与“文本大小”经 Flutter Windows 嵌入层上报为 `MediaQuery.highContrast` 与 `textScaler`、精确式触摸板上报为 `PointerPanZoom`、滚轮距离随系统滚动行数，均在 M0 锁定 Flutter 版本（ADR-V5-15）后核实；不满足的项记入附录 D，需要时按 README §8.4 先修订 CORE-55 增加接缝。
-- 待确认的产品取舍（按暂行默认值撰写）：高对比度跟随系统见 README §6 Q22、最小窗口 600×500 Q24、学习流程默认按键 Q28、Windows 11 标题栏着色 Q30（均待确认）。
+- 产品取舍（2026-10-19 甲方确认）：高对比度跟随系统见 README §6 Q22、最小窗口 600×500 Q24、学习流程默认按键 Q28、Windows 11 标题栏着色 Q30。
 
 **验收标准**
 - [R42.d] Widget 测试（假通道）：`interactionMode` 返回 touch 时 `InputModalityScope.of` 为 `touch`、控件高 48；事件发出 pointer 后为 `pointer`、控件高 36，布局档与焦点不变；通道失败时为 `pointer`。
