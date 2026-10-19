@@ -15,7 +15,7 @@
 4. **识别可插拔**：墨迹与照片走同一识别契约；首版交付云端 LLM 识别（仅注册用户、逐次授权）；本地轻量模型是可下载资源包；YOLO 只在实验分支预研。
 5. **资源与程序剥离**：内容、字体、模型都是签名资源包；安装包只内置 bootstrap-pack。
 6. **识别历史可回收**：保留最近 0–100 次识别，默认 5 次，两阶段垃圾回收。
-7. **按模块卡实施**：82 张模块卡（公共核心 56、Android 12、Windows 14；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），每张卡都可以单独交给 AI 编码助手完成。
+7. **按模块卡实施**：83 张模块卡（公共核心 56、Android 12、Windows 15；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），每张卡都可以单独交给 AI 编码助手完成。
 
 ## 2. 需求基线与文档效力
 
@@ -175,11 +175,11 @@ v5 的主要变化：
 | R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-41、CORE-52、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | CORE-01、CORE-29 |
-| R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | CORE-01、CORE-22、CORE-41、CORE-42、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-12 |
+| R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | CORE-01、CORE-22、CORE-41、CORE-42、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-13、WIN-16 |
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | CORE-22、CORE-23、CORE-36、CORE-45、CORE-46 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | CORE-23、CORE-24、CORE-27、CORE-36、CORE-46、CORE-47、AND-06、WIN-07 |
 | R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-41、CORE-46、CORE-50、CORE-51、AND-08、AND-09、WIN-03、WIN-09、WIN-10 |
-| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07 |
+| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07、WIN-09、WIN-16 |
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | CORE-15、CORE-35、CORE-51 |
 | R30 | 端侧只需加载通用资源包 | 原文 | V1 | 两端共用 Rust 加载器、同一包格式与包 ID | CORE-15、CORE-16、CORE-43、CORE-51、AND-09、WIN-10 |
@@ -341,7 +341,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 82 张卡——前端 40 张，端侧核心 28 张，后端 5 张，工程与发布 9 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
+- 统计：共 83 张卡——前端 40 张，端侧核心 28 张，后端 5 张，工程与发布 10 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 前端会话只需要端侧核心与后端卡的 **接口契约**（op 名、DTO、错误码、服务端 API），不需要其实现约束与验收标准；端侧核心与后端会话同理，只需要前端卡中调用方的契约。§8.1 的材料清单不变。
 
@@ -381,7 +381,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | AND-12 | 性能、能耗与真机矩阵 | 前端 | 测试 | `app/integration_test/android/`、`tools/perf/android/` | S7 |
 | AND-13 | Android 触摸交互与横竖屏适配 | 前端 | 平台层 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | S2 |
 | WIN-01 | 工程与构建 | 前端 | 平台层 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | S0 |
-| WIN-03 | 自更新与启动器 | 前端 | 平台层 | `app/lib/platform/windows/update/`（附属 `installer/windows/launcher/`） | S7 |
+| WIN-03 | 自更新客户端 | 前端 | 平台层 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | S7 |
 | WIN-04 | 文件导入、拖拽与导出 | 前端 | 平台层 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | S5 |
 | WIN-05 | 剪贴板与多格式复制 | 前端 | 平台层 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | S5 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | 前端 | 平台层 | `app/lib/platform/windows/window/`、`app/windows/runner/` | S2 |
@@ -442,7 +442,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-43 | 服务端部署、资源分发与监控 | 后端 | 服务端 | `server/deploy/`、`server/src/ops/` | S7 |
 | CORE-45 | 邮箱验证码与发信 | 后端 | 服务端 | `server/src/email/` | S2 |
 
-#### 工程与发布（9 张）
+#### 工程与发布（10 张）
 
 - 范围：仓库根约定、`contracts/`、`tools/`、`.github/`、`installer/` 与发布脚本。
 - 检查命令：`python tools/ci/run_all.py`（依次运行全部 CI 检查脚本，CORE-41）；涉及 Rust 或 Dart 的部分同时运行对应命令。
@@ -458,3 +458,4 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | S7 |
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
+| WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |
