@@ -6,7 +6,7 @@
 
 ## 0. 使用方法
 
-一次 vibe coding 会话交给编码助手的材料是：本文中目标 WIN 卡全文 + 它依赖的 WIN 卡与 CORE 卡的“接口契约”段 + CORE-01、CORE-02 的“接口契约”段。卡片字段与 01 相同；验收标准中的 [Rxx] 指向 [README](README.md) §5 需求追踪总表。
+每次会话的完整材料以 [README §8.1](README.md#81-每次会话的材料) 为准，不使用简化清单；字段与 01 相同，验收中的 [Rxx] 指向 README §5。
 
 Windows 端的职责边界：
 
@@ -190,7 +190,15 @@ Future<void> runPlatformApp(CoreLibrarySpec spec, PlatformPorts Function() build
 
 ```dart
 // app/lib/main_windows.dart
-void main() => runPlatformApp(CoreLibrarySpec(appDirFile('fmlcore.dll')), buildWindowsPorts);
+Future<void> main(List<String> args) async {
+  setWindowsLaunchArguments(args);
+  await runPlatformApp(CoreLibrarySpec(appDirFile('fmlcore.dll')), buildWindowsPorts);
+}
+// app/lib/composition/windows_launch.dart（本卡所有；只记录参数，不解析更新或托盘业务）
+List<String> get windowsLaunchArguments; // 不可变快照
+void setWindowsLaunchArguments(List<String> args); // main调用一次，再写抛StateError
+// runner使用Flutter Windows模板GetCommandLineArguments()/DartProject.set_dart_entrypoint_arguments透传用户参数；
+// 不将更新nonce误从Dart VM的Platform.executableArguments读取；后续卡各自读取windowsLaunchArguments。
 String appDirFile(String name) => File(Platform.resolvedExecutable).parent.uri.resolve(name).toFilePath();   // 可执行文件同目录的绝对路径
 
 // app/lib/composition/ports_windows.dart
@@ -259,7 +267,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 
 关键指令：AppId={{<M0 生成后固定的 GUID>}；PrivilegesRequired=lowest；DefaultDirName={localappdata}\Programs\BubeiGongshi；DisableDirPage=yes；
           ArchitecturesAllowed=x64compatible；ArchitecturesInstallIn64BitMode=x64compatible；MinVersion=10.0.17763；
-          AppMutex=Local\BubeiGongshi.SingleInstance（与 WIN-06 单实例互斥体同名）；CloseApplications=no；
+          AppMutex=Local\BubeiGongshi.SingleInstance（与 WIN-06 同名，Setup/Uninstall启动时均检查）；CloseApplications=no；
           Compression=lzma2/max；SolidCompression=yes；定义 SignToolName 时 SignTool={#SignToolName} 且 SignedUninstaller=yes
 快捷方式：{userprograms}\BubeiGongshi.lnk → {app}\BubeiGongshi.exe，AppUserModelID: "BubeiGongshi.App"
 
@@ -337,6 +345,7 @@ final class WindowsUpdater extends ValueNotifier<UpdateState> {
   Future<void> confirmHealthy();                 // 经 WIN-16 确认当前 version/nonce；无验证 nonce 时 no-op
 }
 void installWindowsUpdater(CompositionContext ctx);
+// install读取 WIN-01 的 windowsLaunchArguments 解析 --update-nonce，版本取本构建常量，nonce只在内存且不记日志；
 // 登记 WindowsUpdater；向 SettingsSections 加入 order 90 的“检查更新”区；启动钩子 order 85：距上次检查 ≥ 24 h 时自动 check（只提示，不下载）；
 // firstFrameHooks order 20：confirmHealthy（独立于顺序 startupHooks，早于其 order 20 解锁）；读取 installRoot\rolled-back.txt 存在时置 UpdateFailed(PLATFORM_UPDATE_ROLLED_BACK) 并删除该文件
 ```
@@ -1055,7 +1064,7 @@ b. 分发规则（`WindowsKeyRouter.handle`）
 | --- | --- |
 | 1 | `suspended` 为 true，或事件既不是 `KeyDownEvent` 也不是 `KeyRepeatEvent` → ignored |
 | 2 | 已 `attach` 的内层处理器（WIN-08 `WindowsShellKeys`）先处理，返回 handled 即结束 |
-| 3 | 事件为 `KeyRepeatEvent` → ignored（学习命令不响应按住重复，避免连续提交）；否则 `KeyChord.fromEvent` 后查 `study.lookup`，未命中 → ignored |
+| 3 | 事件为 `KeyRepeatEvent` → ignored（学习命令不响应按住重复，避免连续提交）；否则 `KeyChord.fromEvent` 后查本地 `StudyKeymap.lookup(KeyChord)`（对象方法，非 FFI op），未命中 → ignored |
 | 4 | 命中命令的组合键不带修饰时：`primaryFocus` 位于 `EditableText` 内、或输入法组合未结束 → ignored，按键照常交给输入 |
 | 5 | `FmlCommands.isAvailable(id)` 为 false → ignored（按键继续交给页面）；为 true → `FmlCommands.invoke(id)`，返回 handled |
 
