@@ -166,10 +166,10 @@
 ## D.8 Windows 外接数位板补充（2026-10-19）
 
 - 起因：甲方询问 Windows 端是否规划接入数位板；原稿只覆盖二合一设备的屏上笔，未写驱动模式前提，测试矩阵无外接数位板，且 WIN-08（侧键 = 擦除）与 WIN-15（触控笔按钮 = 右键菜单）对笔侧键的规定不一致。
-- 支持方式列为 README §6 Q31（待确认），正文按暂行默认值撰写：只支持 Windows Ink，不接入 WinTab。
+- 支持方式列为 README §6 Q31，正文按暂行默认值撰写：只支持 Windows Ink，不接入 WinTab；甲方同日确认按默认。
 
 | 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
 | --- | --- | --- | --- | --- |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 目标与范围加入外接数位板；统一笔侧键规则（书写区内按住侧键落笔为擦除，书写区外点按为右键菜单，笔长按不模拟右键）；修正 isEraser：Flutter 中第一侧键为 kPrimaryStylusButton，原稿只判 kSecondaryStylusButton；新增 PenDevice、PenStatus、WindowsPenStatus 与通道 fml/windows/pen（GetPointerDevices 枚举、Wintab32.dll 存在检测、WM_POINTERDEVICECHANGE）；关闭系统长按右键与笔势；设置区“笔与数位板”（order 65）显示设备与开启 Windows Ink 提示；新增 1 条 Widget 测试与 2 条数位板手动验收；规模 340 → 460 行 | Q31 待确认；书写区外侧键点按能否上报为次键点击须 M0 核实，不满足时经“更多”按钮打开菜单；手写页内不主动弹出开启提示（需 CORE-40 新增接缝，本次未做），提示只在设置区 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 目标与范围加入外接数位板；统一笔侧键规则（书写区内按住侧键落笔为擦除，书写区外点按为右键菜单，笔长按不模拟右键）；修正 isEraser：Flutter 中第一侧键为 kPrimaryStylusButton，原稿只判 kSecondaryStylusButton；新增 PenDevice、PenStatus、WindowsPenStatus 与通道 fml/windows/pen（GetPointerDevices 枚举、Wintab32.dll 存在检测、WM_POINTERDEVICECHANGE）；关闭系统长按右键与笔势；设置区“笔与数位板”（order 65）显示设备与开启 Windows Ink 提示；新增 1 条 Widget 测试与 2 条数位板手动验收；规模 340 → 460 行 | 书写区外侧键点按能否上报为次键点击须 M0 核实，不满足时经“更多”按钮打开菜单；手写页内不主动弹出开启提示（需 CORE-40 新增接缝，本次未做），提示只在设置区 |
 | WIN-15 | Windows 桌面交互与窗口适配 | 已修订 | d 表“右键菜单”改为笔侧键点按（书写区外）并引用 WIN-08 侧键规则；新增“触控笔与数位板”行；新增外接数位板输入方式切换手动验收 | — |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 环境矩阵加外接数位板（Windows Ink 开与关各一轮，含双显示器映射）；新增 [R06] 验收：数位板上测“手写墨迹上屏”并勾选 WIN-08 数位板手动项 | — |

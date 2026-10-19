@@ -685,7 +685,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 **范围**
 - 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
-- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31（待确认））。
+- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15
 
@@ -776,7 +776,7 @@ WindowsInkPolicy：
   书写区外：点按侧键 = 右键，打开与鼠标右键相同的上下文菜单（WIN-15 d 表“右键菜单”）
   笔长按：不模拟右键（系统长按右键已由本卡关闭），按 Flutter 长按手势处理，与触摸长按一致
 
-外接数位板（README §6 Q31（待确认））：
+外接数位板（README §6 Q31）：
   开启 Windows Ink（驱动选项，如“使用 Windows Ink”）：与屏上笔相同——压感、笔尾与侧键擦除、悬停、防手掌误触
     多显示器映射、板面区域、压感曲线与快捷键按钮由驱动决定；应用按窗口逻辑坐标接收笔事件，不做换算
   未开启 Windows Ink（只有 WinTab）：按鼠标处理——可书写，pressure 为 null，无笔尾擦除与防误触；设置区给出开启提示
@@ -807,7 +807,7 @@ WindowsInkPolicy：
 - 手写延迟预算见 CORE-01 预算表“手写墨迹上屏”（Windows ≤ 40 ms），由 WIN-13 测量。
 - 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`、侧键为 `kPrimaryStylusButton`、悬停为 `PointerHoverEvent`）；屏上笔与开启 Windows Ink 的外接数位板走同一路径。M0 在锁定的 Flutter 版本上用二合一设备与外接数位板各验证一次，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。书写区外侧键点按是否上报为次键点击同在 M0 核实；不满足时笔用户经“更多”按钮（CORE-55 f 的可见按钮等价）打开同一菜单，并记入附录 D。
 - 不加载 Wintab32.dll、不调用 WinTab API；笔设备检测只用 `GetPointerDevices` 与文件是否存在。关闭系统长按右键与笔势只作用于本应用主窗口。
-- 待确认：外接数位板只支持 Windows Ink、不接入 WinTab，见 README §6 Q31（待确认）。
+- 产品取舍（2026-10-19 甲方确认）：外接数位板只支持 Windows Ink、不接入 WinTab，见 README §6 Q31。
 - 产品取舍（2026-10-19 甲方确认）：计算页不设全局快捷键（Ctrl+5 默认不分配）见 README §6 Q29。
 
 **验收标准**
@@ -1062,7 +1062,7 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 | 滚轮 | 一格滚动距离随系统“一次滚动的行数”；Shift+滚轮横向滚动（`FormulaStage` 过宽时）；鼠标拖动不滚动列表 | Flutter Windows 嵌入层与默认 `ScrollBehavior`；本卡验收 |
 | 精确式触摸板 | 双指平滑滚动带惯性（`PointerPanZoom` 事件）；不做双指缩放 | 同上 |
 | 触屏 | 触摸按下即切到 `touch` 密度（CORE-55 根部 `Listener`），平板姿态或平板模式由本卡事件切换；鼠标或触摸板移动后回到 `pointer` | CORE-55 + 本卡 |
-| 触控笔与数位板 | 屏上笔与开启 Windows Ink 的外接数位板上报为 `stylus`，悬停或落笔即切到触控笔密度；未开启 Windows Ink 的数位板上报为鼠标，按 `pointer` 处理；驱动设置提示在设置区“笔与数位板”（WIN-08）；支持方式见 README §6 Q31（待确认） | CORE-55 + WIN-08 |
+| 触控笔与数位板 | 屏上笔与开启 Windows Ink 的外接数位板上报为 `stylus`，悬停或落笔即切到触控笔密度；未开启 Windows Ink 的数位板上报为鼠标，按 `pointer` 处理；驱动设置提示在设置区“笔与数位板”（WIN-08）；支持方式见 README §6 Q31 | CORE-55 + WIN-08 |
 | 深浅色 | 外观模式“跟随系统”时随 Windows“应用模式”切换；标题栏随 `resolvedChanges` 改深浅色，Windows 11 标题栏底色取 `colors.surface`、文字取 `colors.onSurface` | CORE-55 + 本卡 |
 | 高对比度 | 开启系统对比度主题时 `MediaQuery.highContrast` 为真，CORE-55 改用高对比度令牌；标题栏交还系统绘制 | Flutter 嵌入层 + CORE-55 |
 | 文本大小 | “辅助功能 → 文本大小”经嵌入层映射为 `textScaler`，按 CORE-55 大字号降档 | Flutter 嵌入层 |
