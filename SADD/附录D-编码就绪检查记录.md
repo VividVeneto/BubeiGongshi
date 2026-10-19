@@ -193,3 +193,9 @@
 | AN-F02 | 高 | 已修订 | AND-02、05、13 | 窗口表归 AND-02，计数归 AND-05 |
 | U-F01 | 高 | 已修订 | README §8.1；AGENTS | 材料补正文相关契约，编译依赖仍须声明 |
 | U-F03 | 高 | 已修订 | README §8.1；AGENTS | 按 §6 影响模块卡机械附行 |
+| A-3 | 高 | 已修订 | CORE-02 | 登记 AST_/CONTENT_ 命名空间 |
+| A-4 | 高 | 已修订 | CORE-05 | 穷举全部变体、规范化规则与黄金 JSON |
+| A-5 | 高 | 已修订 | CORE-14；Q32 | Validation/Severity/Filter 分离，逐状态映射 |
+| A-6 | 高 | 已修订 | CORE-08；ADR-V5-27 | i128 与十进制字符串 DTO；eV/N_A/u 向量 |
+| B-F-01 | 阻断 | 已修订 | CORE-21、25 | CBOR 键表、严格解码、格式向量，服务端只存不透明 base64 |
+| B-F-10 | 高 | 已修订 | CORE-33、34、40 | Rust 定义 RecognitionMode；HTTP 值唯一 |
