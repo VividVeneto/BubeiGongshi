@@ -58,6 +58,10 @@ Dart / Flutter（app/）
   flutter test
 Python（tools/）
   python tools/ci/run_all.py        # 依次运行全部 CI 检查脚本（CORE-41）
+C++ / CMake（installer/windows/launcher/，WIN-16 启动器，仅 Windows）
+  cmake -S installer/windows/launcher -B build/launcher
+  cmake --build build/launcher --config Release
+  ctest --test-dir build/launcher -C Release --output-on-failure
 ```
 
 为验收标准中的每一条写出自动化测试；无法自动化的手动步骤写成 checklist 放在 PR 描述中。工具链版本见 `rust-toolchain.toml`、`app/.flutter-version` 与各 `toolchain.versions`（ADR-V5-15）。
