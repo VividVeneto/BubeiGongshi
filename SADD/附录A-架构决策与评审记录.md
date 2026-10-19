@@ -352,3 +352,11 @@ D1：采纳开工时锁定规则（V5-15）；D2：Casdoor（V5-14）；D3：Fak
 各项均可部署在境内；不得据此推定默认无遥测、默认六位码策略或默认支持本项目 auth_time/刷新轮换。CORE-22 开工锁定 Casdoor 版本、镜像 digest 与配置，契约测试覆盖 PKCE、刷新令牌轮换/重放、六位码、找回吊销、auth_time 与 prompt=login；缺项只能用受测适配补齐，变更产品须修订 V5-14。无合格实测证据时仅 Fake 编码通过，真实认证上线被门槛阻断。Casdoor 原生邮件路径必须禁用或指向内部受认证适配器，不能绕过 EmailSender。
 
 官方核实入口（查询 2026-10-19；实现开工复核具体版本）：[Casdoor 源码与许可证](https://github.com/casdoor/casdoor)、[邮件 provider](https://casdoor.org/docs/provider/email/overview/)、[Keycloak 管理指南](https://www.keycloak.org/docs/latest/server_admin/index.html)、[内存建议](https://www.keycloak.org/server/containers)、[ZITADEL 许可证](https://github.com/zitadel/zitadel/blob/main/LICENSE)、[Hydra](https://github.com/ory/hydra)、[Kratos](https://github.com/ory/kratos)。维护成本为本项目组件数量与定制量的工程判断，不是官方基准。
+
+### ADR-V5-31 Windows 启动、安装与恢复时序（采纳，2026-10-19）
+
+WIN-16 独立于安装器；WIN-02 消费其制品，WIN-03 仅负责下载与协议。先持进程句柄等待退出，再启动 Inno，保留 AppMutex。firstFrameHooks 独立于顺序解锁/同步；托盘先创建再允许隐藏，健康按版本+本轮 nonce 确认。journal 记录原子单文件动作，进程结束后才恢复，恢复失败保留唯一备份并进入救援，不启动损坏库。
+
+2026-10-19 官方核对：[Inno AppMutex](https://jrsoftware.org/ishelp/topic_setup_appmutex.htm) 在启动时检查互斥；[退出码](https://jrsoftware.org/ishelp/topic_setupexitcodes.htm) 的 5 也包含 Abort，非零均未完成；[MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw) 支持 REPLACE_EXISTING/WRITE_THROUGH；[TerminateProcess](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) 是异步终止，须再等待进程句柄。它们不提供多文件事务，故定义恢复 journal。
+
+WIN-13 的集成驱动改为 Profile；Release 用外部启动/版本/签名冒烟与日志采样。[Flutter build modes](https://docs.flutter.dev/testing/build-modes) 区分 Profile 分析与 Release 发布，[integration_test 官方驱动示例](https://docs.flutter.dev/testing/integration-tests) 通过测试驱动采集。禁 GPU 以专用矩阵机 Basic Display Adapter 实测并登记，不使用无依据的 FLUTTER_ENGINE_SWITCH 环境变量。工具链锁定后先跑最小驱动探针，未通过不得称矩阵就绪。
