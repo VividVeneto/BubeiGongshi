@@ -118,7 +118,7 @@ graph TD
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、02、04、52，WIN-04 | 约 320 行 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、02、04、36，WIN-01 | 约 420 行 |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、02、04、13、21、36，WIN-01 | 约 450 行 |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/` | CORE-01、02、04、36、37、40，WIN-15 | 约 340 行 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、02、04、36、37、40，WIN-15 | 约 460 行 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、02、04、20、36，WIN-06 | 约 380 行 |
 | WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、02、04 | 约 240 行 |
 | WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、02、42，WIN-02、03 | 约 250 行 |
@@ -144,7 +144,7 @@ graph TD
 | `NotificationScheduler` | 应用内定时 + 托盘通知（`NIF_INFO`）+ 任务栏闪烁 | WIN-09 |
 | `HttpTransport` | `dart:io` `HttpClient`（系统 CA、系统静态代理），由 CORE-28 `NetworkGuard` 包裹 | WIN-10 |
 
-共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `InkInputPolicy`（WIN-08）、`ShellKeyHandler`（WIN-15 `WindowsKeyRouter`，WIN-08 的 `WindowsShellKeys` 挂入）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（WIN-15；不登记 `UiFeedbackSink`）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-14（60，快捷键）加入。
+共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `InkInputPolicy`（WIN-08）、`ShellKeyHandler`（WIN-15 `WindowsKeyRouter`，WIN-08 的 `WindowsShellKeys` 挂入）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（WIN-15；不登记 `UiFeedbackSink`）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（65，笔与数位板）、WIN-14（60，快捷键）加入。
 
 ---
 
@@ -681,11 +681,11 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 ### WIN-08 编辑器快捷键、输入法与笔输入
 
-**目标**：通过 CORE-36、CORE-37、CORE-40 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔/触屏手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
+**目标**：通过 CORE-36、CORE-37、CORE-40 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔、外接数位板、触屏的手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
 
 **范围**
-- 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；安装点 `installWindowsEditing`。
-- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）。
+- 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
+- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31（待确认））。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15
 
@@ -732,8 +732,18 @@ final class KeymapHolder extends ValueNotifier<Keymap> {
 final class WindowsEditorBindings implements EditorPlatformBindings { const WindowsEditorBindings(this.holder); final KeymapHolder holder; }   // accessoryBar 恒返回 null
 final class WindowsShellKeys implements ShellKeyHandler { const WindowsShellKeys(this.holder); final KeymapHolder holder; }
 final class WindowsInkPolicy implements InkInputPolicy { const WindowsInkPolicy(); }
+final class PenDevice { const PenDevice(this.name, {required this.integrated}); final String name; final bool integrated; }  // integrated = 屏上笔；false = 外接数位板或数位屏
+final class PenStatus {
+  const PenStatus({this.devices = const [], this.wintabDriver = false});
+  final List<PenDevice> devices; final bool wintabDriver;
+  bool get needsInkHint => wintabDriver && devices.every((d) => d.integrated);   // 装有数位板驱动但系统未登记外接笔 → 提示开启 Windows Ink
+}
+final class WindowsPenStatus {                      // 通道 fml/windows/pen 的 Dart 侧
+  Future<PenStatus> read();                         // 通道失败返回 const PenStatus()，记 AppLog warning，不向用户报错
+  Stream<void> get changes;                         // devicesChanged 事件
+}
 void installWindowsEditing(CompositionContext ctx);
-// 登记 KeymapHolder、WindowsEditorBindings、WindowsInkPolicy；WindowsShellKeys 经 ctx.features.require<WindowsKeyRouter>().attach 挂入，
+// 登记 KeymapHolder、WindowsEditorBindings、WindowsInkPolicy、WindowsPenStatus；向 SettingsSections 加入 order 65 的“笔与数位板”区；WindowsShellKeys 经 ctx.features.require<WindowsKeyRouter>().attach 挂入，
 // 不作为 ShellKeyHandler 登记；追加到 ports_windows.dart 的 platformInstallers（在 installWindowsInteraction 之后）
 ```
 
@@ -757,9 +767,34 @@ void installWindowsEditing(CompositionContext ctx);
 
 ```text
 WindowsInkPolicy：
-  accept：kind 为 stylus 或 invertedStylus → true；kind 为 touch 且 stylusSeen → false；其余 → true（鼠标可书写）
+  accept：kind 为 stylus 或 invertedStylus → true；kind 为 touch 且 stylusSeen → false；其余 → true（鼠标可书写；未开启 Windows Ink 的数位板按鼠标上报，同样可书写）
   pressureOf：stylus 与 invertedStylus 且 pressureMax > pressureMin 时归一化到 0..1；否则 null（CORE-40 按 0.5 处理）
-  isEraser：kind == invertedStylus，或 buttons 含 kSecondaryStylusButton
+  isEraser：kind == invertedStylus（笔尾），或按下时 buttons 含 kPrimaryStylusButton 或 kSecondaryStylusButton（按住笔侧键落笔）
+
+笔侧键规则（屏上笔与外接数位板一致）：
+  书写区（InkCanvas）内：按住侧键落笔 = 擦除，触及的笔画整笔删除（上面的 isEraser）
+  书写区外：点按侧键 = 右键，打开与鼠标右键相同的上下文菜单（WIN-15 d 表“右键菜单”）
+  笔长按：不模拟右键（系统长按右键已由本卡关闭），按 Flutter 长按手势处理，与触摸长按一致
+
+外接数位板（README §6 Q31（待确认））：
+  开启 Windows Ink（驱动选项，如“使用 Windows Ink”）：与屏上笔相同——压感、笔尾与侧键擦除、悬停、防手掌误触
+    多显示器映射、板面区域、压感曲线与快捷键按钮由驱动决定；应用按窗口逻辑坐标接收笔事件，不做换算
+  未开启 Windows Ink（只有 WinTab）：按鼠标处理——可书写，pressure 为 null，无笔尾擦除与防误触；设置区给出开启提示
+
+通道 fml/windows/pen（app/windows/runner/pen_channel.cpp）：
+  status → {devices: [{name, integrated}], wintab_driver}
+    devices：GetPointerDevices 中 type 为 POINTER_DEVICE_TYPE_INTEGRATED_PEN（integrated = true）或 POINTER_DEVICE_TYPE_EXTERNAL_PEN（false）的项，name 取 productString
+    wintab_driver：%SystemRoot%\System32\Wintab32.dll 存在（数位板驱动通常会安装；只判断文件存在，不加载）
+  事件 devicesChanged：收到 WM_POINTERDEVICECHANGE（插拔数位板、驱动切换 Windows Ink 后）时发出，500 ms 内合并为一次
+  窗口初始化：对主窗口 SetProp(L"MicrosoftTabletPenServiceProperty", TABLET_DISABLE_PRESSANDHOLD | TABLET_DISABLE_FLICKS)，
+    并在 WM_TABLET_QUERYSYSTEMGESTURESTATUS 返回同值——笔或手指长按不再弹出系统右键圆环，笔势不触发翻页
+
+设置区“笔与数位板”（order 65）：
+  列出检测到的设备：“屏上触控笔”或“数位板：<name>”；都没有时显示“未检测到触控笔或数位板，可用鼠标或触屏书写”
+  needsInkHint 为 true 时显示提示：“检测到数位板驱动，但系统没有登记 Windows Ink 笔。请在数位板驱动设置中开启“使用 Windows Ink”
+    （Wacom：数位板属性 → 映射；其他品牌在驱动的“Windows Ink”或“笔模式”选项中），再重新插拔数位板或重启本应用。
+    未开启时数位板按鼠标使用，没有压感与橡皮擦。”
+  订阅 changes 刷新；本区只读，不提供压感曲线、映射与按钮设置
 ```
 
 - 错误码：无（只实现按键与输入策略接缝）。
@@ -770,7 +805,9 @@ WindowsInkPolicy：
 - 键位比较用逻辑键（`LogicalKeyboardKey`），使“=”“/”“9”等按键在中文与英文键盘布局下一致；小键盘的“/”“=”不等同于主键盘按键。
 - 不处理无 Ctrl 或 Alt 修饰的字符键（学习页不带修饰的选项与自评键由 WIN-15 处理）；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-37），本卡不另做 IME 处理；不注册系统级热键（`RegisterHotKey`）。
 - 手写延迟预算见 CORE-01 预算表“手写墨迹上屏”（Windows ≤ 40 ms），由 WIN-13 测量。
-- 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`）；M0 在锁定的 Flutter 版本上验证，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。
+- 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`、侧键为 `kPrimaryStylusButton`、悬停为 `PointerHoverEvent`）；屏上笔与开启 Windows Ink 的外接数位板走同一路径。M0 在锁定的 Flutter 版本上用二合一设备与外接数位板各验证一次，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。书写区外侧键点按是否上报为次键点击同在 M0 核实；不满足时笔用户经“更多”按钮（CORE-55 f 的可见按钮等价）打开同一菜单，并记入附录 D。
+- 不加载 Wintab32.dll、不调用 WinTab API；笔设备检测只用 `GetPointerDevices` 与文件是否存在。关闭系统长按右键与笔势只作用于本应用主窗口。
+- 待确认：外接数位板只支持 Windows Ink、不接入 WinTab，见 README §6 Q31（待确认）。
 - 产品取舍（2026-10-19 甲方确认）：计算页不设全局快捷键（Ctrl+5 默认不分配）见 README §6 Q29。
 
 **验收标准**
@@ -778,9 +815,12 @@ WindowsInkPolicy：
 - [R19] Widget 测试（`WindowsShellKeys` 挂入 WIN-15 `WindowsKeyRouter`）：在任意页面按 Ctrl+1，`AppNavigator` 收到 `'/study'`；Ctrl+2、Ctrl+3、Ctrl+4 分别收到 `'/library'`、`'/recognize'`、`'/settings'`，Ctrl+5 不导航；Alt+= 收到 `'/library/new'`；Ctrl+F 收到 `'/library?search=1'`；编辑器获得焦点时按 Ctrl+1 同样导航，按 Ctrl+/ 不导航。
 - [R08] 单元测试：把 `holder.value` 换成分式为 Ctrl+Shift+F 的键位后，Ctrl+Shift+F 插入分式、Ctrl+/ 不再插入；`suspended = true` 时两个处理器均返回 ignored；`isReservedChord` 对 Ctrl+C、Ctrl+Space、Ctrl+.、Alt+F4、Ctrl+Alt+E、Ctrl+T、Shift+F10 返回 true。
 - [R08] 手动：使用微软拼音输入法在 LaTeX 模式输入中文注释，组合期间方向键与 Backspace 不移动公式光标，Ctrl 快捷键在上屏后才生效；Ctrl+Space 切换输入法不被本应用拦截。
-- [R06] 单元测试：`WindowsInkPolicy` 对 stylus 返回 true，`stylusSeen: true` 时 touch 返回 false，invertedStylus 判为橡皮擦；手动（二合一设备）：笔书写时手掌不留笔迹，笔尾擦除整笔。
+- [R06] 单元测试：`WindowsInkPolicy` 对 stylus 返回 true，`stylusSeen: true` 时 touch 返回 false，mouse 返回 true 且 `pressureOf` 为 null；invertedStylus、以及 buttons 含 `kPrimaryStylusButton` 的 stylus 按下判为橡皮擦，只含 `kStylusContact` 的不判；手动（二合一设备）：笔书写时手掌不留笔迹，笔尾擦除整笔。
+- [R06] Widget 测试（假通道）：`status` 返回 `{devices: [], wintab_driver: true}` 时设置区“笔与数位板”显示开启 Windows Ink 提示；返回含 `integrated: false` 的设备时显示“数位板：<name>”且无提示；发出 `devicesChanged` 后刷新；通道失败时显示“未检测到触控笔或数位板”且无错误提示。
+- [R06] 手动（外接数位板，驱动开启 Windows Ink，如 Wacom 或同类）：设置区列出该数位板；书写后调试构建打印的 `InkController.strokes` 中 pressure 非 null 且随用力变化；笔尾擦除整笔；书写区内按住侧键落笔擦除；书写区外点按侧键打开与鼠标右键相同的菜单（或按外部前提记入附录 D）；在书写区长按不弹出系统右键圆环；数位板映射到双显示器全部区域与只映射一台显示器两种设置下，窗口在两台显示器上的落笔位置都与光标一致。
+- [R06] 手动（同一数位板在驱动中关闭 Windows Ink）：仍可按鼠标书写，设置区显示开启提示；在驱动中重新开启并插拔数位板后提示消失，压感与擦除恢复。
 
-**规模**：约 340 行；`app/lib/platform/windows/editing/`。
+**规模**：约 460 行；`app/lib/platform/windows/editing/`（约 380 行，含笔设备检测与设置区）、`app/windows/runner/pen_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 80 行），同属 `app/` 构建单元。
 
 ### WIN-14 快捷键自定义
 
@@ -1018,10 +1058,11 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 | 焦点可见 | 键盘操作时焦点环可见，鼠标点击后不显示；保持 Flutter 默认 `FocusHighlightStrategy.automatic`，平台层不改 | CORE-55 焦点环 |
 | 激活 | 焦点在按钮或选项上按 Enter 或 Space 激活（Flutter 默认 `ActivateIntent`），与 a 表命令并存 | 共享组件 |
 | 悬停与提示 | `pointer` 下显示悬停态，悬停 500 ms 出提示；`ShortcutHint` 与选项徽标经 `WindowsShortcutLabels` 显示 a 表键位 | CORE-55 + 本卡标签源 |
-| 右键菜单 | 鼠标右键与触控笔按钮打开共享组件的上下文菜单（如“复制为”）；键盘等价为 Shift+F10 或菜单键；文本框沿用 Flutter 默认复制粘贴菜单 | 共享组件；本卡验收 |
+| 右键菜单 | 鼠标右键与触控笔侧键点按（书写区外）打开共享组件的上下文菜单（如“复制为”）；书写区内按住侧键为擦除（WIN-08 侧键规则）；键盘等价为 Shift+F10 或菜单键；文本框沿用 Flutter 默认复制粘贴菜单 | 共享组件；本卡验收 |
 | 滚轮 | 一格滚动距离随系统“一次滚动的行数”；Shift+滚轮横向滚动（`FormulaStage` 过宽时）；鼠标拖动不滚动列表 | Flutter Windows 嵌入层与默认 `ScrollBehavior`；本卡验收 |
 | 精确式触摸板 | 双指平滑滚动带惯性（`PointerPanZoom` 事件）；不做双指缩放 | 同上 |
 | 触屏 | 触摸按下即切到 `touch` 密度（CORE-55 根部 `Listener`），平板姿态或平板模式由本卡事件切换；鼠标或触摸板移动后回到 `pointer` | CORE-55 + 本卡 |
+| 触控笔与数位板 | 屏上笔与开启 Windows Ink 的外接数位板上报为 `stylus`，悬停或落笔即切到触控笔密度；未开启 Windows Ink 的数位板上报为鼠标，按 `pointer` 处理；驱动设置提示在设置区“笔与数位板”（WIN-08）；支持方式见 README §6 Q31（待确认） | CORE-55 + WIN-08 |
 | 深浅色 | 外观模式“跟随系统”时随 Windows“应用模式”切换；标题栏随 `resolvedChanges` 改深浅色，Windows 11 标题栏底色取 `colors.surface`、文字取 `colors.onSurface` | CORE-55 + 本卡 |
 | 高对比度 | 开启系统对比度主题时 `MediaQuery.highContrast` 为真，CORE-55 改用高对比度令牌；标题栏交还系统绘制 | Flutter 嵌入层 + CORE-55 |
 | 文本大小 | “辅助功能 → 文本大小”经嵌入层映射为 `textScaler`，按 CORE-55 大字号降档 | Flutter 嵌入层 |
@@ -1053,6 +1094,7 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 - [R42.e] 手动（100% + 200% 双显示器）：在 100%、125%、150%、175%、200% 下最小窗口均可用且无截断；把窗口从 100% 显示器拖到 200% 显示器后最小尺寸按新 DPI 生效、分档按新逻辑尺寸重算、正在输入的公式与焦点不丢。
 - [R42.b] 手动（键盘，不用鼠标）：从学习首页按 Ctrl+Enter 开始，选择题按 1～4 或 A～D、自评按 Y / N、公式输入题按 Ctrl+Enter 提交、反馈页 Ctrl+Enter 下一题、Ctrl+Shift+M 记错了、Ctrl+Shift+S 跳过、Ctrl+Shift+P 暂停后 Ctrl+Enter 继续、默写用 Ctrl+PageUp/PageDown 换题并提交，完成一组到小结；全程焦点环可见，Tab 顺序与 d 表一致；开启微软拼音输入法时以上按键行为不变。
 - [R42.d] 手动（鼠标与精确式触摸板）：按 d 表逐行核对悬停提示、右键菜单（含 Shift+F10）、滚轮行数与 Shift+滚轮横滚、触摸板双指惯性滚动。
+- [R42.d] 手动（外接数位板，驱动开启 Windows Ink）：笔悬停或落笔后切到触控笔密度，移动鼠标后回到指针密度，布局档与焦点不变；书写区外点按笔侧键打开与鼠标右键相同的上下文菜单（M0 不满足时按 WIN-08 外部前提处理）。
 - [R42.d] 手动（Windows 11 二合一触屏 + 触控笔）：拆下键盘或翻折为平板姿态后控件变为触摸密度、快捷键提示隐藏；接回键盘并移动触摸板后恢复指针密度；全过程不改布局档、不丢输入。
 - [R42.f] 手动：Windows 10 1809 与 Windows 11 上切换系统深浅色（外观模式“跟随系统”）及应用内深浅色，标题栏随之切换；开启对比度主题（如“夜空”“沙漠”）后应用改用高对比度令牌、标题栏为系统颜色，关闭后恢复。
 - [R42.c] WIN-13 在基线机型与二合一机型上测量 CORE-01 预算表 a 段所列五行，P95 在 Windows 列预算内。
@@ -1296,6 +1338,7 @@ tools/perf/windows/
   compare.py                         两端一致性比对，任一字段不同退出 1
   report_template.md                 环境矩阵、测量结果、各 WIN 卡手动验收项勾选表、豁免记录（链接附录 A）
 环境矩阵（最少）：Windows 10 1809 x64 实体机或虚拟机；Windows 11 23H2 4 核 / 8 GB / SSD（基线）；Windows 11 二合一触屏 + 触控笔（含平板姿态与键盘姿态切换）；
+                 外接数位板（如 Wacom 或同类，驱动开启与关闭 Windows Ink 各一轮，含双显示器映射）；
                  高 DPI 双显示器（100% + 200%）；禁用 GPU（远程桌面或基本显示适配器）；系统对比度主题开启（如“夜空”）的冒烟一轮
 ```
 
@@ -1314,6 +1357,7 @@ tools/perf/windows/
 - [R42.c] 基线机型与二合一机型的 `report.md` 列出 CORE-01 预算表界面性能五行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换）的 P50 与 P95，Windows 列全部达标或有附录 A 豁免。
 - [R42.e] 窗口尺寸变化在 100%、125%、150%、175%、200% DPI 下各测一次并跨显示器移动一次，均达标，且测量后路由、输入文本与滚动位置不变。
 - [R42.f] 系统对比度主题开启时冒烟测试（首页、学习一题、外观页）通过并截图存入报告；二合一机型在触摸密度与指针密度下各完成一次点击反馈测量。
+- [R06] 外接数位板（开启 Windows Ink）上测量 CORE-01 预算表“手写墨迹上屏”，P95 在 Windows 列预算内；WIN-08 的数位板手动项（开启与关闭 Windows Ink 两轮）全部勾选并写入报告。
 - [R41] `report_template.md` 逐项列出本文各卡的手动验收项，填写完成后作为 Windows 发布签字依据。
 
 **规模**：约 430 行；主包 `app/`（`app/integration_test/windows/`，约 310 行），附属：`tools/perf/windows/`（约 120 行，测量脚本，与测试一同维护）。
