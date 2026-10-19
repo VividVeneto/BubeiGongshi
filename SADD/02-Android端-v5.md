@@ -197,7 +197,7 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 - 原生库按 16 KB 内存页对齐（NDK r27 及以上默认；更早版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
 - Release 构建开启 R8，`proguard-rules.pro` 保留 Flutter 与各 MethodChannel 处理类；`.so` 去除调试符号，符号文件另行归档（AND-11）。
 - 构建可复现：`toolchain.versions` 中的版本即 CI 使用的版本；Rust 构建设置 `--remap-path-prefix` 与固定 `SOURCE_DATE_EPOCH`。
-- 外部前提：Android SDK、NDK、cargo-ndk、Flutter SDK 的具体版本随 ADR-V5-15（待定） 在 M0 锁定；调试真机至少一台 arm64 设备。
+- 外部前提：Android SDK、NDK、cargo-ndk、Flutter SDK 的具体版本随 ADR-V5-15 在 M0 锁定；调试真机至少一台 arm64 设备。
 
 **验收标准**
 - [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
@@ -400,7 +400,7 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 - 备份：清单 `android:allowBackup="false"`，并提供 `data_extraction_rules.xml`（Android 12+：cloud-backup 与 device-transfer 均排除全部域）与 `full_backup_content.xml`（排除全部域）；`excludeFromSystemBackup` 对上述根目录内的路径为空操作，对根目录之外的路径抛 `ArgumentError`。
 - 不使用 MediaStore 与公共目录；恢复出厂或清除应用数据会丢失本机密钥，提示文案由 CORE-23/CORE-47 负责。
 - `freeBytes()` 取 `StatFs(noBackupFilesDir).availableBytes`；空间不足的处理由调用方按 CORE-15、CORE-32 的规则执行，本卡不删除任何文件。
-- 外部前提：`androidx.biometric` 版本随 ADR-V5-15（待定） 锁定。
+- 外部前提：`androidx.biometric` 版本随 ADR-V5-15 锁定。
 
 **验收标准**
 - [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore`、`BiometricPrompt` 契约套件在真机（`integration_test/android/storage_test.dart`）全部通过。
@@ -571,7 +571,7 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - CameraActivity 进入 `onPause`（Home、来电、分屏失焦）时立即解绑全部用例并释放相机；返回后重新绑定。
 - 相机不可用时由调用方（CORE-40）提示并提供相册导入入口。
 - 旋转时不调用 `unbindAll`；只有 `onPause` 才释放相机。
-- 外部前提：CameraX（`camera-core`、`camera-camera2`、`camera-lifecycle`、`camera-view`）版本随 ADR-V5-15（待定） 锁定。
+- 外部前提：CameraX（`camera-core`、`camera-camera2`、`camera-lifecycle`、`camera-view`）版本随 ADR-V5-15 锁定。
 
 **验收标准**
 - [R31] 手动：拍照 → 裁剪 → 增强 → 识别 → 校正 → 保存全流程通过；照片未出现在系统相册；照片 EXIF 中无 GPS 字段。
@@ -851,7 +851,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 - 签名密钥只来自 CI 受保护环境变量，脚本把 .jks 解码到临时目录并在退出时删除；仓库中不得出现 keystore 文件与口令（`.gitignore` 含 `*.jks`、`key.properties`）。Google Play 使用 Play App Signing 时，本密钥为上传密钥。
 - AAB 与 APK 必须由同一次 `build_release.sh`、同一提交、同一 `--dart-define` 产出。
 - R8 规则保留 Flutter 引擎与各 MethodChannel 处理类；JNI 不需要保留规则（核心库经 `dart:ffi` 加载，不经 JNI）。
-- 外部前提：Android SDK build-tools（`apksigner`、`zipalign`，版本 ≥ 35 以支持 `-P 16`）、`bundletool`、NDK 的 `llvm-readelf`；版本写入 `app/android/toolchain.versions`（ADR-V5-15（待定））。
+- 外部前提：Android SDK build-tools（`apksigner`、`zipalign`，版本 ≥ 35 以支持 `-P 16`）、`bundletool`、NDK 的 `llvm-readelf`；版本写入 `app/android/toolchain.versions`（ADR-V5-15）。
 
 **验收标准**
 - [R01] 在 CI 发布作业中 `build_release.sh` → `check_artifacts.py` → `archive_symbols.sh` 全部退出 0；用 bundletool 从 AAB 生成的设备 APK 与官网 APK 在同一真机上运行 AND-01 冒烟（显示 ABI 版本）结果一致。
@@ -911,7 +911,7 @@ app/integration_test/android/
 - 只用 Profile 或 Release 构建测量；每项至少 20 次采样，报告 P50 与 P95；预算比较按 P95。
 - 不达标项须在发布前由对应卡修复，或在附录 A 记录豁免（含原因与期限）后才可签字发布。
 - 测试不依赖网络（云识别与资源包下载不在本卡测量），飞行模式下可运行。
-- 外部前提：真机矩阵设备由甲方或开发团队提供（附录 D 记录到位情况）；`adb`、Flutter SDK 版本随 ADR-V5-15（待定） 锁定。
+- 外部前提：真机矩阵设备由甲方或开发团队提供（附录 D 记录到位情况）；`adb`、Flutter SDK 版本随 ADR-V5-15 锁定。
 
 **验收标准**
 - [R03] 4 GB 中端机上 `run_matrix.sh` 全部项 P95 达标并生成 `out/report.md`；人为把某预算改小 1 ms 时脚本退出 1 并标出该项。

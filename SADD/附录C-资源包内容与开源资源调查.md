@@ -239,3 +239,7 @@
 | S32 | [App Store：不背单词](https://apps.apple.com/cn/app/id698570469)、[Microsoft Store：不背单词](https://apps.microsoft.com/detail/xpdnhn2q35g07w)、[少数派评测（2024）](https://sspai.com/post/87587)、[少数派评测（2023）](https://sspai.com/post/76700) | 对标机制的公开描述；不同版本之间有差异，对标以功能为准，不以具体次数为准 |
 
 引用范围限于上表实际读取的内容。Windows 维护支持、商店 target SDK 与原生库页对齐规则、供应商保留政策、考试大纲与 CODATA 常数版本是上线前需要再次核实的动态事项，本文不宣称已完成当期规则审查。
+
+### C.5.1 M-MODEL 非编码交付里程碑
+
+负责人为项目需求负责人指定的模型/数据负责人（尚未实名指定）；截止门槛为首个真实本地模型对外开放前，未指派或许可未确认不得发布。负责逐项获取 HME100K/CROHME 的书面条款，组织自采同意与合成字体许可、冻结按书写者隔离的 ≥200 条评测集和哈希、定案 ADR-V5-13，提供模型卡与完整 provenance。模型安装后 ExpRate 与包内 benchmark.exp_rate 相差不超过 2 个百分点，真实性能满足 CORE-01 本地模型两行预算；结果写附录 A §A.6。CORE-35 编码只验收项目自有 Fake 夹具，不能把 Fake 结果计入真实识别率。此项是外部前提，不缩减 R06/R07/R29 的 V1 范围。
