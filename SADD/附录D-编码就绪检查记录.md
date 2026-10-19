@@ -131,14 +131,14 @@
 ## D.7 v5.2 界面设计修订（2026-10-19）
 
 - 范围：新增 CORE-55、AND-13、WIN-15，联动修订界面卡与平台卡；检查方法同 D.1，依赖方向规则改为“无环且依赖卡阶段不晚于本卡”（README §8.5 b、01 §1）。
-- 结果：81 张卡，机械检查 0 项问题；新增 3 张卡均为“新增”，受影响卡均为“已修订”，无待确认阻塞（Q21–Q30 按暂行默认值撰写）。
+- 结果：81 张卡，机械检查 0 项问题；新增 3 张卡均为“新增”，受影响卡均为“已修订”，无待确认阻塞（Q21–Q30 已于 2026-10-19 按暂行默认确认）。
 - 本表晚于 D.4～D.6；同一张卡两处都有记录时以本表为准（如 WIN-08 的全局导航键位已改为 Ctrl+1 学习、Ctrl+2 公式库、Ctrl+3 识别、Ctrl+4 设置）。
 
 | 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
 | --- | --- | --- | --- | --- |
-| CORE-55 | 界面设计系统与主题 | 新增 | 设计原则 P1～P6（对应甲方要求 1～4 与 R42.a～f）；令牌与 ThemeExtension；5 套原创预设主题色浅/深色值与 WCAG AA 对比度表（脚本验证全部通过）；固定语义色；外观偏好 appearance.v1 按设备保存；InputModality 与密度；宽度分档、矮高度与设备尺寸表（含平板最短边 ≥ 600 dp、Windows 最小 600×500）；核心组件；关键页面分档布局；流畅性规则；无障碍；AND-13、WIN-15 需实现/登记的接缝清单；平台无关命令接缝 FmlCommandScope / FmlCommands 与可选 ShortcutLabelSource（ShortcutHint、AnswerOption 按命令 ID 显示键位） | 界面性能预算数值按 ADR-V5-25（待定）M0 实测定案；产品取舍按 README §6 Q21–Q24、Q27 暂行默认值撰写 |
+| CORE-55 | 界面设计系统与主题 | 新增 | 设计原则 P1～P6（对应甲方要求 1～4 与 R42.a～f）；令牌与 ThemeExtension；5 套原创预设主题色浅/深色值与 WCAG AA 对比度表（脚本验证全部通过）；固定语义色；外观偏好 appearance.v1 按设备保存；InputModality 与密度；宽度分档、矮高度与设备尺寸表（含平板最短边 ≥ 600 dp、Windows 最小 600×500）；核心组件；关键页面分档布局；流畅性规则；无障碍；AND-13、WIN-15 需实现/登记的接缝清单；平台无关命令接缝 FmlCommandScope / FmlCommands 与可选 ShortcutLabelSource（ShortcutHint、AnswerOption 按命令 ID 显示键位） | 界面性能预算数值按 ADR-V5-25（待定）M0 实测定案；产品取舍见 README §6 Q21–Q24、Q27（已按默认确认） |
 | CORE-01 | 仓库骨架与工程约定 | 已修订 | 全局资源预算表新增界面性能 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换），口径不变（ADR-V5-25） | ADR-V5-25 待定，M0 真机实测后定案（AND-12、WIN-13 已加测这 5 行） |
-| CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订 | 主题移交 CORE-55，只留接入；主导航顺序改为学习、公式库、识别、设置，落地 /study；installDesign 列为第一个安装点；mainCommon 先加载外观偏好；依赖加 CORE-55；新增 R42.a/e 验收 | 产品取舍按 README §6 Q21、Q26 暂行默认值撰写 |
+| CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订 | 主题移交 CORE-55，只留接入；主导航顺序改为学习、公式库、识别、设置，落地 /study；installDesign 列为第一个安装点；mainCommon 先加载外观偏好；依赖加 CORE-55；新增 R42.a/e 验收 | 产品取舍见 README §6 Q21、Q26（已按默认确认） |
 | CORE-37 | 公式渲染组件与编辑器 | 已修订 | 依赖加 CORE-55；控件密度、公式颜色取令牌；defaultEditorMode 为平台判断唯一例外（Q13）；新增 R42.d 验收 | — |
 | CORE-38 | 公式库界面 | 已修订 | 依赖加 CORE-55；expanded 下 TwoPane 列表与详情并排；骨架屏；新增 R42.e 验收 | — |
 | CORE-39 | 学习会话界面 | 已修订 | 依赖加 CORE-55；作答选项、判定条、单主按钮、触感接缝；新增 R42.a/b/c/e 验收；学习命令 ID 表 StudyCommands（study.primary、option1～4、rateKnew/rateForgot、skip、pause、appeal、prevQuestion/nextQuestion），各状态以 FmlCommandScope 声明，新增 R42.b 命令验收 | — |
@@ -151,7 +151,7 @@
 | CORE-52 | 公式复制格式与富格式导出 | 已修订 | 依赖加 CORE-55；界面元素用 CORE-55 组件 | — |
 | CORE-53 | LaTeX 命令补全 | 已修订 | 依赖加 CORE-55；弹层表面、阴影与行高取令牌 | — |
 | CORE-54 | 公式库批量选择与批量操作 | 已修订 | 依赖加 CORE-55；长按增加可见“选择”按钮等价；撤销提示条用 showFmlToast；新增 R42.b 验收 | — |
-| AND-13 | Android 触摸交互与横竖屏适配 | 新增 | 实现 CORE-55 接缝：InputModalitySource 恒 touch、UiFeedbackSink 触感（performHapticFeedback，应用内 haptics 开关与系统触摸振动设置同时为开才触发，同 kind 80 ms 节流，触感映射表含 API 26～29 降级）、MotionScaleSource（ANIMATOR_DURATION_SCALE 与变化监听）；不登记 DevicePrefStore（用默认 FileDevicePrefStore，位于 noBackupFilesDir 排除备份）；AndroidSystemBars 订阅 resolvedChanges 统一系统栏与 edge-to-edge；MainActivity 窗口属性表（不锁方向、resizeableActivity、configChanges 含 uiMode/fontScale、adjustResize、预测性返回）为唯一定义；启动主题、shortEdges 挖孔模式、内边距与软键盘表、系统返回对照表（均有可见按钮等价）、屏幕方向表；旋转与分屏不重建、清单外变化走 AND-05 恢复；依赖 CORE-01、02、04、36、55，AND-01、02、05，阶段 S2，约 380 行 | 横屏时输入法不进入全屏提取界面为外部前提（M0 核实）；产品取舍按 README §6 Q22、Q25～Q27 暂行默认值撰写 |
+| AND-13 | Android 触摸交互与横竖屏适配 | 新增 | 实现 CORE-55 接缝：InputModalitySource 恒 touch、UiFeedbackSink 触感（performHapticFeedback，应用内 haptics 开关与系统触摸振动设置同时为开才触发，同 kind 80 ms 节流，触感映射表含 API 26～29 降级）、MotionScaleSource（ANIMATOR_DURATION_SCALE 与变化监听）；不登记 DevicePrefStore（用默认 FileDevicePrefStore，位于 noBackupFilesDir 排除备份）；AndroidSystemBars 订阅 resolvedChanges 统一系统栏与 edge-to-edge；MainActivity 窗口属性表（不锁方向、resizeableActivity、configChanges 含 uiMode/fontScale、adjustResize、预测性返回）为唯一定义；启动主题、shortEdges 挖孔模式、内边距与软键盘表、系统返回对照表（均有可见按钮等价）、屏幕方向表；旋转与分屏不重建、清单外变化走 AND-05 恢复；依赖 CORE-01、02、04、36、55，AND-01、02、05，阶段 S2，约 380 行 | 横屏时输入法不进入全屏提取界面为外部前提（M0 核实）；产品取舍见 README §6 Q22、Q25～Q27（已按默认确认） |
 | AND-02 | 权限与清单 | 已修订 | 范围加入 AND-13 窗口属性的写入与审计；清单固定项加窗口属性（不声明 screenOrientation、resizeableActivity=true、configChanges 与 AND-13 一致，CameraActivity 同样不锁方向）；审计脚本增加窗口属性违规检查；新增 R42.e 验收；规模 230 → 245 行 | — |
 | AND-04 | 相机 | 已修订 | CameraActivity 由“竖屏锁定”改为跟随系统旋转（Q17）：旋转不重建不重绑相机，PreviewView 自动校正，OrientationEventListener 设 targetRotation（锁定竖屏横持拍摄仍正立，只写 EXIF 由 CORE-30 修正），快门竖屏在底部、横屏在右侧，触控目标 ≥ 48 dp；新增 R42.e 验收；规模 400 → 420 行 | — |
 | AND-05 | 生命周期、进程恢复与运行时信息 | 已修订 | 系统栏、edge-to-edge 与启动主题移交 AND-13（原“由共享主题调用 setSystemUIOverlayStyle”删除）；configChanges 改为引用 AND-13 属性表；写明与 AND-13 的两条状态保持路径衔接；新增“不保留活动”重建回原路由的 R42.e 验收 | — |
