@@ -184,7 +184,7 @@ PlatformPorts buildAndroidPorts();
 app/android/
   settings.gradle、build.gradle、app/build.gradle    Android Gradle 工程（Kotlin DSL 或 Groovy 由 M0 定，全工程统一）
   app/src/main/kotlin/.../MainActivity.kt            FlutterActivity 子类；本卡只注册 MethodChannel 前缀 "fml/android/"，各平台卡在其下建自己的通道
-  toolchain.versions                                 ndk=、rust=、cargo-ndk=、gradle=、agp=、kotlin=、flutter= 的锁定版本（每行 key=value）
+  toolchain.versions                                 ndk=、cargo-ndk=、gradle=、agp=、kotlin=、camerax=、biometric= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
 Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
   cargo ndk -t arm64-v8a [-t armeabi-v7a] [-t x86_64（仅 debug）] -o app/src/main/jniLibs build -p fml-ffi [--release]
   cargo 退出码非 0 → Gradle 构建失败并原样输出 cargo 错误
@@ -207,7 +207,7 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 - 原生库按 16 KB 内存页对齐（NDK r27 及以上默认；更早版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
 - Release 构建开启 R8，`proguard-rules.pro` 保留 Flutter 与各 MethodChannel 处理类；`.so` 去除调试符号，符号文件另行归档（AND-11）。
 - 构建可复现：`toolchain.versions` 中的版本即 CI 使用的版本；Rust 构建设置 `--remap-path-prefix` 与固定 `SOURCE_DATE_EPOCH`。
-- 外部前提：Android SDK、NDK、cargo-ndk、Flutter SDK 的具体版本随 ADR-V5-15 在 M0 锁定；调试真机至少一台 arm64 设备。
+- 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX、androidx.biometric 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
 
 **验收标准**
 - [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
@@ -1091,7 +1091,7 @@ f. 屏幕方向与窗口变化
 - 每个手势操作都有可见按钮等价（返回见上表 e；长按、滑动的等价按钮由各共享卡提供），本卡真机验收逐项核对。
 - 性能：通道调用不阻塞 UI 线程；触感不等待结果；系统栏只在样式变化时调用。相关预算为 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，由 AND-12 测量。
 - 应用内预测性返回的跟手预览转场 V1 不做：应用内页面转场仍用 CORE-55 的页面转场，只启用系统级（回到桌面、跨应用）预测性返回动画（见 README §6 Q25）。
-- 外部前提：横屏下输入法不进入全屏提取编辑界面依赖 Flutter 引擎为文本输入设置 `IME_FLAG_NO_EXTRACT_UI`，在 M0 锁定 Flutter 版本（ADR-V5-15）后核实；未生效时由本卡在 MainActivity 侧补设。
+- 外部前提：横屏下输入法不进入全屏提取编辑界面依赖 Flutter 引擎为文本输入设置 `IME_FLAG_NO_EXTRACT_UI`，在 CORE-01 写入 `app/.flutter-version`（ADR-V5-15）后核实；未生效时由本卡在 MainActivity 侧补设。
 - 产品取舍（2026-10-19 甲方确认）：高对比度跟随系统见 README §6 Q22、应用内预测性返回预览 Q25、主导航根页的系统返回 Q26、横屏主操作所在侧 Q27。
 
 **验收标准**
