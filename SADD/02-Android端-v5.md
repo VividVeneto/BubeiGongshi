@@ -1,6 +1,6 @@
 # 02 Android 端 v5
 
-> 版本：v5.1 ｜ 修订日期：2026-10-19 ｜ 适用范围：Android 手机与平板（minSdk 26，即 Android 8.0 及以上）。
+> 版本：v5.2 ｜ 修订日期：2026-10-19 ｜ 适用范围：Android 手机与平板（minSdk 26，即 Android 8.0 及以上）。
 > 关联文档：[README](README.md)（需求基线与追踪总表）、[01 公共核心](01-公共核心-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A 架构决策与评审记录](附录A-架构决策与评审记录.md)。
 > 契约归属：本文只定义 Android 专属模块。公共契约（端口接口、FFI、DTO、错误码、表结构、服务端 API）只在 01 中定义；本文引用时写“CORE-xx §章节”，并内联实现时要调用的关键签名，不重新定义。
 
@@ -10,7 +10,7 @@
 
 Android 端的职责边界：
 
-- 只实现 CORE-04 §4 定义的平台端口，以及工程、清单、打包、生命周期等 Android 专属事务。
+- 只实现 CORE-04 §4 定义的平台端口、共享卡预留的平台接缝（CORE-37、CORE-40、CORE-55 等，经 `platformInstallers` 登记），以及工程、清单、打包、生命周期、触摸交互与屏幕适配等 Android 专属事务。
 - 不得在 Kotlin/Java 或 Android 专属 Dart 代码中实现公式解析、量纲与单位、排版、判分、FSRS、同步合并、资源包验签或识别后处理；这些只调用 Rust 核心（经 CORE-03 §4 的 `CoreBinding`）。
 - Android 专属 Dart 代码放在 `app/lib/platform/android/`，原生代码放在 `app/android/`；共享界面 `app/lib/ui/` 中不得出现 `Platform.isAndroid` 分支，差异通过端口或 `RuntimeInfo` 注入。
 
@@ -31,6 +31,7 @@ graph TD
   A09["AND-09 网络传输"]
   A11["AND-11 打包、签名与发布"]
   A12["AND-12 性能、能耗与真机矩阵"]
+  A13["AND-13 Android 触摸交互与横竖屏适配"]
   C03["CORE-03 C ABI 与 Dart 绑定"]
   C04["CORE-04 平台端口契约"]
   C13["CORE-13 本地库"]
@@ -41,6 +42,7 @@ graph TD
   C40["CORE-40 识别界面"]
   C42["CORE-42 发布流水线"]
   C52["CORE-52 复制格式导出"]
+  C55["CORE-55 界面设计系统与主题"]
   A01 --> C03
   A01 --> C04
   A02 --> A01
@@ -66,6 +68,10 @@ graph TD
   A12 --> A03
   A12 --> A09
   A12 --> A11
+  A12 --> A13
+  A13 --> A02
+  A13 --> A05
+  A13 --> C55
 ```
 
 ## 2. 建议实施顺序
@@ -75,7 +81,7 @@ graph TD
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
 | S0 骨架 | AND-01 | 空壳应用在真机启动，经 C ABI 显示 `fml_abi_version` |
-| S2 本地库与账户入口 | AND-02、AND-05、AND-06、AND-09 | 清单权限最小化；加密库落盘、平台密钥包装可用；进程被杀后恢复到原页面；注册与登录走真实网络传输 |
+| S2 本地库与账户入口 | AND-02、AND-05、AND-06、AND-09、AND-13 | 清单权限最小化；加密库落盘、平台密钥包装可用；进程被杀后恢复到原页面；注册与登录走真实网络传输；手机与平板横竖屏跟随系统旋转，旋转与分屏不丢状态，触感、系统栏与动画缩放跟随设置 |
 | S4 内容与学习 | AND-08 | 每日复习提醒与提醒自检可用 |
 | S5 识别与云识别 | AND-03、AND-04、AND-07 | 相册/文件/相机导入、手写与编辑器适配（云识别与资源包下载由 CORE-34、CORE-51 经 AND-09 传输完成） |
 | S7 发布 | AND-11、AND-12 | AAB 与 APK 签名发布；真机性能与能耗矩阵达标 |
@@ -85,16 +91,17 @@ graph TD
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
 | AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、02、03、04 | 约 300 行 |
-| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、02、04，AND-01 | 约 230 行 |
+| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、02、04，AND-01 | 约 245 行 |
 | AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、02、04、52 | 约 500 行 |
-| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、02、04，AND-02 | 约 400 行 |
+| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、02、04，AND-02 | 约 420 行 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、02、04、36，AND-01 | 约 250 行 |
 | AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、02、04、13、21，AND-01 | 约 420 行 |
 | AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、02、04、37、40 | 约 220 行 |
 | AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、02、04、20，AND-02 | 约 380 行 |
 | AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、02、04 | 约 260 行 |
 | AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、02、42，AND-01、02 | 约 260 行 |
-| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、02，AND-03、04、07、08、09、11 | 约 420 行 |
+| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、02，AND-03、04、07、08、09、11、13 | 约 490 行 |
+| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、02、04、36、55，AND-01、02、05 | 约 380 行 |
 
 > AND-10（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载与管理并入 CORE-51，存储紧张时的识别历史清理并入 CORE-50（两端共用同一 Dart 实现）。编号不复用；理由见附录 D。
 
@@ -115,6 +122,16 @@ CORE-04 §4 的每个端口（共 12 个）在 Android 上由下表的卡实现�
 | `AppLifecycle`、`RuntimeInfo` | Flutter 生命周期 + `onTrimMemory` + ActivityManager | AND-05 |
 | `NotificationScheduler` | AlarmManager（非精确）/ WorkManager + NotificationManager | AND-08 |
 | `HttpTransport` | `dart:io` `HttpClient`（系统 CA、系统代理），由 CORE-28 `NetworkGuard` 包裹 | AND-09 |
+
+CORE-55 的界面接缝（不属于 CORE-04 端口，经 `platformInstallers` 登记；契约见 CORE-55 §接口契约）在 Android 上的实现：
+
+| 接缝（CORE-55） | Android 实现 | 卡片 |
+| --- | --- | --- |
+| `InputModalitySource` | 恒为 `touch`（外接鼠标与触控笔由共享根部 `Listener` 切换） | AND-13 |
+| `UiFeedbackSink` | `View.performHapticFeedback`（应用内开关与系统“触摸振动”设置同时为开才触发） | AND-13 |
+| `MotionScaleSource` | `Settings.Global.ANIMATOR_DURATION_SCALE` 及其变化 | AND-13 |
+| `DevicePrefStore` | 不登记，使用 CORE-55 默认 `FileDevicePrefStore`（位于 AND-06 `noBackupFilesDir`，排除备份） | — |
+| `AppearanceController.resolvedChanges`（订阅方） | 系统栏图标明暗与 edge-to-edge（`AndroidSystemBars`） | AND-13 |
 
 ---
 
@@ -195,8 +212,8 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 **目标**：把 Android 权限压到最少，按需请求，拒绝后功能可降级使用，并在构建时审计合并后的清单。
 
 **范围**
-- 包含：`AndroidManifest.xml` 声明；运行时权限请求封装（Dart 接口 + Kotlin 通道）；拒绝与“不再询问”后的引导；合并清单审计脚本；备份规则文件的引用（规则内容由 AND-06 定义）。
-- 不包含：各功能对权限的具体使用（AND-04 相机、AND-08 通知）。
+- 包含：`AndroidManifest.xml` 声明；运行时权限请求封装（Dart 接口 + Kotlin 通道）；拒绝与“不再询问”后的引导；合并清单审计脚本（含 AND-13 窗口属性的审计）；备份规则文件的引用（规则内容由 AND-06 定义）。
+- 不包含：各功能对权限的具体使用（AND-04 相机、AND-08 通知）；MainActivity 窗口属性的取值（AND-13 属性表 b，本卡只写入清单并审计）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、AND-01
 
@@ -222,7 +239,9 @@ MethodChannel "fml/android/permissions"（Kotlin 侧 PermissionsHandler.kt，挂
   request {perm} → 同上（用 ActivityResultContracts.RequestPermission；
                     拒绝且 shouldShowRequestPermissionRationale 为 false 且曾请求过 → permanently_denied）
   openSettings → null（Settings.ACTION_APPLICATION_DETAILS_SETTINGS）
-tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过；1 时逐行打印多出或缺少的权限
+tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过；1 时逐行打印多出或缺少的权限，
+  以及违反 AND-13 属性表 b 的 Activity 与属性（任一 Activity 声明 screenOrientation 或 resizeableActivity="false"；
+  MainActivity 的 configChanges 集合、windowSoftInputMode 与表不符；application 未声明 enableOnBackInvokedCallback="true"）
 ```
 
 允许声明的权限只有：
@@ -235,6 +254,7 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 
 - 错误码：调用方在 `denied/permanentlyDenied` 时由端口抛 `PLATFORM_PERMISSION_DENIED`（CORE-04 登记），本卡不新增错误码。
 - 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器、AND-03 的剪贴板 `FileProvider` 均为 `exported="false"`）。
+- 窗口属性：MainActivity 按 AND-13 属性表 b 声明（不声明 `android:screenOrientation`，跟随系统旋转，README §6 Q17；`resizeableActivity="true"`；`configChanges`、`windowSoftInputMode` 与表一致）；AND-04 的 CameraActivity 同样不声明 `screenOrientation`。
 
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
@@ -245,20 +265,21 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 
 **验收标准**
 - [R38] `check_android_manifest.py`：Release 构建的合并清单权限集合等于上表；在 `app/build.gradle` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
+- [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-13 属性表 b 声明时退出 0。
 - [R38] Widget 测试（假通道）：用户在用途说明中点“暂不”时不调用系统请求；`permanently_denied` 时返回 `permanentlyDenied` 且不再弹系统框。
 - [R31] 手动：拒绝相机权限后，“相册导入”与“文件导入”仍可用并能完成识别。
 - [R04] 手动：拒绝通知权限后学习功能不受影响，提醒设置页显示“提醒未开启”。
 - [R01] 在无 GMS 的国产手机上完成首次启动、游客模式、学习与识别冒烟。
 
-**规模**：约 230 行；主包 `app/`（`AndroidManifest.xml`、`permissions.dart`、`PermissionsHandler.kt`，约 170 行），附属：`tools/ci/check_android_manifest.py`（约 60 行，供 CORE-41 的 CI 调用）。
+**规模**：约 245 行；主包 `app/`（`AndroidManifest.xml`、`permissions.dart`、`PermissionsHandler.kt`，约 175 行），附属：`tools/ci/check_android_manifest.py`（约 70 行，含窗口属性审计，供 CORE-41 的 CI 调用）。
 
 ### AND-05 生命周期、进程恢复与运行时信息
 
 **目标**：向共享层提供 Android 生命周期事件与运行时信息，并保证应用被系统回收后能经 Flutter 状态恢复回到原页面。
 
 **范围**
-- 包含：`AppLifecycle` 与 `RuntimeInfo` 端口实现；`onTrimMemory` 映射为 `lowMemory`；Activity 重建与 Flutter 状态恢复的平台配置；系统栏与深色模式跟随；窗口尺寸变化（平板、折叠屏、分屏）时不重建 Activity。
-- 不包含：收到事件后的业务反应（CORE-46 在 `resumed` 时同步、CORE-40 在 `paused/lowMemory` 时卸载模型、CORE-37 草稿去抖、CORE-19 学习游标）；路由恢复的共享配置（CORE-36 `restorationScopeId`）；双栏布局（共享界面卡）。
+- 包含：`AppLifecycle` 与 `RuntimeInfo` 端口实现；`onTrimMemory` 映射为 `lowMemory`；Activity 重建与 Flutter 状态恢复的平台配置；配置变化（旋转、平板、折叠屏、分屏、深色、字号）时不重建 Activity 的生命周期衔接（清单属性见 AND-13 属性表 b）。
+- 不包含：收到事件后的业务反应（CORE-46 在 `resumed` 时同步、CORE-40 在 `paused/lowMemory` 时卸载模型、CORE-37 草稿去抖、CORE-19 学习游标）；路由恢复的共享配置（CORE-36 `restorationScopeId`）；双栏布局（共享界面卡）；系统栏、edge-to-edge、启动主题与跟随系统字号、深色、动画缩放的界面处理（AND-13）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、AND-01
 
@@ -292,8 +313,8 @@ EventChannel  "fml/android/lifecycle"   Kotlin MainActivity.onTrimMemory(level) 
 MethodChannel "fml/android/runtime"     snapshot → {api_level: int, locale: "zh-CN", avail_mem: int, density: double, abi: string, gpu: bool}
   映射：os='android'；osVersion=api_level 的十进制字符串；availMemBytes=ActivityManager.MemoryInfo.availMem；
         dpiScale=density（DisplayMetrics.density，1.0=160 dpi）；abi=Build.SUPPORTED_ABIS[0]；gpuAvailable=false（V1 不探测）
-AndroidManifest 中 MainActivity：android:configChanges 含 orientation|screenSize|smallestScreenSize|screenLayout|density|keyboardHidden；
-  android:enableOnBackInvokedCallback="true"（预测性返回）
+AndroidManifest 中 MainActivity 的 configChanges、resizeableActivity、windowSoftInputMode 与 enableOnBackInvokedCallback
+  以 AND-13 属性表 b 为唯一定义，本卡不另列取值
 ```
 
 - 本卡不新增错误码；通道调用失败时 `snapshot()` 返回 `availMemBytes=0`、`gpuAvailable=false` 的保底值，不抛异常。
@@ -302,13 +323,15 @@ AndroidManifest 中 MainActivity：android:configChanges 含 orientation|screenS
 - 不使用常驻服务和前台服务；后台不做周期性网络轮询。
 - `lowMemory` 只发事件，不在平台层释放任何东西；各模块自行监听释放缓存，不得丢弃未保存草稿。
 - 进程被回收后的恢复只依赖 Flutter 状态恢复（CORE-36 已设 `restorationScopeId`）；本卡不额外持久化路由，不写用户内容。
-- 系统栏颜色与图标明暗随主题切换（`SystemChrome.setSystemUIOverlayStyle` 由共享主题调用，平台侧只在 `styles.xml` 中设置启动主题与 edge-to-edge）。
+- 系统栏、edge-to-edge 与启动主题由 AND-13 统一实现（`AndroidSystemBars` 订阅 CORE-55 `AppearanceController.resolvedChanges`，`styles.xml` 定义启动主题）；本卡与共享界面不调用 `SystemChrome.setSystemUIOverlayStyle`。
+- 与 AND-13 的衔接：AND-13 `configChanges` 列出的变化不重建 Activity，Flutter `State` 原样保留，本卡不发额外事件；清单外的配置变化、“不保留活动”与后台回收导致 Activity 或进程重建时，走本卡的 Flutter 状态恢复回到原路由。
 
 **验收标准**
 - [R27] 集成测试（`integration_test/android/lifecycle_test.dart`）：在 `/library` 路由下用 `adb shell am kill <package>` 杀进程（应用在后台），重新打开后回到 `/library`。
 - [R03] `adb shell am send-trim-memory <package> RUNNING_LOW` 后 `events()` 收到一次 `lowMemory`，10 s 内重复发送不再收到；应用不崩溃。
 - [R01] CORE-04 的 `AppLifecycle` 与 `RuntimeInfo` 契约套件在真机通过；`snapshot()` 的 `osVersion` 等于 `Build.VERSION.SDK_INT`，`abi` 为 `arm64-v8a`。
-- [R08] 平板横竖屏切换、折叠屏展开/折叠与分屏调整时 Activity 不重建（Kotlin 侧 `onCreate` 计数不变），当前路由保持。
+- [R08][R42.e] 手机与平板横竖屏切换、折叠屏展开/折叠与分屏调整时 Activity 不重建（Kotlin 侧 `onCreate` 计数不变），当前路由保持。
+- [R42.e] 开发者选项“不保留活动”开启后，在 `/library` 切到后台再返回，Activity 重建（`onCreate` 计数加 1）且回到 `/library`。
 
 **规模**：约 250 行；`app/lib/platform/android/lifecycle/` 与 MainActivity 中的通道代码（同属 `app/` 构建单元）。
 
@@ -521,7 +544,7 @@ final class AndroidCameraController implements CameraController {
 ```text
 MethodChannel "fml/android/camera"（CameraBridge.kt）
   capture → {name, mime: "image/jpeg", size, tmp_path} 或 null
-            启动 CameraActivity（全屏，竖屏锁定）；拍照写入 cacheDir/tmp-import/<UUID>.jpg（CameraX ImageCapture，JPEG 质量 95，
+            启动 CameraActivity（全屏，跟随系统旋转，方向处理见下）；拍照写入 cacheDir/tmp-import/<UUID>.jpg（CameraX ImageCapture，JPEG 质量 95，
             写入时去除 GPS 等 EXIF，只保留方向）；用户返回或取消 → null；相机被占用或不存在 → 抛 PLATFORM_UNSUPPORTED
 实时提示（CameraActivity 内，ImageAnalysis 640×480 YUV，后台线程，每秒 ≤ 10 次）：
   清晰度 = Y 平面拉普拉斯方差，< 阈值 → “请对焦或保持稳定”
@@ -530,6 +553,16 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 阈值写在 CameraBridge.kt 常量中，AND-12 真机标定后可调
 ```
 
+方向处理（README §6 Q17；不再锁定竖屏）：
+
+| 项 | 规则 |
+| --- | --- |
+| 清单 | CameraActivity 不声明 `screenOrientation`；`configChanges="orientation\|screenSize\|smallestScreenSize\|screenLayout"`，旋转与分屏时不重建、不重新绑定相机（避免取景黑屏） |
+| 预览 | CameraX `PreviewView`（`FILL_CENTER`）随显示旋转自动校正方向与缩放 |
+| 成像方向 | `OrientationEventListener` 按设备物理方向（以 45° 为界取 0/90/180/270）设置 `ImageCapture.targetRotation`；系统锁定竖屏时横持拍摄，照片仍按横向正立记录 |
+| 方向写入方式 | 只写 EXIF Orientation，不旋转像素；由 CORE-30 解码时按 EXIF 修正方向 |
+| 界面 | 竖屏时快门与返回在底部，横屏时在右侧（`layout-land`）；快门直径不小于 64 dp，其他按钮不小于 48 dp；提示文字随显示方向 |
+
 - 错误码：`PLATFORM_PERMISSION_DENIED`、`PLATFORM_UNSUPPORTED`（CORE-04 登记）；本卡不新增错误码。
 
 **实现约束**
@@ -537,6 +570,7 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - 照片不写相册、不写 MediaStore；临时副本的过期与清理规则同 AND-03（`ImportedImage` 1 h）。
 - CameraActivity 进入 `onPause`（Home、来电、分屏失焦）时立即解绑全部用例并释放相机；返回后重新绑定。
 - 相机不可用时由调用方（CORE-40）提示并提供相册导入入口。
+- 旋转时不调用 `unbindAll`；只有 `onPause` 才释放相机。
 - 外部前提：CameraX（`camera-core`、`camera-camera2`、`camera-lifecycle`、`camera-view`）版本随 ADR-V5-15（待定） 锁定。
 
 **验收标准**
@@ -544,8 +578,10 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - [R32] 取景时遮挡光线、晃动或倾斜手机，提示依次出现“光线太暗”“请对焦或保持稳定”“请把手机放平”。
 - [R03] 取景中按 Home 键，`adb shell dumpsys media.camera` 显示相机已释放；返回后可继续拍摄。
 - [R31] 拒绝相机权限后 `capture()` 抛 `PLATFORM_PERMISSION_DENIED`，应用不崩溃。
+- [R42.e] 单元测试：设备方向角 0°、44°、46°、135°、225°、315° 分别映射为 `ROTATION_0`、`ROTATION_0`、`ROTATION_270`、`ROTATION_180`、`ROTATION_90`、`ROTATION_0`。
+- [R42.e] 手动（手机与平板）：自动旋转开启时取景中旋转设备，预览不黑屏、不重新打开相机，快门位置随方向变化；系统锁定竖屏时横持拍摄，照片在裁剪页正立显示。
 
-**规模**：约 400 行；`app/lib/platform/android/camera/` 与 `app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt`（同属 `app/` 构建单元）。
+**规模**：约 420 行；`app/lib/platform/android/camera/` 与 `app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt`（同属 `app/` 构建单元）。
 
 ### AND-07 手写与编辑器的 Android 适配
 
@@ -593,7 +629,7 @@ final class AndroidEditorBindings implements EditorPlatformBindings {
   // handleKey：委托 const DefaultEditorBindings()（外接键盘与平板键盘）
   // accessoryBar：MediaQuery.viewInsetsOf(context).bottom > 0（软键盘显示）时返回 TemplateBar，否则 null
 }
-// TemplateBar：高 44 dp、横向可滚动的一行按钮，顺序固定：
+// TemplateBar：高 48 dp（CORE-55 触摸密度最小触控目标）、横向可滚动的一行按钮，顺序固定：
 //   分式 fraction、上标 superscript、下标 subscript、根号 sqrt、括号 parentheses、积分 integral、求和 sum、
 //   极限 limit、下一空位（CursorMove.nextHole）、收起键盘
 //   模板按钮调用 controller.insertTemplate(TemplateId.<名>)；按钮文字与无障碍标签来自 app/lib/platform/android/editing/strings.dart
@@ -611,7 +647,8 @@ void installAndroidEditing(CompositionContext ctx) {
 **实现约束**
 - 只读 Flutter `PointerEvent` 字段（`kind`、`pressure`、`pressureMin/Max`、`radiusMajor`、`buttons`），不新增 MethodChannel，不写 Kotlin。
 - 手掌判定阈值 `palmRadiusPx` 为常量默认值，AND-12 真机矩阵标定后可调整；V1 不提供“仅触控笔”开关（出现触控笔后自动忽略手指，清空画布后恢复）。
-- 快捷栏不遮挡输入：其高度计入 `FormulaEditor` 布局，不使用 Overlay；横竖屏切换后随 `viewInsets` 重新判断。
+- 快捷栏不遮挡输入：其高度计入 `FormulaEditor` 布局，不使用 Overlay；横竖屏切换后随 `viewInsets` 重新判断；横屏（矮高度）时仍为单行并紧贴键盘上方（内边距与软键盘避让见 AND-13 表 d）。
+- 触控笔悬停与书写时由 CORE-55 `InputModalityScope` 按 `PointerDeviceKind.stylus` 切换输入方式，本卡不另行登记（AND-13 只登记 `touch`）；画布不设系统手势排除区，从屏幕左右边缘手势区起笔交给系统返回，已写笔画由 CORE-40 保留。
 - 墨迹上屏延迟预算见 CORE-01 预算表“手写墨迹上屏”（Android ≤ 50 ms），由 AND-12 测量。
 
 **验收标准**
@@ -619,6 +656,8 @@ void installAndroidEditing(CompositionContext ctx) {
 - [R06] 手动（触控笔平板）：用笔书写时手掌压在屏幕上不留笔迹；只用手指的手机上可正常书写；笔尾橡皮擦删除整笔。
 - [R08] Widget 测试：模拟 `viewInsets.bottom = 300` 时 `FormulaEditor` 下方出现快捷栏，点“分式”后源码为 `\frac{\fmlhole}{\fmlhole}`，点“下一空位”后选区移到第二个空位；`viewInsets.bottom = 0` 时无快捷栏。
 - [R08] 手动：软键盘弹出时公式区与快捷栏均可见，不被键盘遮挡。
+- [R42.b] Widget 测试：`TemplateBar` 每个按钮的命中区不小于 48×48 dp。
+- [R42.e] 手动：手机横屏弹出软键盘时公式区、快捷栏与主按钮均可见；横竖屏切换后快捷栏仍在键盘上方，已输入内容不丢。
 
 **规模**：约 220 行；`app/lib/platform/android/editing/`。
 
@@ -827,10 +866,10 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 **目标**：在真机矩阵上测量 Android 性能、内存与能耗预算，给出可重复执行的测量脚本、报告模板，以及需要真机才能完成的跨卡联测（进程恢复、导入大图）。
 
 **范围**
-- 包含：`app/integration_test/android/` 测量用集成测试；`tools/perf/android/` 矩阵运行与报告汇总脚本；真机矩阵定义；进程被杀后的草稿与会话恢复联测；跨端一致性抽查。
+- 包含：`app/integration_test/android/` 测量用集成测试；`tools/perf/android/` 矩阵运行与报告汇总脚本；真机矩阵定义（含手机与平板的横竖屏）；CORE-01 界面流畅性 5 行预算的测量；进程被杀后的草稿与会话恢复联测；跨端一致性抽查。
 - 不包含：各卡的功能正确性测试（各卡完成）；预算数值本身（CORE-01 预算表，本卡只引用）；修复不达标项（由对应卡修复）。
 
-**依赖**：CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11
+**依赖**：CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13
 
 **接口契约**
 
@@ -846,11 +885,16 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 | 单张图片预处理、连续导入 20 张 1200 万像素图片 | 图片预处理、连续 20 张 12 MP 图片 | `import_20_images_test.dart` |
 | 本地模型识别（模型已加载）、首次加载 | 本地模型识别、本地模型首次加载 | `local_model_test.dart`（无模型包时跳过并在报告注明） |
 | 常驻内存 | 常驻内存 | 各测试结束时采样 `dumpsys meminfo` |
+| 点击到按压态出现 | 点击到可见反馈（按压态出现） | `ui_feedback_latency_test.dart`（`PointerDownEvent` 时间戳到按压态首帧的 `FrameTiming`） |
+| 提交作答到判定条出现 | 作答到判定反馈（提交到判定条出现，含判分） | `verdict_latency_test.dart` |
+| 页面转场与会话内题目切换 | 转场与动效 | `transition_frames_test.dart`（转场期间的帧耗时与掉帧数） |
+| 横竖屏旋转、分屏与窗口尺寸变化 | 旋转与窗口尺寸变化（到新布局首帧） | `rotation_test.dart`（`didChangeMetrics` 到新布局首帧；关闭自动旋转后用 `adb shell settings put system user_rotation` 切换） |
+| 切换预设与外观模式 | 主题切换（预设或外观模式，到新主题首帧） | `theme_switch_test.dart` |
 
 ```text
 tools/perf/android/（本卡实现；退出码 0 全部达标 / 1 有不达标项 / 2 脚本错误）
   run_matrix.sh [--serial <id>]...   对每台已连接设备：flutter drive --profile 运行上表测试 20 次，结果写 out/<设备>/<测试>.json
-                                     JSON：{device, android_api, ram_gb, rom, metric, unit, samples[], p50, p95, budget, pass}
+                                     JSON：{device, android_api, ram_gb, rom, orientation, metric, unit, samples[], p50, p95, budget, pass}
   summarize.py out/ → out/report.md  按 report_template.md 汇总，每项 P50、P95、预算、是否达标
   energy_check.sh --minutes 30       运行“学习 + 识别”脚本后导出 batterystats，检查：无持有 > 60 s 的唤醒锁、后台无网络、无前台服务
   report_template.md                 设备、系统版本、RAM、ROM、各指标结果、手动验收清单（02 文档各卡的手动验收项逐条列出，签字栏）
@@ -859,7 +903,7 @@ app/integration_test/android/
   输出 engine.check 的 AST JSON、诊断码与 NodePath 到 out/consistency-android.json，由 WIN-13 的同名输出比对）
 ```
 
-真机矩阵（至少）：4 GB RAM 中端机、8 GB RAM 主流机、无 GMS 的国产 ROM（至少两家厂商）、Android 8 / Android 13 / 当年主流版本各一台、平板或折叠屏一台（带触控笔优先）、学习平板一台。
+真机矩阵（至少）：4 GB RAM 中端机、8 GB RAM 主流机、无 GMS 的国产 ROM（至少两家厂商）、Android 8 / Android 13 / 当年主流版本各一台、平板或折叠屏一台（带触控笔优先）、学习平板一台；其中至少一台手机与一台平板（最短边 ≥ 600 dp）分别在竖屏与横屏下运行上表全部测试，至少一台刘海或挖孔屏手机，手势导航与三键导航各至少一台。
 
 - 错误码：无。
 
@@ -875,6 +919,177 @@ app/integration_test/android/
 - [R03] `energy_check.sh` 在 30 分钟脚本后退出 0（无长唤醒锁、无后台网络、无前台服务）。
 - [R08][R04] `process_restore_test.dart`：编辑公式草稿与学习会话进行中执行 `adb shell am kill <包名>`（模拟后台回收），重新打开后回到原页面，草稿内容与会话进度保留。
 - [R01] `consistency_test.dart` 输出与 WIN-13 的 Windows 输出逐字节一致（AST JSON、诊断码、NodePath）。
+- [R42.c] 手机与平板在竖屏、横屏下，“点击到可见反馈（按压态出现）”“作答到判定反馈（提交到判定条出现，含判分）”“转场与动效”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”P95 均在 CORE-01 预算内，`report.md` 按设备与方向分列。
+- [R42.e] `rotation_test.dart` 在手机与平板上竖→横、横→竖各 20 次，旋转前后编辑草稿文本与列表滚动偏移不变。
 - [R41] `report_template.md` 逐项列出 02 文档全部手动验收项，矩阵中每台设备填写完成后作为 Android 发布签字依据。
 
-**规模**：约 420 行；主包 `app/integration_test/android/`（约 300 行），附属：`tools/perf/android/`（约 120 行，脚本与模板）。
+**规模**：约 490 行；主包 `app/integration_test/android/`（约 370 行），附属：`tools/perf/android/`（约 120 行，脚本与模板）。
+
+## 9. 触摸交互与屏幕适配
+
+### AND-13 Android 触摸交互与横竖屏适配
+
+**目标**：让共享界面在 Android 手机与平板上按触摸操作优化：经 CORE-55 接缝注入输入方式、触感与系统动画缩放；系统栏、刘海与软键盘为内容让位；横竖屏跟随系统旋转设置，旋转、分屏与窗口尺寸变化时界面状态不丢（README §6 Q17、Q18）。
+
+**范围**
+- 包含：CORE-55 接缝的 Android 实现（`AndroidInputModalitySource`、`AndroidHaptics`、`AndroidMotionScale`）；跟随 `AppearanceController.resolvedChanges` 的系统栏样式 `AndroidSystemBars`；安装点 `installAndroidInteraction` 及其在 `ports_android.dart` 中的登记行；MainActivity 窗口属性（屏幕方向、`configChanges`、可调整大小、软键盘模式、预测性返回）的唯一定义；启动主题、edge-to-edge 与 displayCutout 模式（`styles.xml`）；Kotlin 侧 `InteractionHandler.kt`（触感、动画缩放、窗口度量）；系统返回、内边距与屏幕方向的行为对照表及其真机验收。
+- 不包含：`DevicePrefStore`（使用 CORE-55 默认实现，见实现约束）；宽度分档、矮高度、密度、组件、动效时长与“减少动效”处理（CORE-55）；返回处理逻辑（CORE-36 路由与各页面 `PopScope`，本卡只给对照表并做真机验收）；生命周期与进程恢复（AND-05）；权限与清单审计脚本（AND-02，按本卡属性表审计）；相机界面的方向处理（AND-04）；软键盘快捷栏与触控笔策略（AND-07）；动态取色（ADR-V5-24 不做）。
+
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05
+
+**接口契约**
+
+实现的接缝（逐字摘录，定义见 CORE-55 §接口契约）：
+
+```dart
+abstract interface class InputModalitySource {
+  InputModality get initial; Stream<InputModality> get changes;
+}
+abstract interface class UiFeedbackSink { void emit(UiFeedbackKind kind); }
+abstract interface class MotionScaleSource { double get scale; Stream<double> get changes; }
+// 只读使用：AppearanceController 的 pref（AppearancePref.haptics）、resolved、resolvedChanges（ResolvedAppearance.brightness）
+```
+
+本卡实现：
+
+```dart
+// app/lib/platform/android/interaction/android_modality.dart
+final class AndroidInputModalitySource implements InputModalitySource {
+  const AndroidInputModalitySource();   // initial = InputModality.touch；changes 为空流
+                                        // 外接鼠标与触控笔由 CORE-55 InputModalityScope 根部 Listener 按 PointerDeviceKind 切换
+}
+// app/lib/platform/android/interaction/android_haptics.dart
+final class AndroidHaptics implements UiFeedbackSink {
+  AndroidHaptics(this.appearance, {this.minInterval = const Duration(milliseconds: 80)});
+  final AppearanceController appearance;
+  final Duration minInterval;            // 同一 kind 在 minInterval 内只触发一次
+  // emit：appearance.pref.haptics 为 false → 直接返回；否则调用通道 haptic {kind}，不等待结果、吞掉通道异常
+}
+// app/lib/platform/android/interaction/android_motion_scale.dart
+final class AndroidMotionScale implements MotionScaleSource {
+  AndroidMotionScale();                  // scale 初值 1.0
+  Future<void> start();                  // 读一次 animatorScale，再订阅事件流；值截到 0～10，与当前值不同才发出
+}
+// app/lib/platform/android/interaction/android_system_bars.dart
+final class AndroidSystemBars {
+  AndroidSystemBars(this.appearance, this.runtime);   // runtime：CORE-04 RuntimeInfo（取 API 级别）
+  final AppearanceController appearance;
+  final RuntimeInfo runtime;
+  Future<void> attach();   // setEnabledSystemUIMode(edgeToEdge)；首帧回调中按 appearance.resolved 设一次样式，并订阅 resolvedChanges
+}
+// app/lib/platform/android/interaction/install.dart
+void installAndroidInteraction(CompositionContext ctx);
+// 登记 InputModalitySource、UiFeedbackSink、MotionScaleSource；AppearanceController 用 ctx.features.require 取得；
+// 创建 AndroidSystemBars 并 attach、AndroidMotionScale.start（均不 await）；不登记 DevicePrefStore
+// ports_android.dart：向 platformInstallers 列表追加 installAndroidInteraction
+```
+
+```text
+MethodChannel "fml/android/interaction"（InteractionHandler.kt，挂在 MainActivity）
+  haptic {kind: "tap" | "selection" | "correct" | "wrong" | "warning"} → null
+        window.decorView.performHapticFeedback(下表常量)，不带 FLAG_IGNORE_GLOBAL_SETTING；不用 Vibrator，不申请 VIBRATE
+  animatorScale → double（Settings.Global.ANIMATOR_DURATION_SCALE；读取失败为 1.0）
+  windowMetrics → {smallest_width_dp, orientation: "portrait" | "landscape", in_multi_window: bool,
+                   cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button", create_count: int}
+                   只供集成测试与诊断使用，界面布局不读（布局只按 MediaQuery，CORE-55）
+EventChannel  "fml/android/interaction/events"
+  ContentObserver 监听 ANIMATOR_DURATION_SCALE → {"animatorScale": double}
+```
+
+a. 触感映射
+
+| UiFeedbackKind | 含义（CORE-55） | API 30 及以上 | API 26～29 |
+| --- | --- | --- | --- |
+| `tap` | 主按钮、作答选项按下 | `VIRTUAL_KEY` | `VIRTUAL_KEY` |
+| `selection` | 开关、分段选择、档位切换 | `CLOCK_TICK` | `CLOCK_TICK` |
+| `correct` | 判对 | `CONFIRM` | `VIRTUAL_KEY` |
+| `wrong` | 判错 | `REJECT` | `LONG_PRESS` |
+| `warning` | 破坏性操作确认、校验失败 | `LONG_PRESS` | `LONG_PRESS` |
+
+触发需同时满足两项：应用内“触感反馈”开关（`AppearancePref.haptics`，CORE-47 外观页，默认开）为开；系统“触摸振动”为开（由 `performHapticFeedback` 不带忽略标志自然保证）。
+
+b. MainActivity 窗口属性（唯一定义；AND-02 审计，AND-05 引用）
+
+| 属性 | 取值 | 理由 |
+| --- | --- | --- |
+| `android:screenOrientation` | 不声明（unspecified） | 跟随系统自动旋转与旋转锁定，手机与平板相同（Q17） |
+| `android:resizeableActivity` | `true` | 分屏、自由窗口、折叠屏 |
+| `android:configChanges` | `orientation\|keyboardHidden\|keyboard\|screenSize\|smallestScreenSize\|locale\|layoutDirection\|fontScale\|screenLayout\|density\|uiMode` | 与 Flutter 工程模板一致；旋转、尺寸、字号、深色变化由 Flutter 重排，不重建 Activity |
+| `android:windowSoftInputMode` | `adjustResize` | 软键盘高度经 `viewInsets` 交给 Flutter |
+| `android:enableOnBackInvokedCallback` | `true`（声明在 `<application>`，覆盖 Android 13） | 系统预测性返回 |
+| 不声明 | `<layout>` 最小宽高、`maxAspectRatio`、`supportsPictureInPicture` | 不限制窗口尺寸与宽高比 |
+
+c. 启动主题与系统栏
+
+| 项 | 取值或规则 |
+| --- | --- |
+| `values/styles.xml` 的 LaunchTheme、NormalTheme 背景 | `#F7F7FB`（群青预设浅色 surface，CORE-55） |
+| `values-night/styles.xml` 同上 | `#121318`（群青深色 surface） |
+| `values-v31`、`values-night-v31` 的 `windowSplashScreenBackground` | 与上两行相同 |
+| 状态栏、导航栏底色 | 透明（edge-to-edge），内容绘制到系统栏之后，由内边距让位 |
+| `values-v28` 的 `windowLayoutInDisplayCutoutMode` | `shortEdges` |
+| 状态栏与导航栏对比度强制（API 29+） | 关闭（`systemStatusBarContrastEnforced`、`systemNavigationBarContrastEnforced` 为 false） |
+| 图标明暗 | `resolved.brightness` 为 light → 深色图标；dark → 浅色图标 |
+| 更新时机 | 首帧后设一次；`resolvedChanges` 每次发出时更新；与上次样式相同则不调用 |
+
+启动背景不读偏好（避免拖慢启动），用户选了其他预设时由首帧切换。
+
+d. 内边距与软键盘
+
+| 来源 | Flutter 侧 | 处理 |
+| --- | --- | --- |
+| 状态栏、导航栏、手势条 | `MediaQuery.viewPadding`/`padding` | CORE-55 `AdaptiveScaffold` 的安全区；底部操作栏与底部导航下方留出导航栏高度，背景延伸到屏幕底边 |
+| 刘海与挖孔 | 计入 `padding` 对应边（横屏时为左或右） | rail、侧栏与内容避开挖孔，背景仍铺满 |
+| 系统手势区 | `MediaQuery.systemGestureInsets` | 不设手势排除区；从左右边缘手势区内起始的拖动交给系统返回 |
+| 软键盘 | `MediaQuery.viewInsets.bottom`（API 30+ 随 `WindowInsetsAnimation` 逐帧变化） | 输入区与主操作上移到键盘之上；AND-07 快捷栏紧贴键盘 |
+
+e. 系统返回（手势或返回键）
+
+| 场景 | 系统返回的结果 | 界面上的可见等价按钮 |
+| --- | --- | --- |
+| 推入的二级页（详情、编辑、设置子页） | 回到上一页；编辑草稿已由 CORE-37 去抖保存 | 顶栏返回按钮 |
+| 主导航中“学习”以外的根页 | 切到“学习”（`/study`） | 底部导航或 rail 的“学习” |
+| “学习”根页 | 交给系统退到后台（Android 13+ 显示回到桌面的预测性动画）；不弹“再按一次退出” | 系统 Home |
+| 学习会话中 | 进入暂停（与会话内“暂停”按钮同一动作，CORE-39），不直接离开 | 会话顶栏“暂停” |
+| 底部面板、对话框、菜单 | 关闭它 | “关闭”按钮或点遮罩 |
+| 公式库多选模式（CORE-54） | 退出多选 | 顶栏“取消” |
+
+f. 屏幕方向与窗口变化
+
+| 情形 | 行为 |
+| --- | --- |
+| 系统自动旋转开启 | 随设备方向在竖屏、横屏（含反向横屏）间切换，手机与平板相同 |
+| 系统旋转锁定 | 保持当前方向；系统在旋转设备时显示的“旋转建议”按钮可用 |
+| 平板判定 | 平台层不判定；共享界面只按窗口尺寸断点布局，`LayoutInfo.largeScreen`（最短边 ≥ 600 dp，Q18）由 CORE-55 计算 |
+| 分屏、自由窗口、折叠屏展开或折叠 | 不重建 Activity，按新窗口尺寸重排 |
+| 相机取景 | 见 AND-04 方向处理 |
+
+- 错误码：无（通道失败时触感静默跳过、动画缩放取 1.0，不抛异常）。
+
+**实现约束**
+- 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。
+- 状态保持有两条路径：属性表中 `configChanges` 列出的变化不重建 Activity，Flutter 引擎与各页 `State`（输入、选区、滚动位置）原样保留，只按新尺寸重排；其余配置变化、开发者选项“不保留活动”与后台回收导致的重建，走 AND-05 的 Flutter 状态恢复回到原路由。两条路径都不额外持久化界面状态。
+- 系统栏：全应用只有 `AndroidSystemBars` 调用 `SystemChrome.setSystemUIOverlayStyle` 与 `setEnabledSystemUIMode`；共享界面与其他平台卡不调用。Flutter `AppBar` 会按其背景亮度经 `AnnotatedRegion` 设置图标明暗，CORE-55 中顶栏背景取 surface，结果与本卡一致。
+- 设备偏好：不登记 `DevicePrefStore`；CORE-55 默认 `FileDevicePrefStore` 写在 `root(StoreArea.database)/device_prefs/`，位于 AND-06 的 `noBackupFilesDir` 下且被备份与迁移规则排除，满足 Q19“按设备保存”；不使用 SharedPreferences。
+- 跟随系统设置且不重建 Activity：字号（`fontScale` → `textScaler`，平台层不设上限）；深色（`uiMode` → `platformBrightness`，外观模式为“跟随系统”时生效）；动画时长缩放（`MotionScaleSource`，为 0 时 CORE-55 `FmlMotion.scaled` 得 0）；无障碍“移除动画”（Flutter `disableAnimations`）与高对比度文字（`MediaQuery.highContrast`）由 CORE-55 处理，本卡不另读。
+- 触控目标：本端平台代码自带的可点击控件（AND-07 快捷栏、AND-04 相机界面）不小于 48 dp，与 CORE-55 触摸密度一致；主操作的拇指可达位置由 CORE-55 布局保证，本卡做真机验收。
+- 每个手势操作都有可见按钮等价（返回见上表 e；长按、滑动的等价按钮由各共享卡提供），本卡真机验收逐项核对。
+- 性能：通道调用不阻塞 UI 线程；触感不等待结果；系统栏只在样式变化时调用。相关预算为 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，由 AND-12 测量。
+- 应用内预测性返回的跟手预览转场 V1 不做：应用内页面转场仍用 CORE-55 的页面转场，只启用系统级（回到桌面、跨应用）预测性返回动画（见 README §6 Q25（待确认），按暂行默认值）。
+- 外部前提：横屏下输入法不进入全屏提取编辑界面依赖 Flutter 引擎为文本输入设置 `IME_FLAG_NO_EXTRACT_UI`，在 M0 锁定 Flutter 版本（ADR-V5-15）后核实；未生效时由本卡在 MainActivity 侧补设。
+- 待确认的产品取舍（按暂行默认值撰写）：高对比度跟随系统见 README §6 Q22、应用内预测性返回预览 Q25、主导航根页的系统返回 Q26、横屏主操作所在侧 Q27（均待确认）。
+
+**验收标准**
+- [R42.b] Widget 测试（假通道）：`AndroidHaptics` 收到 `correct` 时通道收到一次 `haptic {kind: "correct"}`；80 ms 内连续 3 次 `tap` 只发 1 次；把 `AppearancePref.haptics` 设为 false 后对任意 kind 调用 `emit`，通道无调用（关闭后不再触发）。
+- [R42.b] 手动：应用内“触感反馈”关闭后点击、判对、判错均无振动；重新打开后恢复；系统设置关闭“触摸振动”后同样无振动。
+- [R42.c] 单元测试（假通道）：`animatorScale` 返回 0.5 时 `scale` 为 0.5 并发出一次；事件重复 0.5 不再发出；返回 12 截为 10；通道失败时为 1.0。手动：开发者选项“动画时长缩放”设为关闭后页面转场无动画、各功能正常。
+- [R42.d] Widget 测试：执行 `installAndroidInteraction` 后 `InputModalityScope.of` 为 `touch`、密度最小触控目标为 48；未登记 `DevicePrefStore` 时 `AppearanceController` 使用 `FileDevicePrefStore`。
+- [R42.f] Widget 测试：`resolvedChanges` 发出 dark 时 `SystemChrome` 收到浅色图标样式、发出 light 时收到深色图标样式，相同样式连续发出只调用一次；扫描测试：`app/lib/` 中 `setSystemUIOverlayStyle` 只出现在 `android_system_bars.dart`。
+- [R42.e] 扫描测试：`app/lib/` 与 `app/android/` 中无 `setPreferredOrientations`、`requestedOrientation`；合并清单的 MainActivity 属性等于属性表 b（由 AND-02 `check_android_manifest.py` 检查）。
+- [R42.e] 集成测试（`app/integration_test/android/interaction_test.dart`，真机）：在编辑页输入未保存文本、在公式库列表滚动后，关闭自动旋转并用 `adb shell settings put system user_rotation` 依次切到 1、0，`windowMetrics` 的 `orientation` 随之变化且 `create_count` 不变，路由、文本与滚动偏移不变。
+- [R42.e] 手动（一台手机、一台平板）：自动旋转开启时横竖屏切换均可用且布局按 CORE-55 分档；开启旋转锁定后旋转设备保持当前方向；分屏 1/3、1/2、2/3 与折叠屏展开折叠后当前路由与输入保留；开启“不保留活动”后切到后台再返回，回到原路由。
+- [R42.b] 手动（刘海或挖孔屏手机，手势导航与三键导航各一次）：竖屏与两向横屏下内容与可点击控件不被挖孔、状态栏和导航栏遮挡，系统栏透明且图标明暗与主题一致；软键盘弹出时输入框与主按钮可见；横屏输入法不进入全屏提取界面。
+- [R42.b] 手动（Android 13+ 手势返回一台、Android 8 返回键一台）：按对照表 e 逐行操作，系统返回结果与表一致且每行都有可见等价按钮；“学习”根页返回时显示回到桌面的预测性动画。
+- [R42.c] AND-12 在真机矩阵上测量 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，P95 在预算内。
+
+**规模**：约 380 行；`app/lib/platform/android/interaction/`（约 190 行）、`app/android/.../InteractionHandler.kt`（约 90 行）、`app/android/app/src/main/res/values*/styles.xml` 与清单中 MainActivity 属性（约 50 行）、`app/integration_test/android/interaction_test.dart`（约 50 行），同属 `app/` 构建单元。

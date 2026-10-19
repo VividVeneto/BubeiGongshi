@@ -1,6 +1,6 @@
-# SADD：不背公式 App 软件架构设计文档 v5.1
+# SADD：不背公式 App 软件架构设计文档 v5.2
 
-> 版本：v5.1　修订日期：2026-10-19　适用分支：`main`  
+> 版本：v5.2　修订日期：2026-10-19　适用分支：`main`  
 > 本目录是现行架构基线。v5 以 v2.1 为基础，吸收 v4 评审意见，并按“小模块 vibe coding”重构为模块卡。v3、v4 是归档版本（标签 `archive/sadd-v3`、`archive/sadd-v4.0`），不是现行基线。
 
 ## 1. 总览
@@ -15,7 +15,7 @@
 4. **识别可插拔**：墨迹与照片走同一识别契约；首版交付云端 LLM 识别（仅注册用户、逐次授权）；本地轻量模型是可下载资源包；YOLO 只在实验分支预研。
 5. **资源与程序剥离**：内容、字体、模型都是签名资源包；安装包只内置 bootstrap-pack。
 6. **识别历史可回收**：保留最近 0–100 次识别，默认 5 次，两阶段垃圾回收。
-7. **按模块卡实施**：78 张模块卡（公共核心 54、Android 11、Windows 13；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），每张卡都可以单独交给 AI 编码助手完成。
+7. **按模块卡实施**：81 张模块卡（公共核心 55、Android 12、Windows 14；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），每张卡都可以单独交给 AI 编码助手完成。
 
 ## 2. 需求基线与文档效力
 
@@ -54,6 +54,9 @@
 | 2026-10-19 | “Q11键盘快捷键应该提供自定义入口，快捷键设置尽量贴近word或者LaTeX编辑器的默认设置” | §6 Q11（原 Q11 中的命令补全与批量键盘操作未涉及，拆为 Q16 待确认）；WIN-08、WIN-14（新增）、CORE-38；附录 A ADR-V5-22 |
 | 2026-10-19 | “剩下的待确认事项按默认确认” | §6 Q13、Q14、Q15（均采用原暂行默认）；CORE-34、CORE-37、WIN-06 中的“待确认”标注已去除 |
 | 2026-10-19 | “Q16命令补全和批量都可以保留” | §6 Q16；CORE-53、CORE-54（新增）、CORE-14、CORE-37、CORE-38、CORE-48、WIN-08、WIN-14；附录 A ADR-V5-23 |
+| 2026-10-19 | “新建一个UI界面的方案卡，要求：1.以不背单词的UI设计为灵感来源，简洁高效 2.考虑人体工程学设计，不要过于别扭的操作 3.界面操作应该流畅不卡顿 4.windows和Android的设计风格应该统一，但是一个为桌面使用优化，一个为触摸操作优化 其他根据请你作为专业的UI设计者来规划” | R42、R42.a–R42.d；CORE-55（新增）、AND-13（新增）、WIN-15（新增）；附录 A ADR-V5-24、ADR-V5-25 |
+| 2026-10-19 | “新建两张平台卡，然后在readme里添加前后端的索引以区别前后端编程，需求登记为新需求，版本升到5.2，平板横屏需要添加，主题色也添加到双平台都有的部分” | 版本升为 v5.2（§4）；R42 登记为新需求（§5）；R42.e（平板横屏）、R42.f（两端主题色）；§8.6 前后端编程索引 |
+| 2026-10-19 | “手机平板都应该支持横屏和竖屏显示，平板判断按默认，主题色按设备保存，预设数量确认” | §6 Q17–Q20；R42.e、R42.f；CORE-55、AND-13 |
 
 功能近似的含义：学习流程与功能等价即可，不要求界面相似；不复制不背单词的界面素材、图标、配色、文案、音效、商标、受限内容或私有接口，不接入其账号体系。
 
@@ -65,7 +68,7 @@
 2. 已确认的架构决策（附录 A 中状态为“采纳”的 ADR）。
 3. 评审意见（v4 等归档版本中的意见，只有在附录 A 判定为采纳后才进入正文）。
 
-无法从需求原文与已确认决策中判断的事项列入 §6，经甲方确认后才写入模块卡正文。Q1–Q10 已于 2026-10-18 全部确认（Q2、Q9 按甲方更正，其余采用原现行默认），引用时写“README §6 Qx”。v5.1 细化中新发现的产品取舍列为 Q11–Q15（§6.1），卡片正文按暂行默认值撰写并标注“（待确认）”；Q11–Q16（Q16 由 Q11 拆出）已于 2026-10-19 全部确认并移入 §6 已确认表（Q11、Q12、Q16 按甲方意见修订，Q13–Q15 采用原暂行默认），目前没有待确认事项。
+无法从需求原文与已确认决策中判断的事项列入 §6，经甲方确认后才写入模块卡正文。Q1–Q10 已于 2026-10-18 全部确认（Q2、Q9 按甲方更正，其余采用原现行默认），引用时写“README §6 Qx”。v5.1 细化中新发现的产品取舍列为 Q11–Q15（§6.1），卡片正文按暂行默认值撰写并标注“（待确认）”；Q11–Q16（Q16 由 Q11 拆出）已于 2026-10-19 全部确认并移入 §6 已确认表（Q11、Q12、Q16 按甲方意见修订，Q13–Q15 采用原暂行默认）；v5.2 的 Q17–Q20 已于 2026-10-19 确认，Q21–Q30 为 v5.2 界面设计中新发现的产品取舍，列在 §6.1 待确认，卡片按暂行默认值撰写。
 
 ### 2.4 文档效力
 
@@ -76,7 +79,7 @@
 | 附录 A | ADR 为规范性（状态为“采纳”者）；评审记录与判定表为说明性 |
 | 附录 B | 说明性；只约束实验分支，主线不得依赖 |
 | 附录 C | 说明性；资源包的规范性要求在 CORE-15、CORE-16 |
-| 附录 D | 说明性；v5.1 编码就绪检查的逐卡结论与遗留问题 |
+| 附录 D | 说明性；v5.1 编码就绪检查与 v5.2 修订的逐卡结论与遗留问题 |
 
 公共契约只在 01 中定义；02、03 只引用，引用格式为“CORE-xx §章节”。三份主文档之间出现冲突时以 01 为准，并修订冲突方。
 
@@ -98,6 +101,7 @@
 - 识别历史保留与垃圾回收：0–100 次，默认 5 次，保留图片与识别结果（R33–R36）。
 - 签名资源包与 bootstrap-pack（R29、R30），开源资源调查与许可登记（R21）。
 - 可维护性、排错、注释与版本控制门禁（R18–R20、R22、R23）。
+- 界面设计方案（v5.2 新增，R42、R42.a–R42.f）：统一的设计系统与可选主题色（两端），按窗口尺寸与输入方式自适应；Android 手机与平板均支持横屏和竖屏，Windows 按桌面键鼠优化（CORE-55、AND-13、WIN-15）。
 
 ### 3.2 不在 V1 范围
 
@@ -119,7 +123,8 @@
 | v3 | — | 归档，不是现行基线 | 标签 `archive/sadd-v3` |
 | v4 | — | 评审意见，归档，不是现行基线；其中的意见逐条判定后吸收 | 标签 `archive/sadd-v4.0`；判定见附录 A §A.3 |
 | v5 | 2026-10-18 | 以 v2.1 为基础，吸收 v4 评审意见，按模块卡重构 | Git 历史 |
-| **v5.1** | **2026-10-18** | **现行基线**：需求细化与编码就绪修订（不新增需求、不缩小范围；补参数、边界、错误码、数据格式与测试向量，新增待确认事项 Q11 起与 M0 工程 ADR）；2026-10-19 补充：Q11–Q16 全部确认，新增 CORE-52、CORE-53、CORE-54、WIN-14 | 本目录；逐卡结论见附录 D |
+| v5.1 | 2026-10-18 | 需求细化与编码就绪修订（不新增需求、不缩小范围；补参数、边界、错误码、数据格式与测试向量，新增待确认事项 Q11 起与 M0 工程 ADR）；2026-10-19 补充：Q11–Q16 全部确认，新增 CORE-52、CORE-53、CORE-54、WIN-14 | Git 历史；逐卡结论见附录 D |
+| **v5.2** | **2026-10-19** | **现行基线**：新增界面设计方案——CORE-55 界面设计系统与主题、AND-13 Android 触摸交互与横竖屏适配、WIN-15 Windows 桌面交互与窗口适配，联动修订各界面卡与平台卡；登记新需求 R42（R42.a–R42.f）；确认 Q17–Q20，Q21 起列为待确认；新增 ADR-V5-24、ADR-V5-25；新增 §8.6 前后端编程索引；模块卡共 81 张；依赖规则由“只指向编号更小的卡”改为“无环且依赖卡的阶段不晚于本卡” | 本目录；逐卡结论见附录 D §D.7 |
 
 v5 的主要变化：
 
@@ -185,10 +190,17 @@ v5 的主要变化：
 | R39 | 高中数学、高中物理内容属于现有需求 | 甲方确认 2026-10-10 | 阶段 | 两个高中内容包，教育阶段与范围标签 | CORE-16、CORE-51 |
 | R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-42、CORE-43、CORE-50、AND-09、AND-11、WIN-10、WIN-12 |
 | R41 | Android 与 Windows 规范独立说明 | 甲方确认 2026-10-10 | V1 | 02、03 两份平台文档各自含构建、输入、存储、云识别、GC 与验收 | CORE-04、AND-01、AND-12、WIN-01、WIN-13 |
+| R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | CORE-36、CORE-37、CORE-38、CORE-39、CORE-40、CORE-47、CORE-48、CORE-49、CORE-54、CORE-55、AND-02、AND-04、AND-05、AND-07、AND-12、AND-13、WIN-13、WIN-14、WIN-15 |
+| R42.a | 以不背单词为灵感、简洁高效：只借鉴交互模式与信息组织（一屏一事、主操作醒目、首页即今日任务、反馈即时克制），视觉识别原创 | 甲方新增 2026-10-19 | V1 | CORE-55 设计原则；ADR-V5-24 | CORE-36、CORE-39、CORE-55 |
+| R42.b | 人体工程学：触控目标、拇指区、键盘可达、焦点可见，不出现别扭操作 | 甲方新增 2026-10-19 | V1 | CORE-55 组件尺寸与密度；AND-13 触摸；WIN-15 键盘与学习命令 | CORE-39、CORE-47、CORE-54、CORE-55、AND-07、AND-13、WIN-14、WIN-15 |
+| R42.c | 界面操作流畅不卡顿 | 甲方新增 2026-10-19 | V1 | CORE-55 流畅性规范；CORE-01 界面性能预算 5 行（ADR-V5-25） | CORE-39、CORE-55、AND-12、AND-13、WIN-13、WIN-15 |
+| R42.d | Windows 与 Android 风格统一，分别为桌面与触摸操作优化 | 甲方新增 2026-10-19 | V1 | 同一设计系统，按窗口尺寸与输入方式（触摸、指针、触控笔）适配，不按平台分支 | CORE-37、CORE-40、CORE-55、AND-13、WIN-15 |
+| R42.e | Android 手机与平板都支持横屏和竖屏，跟随系统旋转设置；平板判定为屏幕最短边 ≥ 600 dp | 甲方新增 2026-10-19 | V1 | CORE-55 宽度分档与矮高度布局；AND-13 方向与配置变化；旋转不丢状态 | CORE-36、CORE-38、CORE-39、CORE-48、CORE-55、AND-02、AND-04、AND-05、AND-07、AND-12、AND-13、WIN-13、WIN-15 |
+| R42.f | 可选主题色：两端都有，4～6 套预设（定为 5 套），外观模式浅色、深色、跟随系统，按设备保存 | 甲方新增 2026-10-19 | V1 | CORE-55 预设主题与 appearance.v1；CORE-47 外观设置页 | CORE-47、CORE-49、CORE-55、AND-13、WIN-13、WIN-15 |
 
 ## 6. 已确认与待确认事项
 
-以下事项无法从需求原文与已确认决策中直接判定，曾列为待确认；2026-10-18 甲方书面确认（§2.2）：Q2、Q9 按甲方更正，其余采用原“现行默认”；Q11–Q16 为 v5.1 新增事项，2026-10-19 甲方确认（§2.2）：Q11、Q12、Q16 按甲方意见修订，Q13–Q15 采用原暂行默认。模块卡正文按下表结论实现。日后若改用“未采用方案”，按需求变更处理：同步修订本表、对应模块卡以及附录 A 中的相关判定与 ADR。
+以下事项无法从需求原文与已确认决策中直接判定，曾列为待确认；2026-10-18 甲方书面确认（§2.2）：Q2、Q9 按甲方更正，其余采用原“现行默认”；Q11–Q16 为 v5.1 新增事项，2026-10-19 甲方确认（§2.2）：Q11、Q12、Q16 按甲方意见修订，Q13–Q15 采用原暂行默认；Q17–Q20 为 v5.2 界面设计方案中的产品结论，2026-10-19 甲方确认。模块卡正文按下表结论实现。日后若改用“未采用方案”，按需求变更处理：同步修订本表、对应模块卡以及附录 A 中的相关判定与 ADR。
 
 | 编号 | 事项 | 确认结论（正文采用） | 未采用方案 | 影响模块卡 |
 | --- | --- | --- | --- | --- |
@@ -202,37 +214,50 @@ v5 的主要变化：
 | Q8 | 云识别供应商与数据存放地域 | 境内部署的网关，供应商经 `VisionProvider` 适配，上线前核实保留与训练政策 | 指定供应商；是否允许境外 | CORE-33、CORE-43 |
 | Q9 | 注册登录方式 | 邮箱 + 口令，经 OIDC 授权码 + PKCE；注册与找回口令经邮箱 6 位验证码验证（发信只用境内服务：阿里云邮件推送为主、腾讯云邮件推送为备，甲方 2026-10-18 确认，见附录 A ADR-V5-11）；V1 不使用、不绑定手机号（暂无运营商短信通道） | 手机号注册或绑定、短信验证码、第三方登录、境外发信服务 | CORE-22、CORE-23、CORE-36 |
 | Q10 | 版本控制是否包含面向用户的公式修订历史 | 两者都做：工程 Git 规范 + 公式修订历史的查看、比较与恢复 | 只指工程版本控制 | CORE-14、CORE-38 |
-| Q11 | Windows 快捷键是否可自定义、默认键位如何定 | 提供快捷键自定义入口：设置页“快捷键”区可查看全部快捷键、为命令录制新组合键（每命令至多 2 个）、检测冲突并可替换、拒绝系统与输入法占用的组合键、单项或全部恢复默认，按设备保存；默认键位尽量贴近 Word 与常见 LaTeX 编辑器——上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、撤销 Ctrl+Z、重做 Ctrl+Y 或 Ctrl+Shift+Z，两者都没有默认键的命令（分式、根号、括号、模式切换、页面导航）采用本应用约定（2026-10-19 甲方确认） | 固定键位、不提供自定义（原暂行默认） | WIN-08、WIN-14、CORE-38 |
+| Q11 | Windows 快捷键是否可自定义、默认键位如何定 | 提供快捷键自定义入口：设置页“快捷键”区可查看全部快捷键、为命令录制新组合键（每命令至多 2 个）、检测冲突并可替换、拒绝系统与输入法占用的组合键、单项或全部恢复默认，按设备保存；默认键位尽量贴近 Word 与常见 LaTeX 编辑器——上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、撤销 Ctrl+Z、重做 Ctrl+Y 或 Ctrl+Shift+Z，两者都没有默认键的命令（分式、根号、括号、模式切换、页面导航）采用本应用约定（2026-10-19 甲方确认） | 固定键位、不提供自定义（原暂行默认） | WIN-08、WIN-14、WIN-15、CORE-38 |
 | Q12 | 复制公式提供哪些格式 | 允许常见复制格式并由粘贴目标自动匹配：一次复制同时写入纯文本（LaTeX 源码）、MathML（Office 可转为可编辑公式）、HTML（内嵌公式图片）、SVG 与 PNG 图片，Windows 另加 text/x-latex 与位图格式，Android 写入文本、HTML 与图片；“复制为”菜单可单独复制 LaTeX、Unicode 文本、MathML 或图片；不写应用私有格式，不做复制后自动清空剪贴板（2026-10-19 甲方确认） | 只复制 LaTeX 文本与图片（原暂行默认） | CORE-37、CORE-52、AND-03、WIN-05 |
 | Q13 | 编辑器默认输入模式是否保存为用户偏好 | 按设备决定（Windows 默认 LaTeX，Android 默认结构化），编辑时可从工具栏临时切换，不保存偏好（2026-10-19 甲方确认） | 在设置页保存默认模式 | CORE-37、CORE-47 |
 | Q14 | 未满 14 周岁用户的监护人同意是否核验身份 | 用户自我声明年龄；声明未满 14 周岁时须勾选监护人已同意，服务端记录声明与时间，不核验监护人身份（2026-10-19 甲方确认） | 接入监护人身份核验（如监护人邮箱确认或实名核验） | CORE-33、CORE-34 |
 | Q15 | Windows 关闭主窗口的默认行为 | 默认退出应用；设置页“提醒与托盘”区可改为“关闭窗口时驻留托盘”，首次关闭不弹询问（2026-10-19 甲方确认） | 首次关闭时询问“最小化到托盘 / 退出”并记住选择 | WIN-06、WIN-09 |
 | Q16 | LaTeX 命令补全与公式库批量键盘操作是否进入 V1（由原 Q11 拆出） | 两项都进入 V1（2026-10-19 甲方确认）：LaTeX 模式键入 `\` 或 `\begin{` 时自动弹出白名单命令候选，↑/↓ 选择、Tab 或 Enter 插入、Esc 关闭，不占用输入法切换键 Ctrl+Space；公式库与回收站支持多选（Space、Shift+方向键、Ctrl+A、Ctrl/Shift+单击、触控长按）与批量加/去标签、移入回收站（可撤销）、恢复，Delete 移入回收站、Ctrl+T 编辑标签；两端共享实现 | 两项都不做（原暂行默认） | CORE-14、CORE-37、CORE-38、CORE-53、CORE-54、WIN-08 |
+| Q17 | Android 屏幕方向 | 手机与平板都支持横屏和竖屏，跟随系统旋转设置（含旋转锁定）；不锁定竖屏（2026-10-19 甲方确认） | 手机锁定竖屏、仅平板支持横屏 | CORE-55、AND-02、AND-04、AND-05、AND-12、AND-13 |
+| Q18 | 平板的判定条件 | 屏幕最短边 ≥ 600 dp 视为平板（按默认，2026-10-19 甲方确认）；共享界面只按窗口尺寸断点布局，不另做设备类型分支 | 按屏幕对角线尺寸或系统设备类型判定 | CORE-55、AND-13 |
+| Q19 | 主题色与外观模式的保存范围 | 按设备保存、不随账户同步（与 Q13 编辑器模式的做法一致）；切换即时生效（2026-10-19 甲方确认） | 随账户同步到各设备 | CORE-55、CORE-47、AND-13、WIN-15 |
+| Q20 | 预设主题色套数 | 5 套：群青（默认）、石青、紫藤、檀褐、墨灰（2026-10-19 甲方确认数量范围 4～6 套，套数、命名与色值由 CORE-55 给出）；不提供自定义取色，不使用系统动态取色 | 自定义任意主题色；Android 动态取色（Material You） | CORE-55、CORE-47 |
 
 ### 6.1 待确认事项
 
-目前没有待确认事项（Q11–Q16 已于 2026-10-19 全部确认，见上表）。日后新发现需求原文与已确认决策推不出结论的产品取舍，编号从 Q17 起列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
+下表为 v5.2 界面设计中从需求推不出、属于产品取舍的事项（Q17–Q20 已确认，见上表；Q21–Q30 待确认）。日后新发现的同类事项编号续排，列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
 
 | 编号 | 事项 | 暂行默认值（正文采用） | 待选方案 | 影响模块卡 |
 | --- | --- | --- | --- | --- |
-| — | （暂无） | — | — | — |
+| Q21 | 主导航入口顺序与落地页 | 学习、公式库、识别、设置四个入口；完成账户入口后落在“学习”（`/study`） | 公式库为首页；导航加入计算器成 5 个入口 | CORE-36、CORE-55、WIN-08 |
+| Q22 | 高对比度 | 跟随系统高对比度设置自动启用高对比度变体，设置页不单列开关 | 设置页单独提供开关 | CORE-55、AND-13、WIN-15 |
+| Q23 | 作答音效 | V1 不提供音效 | 提供可选音效（默认关闭） | CORE-55、CORE-39 |
+| Q24 | Windows 最小窗口尺寸 | 600 × 500 逻辑像素 | 480 × 480；不设最小值 | CORE-55、WIN-15 |
+| Q25 | 应用内预测性返回预览动画 | 只启用系统级预测性返回（回到桌面、跨应用）；应用内页面转场仍用 CORE-55 页面转场，不做跟手预览 | 应用内页面也做跟手预览转场（CORE-55 改页面转场主题） | CORE-55、AND-13 |
+| Q26 | 主导航根页的系统返回（Android） | “学习”以外的根页返回切到“学习”；“学习”根页返回退到后台，不弹“再按一次退出”；学习会话中返回等同“暂停” | 任一根页返回直接退到后台；或“再按一次退出”提示 | CORE-36、CORE-39、AND-13 |
+| Q27 | 横屏（矮高度）时主操作所在侧 | 主操作在右侧下半（右手拇指） | 设置中提供“左手模式”，把主操作放到左侧 | CORE-55、CORE-47、AND-13 |
+| Q28 | Windows 学习流程默认按键 | Ctrl+Enter 主操作；1～4 与 A～D 选项；Y / N 自评；Ctrl+Shift+S / P / M 跳过、暂停、记错了；Ctrl+PageUp / PageDown 默写换题（均可在 WIN-14 自定义） | 空格作主操作；Enter 作主操作（与按钮激活冲突）；自评用 F / J | WIN-15、WIN-14 |
+| Q29 | Windows 计算页全局快捷键 | 不设（计算页从公式详情进入；Ctrl+5 默认不分配，用户可在 WIN-14 自行指定） | 保留 Ctrl+5 打开最近一次计算 | WIN-08、WIN-14 |
+| Q30 | Windows 11 标题栏颜色 | 跟随当前主题的 surface / onSurface 着色（Windows 10 只切深浅色；高对比度时交还系统） | 只切深浅色，保持系统标题栏色 | WIN-15 |
 
 ### 6.2 M0 工程定案
 
-以下属于纯工程选择，不需要甲方确认，记入附录 A 的 ADR，状态为“待定”，M0 实测或选型后定案；卡片正文按 ADR 中的推荐方案撰写并标注“按 ADR-V5-xx（待定）”：Windows 安装与更新（ADR-V5-12，推荐 Inno Setup 6 + 启动器，不做 MSIX；WIN-02、WIN-03、WIN-12）；本地推理运行时（ADR-V5-13，ONNX Runtime 与 MNN 实测后二选一；CORE-35）；身份服务（ADR-V5-14，推荐自建开源 OIDC 授权服务；CORE-22）；工具链与关键依赖版本锁定（ADR-V5-15）；云识别供应商（ADR-V5-16）；编辑器空位记法（ADR-V5-17）；服务端托管与云厂商（ADR-V5-18）；平台差异接入方式（ADR-V5-19）；HTTP 传输实现（ADR-V5-20）。
+以下属于纯工程选择，不需要甲方确认，记入附录 A 的 ADR，状态为“待定”，M0 实测或选型后定案；卡片正文按 ADR 中的推荐方案撰写并标注“按 ADR-V5-xx（待定）”：Windows 安装与更新（ADR-V5-12，推荐 Inno Setup 6 + 启动器，不做 MSIX；WIN-02、WIN-03、WIN-12）；本地推理运行时（ADR-V5-13，ONNX Runtime 与 MNN 实测后二选一；CORE-35）；身份服务（ADR-V5-14，推荐自建开源 OIDC 授权服务；CORE-22）；工具链与关键依赖版本锁定（ADR-V5-15）；云识别供应商（ADR-V5-16）；编辑器空位记法（ADR-V5-17）；服务端托管与云厂商（ADR-V5-18）；平台差异接入方式（ADR-V5-19）；HTTP 传输实现（ADR-V5-20）；界面性能预算数值（ADR-V5-25，推荐 CORE-01 新增的 5 行界面预算，M0 真机实测后定案；AND-12、WIN-13）。
 
 ## 7. 文档地图
 
 | 文档 | 内容 |
 | --- | --- |
-| [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明 |
-| [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-54：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留 |
-| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-12（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵 |
-| [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-14（WIN-11 已撤销）：工程构建、安装器、自更新与启动器、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义 |
+| [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明与前后端编程索引 |
+| [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-55：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
+| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-13（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
+| [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-15（WIN-11 已撤销）：工程构建、安装器、自更新与启动器、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
 | [附录A-架构决策与评审记录.md](附录A-架构决策与评审记录.md) | 历次评审记录、v4 意见判定表、全部 ADR |
 | [附录B-YOLO识别预研.md](附录B-YOLO识别预研.md) | YOLO 轻量识别预备方案（仅实验分支，不进主线） |
 | [附录C-资源包内容与开源资源调查.md](附录C-资源包内容与开源资源调查.md) | 开源公式库、数据集、模型与字体的调查和许可结论 |
-| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | v5.1 就绪检查：每张卡的结论（就绪 / 已修订 / 待确认阻塞）、修改摘要与遗留问题 |
+| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | v5.1 就绪检查与 v5.2 界面设计修订：每张卡的结论（就绪 / 已修订 / 待确认阻塞）、修改摘要与遗留问题 |
 
 ## 8. vibe coding 使用说明
 
@@ -283,9 +308,130 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 一张模块卡满足以下各项才算“就绪”，可以交给编码助手（逐卡结论见附录 D）：
 
 - a. 结构：目标、范围、依赖、接口契约、实现约束、验收标准、规模七个字段齐全；规模约 500 行以内，并且只落在一个构建单元（一个 Cargo crate、`app/` Flutter 工程、`server/` 或一个 `tools/<名称>/`）。确需附带少量其他位置的改动（如 `contracts/` 条目、跨语言边界另一侧、归属表的迁移或 CI 配置）时，规模中写明“主包”与“附属”各自的行数。
-- b. 依赖闭合：依赖字段与所在文档 §1 依赖图、§3 模块索引一致；CORE 卡只依赖编号更小的 CORE 卡，平台卡只依赖 CORE 卡或本平台编号更小的卡；本卡用到的类型、函数、表与错误码都能在本卡或依赖卡（含间接依赖）的接口契约段找到。
+- b. 依赖闭合：依赖字段与所在文档 §1 依赖图、§3 模块索引一致；CORE 卡只依赖 CORE 卡，平台卡只依赖 CORE 卡或本平台的卡；依赖无环，且依赖卡所在实施阶段不晚于本卡（编号只是标识、不表示先后，见 01 §1）；本卡用到的类型、函数、表与错误码都能在本卡或依赖卡（含间接依赖）的接口契约段找到。
 - c. 契约唯一：公共契约只在 01 中定义；02、03 内联的签名与 01 逐字一致。
 - d. 契约可编码：函数签名有参数与返回类型；DTO 有字段名、类型、取值范围、是否必填与默认值；错误码有编号、级别、是否可重试与触发条件；表结构有列、类型、约束与索引；文件格式与服务端 API 有版本号、示例与错误响应。
 - e. 验收可测：每条验收标准有输入、期望输出或阈值、测量方法，并标注需求编号；性能项引用 CORE-01 全局资源预算表的行名，不另写数字。
 - f. 追踪一致：§5“验收所在模块卡”一列与各卡验收标准中的 [Rxx] 双向一致；每条需求至少对应一张卡。
 - g. 外部前提：工具链版本、第三方库、账号、证书、供应商与数据许可写在“实现约束”的“外部前提”条目中；未定的引用对应 ADR 或 §6 待确认事项。
+
+### 8.6 前后端编程索引
+
+每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
+
+- 统计：共 81 张卡——前端 40 张，端侧核心 27 张，后端 5 张，工程与发布 9 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
+- 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
+- 前端会话只需要端侧核心与后端卡的 **接口契约**（op 名、DTO、错误码、服务端 API），不需要其实现约束与验收标准；端侧核心与后端会话同理，只需要前端卡中调用方的契约。§8.1 的材料清单不变。
+
+#### 前端（40 张）
+
+- 范围：`app/` 下的 Flutter/Dart 代码：共享界面（`app/lib/ui/`）、用例与组装（`app/lib/` 其余目录）、平台层（`app/lib/platform/android|windows/`、`app/android/`、`app/windows/` 原生工程）、测试（`app/test/`、`app/integration_test/`）。
+- 检查命令：在 `app/` 下运行 `dart format --set-exit-if-changed .`、`flutter analyze`、`flutter test`；平台层另以 `flutter build apk` / `flutter build windows` 编译原生部分（Kotlin/Gradle、C++/CMake），集成测试按卡内说明在真机或 Windows 上运行。
+
+| 编号 | 名称 | 主类 | 子类 | 代码目录 | 阶段 |
+| --- | --- | --- | --- | --- | --- |
+| CORE-04 | 平台端口契约 | 前端 | 用例与组装、测试 | `app/lib/ports/`、`app/lib/composition/`、`app/test/fakes/` | S0 |
+| CORE-28 | 隐私守卫、日志与复现包 | 前端（跨前后端：前端 + 端侧核心） | 用例与组装 | `app/lib/privacy/`（附属 `crates/fml-error/src/log.rs`） | S5 |
+| CORE-34 | 云识别客户端与授权回执 | 前端 | 用例与组装 | `app/lib/recognition/cloud/` | S5 |
+| CORE-36 | 应用壳、组装层、账户入口与导航 | 前端 | 用例与组装、共享界面 | `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart` | S2 |
+| CORE-37 | 公式渲染组件与编辑器 | 前端 | 共享界面 | `app/lib/ui/editor/` | S2 |
+| CORE-38 | 公式库界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/library/`（附属 `crates/fml-store/src/library/draft.rs`） | S3 |
+| CORE-39 | 学习会话界面 | 前端 | 共享界面 | `app/lib/ui/study/` | S4 |
+| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 前端 | 共享界面 | `app/lib/ui/recognition/` | S5 |
+| CORE-46 | 同步与升级协调器 | 前端 | 用例与组装 | `app/lib/sync/` | S6 |
+| CORE-47 | 设置页与账户安全界面 | 前端 | 共享界面 | `app/lib/ui/settings/` | S6 |
+| CORE-48 | 计算器、代入与计算链界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/calc/`（附属 `crates/fml-store/src/library/plan.rs`） | S3 |
+| CORE-49 | 学习统计、提醒设置与自建书界面 | 前端 | 共享界面 | `app/lib/ui/study_stats/`、`app/lib/ui/books/` | S4 |
+| CORE-50 | 识别结果、云端确认与识别历史界面 | 前端 | 共享界面 | `app/lib/ui/recognition/pages/` | S5 |
+| CORE-51 | 资源包下载、导入与管理界面 | 前端 | 用例与组装、共享界面 | `app/lib/packs/`、`app/lib/ui/packs/` | S4 |
+| CORE-53 | LaTeX 命令补全 | 前端 | 共享界面 | `app/lib/ui/editor/completion/` | S3 |
+| CORE-54 | 公式库批量选择与批量操作 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/library/batch/`、`crates/fml-store/src/library/batch.rs` | S3 |
+| CORE-55 | 界面设计系统与主题 | 前端 | 共享界面 | `app/lib/ui/design/` | S2 |
+| AND-01 | 工程与构建 | 前端 | 平台层 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | S0 |
+| AND-02 | 权限与清单 | 前端 | 平台层 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | S2 |
+| AND-03 | 相册、文件导入与导出 | 前端 | 平台层 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | S5 |
+| AND-04 | 相机 | 前端 | 平台层 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | S5 |
+| AND-05 | 生命周期、进程恢复与运行时信息 | 前端 | 平台层 | `app/lib/platform/android/lifecycle/` | S2 |
+| AND-06 | 本地存储、Keystore 与生物识别 | 前端 | 平台层 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | S2 |
+| AND-07 | 手写与编辑器的 Android 适配 | 前端 | 平台层 | `app/lib/platform/android/editing/` | S5 |
+| AND-08 | 本地通知与提醒自检 | 前端 | 平台层 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | S4 |
+| AND-09 | 网络传输 | 前端 | 平台层 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | S2 |
+| AND-12 | 性能、能耗与真机矩阵 | 前端 | 测试 | `app/integration_test/android/`、`tools/perf/android/` | S7 |
+| AND-13 | Android 触摸交互与横竖屏适配 | 前端 | 平台层 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | S2 |
+| WIN-01 | 工程与构建 | 前端 | 平台层 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | S0 |
+| WIN-03 | 自更新与启动器 | 前端 | 平台层 | `app/lib/platform/windows/update/`（附属 `installer/windows/launcher/`） | S7 |
+| WIN-04 | 文件导入、拖拽与导出 | 前端 | 平台层 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | S5 |
+| WIN-05 | 剪贴板与多格式复制 | 前端 | 平台层 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | S5 |
+| WIN-06 | 窗口、DPI、生命周期与单实例 | 前端 | 平台层 | `app/lib/platform/windows/window/`、`app/windows/runner/` | S2 |
+| WIN-07 | 本地存储、DPAPI 与 Windows Hello | 前端 | 平台层 | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | S2 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 前端 | 平台层 | `app/lib/platform/windows/editing/` | S5 |
+| WIN-09 | 应用内提醒、托盘与开机自启 | 前端 | 平台层 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | S4 |
+| WIN-10 | 网络传输 | 前端 | 平台层 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | S2 |
+| WIN-13 | 性能与环境矩阵 | 前端 | 测试 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | S7 |
+| WIN-14 | 快捷键自定义 | 前端 | 平台层 | `app/lib/platform/windows/keymap/` | S5 |
+| WIN-15 | Windows 桌面交互与窗口适配 | 前端 | 平台层、测试 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | S2 |
+
+#### 端侧核心（27 张）
+
+- 范围：`crates/` 下的 Rust 代码，编译为 `fmlcore` 动态库，经 C ABI（CORE-03）由前端调用。
+- 检查命令：`cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`。
+
+| 编号 | 名称 | 主类 | 子类 | 代码目录 | 阶段 |
+| --- | --- | --- | --- | --- | --- |
+| CORE-03 | C ABI 与 Dart 绑定 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-ffi/`、`app/lib/binding/` | S0 |
+| CORE-05 | 公式 AST 与修订模型 | 端侧核心 | Rust crate | `crates/fml-ast/` | S1 |
+| CORE-06 | LaTeX 子集解析与导出 | 端侧核心 | Rust crate | `crates/fml-latex/` | S1 |
+| CORE-07 | 符号表、记号方案与常数集 | 端侧核心 | Rust crate | `crates/fml-notation/` | S1 |
+| CORE-08 | 量纲与单位 | 端侧核心 | Rust crate | `crates/fml-units/` | S1 |
+| CORE-09 | 类型推断与量纲校验 | 端侧核心 | Rust crate | `crates/fml-type/` | S1 |
+| CORE-10 | 计算器与数值求解 | 端侧核心 | Rust crate | `crates/fml-eval/` | S1 |
+| CORE-11 | 公式间代入、推导链与计算链 | 端侧核心 | Rust crate | `crates/fml-derive/` | S1 |
+| CORE-12 | 排版 DisplayList | 端侧核心 | Rust crate | `crates/fml-typeset/` | S1 |
+| CORE-13 | 本地库 Schema、单写者与迁移 | 端侧核心 | Rust crate | `crates/fml-store/` | S2 |
+| CORE-14 | 公式库仓储 | 端侧核心 | Rust crate | `crates/fml-store/src/library/` | S3 |
+| CORE-15 | 资源包格式、验签与安装 | 端侧核心 | Rust crate | `crates/fml-pack/` | S4 |
+| CORE-17 | 卡片生成与 FSRS 排程 | 端侧核心 | Rust crate | `crates/fml-srs/`、`crates/fml-store/src/study/cards.rs` | S4 |
+| CORE-18 | 三层判分器 | 端侧核心 | Rust crate | `crates/fml-grade/` | S4 |
+| CORE-19 | 学习会话与组学习循环 | 端侧核心 | Rust crate | `crates/fml-study/`、`crates/fml-store/src/study/sessions.rs` | S4 |
+| CORE-20 | 学习统计、掌握度与本地提醒 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-study/src/stats/`、`app/lib/study/reminder_service.dart` | S4 |
+| CORE-21 | 密钥体系与加密原语 | 端侧核心 | Rust crate | `crates/fml-crypto/` | S2 |
+| CORE-23 | 账户状态、登录边界与本机解锁 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-store/src/account/`、`app/lib/account/` | S2 |
+| CORE-24 | 游客转注册与游客并入 | 端侧核心 | Rust crate | `crates/fml-sync/src/upgrade.rs`（附属 `crates/fml-store/migrations/0024_upgrade.sql`） | S6 |
+| CORE-26 | 同步引擎（加密、合并与隔离） | 端侧核心 | Rust crate | `crates/fml-sync/src/{lib.rs, outbox.rs, payload.rs, merge.rs, snapshot.rs}` | S6 |
+| CORE-27 | 备份导出与恢复 | 端侧核心 | Rust crate | `crates/fml-store/src/backup/` | S6 |
+| CORE-29 | 识别契约与后端注册 | 端侧核心 | Rust crate | `crates/fml-recognize/src/{lib.rs, registry.rs, ink.rs}` | S5 |
+| CORE-30 | 图片解码与预处理 | 端侧核心 | Rust crate | `crates/fml-imgproc/` | S5 |
+| CORE-31 | 识别候选后处理与忠实转写 | 端侧核心 | Rust crate | `crates/fml-recognize/src/post.rs` | S5 |
+| CORE-32 | 识别会话状态机与历史 GC | 端侧核心 | Rust crate | `crates/fml-recognize/src/session.rs`、`crates/fml-store/src/recognition/` | S5 |
+| CORE-35 | 本地识别模型后端 | 端侧核心 | Rust crate | `crates/fml-recognize-local/` | S5 |
+| CORE-52 | 公式复制格式与富格式导出 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-export/`（附属 `crates/fml-ffi/src/ops/export.rs`）、`app/lib/export/` | S3 |
+
+#### 后端（5 张）
+
+- 范围：`server/` 下的 Rust 服务端代码与部署配置。
+- 检查命令：同端侧核心的三条 cargo 命令（工作区含 `server/`）；部署相关见 CORE-43。
+
+| 编号 | 名称 | 主类 | 子类 | 代码目录 | 阶段 |
+| --- | --- | --- | --- | --- | --- |
+| CORE-22 | 服务端骨架与身份认证 | 后端（跨前后端：后端 + 前端） | 服务端 | `server/src/{main.rs, config.rs, auth/, devices/, meta/}`（附属 `app/lib/net/`） | S2 |
+| CORE-25 | 服务端同步存储与账户删除 | 后端 | 服务端 | `server/src/sync/`、`server/src/account/` | S6 |
+| CORE-33 | 服务端云识别网关与 worker | 后端 | 服务端 | `server/src/recognition/` | S5 |
+| CORE-43 | 服务端部署、资源分发与监控 | 后端 | 服务端 | `server/deploy/`、`server/src/ops/` | S7 |
+| CORE-45 | 邮箱验证码与发信 | 后端 | 服务端 | `server/src/email/` | S2 |
+
+#### 工程与发布（9 张）
+
+- 范围：仓库根约定、`contracts/`、`tools/`、`.github/`、`installer/` 与发布脚本。
+- 检查命令：`python tools/ci/run_all.py`（依次运行全部 CI 检查脚本，CORE-41）；涉及 Rust 或 Dart 的部分同时运行对应命令。
+
+| 编号 | 名称 | 主类 | 子类 | 代码目录 | 阶段 |
+| --- | --- | --- | --- | --- | --- |
+| CORE-01 | 仓库骨架与工程约定 | 工程与发布 | 仓库根 | 仓库根 | S0 |
+| CORE-02 | 错误码注册表与诊断模型 | 工程与发布 | 脚本与配置 | `contracts/errors/`、`crates/fml-error/`、`tools/ci/gen_errors.py` | S0 |
+| CORE-16 | 内容管线与课程内容包 | 工程与发布 | 脚本与配置 | `tools/content/` | S4 |
+| CORE-41 | CI 门禁与可维护性度量 | 工程与发布 | 脚本与配置 | `.github/workflows/`、`tools/ci/` | S0 |
+| CORE-42 | 发布流水线、版本矩阵与回滚 | 工程与发布 | 脚本与配置 | `tools/release/` | S7 |
+| CORE-44 | 鸿蒙预留与 C 头文件消费者验证 | 工程与发布 | 脚本与配置 | `tools/ohos-smoke/` | S7 |
+| AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | S7 |
+| WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
+| WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
