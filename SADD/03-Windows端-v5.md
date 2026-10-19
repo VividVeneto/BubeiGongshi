@@ -51,12 +51,14 @@ graph TD
   C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
   C55["CORE-55 界面设计系统与主题"]
   C20["CORE-20 学习统计、掌握度与本地提醒"]
+  C23["CORE-23 账户状态、登录边界与本机解锁"]
   W01 --> C03
   W01 --> C04
   W02 --> C42
   W02 --> W01
   W02 --> W16
   W03 --> C04
+  W03 --> C23
   W03 --> C36
   W03 --> C43
   W03 --> W02
@@ -127,7 +129,7 @@ graph TD
 | --- | --- | --- | --- | --- |
 | WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 约 280 行 |
 | WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 约 300 行 |
-| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-43、WIN-02、WIN-16 | 约 340 行 |
+| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16 | 约 360 行 |
 | WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 约 450 行 |
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 约 320 行 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 约 420 行 |
@@ -139,7 +141,7 @@ graph TD
 | WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 约 430 行 |
 | WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15 | 约 340 行 |
 | WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06 | 约 440 行 |
-| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 约 480 行 |
+| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 约 500 行 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
@@ -172,7 +174,7 @@ graph TD
 
 **范围**
 - 包含：`app/windows/` CMake 工程与 runner；Cargo 构建 `x86_64-pc-windows-msvc` 并把 `fmlcore.dll` 装入构建输出；DLL 搜索路径加固；`main_windows.dart` 入口；`composition/ports_windows.dart` 组装（未实现的端口先用 CORE-04 的 Fake）；通道注册约定；版本资源；工具链版本文件。
-- 不包含：安装器与启动器（WIN-02、WIN-03）；签名（WIN-12）；各端口实现（WIN-04～10）；ABI 校验与“核心不可用”页面（CORE-04 `runPlatformApp`）。
+- 不包含：安装器与启动器（WIN-02、WIN-16）；自更新（WIN-03）；签名（WIN-12）；各端口实现（WIN-04～10）；ABI 校验与“核心不可用”页面（CORE-04 `runPlatformApp`）。
 
 **依赖**：CORE-01、CORE-02、CORE-03、CORE-04
 
@@ -245,7 +247,7 @@ app/windows/
 **目标**：用 Inno Setup 提供按用户安装、无需管理员权限的官方安装器；卸载默认保留用户数据，删除数据须用户明确选择并二次确认。
 
 **范围**
-- 包含：`installer/windows/bubeigongshi.iss` 安装脚本（ADR-V5-12 选定 Inno Setup 6）；安装布局与 `current.txt`；开始菜单快捷方式与 AppUserModelId；更新模式参数 `/UPDATE=1`；安装前空间检查与降级拦截；卸载选项与清理；简体中文界面文本。
+- 包含：`installer/windows/bubeigongshi.iss` 安装脚本（ADR-V5-12 选定 Inno Setup 6）；程序文件放置与经 WIN-16 `--register-install` 的版本登记；开始菜单快捷方式与 AppUserModelId；更新模式参数 `/UPDATE=1`；安装前空间检查与降级拦截；卸载选项与清理；简体中文界面文本。
 - 不包含：启动器（WIN-16）与更新下载（WIN-03）；代码签名与构建脚本（WIN-12 调用 ISCC 并签名）；数据库迁移（CORE-13）。
 
 **依赖**：CORE-01、CORE-02、CORE-42、WIN-01、WIN-16
@@ -253,12 +255,11 @@ app/windows/
 **接口契约**
 
 ```text
-安装布局（per-user）：
+安装布局（per-user；完整文件清单与控制文件格式以 WIN-16 为准，本卡只放置程序文件）：
   %LOCALAPPDATA%\Programs\BubeiGongshi\
     BubeiGongshi.exe        启动器（WIN-16 构建；快捷方式、开机自启都指向它）
-    current.txt             当前版本号，如 1.2.0（UTF-8，无 BOM，无换行）
-    pending.txt             仅更新模式写入：待首启验证的新版本号（格式与原子操作见 WIN-16）
     app-<version>\          WIN-01 构建输出（bubeigongshi_app.exe、fmlcore.dll、flutter_windows.dll、data\）
+    current.txt、pending.txt、journal.json 等控制文件   只由 WIN-16 写入；安装器经 --register-install 登记版本
   用户数据根：%LOCALAPPDATA%\BubeiGongshi\（布局见 WIN-07）；注册表：HKCU\Software\BubeiGongshi（WIN-06）
 
 ISCC 调用（由 WIN-12 build_release.ps1 执行）：
@@ -273,9 +274,14 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 
 [Code] 规则：
   InitializeSetup    可用空间 < 3 × 安装后体积 → 提示并中止；已安装 current.txt 版本高于 AppVersion → 提示“已安装更新的版本”并中止
-  [Files] 启动器使用 onlyifdoesntexist；本协议首版固定 launcher_protocol=1，常规应用更新不覆盖正在运行的启动器，协议不兼容须停止更新并走专项安装迁移 ADR，不能静默替换。
-  ssPostInstall      普通模式：首次安装按 WIN-16 原子写 current.txt = AppVersion；存在 current 时与更新模式同流程，不能绕过验证
-                     更新模式（命令行含 /UPDATE=1）：通过 WIN-16 的原子文件协议写 pending.txt = AppVersion，不改 current.txt，不重建快捷方式；若已有未完成 journal 则拒绝覆盖
+  IsUpdateMode       ExpandConstant('{param:UPDATE|0}') = '1'（命令行含 /UPDATE=1）
+  [Files] 启动器     不用 onlyifdoesntexist，按 Inno 默认版本比较（仅 FileVersion 更高时替换，版本由 WIN-16 单独维护），
+                     并加 Check: ShouldInstallLauncher（Result := not IsUpdateMode and not CheckForMutexes('Local\BubeiGongshi.Launcher')）：
+                     更新模式与启动器运行中都不替换；首版固定 launcher_protocol=1，协议不兼容须停止更新并走专项安装迁移 ADR，不能静默替换。
+  ssPostInstall      普通模式：Exec(ExpandConstant('{app}\BubeiGongshi.exe'), '--register-install {#AppVersion}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode)；首次安装由其写 current，
+                     已有 current 时登记 pending，不能绕过验证；退出码非 0（启动器正在验证/恢复或 10 s 内拿不到互斥）→ 提示
+                     “应用正在更新或恢复，请稍后重新运行安装程序”，app-<AppVersion> 已放置但未登记，不改变当前版本
+                     更新模式：不写任何控制文件、不重建快捷方式；登记由发起安装的 WIN-16 --install-after-exit 进程在 Inno 退出码 0 后完成
   InitializeUninstall 自定义窗体：单选 [保留本机数据（默认）] / [同时删除本机数据]，按钮 [继续卸载] / [取消卸载并打开应用导出备份]
                      后者启动 {app}\BubeiGongshi.exe 并中止卸载；选择删除数据时二次确认“未同步或未导出的数据将无法恢复”
   usPostUninstall    删除 {app} 整个目录、HKCU\Software\Microsoft\Windows\CurrentVersion\Run 下的值 BubeiGongshi、HKCU\Software\BubeiGongshi；
@@ -285,7 +291,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 错误码：安装器不经核心，不使用错误码；失败以 Inno 退出码表示（0 完成；2 安装前取消；5 安装中取消或错误对话框 Abort；全部非零都不能切换版本，其他含未知码记 PLATFORM_IO；不是所有 5 都代表主动取消）。
 
 - 自动更新由 WIN-16 `--install-after-exit` 模式发起；该进程先取得旧应用的进程句柄、校验创建时间，等句柄结束且 SingleInstance 不存在后才启动 Inno，最长 30 s。安装器仍保留 AppMutex，用户手工启动时正常提示关闭；不依赖 InitializeSetup 比 AppMutex 更早执行。退出中不能强杀旧应用。安装状态持有 Launcher mutex，后来的快捷方式不能启动新写者。
-- current/pending 写入采用同目录临时文件、FlushFileBuffers、MoveFileExW(REPLACE_EXISTING | WRITE_THROUGH)；不得使用直接覆盖写。失败保留旧 current，返回失败。
+- 安装器不直接写 current/pending/journal 等控制文件（Inno Pascal 无法满足 WIN-16 的原子写与 journal 检查）；全部经 WIN-16 命令完成，失败保留旧 current。安装成功后不自动启动应用；更新失败的提示与 update-failed.txt 由 WIN-16 负责。
 - 官方行为依据：Inno 的 AppMutex 与 Setup Exit Codes（见附录 A ADR-V5-31）。
 
 **实现约束**
@@ -298,12 +304,14 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - [R01] 在标准用户（非管理员）账户上安装，无 UAC 提示；开始菜单快捷方式启动应用；Windows 10 1709 上安装器拒绝运行。
 - [R27] 卸载选“保留本机数据”→ 重新安装后原数据可打开；选“同时删除本机数据”并确认 → `%LOCALAPPDATA%\BubeiGongshi\` 与 `HKCU\Software\BubeiGongshi` 不存在。
 - [R27] 点“取消卸载并打开应用导出备份”后应用启动，“应用和功能”中仍有本应用。
-- [R23] 已装 1.1.0 时运行 1.0.0 安装器被拒绝；以 `/UPDATE=1` 安装 1.2.0 后 `current.txt` 仍为 1.1.0、`pending.txt` 为 1.2.0、`app-1.2.0\` 存在。
+- [R23] 已装 1.1.0 时运行 1.0.0 安装器被拒绝；经 WIN-16 `--install-after-exit` 以 `/UPDATE=1` 安装 1.2.0 后 `current.txt` 仍为 1.1.0、`pending.txt` 为 1.2.0、`app-1.2.0\` 存在；直接运行带 `/UPDATE=1` 的安装器只放置 `app-1.2.0\`，不产生控制文件。
 - [R03] 应用运行时启动卸载，提示先关闭应用（AppMutex 生效）。
 
 - [R23] 旧应用延迟 0/800/5000 ms 退出时自动更新均在进程句柄结束后启动 Inno；30 s 未退出则中止且 current/pending 不变；安装器非零退出不启动新版本。
 
-- [R23] 自动更新过程中固定启动器未被覆盖，安装器不因其 exe 文件占用失败；不兼容 launcher_protocol 的清单拒绝自动安装。
+- [R23] 自动更新过程中固定启动器未被覆盖，安装器不因其 exe 文件占用失败；不兼容 launcher_protocol 的清单拒绝自动安装；手工安装 FileVersion 更高的启动器时替换，启动器运行中（Launcher mutex 存在）不替换。
+
+- [R23] 启动器处于 verifying 时手工运行安装器：--register-install 返回 1，提示稍后重试，current/pending/journal 不变。
 
 **规模**：约 300 行；`installer/windows/`（安装脚本与其中的 Code 段；翻译文件为第三方文件，不计入）。
 
@@ -312,10 +320,10 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 **目标**：检查、下载、校验新版本并在用户退出时安装；新版本首次启动失败时由启动器自动回滚到旧版本与更新前的数据库。
 
 **范围**
-- 包含：Dart 侧 `WindowsUpdater`（清单获取、下载与续传、哈希与 Authenticode 校验、退出时安装、健康确认）；设置页“检查更新”区；更新清单格式。
+- 包含：Dart 侧 `WindowsUpdater`（清单获取、下载与续传、哈希与 Authenticode 校验、退出时安装、健康确认与档案打开确认）；设置页“检查更新”区；更新清单格式。
 - 不包含：独立启动器、验证与回滚状态机（WIN-16）；安装脚本（WIN-02）；托管与 CDN（CORE-43 提供 `/windows/update.json`）；资源包更新（CORE-51）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-43、WIN-02、WIN-16
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16
 
 **接口契约**
 
@@ -342,12 +350,15 @@ final class WindowsUpdater extends ValueNotifier<UpdateState> {
   Future<UpdateOffer?> check();                  // RequestPurpose.updateCheck；无更新或已被标记跳过返回 null
   Future<void> download({CancelToken? cancel});  // 写 staging\updates\BubeiGongshi-<v>-setup.exe.part，按已收字节 rangeStart 续传
   void installOnExit();                          // 仅 UpdateReady 有效；退出前先向 WIN-16 提交等待安装请求，取得 armed 确认后才 exitApp
-  Future<void> confirmHealthy();                 // 经 WIN-16 确认当前 version/nonce；无验证 nonce 时 no-op
+  Future<void> confirmHealthy();                 // 经 WIN-16 --confirm-healthy 确认当前 version/nonce；无 nonce 时 no-op；子进程至多等 1500 ms
+  Future<void> confirmOpened();                  // 经 WIN-16 --confirm-opened 确认档案已打开；无 nonce 时 no-op；子进程至多等 1500 ms
 }
 void installWindowsUpdater(CompositionContext ctx);
 // install读取 WIN-01 的 windowsLaunchArguments 解析 --update-nonce，版本取本构建常量，nonce只在内存且不记日志；
 // 登记 WindowsUpdater；向 SettingsSections 加入 order 90 的“检查更新”区；启动钩子 order 85：距上次检查 ≥ 24 h 时自动 check（只提示，不下载）；
-// firstFrameHooks order 20：confirmHealthy（独立于顺序 startupHooks，早于其 order 20 解锁）；读取 installRoot\rolled-back.txt 存在时置 UpdateFailed(PLATFORM_UPDATE_ROLLED_BACK) 并删除该文件
+// firstFrameHooks order 20：confirmHealthy（独立于顺序 startupHooks，早于其 order 20 解锁）；读取 installRoot\rolled-back.txt 存在时置 UpdateFailed(PLATFORM_UPDATE_ROLLED_BACK)、
+//   installRoot\update-failed.txt 存在时置 UpdateFailed(PLATFORM_IO)，读后删除该文件；
+// 有 nonce 时订阅 ctx.features 中 CORE-23 的 AccountController.state，首次出现 GuestUnlocked 或 RegisteredUnlocked 时调用一次 confirmOpened（档案打开含迁移已成功）
 ```
 
 ```text
@@ -357,11 +368,13 @@ check：GET 清单 → schema != 1、launcher_protocol != 1 或字段缺失视�
 download：freeBytes < size × 3 → PLATFORM_UPDATE_DISK_FULL；完成后 SHA-256 不符 → 删除文件，PLATFORM_UPDATE_HASH_MISMATCH；
           通道 "fml/windows/update" verify {path} → {ok, publisher}（WinVerifyTrust + 签名者 CN）；ok 为 false 或 publisher 不等于
           常量 kExpectedPublisher → 删除文件，PLATFORM_UPDATE_SIG_INVALID；全部通过后去掉 .part 后缀并进入 UpdateReady
-安装：退出前启动 WIN-16 的 --install-after-exit 模式，传 installer 绝对路径、旧应用 PID 与创建时间；
-      通过 update 通道异步等待 armed 确认（启动器已打开并校验句柄），随后 shell.exitApp；不在 detached 事件中竞争启动 Inno。
+安装：退出前启动 WIN-16 的 --install-after-exit <installer 绝对路径> --version <offer.version> --pid <本进程 PID> --created <本进程创建 FILETIME>；
+      update 通道按 WIN-16 命名管道协议 10 s 内连接、核验服务端 PID，读到 armed\n 后 shell.exitApp；连接失败、超时或内容不符
+      → UpdateFailed(PLATFORM_IO)，保留安装包、不退出。不在 detached 事件中竞争启动 Inno；安装成功后不自动重启应用，下次启动由 WIN-16 验证。
 state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后把失败版本写入 skipped_version。
-健康确认：firstFrameHooks 中只调用 BubeiGongshi.exe --confirm-healthy <nonce> --version <currentVersion>；
-          启动器按 WIN-16 协议写带 nonce 的 healthy 文件；应用锁等待与网络同步不延迟它。
+健康确认：firstFrameHooks 中只调用 BubeiGongshi.exe --confirm-healthy <nonce> --version <currentVersion>；档案首次打开后调用 --confirm-opened（参数同）；
+          两者都至多等待子进程 1500 ms（在 CORE-36 每项 2 s 上限内），超时记 AppLog、不重试、不终止子进程；
+          启动器按 WIN-16 协议写带 nonce 的 healthy/opened 文件；应用锁等待与网络同步不延迟健康确认。
 版本选择、数据备份、首启等待、原子提交与回滚全部由 WIN-16 唯一定义。
 ```
 
@@ -380,8 +393,9 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 - [R27] 回滚后 `database\` 的文件哈希与更新前备份一致。
 - [R26] 游客检查更新的请求不含 `Authorization` 头与设备标识（抓包验证）。
 - [R23] 连续 3 次更新后 `%LOCALAPPDATA%\Programs\BubeiGongshi\` 下只保留 2 个 `app-*` 目录。
+- [R23] 启动器子进程挂起时 confirmHealthy/confirmOpened 在 1.5 s 内返回，每次启动各至多调用一次；管道内容不符或服务端 PID 不符时不退出并显示 PLATFORM_IO；Inno 失败后下次启动显示更新失败且 update-failed.txt 被删除。
 
-**规模**：约 340 行；`app/lib/platform/windows/update/` 与 `app/windows/runner/update_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 360 行；`app/lib/platform/windows/update/` 与 `app/windows/runner/update_channel.cpp`（同属 `app/` 构建单元）。
 
 ### WIN-06 窗口、DPI、生命周期与单实例
 
@@ -415,12 +429,14 @@ final class WindowsPrefs {                       // HKCU\Software\BubeiGongshi\P
   Future<String?> get(String key); Future<void> set(String key, String? value);   // key 匹配 ^[a-z0-9_.]{1,64}$；null 删除
 }
 abstract interface class TrayPresence {          // WIN-09 登记；未登记时关闭即退出
+  bool get iconReady;                            // 托盘图标已创建成功
   Future<void> hideToTray(); }
 final class WindowsShell {
   WindowsShell(this.lifecycle, this.prefs, this.features);
   Future<void> exitApp();                        // 发 paused、detached → 等待 800 ms → 通道 destroy
 }
-void installWindowsShell(CompositionContext ctx);  // 登记 WindowsPrefs、WindowsShell；向 SettingsSections 加入 order 80 的“窗口”区；订阅关闭请求
+void installWindowsShell(CompositionContext ctx);  // 登记 WindowsPrefs、WindowsShell；向 SettingsSections 加入 order 80 的“窗口”区；订阅关闭请求；
+// firstFrameHooks order 15（最小化兜底）：有 --minimized 且 TrayPresence 未登记或 iconReady 为 false → 通道 show
 ```
 
 ```text
@@ -435,10 +451,15 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 关闭：WM_CLOSE 不直接销毁，改发 closeRequested；Dart 按偏好 window.close_action（"exit" 默认，见 README §6 Q15；或 "tray"，后者仅 TrayPresence 已登记时生效）
       调 TrayPresence.hideToTray() 或 WindowsShell.exitApp()
 单实例：main.cpp 在创建窗口前 CreateMutexW(L"Local\\BubeiGongshi.SingleInstance")；已存在 → FindWindowW(L"BubeiGongshiMainWindow", nullptr)，
-        发送 WM_COPYDATA（命令行）后以退出码 10（仅转发，非启动失败）退出；已运行实例收到后 SW_RESTORE + SetForegroundWindow
+        GetWindowThreadProcessId 后 AllowSetForegroundWindow(该 PID)，SendMessageTimeoutW(WM_COPYDATA, SMTO_ABORTIFHUNG, 5000 ms) 发送
+        COPYDATASTRUCT{dwData = 0x464D4C31（"FML1"），lpData = argv[1..] 的 UTF-16LE 串，每个参数以 NUL 结束、末尾再加一个 NUL，
+        cbData ≤ 32 KiB（超出时截到最后一个完整参数）}，然后以退出码 10（仅转发，非启动失败）退出；
+        已运行实例只接受 dwData 匹配的消息，V1 只做 SW_RESTORE + SetForegroundWindow（参数暂不处理）；WIN-16 启动器激活时使用同一格式
 窗口位置：WM_EXITSIZEMOVE 与关闭时 GetWindowPlacement 写入 HKCU\Software\BubeiGongshi\Window\Placement（REG_BINARY）；
           启动时读取，MonitorFromRect(rcNormalPosition, MONITOR_DEFAULTTONULL) 为空则在主显示器工作区居中 1280×800（不超过工作区）
-启动参数：--minimized 且 TrayPresence 已登记 → firstFrameHooks order 10 确认托盘创建成功后才隐藏；失败则显示账户入口/解锁页，不能留下不可进入的隐藏窗口。启动器透传验证 nonce，不改变是否渲染首帧。
+启动参数：--minimized → runner 首帧回调不调用 Show()（模板默认首帧后 Show；窗口保持创建时的隐藏状态，避免闪现），首帧照常渲染；
+          firstFrameHooks order 10 由 WIN-09 创建托盘图标并置 iconReady，order 15 由本卡兜底显示，不能留下不可进入的隐藏窗口；
+          无 --minimized 时首帧后 Show。启动器透传验证 nonce，不改变是否渲染首帧。
 ```
 
 - `RuntimeSnapshot` 取值：`os = 'windows'`，`abi = 'x64'`，`locale` 取 `PlatformDispatcher.instance.locale`，`dpiScale` 取当前视图的 `devicePixelRatio`，其余来自通道 `runtime`。
@@ -456,6 +477,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 - [R01] 窗口位于副显示器时退出，断开副显示器后启动，窗口出现在主显示器可见区域。
 - [R27] 已运行时再次启动，任务管理器中只有一个 `bubeigongshi_app.exe`，已运行窗口被激活。
 - [R04] 学习会话中退出：进程在 2 s 内结束；重启后该会话可继续（CORE-39 `study.session.resume`）。
+- [R01] 以 `--minimized` 启动（含开机自启）录屏逐帧无窗口闪现；模拟托盘创建失败时 2 s 内显示窗口；dwData 不符的 WM_COPYDATA 被忽略。
 
 **规模**：约 420 行；`app/lib/platform/windows/window/` 与 `app/windows/runner/` 中的 `app/windows/runner/window_channel.cpp`、单实例与窗口位置代码（同属 `app/` 构建单元）。
 
@@ -1216,6 +1238,7 @@ abstract interface class NotificationScheduler {
   Stream<void> taps();
 }
 abstract interface class TrayPresence {
+  bool get iconReady;
   Future<void> hideToTray(); }
 ```
 
@@ -1228,7 +1251,7 @@ final class WindowsNotificationScheduler implements NotificationScheduler {
 }
 final class WindowsTray implements TrayPresence { WindowsTray(this.nav, this.shell); final AppNavigator nav; final WindowsShell shell; }
 void installWindowsTray(CompositionContext ctx);
-// 登记 TrayPresence；向 SettingsSections 加入 order 75 的“提醒与托盘”区；firstFrameHooks order 10：创建托盘图标，成功后 --minimized 才隐藏；不经顺序启动钩子，不等待解锁；
+// 登记 TrayPresence；向 SettingsSections 加入 order 75 的“提醒与托盘”区；firstFrameHooks order 10：创建托盘图标，成功后置 iconReady（--minimized 时窗口自始未显示，失败由 WIN-06 order 15 兜底显示）；不经顺序启动钩子，不等待解锁；
 // 追加到 ports_windows.dart 的 platformInstallers（须位于 installWindowsShell 之后）
 ```
 
@@ -1313,7 +1336,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 **实现约束**
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。
 - 代码签名不保证立即获得 SmartScreen 信誉；发布说明不承诺 EV 证书一定消除拦截。
-- 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-03）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12）。
+- 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-16）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12）。
 - 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本见 `app/windows/toolchain.versions`（WIN-01，ADR-V5-15）。
 
 **验收标准**
@@ -1371,7 +1394,7 @@ tools/perf/windows/
   report_template.md                 环境矩阵、测量结果、各 WIN 卡手动验收项勾选表、豁免记录（链接附录 A）
 环境矩阵（最少）：Windows 10 1809 x64 实体机或虚拟机；Windows 11 23H2 4 核 / 8 GB / SSD（基线）；Windows 11 二合一触屏 + 触控笔（含平板姿态与键盘姿态切换）；
                  外接数位板（如 Wacom 或同类，驱动开启与关闭 Windows Ink 各一轮，含双显示器映射）；
-                 高 DPI 双显示器（100% + 200%）；禁用 GPU（远程桌面或基本显示适配器）；系统对比度主题开启（如“夜空”）的冒烟一轮
+                 高 DPI 双显示器（100% + 200%）；禁用 GPU（专用矩阵机切换到 Microsoft Basic Display Adapter，同 soft_render_test；远程桌面会话不算禁用 GPU）；远程桌面连接冒烟一轮（启动、渲染与输入）；系统对比度主题开启（如“夜空”）的冒烟一轮
 ```
 
 - 错误码：测试与脚本不新增错误码。
@@ -1400,45 +1423,72 @@ tools/perf/windows/
 
 ### WIN-16 启动器与更新恢复
 
-**目标**：以独立 C++ 构建单元安全选择版本、等待安装、验证首帧并在失败时恢复更新前数据库；并发启动不触发重复回滚。
+**目标**：以独立 C++ 构建单元安全选择版本、等待安装、验证首帧与档案打开，失败时恢复更新前数据库；并发启动不触发重复回滚。
 
 **范围**
-- 包含：固定路径 BubeiGongshi.exe、CMake/CTest、原子状态文件与持久化 journal、单启动器互斥、进程等待、数据库快照与恢复、故障注入夹具。
-- 不包含：下载/签名校验（WIN-03）；安装脚本（WIN-02）；业务迁移算法（CORE-13，下游说明，非契约）；SecureKV 迁移。
+- 包含：固定路径 BubeiGongshi.exe、CMake/CTest、installRoot 文件布局与控制文件格式（本卡为唯一权威）、原子状态文件与持久化 journal、单启动器互斥、进程等待与命名管道确认、安装登记命令、数据库快照与恢复、故障注入夹具。
+- 不包含：下载/签名校验（WIN-03）；安装脚本（WIN-02）；业务迁移算法（CORE-13，下游说明，非契约）；SecureKV 迁移；整库恢复后的设备身份更换（同步客户端按 ADR-V5-33 处理）。
 
 **依赖**：CORE-01、CORE-02、WIN-01、WIN-06、WIN-07
 
 **接口契约**
 
-- 构建：`cmake -S installer/windows/launcher -B build/launcher` 后 `cmake --build build/launcher --config Release`；输出 `BubeiGongshi.exe`。只链接 Windows 系统库，不链接 Flutter/Rust/安装器；首版协议固定 launcher_protocol=1，常规更新不替换正在运行的固定启动器，协议升级须另立 ADR 与迁移安装器；WIN-02 用 /DLauncher 消费制品，因此不存在 WIN-02 ↔ WIN-03 循环。
-- 路径：installRoot 与用户数据 database 根分别按 WIN-02 的布局说明（下游只读引用，格式见本卡）与 WIN-07 的 StoreArea.database；安装根为 %LOCALAPPDATA%\Programs\BubeiGongshi。版本号严格 SemVer，禁止路径字符。journal/标记均位于安装根；备份在同卷数据根 staging\updates\db-backup-<C>，先完成一致快照再启动 N，包含 SQLite WAL/SHM（所有应用进程退出后复制整个 database 目录，以及 WIN-07 StoreArea.packs 下 CORE-15 的 pack_meta.db 与其 -wal/-shm；不含 security_state.json 与包版本目录，下表“database”均指这一备份集）。
-- 命令：无参数/用户参数启动应用；`--install-after-exit <installer> --pid <u32> --created <u64 FILETIME>` 打开 SYNCHRONIZE|PROCESS_QUERY_LIMITED_INFORMATION 句柄并核验创建时间，通过仅本用户可访问的命名管道回 armed；最多等待 30 s，确认进程结束且 SingleInstance 不存在后启动 Inno /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /UPDATE=1。非零退出保留 C、记录日志并提示；成功保留 pending 等下次启动。不阻塞 UI 线程、不仅按 PID 轮询。
-- firstFrameHooks 消费的 `--confirm-healthy <nonce> --version N` 是特例：只允许匹配 journal.verifying 的 N/nonce 且目标 PID/创建时间仍存活时原子写 healthy.json={version,nonce}，不取得 Launcher mutex、不改变 journal；普通启动不能用此分支切换版本。
-- 普通/安装/恢复模式从入口到完成持有 `Local\BubeiGongshi.Launcher` mutex；拿不到时只按 WIN-06 的 WM_COPYDATA 协议激活现有窗口，没有窗口则提示“正在安装或恢复，请稍后”，不碰文件、不启动第二个验证进程。应用自身 SingleInstance 互斥独立，返回码 10 表示转发，不能据此认定 N 崩溃或恢复数据；验证时遇到 10 中止本轮并保留 journal，待所有实例退出再恢复。
-- current.txt/pending.txt 为无 BOM/换行 UTF-8 SemVer；journal.json schema=1 字段：state、C、N、nonce（系统随机 128 bit 小写 hex）、pid?、created?、backup_ready、restore_step?；healthy.json 必须匹配本轮 nonce，旧文件先删除。rolled-back.txt=N 供客户端读取。任何控制文件用同目录临时文件→FlushFileBuffers→关闭句柄→MoveFileExW(REPLACE_EXISTING | WRITE_THROUGH)；写失败不推进状态，journal 是恢复依据，不能把文件 rename 声称为跨文件事务。
+决策依据：ADR-V5-31（启动、安装与恢复时序，补充见附录 A §A.4.5）；整库恢复后的设备身份见 ADR-V5-33。
+
+```text
+installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动器写；安装器只放置程序文件）
+  BubeiGongshi.exe     启动器（launcher_protocol=1）
+  app-<v>\             WIN-01 构建输出；稳定后只保留当前与上一版两个
+  current.txt          当前版本，如 1.2.0
+  pending.txt          待验证版本（仅 pending/verifying 期间存在）
+  journal.json         更新 journal（idle 时不存在）
+  healthy.json         本轮首帧确认 {"version":"<N>","nonce":"<nonce>"}
+  opened.json          本轮档案已打开确认，格式同 healthy.json
+  rolled-back.txt      被回滚的版本号 N；WIN-03 读取后删除
+  update-failed.txt    "<N> <Inno 退出码十进制>"（一个空格分隔）；WIN-03 读取后删除
+  launcher.log         本机日志，达到 1 MiB 轮转为 launcher.log.1（只留一份）；不记录内容、密钥与 nonce
+数据根（WIN-07）：备份集 = StoreArea.database 整个目录 + StoreArea.packs 下 CORE-15 的 pack_meta.db 及其 -wal/-shm；
+                 不含 security_state.json 与包版本目录；下文“数据库”均指这一备份集
+备份：<数据根>\staging\updates\db-backup-<C>\{database\…, packs\pack_meta.db[-wal|-shm], manifest.txt}；构建中名为 db-backup-<C>.tmp
+```
+
+- 构建：`cmake -S installer/windows/launcher -B build/launcher` 后 `cmake --build build/launcher --config Release`；输出 `BubeiGongshi.exe`。只链接 Windows 系统库，不链接 Flutter/Rust/安装器；首版协议固定 launcher_protocol=1，协议升级须另立 ADR 与迁移安装器；WIN-02 用 /DLauncher 消费制品，因此不存在 WIN-02 ↔ WIN-03 循环。启动器 VERSIONINFO 的 FileVersion 在 `installer/windows/launcher/launcher_version.h` 单独维护（CORE-42 bump_version 不改它），仅启动器代码变更时递增，供 WIN-02 按版本比较替换。
+- 文本格式：全部控制文件为 UTF-8、无 BOM、无尾换行；版本号为严格 SemVer 2.0（不含构建元数据，拒绝路径字符）；nonce 为 BCryptGenRandom 生成的 128 bit，写成 32 个小写十六进制字符。
+- journal.json：单行 JSON，键按下列顺序、无多余空白：`{"schema":1,"state":"verifying","C":"1.1.0","N":"1.2.0","nonce":"<32 hex>","pid":1234,"created":"133414560000000000","backup_ready":true,"restore_step":"none","open_attempts":0}`。state ∈ `pending`、`verifying`、`committed`、`rolling-back`、`rolled-back`（idle 即文件不存在）；pid 为 JSON 整数（未登记为 0）；created 为进程创建时间 FILETIME 的 u64 十进制字符串（未登记为 "0"，避免 JSON 数值精度损失）；restore_step ∈ `none`、`moved-failed`、`restored`；open_attempts 为 0～255 的整数。解析失败、schema≠1、缺键或出现未知键视为 journal 损坏：不改任何文件，进入救援对话框。
+- manifest.txt：首行 `fml-db-backup 1`，其后每个文件一行 `<字节数十进制>\t<SHA-256 小写 hex>\t<相对备份根的路径，分隔符 />`，按路径的 UTF-8 字节序升序，每行以 LF 结尾，不列 manifest 自身。备份回读与恢复都按它逐文件核验大小与哈希。
+- 原子写：任何控制文件写同目录 `<name>.tmp` → FlushFileBuffers → 关闭句柄 → MoveFileExW(MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)；写失败不推进状态。journal 是恢复依据，不能把多个 rename 声称为跨文件事务。
+- 普通模式（无参数或用户参数）：按下表推进；用户参数原样透传给应用，verifying 与 committed 期间追加 `--update-nonce <nonce>`。
+- `--install-after-exit <installer> --version <N> --pid <u32> --created <u64 FILETIME>`：打开 SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION 句柄并核验创建时间后，创建命名管道 `\\.\pipe\BubeiGongshi.Launcher.<pid 十进制>`（PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE、PIPE_REJECT_REMOTE_CLIENTS，DACL 只允许当前用户 SID），接受一个连接后写入 6 字节 ASCII `armed\n` 并关闭；10 s 内无连接则退出 1、不安装。客户端（WIN-03）须在 10 s 内连接，以 GetNamedPipeServerProcessId 核验服务端是自己启动的启动器 PID，只接受恰好 `armed\n`。随后最多等待 30 s 至句柄结束且 SingleInstance 不存在，再启动 `<installer> /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /UPDATE=1` 并等待其退出：退出码 0 且 `app-<N>\bubeigongshi_app.exe` 存在 → 按 `--register-install` 规则登记 pending=N，不自动启动应用（下次用户启动时验证）；非零或文件缺失 → current/pending 不变，写 update-failed.txt 并弹原生 MessageBoxW“更新未完成（代码 <x>），仍使用 <C>”。不阻塞 UI 线程、不仅按 PID 轮询。
+- `--register-install <V>`（只供 WIN-02 普通模式调用）：10 s 内取得 Launcher mutex，否则退出 1；无 current.txt → 原子写 current=V；current=V → 无操作；journal 为 verifying 或 rolling-back → 退出 1、不改文件；其余情况原子写 pending=V（committed 尚未 opened 时同样允许，旧备份在新备份核验后才删除）。成功退出 0。
+- `--confirm-healthy <nonce> --version <N>`：只在 journal.state=verifying、N/nonce 匹配且登记的 pid/created 仍存活时原子写 healthy.json；不取得 Launcher mutex、不改 journal；否则退出 1。普通启动不能用此分支切换版本。
+- `--confirm-opened <nonce> --version <N>`：journal.state ∈ verifying、committed 且 N/nonce 匹配时原子写 opened.json，表示档案已打开（含 CORE-13 迁移成功）；同样不取得 mutex、不改 journal；否则退出 1。
+- 互斥：普通/安装/登记/恢复模式从入口到完成持有 `Local\BubeiGongshi.Launcher` mutex；拿不到时只按 WIN-06 的 WM_COPYDATA 格式激活现有窗口，没有窗口则提示“正在安装或恢复，请稍后”，不碰文件、不启动第二个验证进程。进入 pending → verifying 前以 OpenMutexW(SYNCHRONIZE) 检查 `Local\BubeiGongshi.SingleInstance`：存在则只激活、不开始验证。应用返回码 10 只表示转发：N 以 10 退出时把 journal 原子改回 pending（backup_ready=false、pid=0、created="0"），删除本轮备份与 healthy/opened，不恢复数据库，下次无实例运行时重新验证。
 
 | 状态转换 | 先决条件与持久化动作 | 失败/重启规则 |
 | --- | --- | --- |
-| idle → pending | current=C、pending=N 且 app-N 存在，写 journal.pending | 无 pending 时启动 C 后退出；有运行中的应用则仅激活、不开始验证 |
-| pending → verifying | 所有写者已退出，复制 database 到临时备份，验证清单/哈希并 rename 为 backup-C；journal.backup_ready=true；清旧 healthy，写新 nonce；CreateProcess N 透传 --update-nonce；登记 pid/created | 备份不完整删除临时目录并保持 C；重启读取 journal，不覆盖有效备份 |
-| verifying → committed | 500 ms 轮询，120 s 内匹配 healthy 且目标仍存活；原子 current=N，再写 journal.committed | current=N 而 journal 未提交时根据匹配 nonce 补提交；清 pending/标记失败可幂等重试，不重复验证 |
-| verifying → rolled-back | N 异常退出/120 s 超时且无匹配 healthy；超时时 TerminateProcess 后 WaitForSingleObject 直到句柄结束，未结束绝不动数据库；确认所有写者退出 | 先 journal.restore_step，再 database→database.failed-N、backup-C→database；每步成功后记录，重启从目录与清单判定已完成步骤；恢复核验成功后才清 pending、写 rolled-back 与终态并启动 C |
-| committed / rolled-back → idle | 保留 C/N 两版本，成功后清 journal 与无用备份/旧 app 目录 | 清理失败记日志、下次重试，不影响已验证版本 |
+| idle → pending | `--register-install` 或安装模式已写 pending=N（current=C、app-N 存在）；普通启动写 journal（state=pending） | 无 pending 时启动 current 后退出；有运行实例只激活、不开始验证 |
+| pending → verifying | SingleInstance 不存在；复制数据库到 db-backup-<C>.tmp，写 manifest 并回读核验后 rename 为 db-backup-<C>，再删除上一轮遗留备份；journal.backup_ready=true；删旧 healthy/opened，写新 nonce；CreateProcess N 透传 --update-nonce；登记 pid/created 并写 state=verifying | 备份不完整删除 .tmp 并启动 C；重启读取 journal，不覆盖有效备份 |
+| verifying → committed | 500 ms 轮询，120 s 内出现匹配 healthy 且目标仍存活；原子 current=N、删 pending，再写 state=committed（open_attempts=0） | current=N 而 journal 未提交时按匹配 nonce 补提交；不重复验证 |
+| committed → idle | 匹配本轮的 opened.json 已存在（提交时或后续启动时检查） | 删备份、journal、healthy/opened 与多余 app 目录；清理失败记日志、下次重试 |
+| committed（未 opened） | 启动时 open_attempts+1 并原子写回，再以同一 nonce 启动 N；超过 3 次时弹原生对话框 [继续尝试]（open_attempts 归 0）/[恢复到 <C> 与更新前数据]（转 rolling-back）/[退出]，阈值见 README §6 Q36（待确认） | 期间保留 app-<C> 与备份；选择恢复同样要求 SingleInstance 不存在 |
+| verifying → rolling-back | N 非 10 退出，或 120 s 超时且无匹配 healthy；超时时 TerminateProcess 后 WaitForSingleObject 直到句柄结束，未结束绝不动数据库；写 state=rolling-back、restore_step=none | 见下一行 |
+| rolling-back → rolled-back → idle | none：把现库各项移到 database.failed-<N> 与 packs\pack_meta.failed-<N>\ → moved-failed：删除残留 .restoring 后从备份复制到 database.restoring 与 packs\pack_meta.restoring\，按 manifest 核验后 rename 就位 → restored：原子 current=C、删 pending、写 rolled-back.txt=N 与 state=rolled-back，启动 C；之后删 journal、healthy/opened 与已用备份 | 每步按项幂等，重启按 restore_step 与目录存在判定续做；failed-<N> 库保留到下一轮更新进入 idle |
 
 - verifying 状态重启：先核验 pid/created，若旧 N 仍活着则继续同 nonce 验证，不能重开；否则恢复备份。创建 N 后尚未来得及写 PID 的崩溃窗口，必须先检查 SingleInstance；存在时只提示关闭后恢复，不能凭缺 PID 改库。
-- rename/替换遇共享冲突重试 5 次、间隔 200 ms；耗尽保留 app-C、journal、备份和失败库，不在未恢复或部分迁移的库上启动 C。恢复失败显示独立原生救援对话框（重试、打开日志/数据目录、退出）；旧程序只有恢复并核验成功才能启动。程序不删除唯一有效备份。
-- 错误复用 CORE-04 的 PLATFORM_IO / PLATFORM_UPDATE_ROLLED_BACK，启动器日志仅本机轮转，不记录内容/密钥；CLI 失败退出码 1，转发为 10，成功为 0。本卡不新增公共错误码。
+- rename/替换遇共享冲突重试 5 次、间隔 200 ms；耗尽保留 app-C、journal、备份和失败库，不在未恢复或部分迁移的库上启动 C。恢复失败或 journal 损坏显示独立原生救援对话框（重试、打开日志/数据目录、退出）；旧程序只有恢复并核验成功才能启动。程序不删除唯一有效备份。
+- 错误复用 CORE-04 的 PLATFORM_IO / PLATFORM_UPDATE_ROLLED_BACK，不记录内容/密钥；CLI 失败退出码 1，转发为 10，成功为 0。本卡不新增公共错误码。
 
 **实现约束**
-- 持久化顺序按上述表，文件/进程调用封装可注入；所有等待在启动器进程执行。无常驻服务、无网络访问。
-- 备份/回滚只允许写文档指定目录，路径正规化拒绝重解析点逃逸；写者退出之前禁止复制与恢复。备份保留到 committed 或恢复核验完成。
-- 首帧健康只表示壳与路由可呈现，不能代替数据迁移、账户解锁或同步成功验收；后续失败由对应模块报告，不自动回滚用户解锁。
+- 持久化顺序按上述表，文件/进程/管道调用封装可注入；所有等待在启动器进程执行。无常驻服务、无网络访问。
+- 备份/回滚只允许写文档指定目录，路径正规化拒绝重解析点逃逸；写者退出之前禁止复制与恢复。备份保留到 opened 后的 committed → idle 清理或恢复核验完成；committed 期间保留 app-<C>。
+- 首帧健康只表示壳与路由可呈现；opened 只表示档案打开（含迁移）成功；二者都不代表同步成功。后续同步、账户失败由对应模块报告，不自动回滚用户解锁；整库恢复后由同步客户端按 ADR-V5-33 更换设备身份，本卡不改库内容。
 
 **验收标准**
 - [R23][R27] CTest 故障注入覆盖每次文件提交前后、复制中断、CreateProcess/PID 登记间隙与重启；最终为完整 C+原库或已确认 N，不出现混合数据库。
-- [R23] 验证期间连续双击 20 次只激活现有实例，不产生第二个 N、不回滚；返回码 10 与异常退出分别验证。
+- [R23] 验证期间连续双击 20 次只激活现有实例，不产生第二个 N、不回滚；已有实例运行时启动不进入 verifying；N 以返回码 10 退出时 journal 回到 pending、数据库未被恢复，与异常退出分别验证。
 - [R23][R27] N 崩溃/超时恢复后数据库哈希与快照一致；模拟 TerminateProcess 后句柄仍未结束不改库；5 次 rename 失败进入救援，保留 C 与唯一备份，不启动损坏库。
-- [R23] 陈旧 healthy、错误 nonce、错误版本均不能提交；首帧完成后解锁/同步各等待超过 120 s 不回滚；--minimized 同样通过。
-- [R23] 安装模式校验 PID 创建时间、armed 确认、30 s 超时与 Inno 非零退出；只有旧进程结束后启动安装器。
+- [R23][R27] 陈旧 healthy/opened、错误 nonce、错误版本均不能提交或清理；首帧完成后解锁等待超过 120 s 不回滚；提交后档案始终未打开时备份与 app-C 保留，第 4 次启动出现恢复对话框，选择恢复后数据库哈希与快照一致；--minimized 同样通过。
+- [R23] 安装模式校验 PID 创建时间、armed 确认、30 s 超时与 Inno 非零退出（写 update-failed.txt 并提示，current/pending 不变）；只有旧进程结束后启动安装器；成功后不自动启动应用且 pending=N。
+- [R23] journal、manifest、healthy/opened、update-failed 与黄金文件逐字节一致；截断、含未知键或 schema=2 的 journal 进入救援且不改文件；其他进程抢先创建同名管道时客户端拒绝；verifying 期间 `--register-install` 返回 1 且文件不变。
 
-**规模**：约 480 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 300 行，文件/进程适配约 100 行，CTest 故障夹具约 80 行；超过预算先再拆卡）。
+**规模**：约 500 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 310 行，文件/进程/管道适配约 110 行，CTest 故障夹具约 80 行；超过预算先再拆卡）。
