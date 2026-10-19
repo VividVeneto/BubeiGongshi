@@ -294,6 +294,9 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-29 | FSRS API 与状态包装 | 算法基准固定 fsrs=6.6.2，使用FSRS::new/next_states/memory_state、自由函数fsrs::compute_parameters(ComputeParametersInput)与FSRS::evaluate（留出集log-loss）；学习状态按CORE-17表由项目包装，不引入rs-fsrs；该版本正常依赖为itertools/log/ndarray/priority-queue/rand/rayon/serde/snafu/strum，Burn仅dev-dependency（官方docs.rs核实2026-10-19；v5.3.1订正API形态与依赖清单），包体仍测产物。此算法/向量固定版是V5-15通用最新稳定规则的明确例外，升级先修此ADR及向量 | 照抄不存在的整套调度API无法生成FS向量；另引状态机破坏同日重复规则 | Q34改变或库升级时重审，真实实现补锁文件与独立FS参照输出 | 采纳 | CORE-17；README Q34 |
 | ADR-V5-30 | Dart分层、网络构造与主题入口 | ui只放Widget/绘制，VM/用例/DTO在lib特性目录，composition负责构造；网络构造名单唯一文件归CORE-01；FmlTheme.of返回8项聚合FmlTokens，缺扩展明确失败 | 放宽ui绑定会让平台/传输渗入，双扫描白名单会误伤平台实现 | 新平台或新主题令牌时修订对应契约 | 采纳 | CORE-01、28、37～55、41；AGENTS |
 | ADR-V5-31 | Windows启动与安装时序 | 启动器独立WIN-16、互斥+原子文件+journal补偿；首帧托盘/健康早于解锁；安装前持句柄等待旧进程；Profile集成与Release外部采样；参数按Flutter模板传Dart main，协议1常规更新不覆盖启动器 | order95健康会因用户等待误回滚；恢复失败不能启动损坏库 | 启动器协议升级、恢复范围或健康定义改变时重审 | 采纳 | CORE-04/36；WIN-01/02/03/06/09/13/16；补充见§A.4.5 |
+| ADR-V5-32 | Casdoor 能力差异的补齐方式 | 刷新只经 CORE-22 令牌代理（Casdoor 对授权码令牌刷新要求 client_secret，仅服务端持有）；重放检测与整族吊销由业务库 auth_refresh_family/auth_refresh_used（只存 HMAC）实现；不依赖 sid；auth_time 只取授权码换得的令牌，刷新所得令牌缺 auth_time 时敏感接口按超时处理并 prompt=login 重登；TokenFormat 固定 JWT-Custom 且不含个人信息 | 等待上游补齐：上线无期；改用 Keycloak：见 §A.4.4 代价；代理不存状态：无法吊销整族 | Casdoor 原生提供刷新令牌族吊销与刷新保留 auth_time，或更换身份服务时 | 采纳（修订方决定，待甲方追认；依据见 §A.4.6） | CORE-22、23、25、43 |
+| ADR-V5-33 | 整库回退后的设备身份 | 本地库被整体恢复（WIN-16 回滚、备份恢复）后，同步客户端在拉到本设备 device_seq 大于本地的 envelope 或推送遇本设备 op_id CONFLICT 时，于同一合并事务中更换 device_id（device_seq 归零、lamport 取已见最大值）；字段时钟 (counter, device_id) 完全相同而值不同时取字段规范 JSON 的 BLAKE3 较大者 | 启动器提交前禁网：首帧后钩子无法保证；回滚时清空同步状态重新全量：丢失回滚后本机写入且流量大 | 引入服务端设备登记或改变时钟格式时 | 采纳（修订方决定） | CORE-13、26；WIN-16、CORE-27 |
+| ADR-V5-34 | 界面依赖视图与路由位置 | AppDeps 只在 composition 与 app/lib/<feature>/ 使用；路由函数放各特性目录 routes.dart，由 app/lib/composition/routes.dart 聚合；ui/ 只接收 UiDeps、VM、DTO 与回调，CORE-41 DEP-5 扫描 | 继续把 AppDeps 传入页面：CoreBinding/PlatformPorts 渗入 ui；每页单独注入：组装样板过多 | 引入新的状态管理框架时 | 采纳（修订方决定） | CORE-36、38～51、41 |
 
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
@@ -324,7 +327,7 @@ D1：采纳开工时锁定规则（V5-15）；D2：Casdoor（V5-14）；D3：Fak
 | ZITADEL | 当前主分支 AGPL-3.0；简中覆盖待验收 | 自托管、邮箱口令、验证码与 PKCE | SMTP 或受测通知适配 | 许可与自托管升级需维护，无本项目资源实测 |
 | Hydra + Kratos | 两者 Apache-2.0；简中 UI 自行交付 | Hydra 管 OIDC，Kratos 管账户、验证和找回 | 自托管 courier/SMTP 适配 | 两服务及登录同意 UI，组件与自建界面最多 |
 
-各项均可部署在境内；不得据此推定默认无遥测、默认六位码策略或默认支持本项目 auth_time/刷新轮换。CORE-22 开工锁定 Casdoor 版本、镜像 digest 与配置，契约测试覆盖 PKCE、刷新令牌轮换/重放、六位码、找回吊销、auth_time 与 prompt=login；缺项只能用受测适配补齐，变更产品须修订 V5-14。无合格实测证据时仅 Fake 编码通过，真实认证上线被门槛阻断。Casdoor 原生邮件路径必须禁用或指向内部受认证适配器，不能绕过 EmailSender。
+各项均可部署在境内；不得据此推定默认无遥测、默认六位码策略或默认支持本项目 auth_time/刷新轮换。CORE-22 开工锁定 Casdoor 版本、镜像 digest 与配置，契约测试覆盖 PKCE、刷新令牌轮换/重放、六位码、找回吊销、auth_time 与 prompt=login；缺项只能用受测适配补齐，变更产品须修订 V5-14。无合格实测证据时仅 Fake 编码通过，真实认证上线被门槛阻断。Casdoor 原生邮件路径必须禁用或指向内部受认证适配器，不能绕过 EmailSender。v5.3.1 按 master 源码核实的能力差异与补齐方式见 §A.4.6 与 ADR-V5-32。
 
 官方核实入口（查询 2026-10-19；实现开工复核具体版本）：[Casdoor 源码与许可证](https://github.com/casdoor/casdoor)、[邮件 provider](https://casdoor.org/docs/provider/email/overview/)、[Keycloak 管理指南](https://www.keycloak.org/docs/latest/server_admin/index.html)、[内存建议](https://www.keycloak.org/server/containers)、[ZITADEL 许可证](https://github.com/zitadel/zitadel/blob/main/LICENSE)、[Hydra](https://github.com/ory/hydra)、[Kratos](https://github.com/ory/kratos)。维护成本为本项目组件数量与定制量的工程判断，不是官方基准。
 
@@ -335,6 +338,25 @@ WIN-16 独立于安装器；WIN-02 消费其制品，WIN-03 仅负责下载与�
 2026-10-19 官方核对：[Inno AppMutex](https://jrsoftware.org/ishelp/topic_setup_appmutex.htm) 在启动时检查互斥；[退出码](https://jrsoftware.org/ishelp/topic_setupexitcodes.htm) 的 5 也包含 Abort，非零均未完成；[MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw) 支持 REPLACE_EXISTING/WRITE_THROUGH；[TerminateProcess](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) 是异步终止，须再等待进程句柄。它们不提供多文件事务，故定义恢复 journal。
 
 WIN-13 的集成驱动改为 Profile；Release 用外部启动/版本/签名冒烟与日志采样。[Flutter build modes](https://docs.flutter.dev/testing/build-modes) 区分 Profile 分析与 Release 发布，[integration_test 官方驱动示例](https://docs.flutter.dev/testing/integration-tests) 通过测试驱动采集。禁 GPU 以专用矩阵机 Basic Display Adapter 实测并登记，不使用无依据的 FLUTTER_ENGINE_SWITCH 环境变量。工具链锁定后先跑最小驱动探针，未通过不得称矩阵就绪。命令行透传使用[Flutter官方Windows runner模板](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/templates/app/windows.tmpl/runner/main.cpp.tmpl)的GetCommandLineArguments与DartProject.set_dart_entrypoint_arguments，由WIN-01交付Dart main(List<String>)参数快照，不读取VM参数冒充用户命令。
+
+### A.4.6 Casdoor 能力核实与 ADR-V5-32 依据（2026-10-20）
+
+读取 casdoor/casdoor master 源码（2026-10-20；行号随上游提交漂移，开工锁版本时按 ADR-V5-15 复核）：
+
+| 能力 | 源码事实 | 本项目处理 |
+| --- | --- | --- |
+| 授权码 + PKCE | 校验 code_verifier（object/token_oauth.go 授权码分支） | 直接使用 |
+| prompt=login / max_age | controllers/auth.go 调用 object.IsSessionAuthFresh：prompt 含 login 或会话认证时间超过 max_age 时要求重新输入凭据（object/token_oauth_util.go） | 直接使用，契约测试确认 |
+| auth_time | 授权码路径把会话认证时间写入访问令牌与 ID token（jwtTokenOptions.AuthTime>0 时）；RefreshToken 调用 generateJwtToken 不带该选项，刷新所得令牌没有 auth_time | 敏感接口缺 auth_time 按超时处理 |
+| sid | 令牌声明中没有 sid；Token 表的 SessionId 只在库内随刷新沿用 | 不依赖 sid，改用令牌族表 |
+| 刷新轮换与重放 | 默认删除旧令牌（DisableRefreshRotation=false）；旧令牌再用只返回 “refresh token is invalid or revoked”，不吊销后继令牌 | 代理令牌族表吊销整族 |
+| 刷新需 client_secret | checkRefreshClientSecret：authorization_code 与 token-exchange 授权得到的令牌，刷新时必须带正确 client_secret | 刷新只能经 CORE-22 代理，族表不会被绕过 |
+| 令牌内容 | JWT 格式内嵌整个用户对象；JWT-Empty 的 UserShort 仍含 email、phone、displayName；JWT-Custom 按 tokenFields 选择字段 | 固定 JWT-Custom，契约测试断言无个人信息 |
+| 有效期 | Application.ExpireInHours、RefreshExpireInHours 为小时（float64），轮换时新刷新令牌重新计时 | 0.25 与 720，即 15 min 与闲置 30 天 |
+
+出处：[object/token_oauth_util.go](https://github.com/casdoor/casdoor/blob/master/object/token_oauth_util.go)、[object/token_jwt.go](https://github.com/casdoor/casdoor/blob/master/object/token_jwt.go)、[object/token_oauth.go](https://github.com/casdoor/casdoor/blob/master/object/token_oauth.go)、[controllers/auth.go](https://github.com/casdoor/casdoor/blob/master/controllers/auth.go)、[object/application.go](https://github.com/casdoor/casdoor/blob/master/object/application.go)。
+
+用户可见行为不变：敏感操作本来就要求 300 s 内交互登录（刷新从不更新 auth_time）；刷新令牌被重放时整族失效，用户需重新登录，这是 OAuth 安全实践的常规结果。
 
 ## A.5 开发前冻结清单
 
