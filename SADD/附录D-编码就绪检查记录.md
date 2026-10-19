@@ -162,3 +162,14 @@
 | WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | KeyChord 定义移交 WIN-15（本卡引用）；WindowsShellKeys 不再登记为 ShellKeyHandler，改为挂入 WIN-15 WindowsKeyRouter；全局导航由 Ctrl+1～5（公式库/计算/学习/识别/设置）改为 Ctrl+1～4（学习/公式库/识别/设置，同 CORE-36 新导航顺序），删除 goCalc，Ctrl+5 默认不分配；依赖加 WIN-15；R19 验收改为 Ctrl+1→/study 等；规模 360 → 340 行 | — |
 | WIN-14 | 快捷键自定义 | 已修订 | 依赖加 WIN-15；新增 BindableCommand（AppCommand / StudyKeyCommand）与 KeymapSet，学习命令并入 keymap.v1（持久化键为命令 ID，如 study.pause）；设置区分“编辑器”“全局”“学习”三组；规则 ② 增加 unmodifiedAllowed 学习命令可用无修饰字母与数字的例外；录制时同时暂停 KeymapHolder 与 WindowsKeyRouter；新增学习键位冲突与持久化 R42.b 验收，录制期按 Ctrl+1 不导航；规模 300 → 340 行 | — |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 依赖加 WIN-15；测量表新增 CORE-01 界面 5 行（点击到可见反馈、作答到判定反馈、转场与动效、旋转与窗口尺寸变化、主题切换）；列表滚动与窗口尺寸变化覆盖 DPI 100%～200%（含 125%、175%）与跨显示器；环境矩阵加二合一平板姿态切换与系统对比度主题冒烟；新增 R42.c、R42.e、R42.f 验收；规模 400 → 430 行 | — |
+
+## D.8 Windows 外接数位板补充（2026-10-19）
+
+- 起因：甲方询问 Windows 端是否规划接入数位板；原稿只覆盖二合一设备的屏上笔，未写驱动模式前提，测试矩阵无外接数位板，且 WIN-08（侧键 = 擦除）与 WIN-15（触控笔按钮 = 右键菜单）对笔侧键的规定不一致。
+- 支持方式列为 README §6 Q31（待确认），正文按暂行默认值撰写：只支持 Windows Ink，不接入 WinTab。
+
+| 编号 | 名称 | 结论 | 修改摘要 | 遗留问题 |
+| --- | --- | --- | --- | --- |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 目标与范围加入外接数位板；统一笔侧键规则（书写区内按住侧键落笔为擦除，书写区外点按为右键菜单，笔长按不模拟右键）；修正 isEraser：Flutter 中第一侧键为 kPrimaryStylusButton，原稿只判 kSecondaryStylusButton；新增 PenDevice、PenStatus、WindowsPenStatus 与通道 fml/windows/pen（GetPointerDevices 枚举、Wintab32.dll 存在检测、WM_POINTERDEVICECHANGE）；关闭系统长按右键与笔势；设置区“笔与数位板”（order 65）显示设备与开启 Windows Ink 提示；新增 1 条 Widget 测试与 2 条数位板手动验收；规模 340 → 460 行 | Q31 待确认；书写区外侧键点按能否上报为次键点击须 M0 核实，不满足时经“更多”按钮打开菜单；手写页内不主动弹出开启提示（需 CORE-40 新增接缝，本次未做），提示只在设置区 |
+| WIN-15 | Windows 桌面交互与窗口适配 | 已修订 | d 表“右键菜单”改为笔侧键点按（书写区外）并引用 WIN-08 侧键规则；新增“触控笔与数位板”行；新增外接数位板输入方式切换手动验收 | — |
+| WIN-13 | 性能与环境矩阵 | 已修订 | 环境矩阵加外接数位板（Windows Ink 开与关各一轮，含双显示器映射）；新增 [R06] 验收：数位板上测“手写墨迹上屏”并勾选 WIN-08 数位板手动项 | — |
