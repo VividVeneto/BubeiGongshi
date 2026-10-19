@@ -178,7 +178,7 @@ v5 的主要变化：
 | R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | CORE-01、CORE-22、CORE-41、CORE-42、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-12 |
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | CORE-22、CORE-23、CORE-36、CORE-45、CORE-46 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | CORE-23、CORE-24、CORE-27、CORE-36、CORE-46、CORE-47、AND-06、WIN-07 |
-| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-46、CORE-50、CORE-51、AND-08、AND-09、WIN-03、WIN-09、WIN-10 |
+| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-41、CORE-46、CORE-50、CORE-51、AND-08、AND-09、WIN-03、WIN-09、WIN-10 |
 | R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07 |
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | CORE-15、CORE-35、CORE-51 |
@@ -356,19 +356,19 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-28 | 隐私守卫、日志与复现包 | 前端（跨前后端：前端 + 端侧核心） | 用例与组装 | `app/lib/privacy/`（附属 `crates/fml-error/src/log.rs`） | S2 |
 | CORE-34 | 云识别客户端与授权回执 | 前端 | 用例与组装 | `app/lib/recognition/cloud/` | S5 |
 | CORE-36 | 应用壳、组装层、账户入口与导航 | 前端 | 用例与组装、共享界面 | `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart` | S2 |
-| CORE-37 | 公式渲染组件与编辑器 | 前端 | 共享界面 | `app/lib/ui/editor/` | S2 |
-| CORE-38 | 公式库界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/library/`（附属 `crates/fml-store/src/library/draft.rs`） | S3 |
-| CORE-39 | 学习会话界面 | 前端 | 共享界面 | `app/lib/ui/study/` | S4 |
-| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 前端 | 共享界面 | `app/lib/ui/recognition/` | S5 |
+| CORE-37 | 公式渲染组件与编辑器 | 前端 | 共享界面 | `app/lib/editor/`、`app/lib/ui/editor/` | S2 |
+| CORE-38 | 公式库界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/library/`、`app/lib/ui/library/`（附属 `crates/fml-store/src/library/draft.rs`） | S3 |
+| CORE-39 | 学习会话界面 | 前端 | 共享界面 | `app/lib/study/`、`app/lib/ui/study/` | S4 |
+| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 前端 | 共享界面 | `app/lib/recognition/`、`app/lib/ui/recognition/` | S5 |
 | CORE-46 | 同步与升级协调器 | 前端 | 用例与组装 | `app/lib/sync/` | S6 |
-| CORE-47 | 设置页与账户安全界面 | 前端 | 共享界面 | `app/lib/ui/settings/` | S6 |
-| CORE-48 | 计算器、代入与计算链界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/calc/`（附属 `crates/fml-store/src/library/plan.rs`） | S3 |
-| CORE-49 | 学习统计、提醒设置与自建书界面 | 前端 | 共享界面 | `app/lib/ui/study_stats/`、`app/lib/ui/books/` | S4 |
-| CORE-50 | 识别结果、云端确认与识别历史界面 | 前端 | 共享界面 | `app/lib/ui/recognition/pages/` | S5 |
+| CORE-47 | 设置页与账户安全界面 | 前端 | 共享界面 | `app/lib/settings/`、`app/lib/ui/settings/` | S6 |
+| CORE-48 | 计算器、代入与计算链界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/calc/`、`app/lib/ui/calc/`（附属 `crates/fml-store/src/library/plan.rs`） | S3 |
+| CORE-49 | 学习统计、提醒设置与自建书界面 | 前端 | 共享界面 | `app/lib/study_stats/`、`app/lib/ui/study_stats/`、`app/lib/ui/books/` | S4 |
+| CORE-50 | 识别结果、云端确认与识别历史界面 | 前端 | 共享界面 | `app/lib/recognition/pages/`、`app/lib/ui/recognition/pages/` | S5 |
 | CORE-51 | 资源包下载、导入与管理界面 | 前端 | 用例与组装、共享界面 | `app/lib/packs/`、`app/lib/ui/packs/` | S4 |
-| CORE-53 | LaTeX 命令补全 | 前端 | 共享界面 | `app/lib/ui/editor/completion/` | S3 |
-| CORE-54 | 公式库批量选择与批量操作 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/ui/library/batch/`、`crates/fml-store/src/library/batch.rs` | S3 |
-| CORE-55 | 界面设计系统与主题 | 前端 | 共享界面 | `app/lib/ui/design/` | S2 |
+| CORE-53 | LaTeX 命令补全 | 前端 | 共享界面 | `app/lib/editor/completion/`、`app/lib/ui/editor/completion/` | S3 |
+| CORE-54 | 公式库批量选择与批量操作 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/library/batch/`、`app/lib/ui/library/batch/`、`crates/fml-store/src/library/batch.rs` | S3 |
+| CORE-55 | 界面设计系统与主题 | 前端 | 共享界面 | `app/lib/design/`、`app/lib/ui/design/` | S2 |
 | AND-01 | 工程与构建 | 前端 | 平台层 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | S0 |
 | AND-02 | 权限与清单 | 前端 | 平台层 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | S2 |
 | AND-03 | 相册、文件导入与导出 | 前端 | 平台层 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | S5 |
