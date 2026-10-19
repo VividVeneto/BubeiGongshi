@@ -1,7 +1,7 @@
 # 附录 D：编码就绪检查记录 v5.1
 
-> 版本：v5.1 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q12 确认后的修订） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
-> 关联文档：[README](README.md)（§8.5 就绪定义、§6 待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～21）。
+> 版本：v5.1 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q11、Q12 确认后的修订） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
+> 关联文档：[README](README.md)（§8.5 就绪定义、§6 待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～22）。
 
 ## D.1 检查方法
 
@@ -9,7 +9,7 @@
 - 清单：README §8.5 的 a～g 七项（结构与规模、依赖闭合、契约唯一、契约可编码、验收可测、追踪一致、外部前提）。
 - 机械项（字段齐全与顺序、规模上限与构建单元、依赖编号方向、依赖与依赖图及模块索引一致、依赖无环、实施阶段覆盖与先后、README §5 与卡内 [Rxx] 双向一致）用一次性脚本检查，脚本不入库。修订前共发现 51 项问题；修订后 74 张卡、0 项问题。
 - 语义项（类型与错误码可追溯、DTO 与表结构完整、验收可执行、外部前提）逐卡人工判断。
-- 结论口径：**就绪** = 未修改即满足就绪定义；**已修订** = 修订后满足就绪定义；**待确认阻塞** = 缺信息且无法合理推断，暂不能编码。按 README §6 Q11～Q15 暂行默认值撰写的卡不算阻塞（Q12 已于 2026-10-19 确认），在“遗留问题”中注明。
+- 结论口径：**就绪** = 未修改即满足就绪定义；**已修订** = 修订后满足就绪定义；**待确认阻塞** = 缺信息且无法合理推断，暂不能编码。按 README §6 Q11～Q15 暂行默认值撰写的卡不算阻塞（Q11、Q12 已于 2026-10-19 确认；Q16 由 Q11 拆出，仍待确认），在“遗留问题”中注明。
 
 ## D.2 统计
 
@@ -17,9 +17,9 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 01 公共核心 | 52 | 0 | 44 | 8 | 0 | 0 |
 | 02 Android 端 | 12 | 0 | 11 | 0 | 1 | 0 |
-| 03 Windows 端 | 13 | 0 | 12 | 0 | 1 | 0 |
+| 03 Windows 端 | 14 | 0 | 12 | 1 | 1 | 0 |
 
-- 新增卡（8 张）：CORE-45 邮箱验证码与发信（自 CORE-22 拆出）、CORE-46 同步与升级协调器（自 CORE-26 拆出）、CORE-47 设置页与账户安全界面（自 CORE-36 拆出）、CORE-48 计算器、代入与计算链界面（自 CORE-38 拆出）、CORE-49 学习统计、提醒设置与自建书界面（自 CORE-39 拆出）、CORE-50 识别结果、云端确认与识别历史界面（自 CORE-40 拆出）、CORE-51 资源包下载、导入与管理界面（自 AND-10、WIN-11 抽出两端共用部分）、CORE-52 公式复制格式与富格式导出（2026-10-19 按 README §6 Q12 确认新增）。
+- 新增卡（9 张）：CORE-45 邮箱验证码与发信（自 CORE-22 拆出）、CORE-46 同步与升级协调器（自 CORE-26 拆出）、CORE-47 设置页与账户安全界面（自 CORE-36 拆出）、CORE-48 计算器、代入与计算链界面（自 CORE-38 拆出）、CORE-49 学习统计、提醒设置与自建书界面（自 CORE-39 拆出）、CORE-50 识别结果、云端确认与识别历史界面（自 CORE-40 拆出）、CORE-51 资源包下载、导入与管理界面（自 AND-10、WIN-11 抽出两端共用部分）、CORE-52 公式复制格式与富格式导出（2026-10-19 按 README §6 Q12 确认新增）、WIN-14 快捷键自定义（2026-10-19 按 README §6 Q11 确认新增）。
 - 撤销卡：AND-10、WIN-11。两卡的内容是两端相同的 Dart 行为，并入 CORE-50、CORE-51，平台差异只剩端口实现（ADR-V5-19（待定））。编号不复用。
 - 现行卡数：74 张（公共核心 51、Android 11、Windows 12）。
 
@@ -74,7 +74,7 @@
 | CORE-35 | 本地识别模型后端 | 已修订 | 模型扩展字段从 manifest 移到包内 model/model.json（原写法与 CORE-15“未知字段拒绝”冲突）；给出 model.json 全字段；InferenceEngine 内部抽象 + FakeEngine，使运行时未定案也可编码；预处理与束搜索流程；FFI op recog.local.register/unregister/unload_all；错误表；卸载时机；CORE-01 预算表新增两行 | ADR-V5-13（待定） 推理运行时（待定）；实际模型与许可待附录 B/C 实验结论 |
 | CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订（拆分） | 改名“应用壳、组装层、账户入口与导航”；新增组装层 composeApp 与 installers.dart 安装点机制（后续卡各追加一行）、AppDeps、SyncFacade/UpgradeFacade 门面及 Disabled 实现（原 CORE-46 引用但未定义）、启动钩子 order 表与登记者、账户入口含邮箱验证码与找回口令路由；依赖加 CORE-22；设置页拆到新卡 CORE-47 | — |
 | CORE-37 | 公式渲染组件与编辑器 | 已修订 | 重写：源码为唯一事实、UTF-8/UTF-16 换算、停靠点导航、空位 \fmlhole 与 15 种模板片段、删除/撤销/粘贴/模式切换规则、EditorWorker 后台 isolate、字形路径绘制、错误码与界面行为表；依赖去掉 CORE-36，加 CORE-04、CORE-08；新增 EditorWorker.layoutStatic 与 MathText（只读公式显示，供 38/39/48/49 使用）；2026-10-19：去掉 FormulaRichCopy，改为 FormulaCopyFormat、FormulaCopier 接缝与共享 FormulaCopyButton（“复制为”菜单） | 默认输入模式不保存偏好，按 README §6 Q13（待确认）暂行默认撰写 |
-| CORE-38 | 公式库界面 | 已修订（拆分） | 原卡含公式库+计算器+代入+计算链，超出 500 行；本卡只保留公式库界面：路由、LibraryVm/FormulaDetailVm/FormulaEditVm(SaveOutcome)/ImportWizardVm/UserUnitsVm；附属草稿仓储与 formula_draft 表及 library.draft_* op；修正原卡错误 op 名；错误码与界面行为表；验收补 [R04.j]、[R08]、[R15]；新建页接受 NewFormulaArgs 预填 LaTeX 并以 Saved 作为返回值（供 CORE-50）；2026-10-19：详情页与列表菜单加入复制公式（CORE-37 FormulaCopyButton） | — |
+| CORE-38 | 公式库界面 | 已修订（拆分） | 原卡含公式库+计算器+代入+计算链，超出 500 行；本卡只保留公式库界面：路由、LibraryVm/FormulaDetailVm/FormulaEditVm(SaveOutcome)/ImportWizardVm/UserUnitsVm；附属草稿仓储与 formula_draft 表及 library.draft_* op；修正原卡错误 op 名；错误码与界面行为表；验收补 [R04.j]、[R08]、[R15]；新建页接受 NewFormulaArgs 预填 LaTeX 并以 Saved 作为返回值（供 CORE-50）；2026-10-19：详情页与列表菜单加入复制公式（CORE-37 FormulaCopyButton）；`/library?search=1` 聚焦搜索框（供 WIN-08 查找快捷键） | — |
 | CORE-39 | 学习会话界面 | 已修订（拆分） | 原卡含统计、提醒与自建书且依赖 CORE-40（违反依赖方向）；改为学习会话界面：路由、StudyHomeVm/BookshelfVm/PlanSettingsVm/SessionVm（SessionScreen 由 UiCommand 驱动）、AnswerInputRegistry 扩展点（手写由 CORE-40 注册，依赖倒置）；错误码与界面行为表；验收补 R04.a/d/e/f/g/h 方括号标签 | — |
 | CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 已修订（拆分） | 原卡页面类只有空壳且无流程定义；改为 RecognitionFlow 流程控制器（sealed RecognitionStep，逐步对应 CORE-32 合法转换与 op 调用）、InkController/InkCanvas、CropEnhancePage、HandwritingAnswerInput（注册到 CORE-39 扩展点）、installRecognition；错误码与界面行为表；验收覆盖 R06/R31/R32/R33/R40/R26/R04.e/R03 | 缩略图资产（AssetKind::Thumbnail）的生成方未定义，暂由 Confirmed 图兼用 |
 | CORE-41 | CI 门禁与可维护性度量 | 已修订 | 补检查脚本的命令行、输出格式与退出码、规则编号表；新增 check_unsafe（与 CORE-01 允许清单一致，修正原文“只允许 fml-ffi”）、check_sadd（就绪定义机检）、run_all；工作流只编排；规模声明主包与附属 | Dart 圈复杂度只能近似统计 |
@@ -118,9 +118,10 @@
 | WIN-05 | 剪贴板与多格式复制 | 已修订 | 实现 CORE-04 ClipboardAdapter 与 CORE-52 FormulaClipboardWriter（2026-10-19 按 Q12 确认改写）：一次写入 MathML（三种格式名）、CF_HTML、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex；粘贴图片读 PNG/CF_DIBV5/CF_DIB；修正错误码名为 PARSE_FORBIDDEN_COMMAND | Office 识别 MathML 剪贴板格式名的行为在 M0 用 Microsoft 365 验证；手动粘贴矩阵结果待记入 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | 已修订 | 补全通道契约、paused/resumed 判定、低内存通知、关闭流程（closeRequested → 托盘或退出）、单实例与窗口位置规则；新增 WindowsPrefs、TrayPresence 接缝、WindowsShell.exitApp 与设置区；布局断点与深色模式归共享界面 | 关闭窗口默认退出、首次关闭不询问，按 README §6 Q15（待确认） |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | 已修订 | 定义 DPAPI 包装格式、.applock 的 Windows Hello 签名派生第二层、StoreArea 目录表、受保护 DACL、错误映射与“安全说明”设置区；依赖加 CORE-36 | — |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器快捷键表、全局 Ctrl+数字导航、笔输入策略与只读快捷键帮助；原卡引用的 EditorActions 不存在，已删除 | 快捷键自定义、命令补全、公式库批量键盘操作按 README §6 Q11（待确认）暂不做；Flutter Windows 笔事件上报需 M0 验证 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器与全局快捷键、笔输入策略；原卡引用的 EditorActions 不存在，已删除；2026-10-19 按 Q11 确认：默认键位改为贴近 Word 与 LaTeX 编辑器（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Shift+Z），新增 ShortcutCommand、KeyChord、Keymap、defaultKeymap、保留键规则与 KeymapHolder，只读帮助区移交 WIN-14，规模约 360 | LaTeX 命令补全与公式库批量键盘操作按 README §6 Q16（待确认）暂不做；Flutter Windows 笔事件上报需 M0 验证 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | 已修订 | 定义应用内定时规则（同日一次、时间变化与睡眠唤醒补发窗口 2 h）、托盘通道与菜单、通知点击、关闭到托盘与开机自启；不再使用 Toast COM 激活 | 应用完全退出时不提醒（设置区说明） |
 | WIN-10 | 网络传输 | 已修订 | 改为纯传输实现（与 AND-09 同构，dart:io HttpClient、静态系统代理、续传、取消、异常映射）；云识别调用移至 CORE-34；移到 S2 | PAC 自动代理不支持 |
 | WIN-11 | 资源包获取与识别历史平台存储 | 已撤销 | 资源包下载与管理并入 CORE-51，存储检查与历史清理并入 CORE-50、CORE-32；两端共用同一 Dart 实现；编号不复用 | — |
 | WIN-12 | 代码签名与发布检查 | 已修订 | 定义 build_release.ps1 编排、sign.ps1（硬件令牌或云签名）、签名者核对、制品门禁、PDB 归档与 update.json 生成；MSIX 不采用（ADR-V5-12（待定））；依赖加 WIN-03 | 签名证书与时间戳服务由甲方在 S7 前提供 |
 | WIN-13 | 性能与环境矩阵 | 已修订 | 测量项按 CORE-01 预算表行名对应，预算值只在 CORE-01 维护；定义测试、脚本、环境矩阵与报告模板；tools/perf/windows 为附属 | — |
+| WIN-14 | 快捷键自定义 | 已修订（新增卡，2026-10-19） | 按 Q11 确认新增：设置页“快捷键”区、录制对话框（录制期间暂停分发）、冲突检测与替换、保留键拒绝、单项与全部恢复默认、偏好 keymap.v1（只存与默认不同的命令） | — |

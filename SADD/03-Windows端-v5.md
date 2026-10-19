@@ -34,6 +34,7 @@ graph TD
   W10["WIN-10 网络传输"]
   W12["WIN-12 代码签名与发布检查"]
   W13["WIN-13 性能与环境矩阵"]
+  W14["WIN-14 快捷键自定义"]
   C03["CORE-03 C ABI 与 Dart 绑定"]
   C04["CORE-04 平台端口契约"]
   C13["CORE-13 本地库"]
@@ -80,6 +81,9 @@ graph TD
   W13 --> W09
   W13 --> W10
   W13 --> W12
+  W14 --> W06
+  W14 --> W08
+  W14 --> C36
 ```
 
 ## 2. 建议实施顺序
@@ -91,7 +95,7 @@ graph TD
 | S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本与运行时快照） |
 | S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10 | 单实例、高 DPI 窗口与位置恢复；加密库落盘、DPAPI 与 Hello 包装可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
-| S5 识别与云识别 | WIN-04、WIN-05、WIN-08 | 文件、拖放、剪贴板导入；多格式复制；快捷键与笔输入 |
+| S5 识别与云识别 | WIN-04、WIN-05、WIN-08、WIN-14 | 文件、拖放、剪贴板导入；多格式复制；快捷键（含自定义）与笔输入 |
 | S7 发布 | WIN-02、WIN-03、WIN-12、WIN-13 | 签名安装器、卸载、自更新与回滚演练；环境矩阵达标 |
 
 ## 3. 模块索引
@@ -105,11 +109,12 @@ graph TD
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、02、04、52，WIN-04 | 约 320 行 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、02、04、36，WIN-01 | 约 420 行 |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、02、04、13、21、36，WIN-01 | 约 450 行 |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/` | CORE-01、02、04、36、37、40 | 约 300 行 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/` | CORE-01、02、04、36、37、40 | 约 360 行 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、02、04、20、36，WIN-06 | 约 380 行 |
 | WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、02、04 | 约 240 行 |
 | WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、02、42，WIN-02、03 | 约 250 行 |
 | WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、02，WIN-04、05、08、09、10、12 | 约 400 行 |
+| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、02、04、36，WIN-06、08 | 约 300 行 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
@@ -129,7 +134,7 @@ graph TD
 | `NotificationScheduler` | 应用内定时 + 托盘通知（`NIF_INFO`）+ 任务栏闪烁 | WIN-09 |
 | `HttpTransport` | `dart:io` `HttpClient`（系统 CA、系统静态代理），由 CORE-28 `NetworkGuard` 包裹 | WIN-10 |
 
-共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `ShellKeyHandler` / `InkInputPolicy`（WIN-08）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（60）加入。
+共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `ShellKeyHandler` / `InkInputPolicy`（WIN-08）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-14（60，快捷键）加入。
 
 ---
 
@@ -666,11 +671,11 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 ### WIN-08 编辑器快捷键、输入法与笔输入
 
-**目标**：通过 CORE-36、CORE-37、CORE-40 预留的接缝，为 Windows 提供编辑器快捷键、全局导航快捷键、快捷键帮助，以及触控笔与触屏的手写输入策略。
+**目标**：通过 CORE-36、CORE-37、CORE-40 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔/触屏手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
 
 **范围**
-- 包含：`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；设置页“快捷键”区（只读列表）；安装点 `installWindowsEditing`。
-- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；公式库批量选择（CORE-38）；快捷键自定义、命令补全与公式库批量键盘操作（V1 暂不做，见 README §6 Q11（待确认））。
+- 包含：快捷键模型 `ShortcutCommand`、`KeyChord`、`Keymap`，默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；安装点 `installWindowsEditing`。
+- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；LaTeX 命令补全与公式库批量键盘操作（V1 暂不做，见 README §6 Q16（待确认））。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40
 
@@ -692,28 +697,58 @@ abstract interface class InkInputPolicy {
 }
 ```
 
-本卡实现（`app/lib/platform/windows/editing/`）：
+本卡定义与实现（`app/lib/platform/windows/editing/`）：
 
 ```dart
-final class WindowsEditorBindings implements EditorPlatformBindings { const WindowsEditorBindings(); }   // accessoryBar 恒返回 null
-final class WindowsShellKeys implements ShellKeyHandler { const WindowsShellKeys(); }
+enum ShortcutScope { editor, global }
+enum ShortcutCommand {                              // 顺序即设置页显示顺序；name 用作持久化键（WIN-14），不得改名
+  superscript, subscript, fraction, sqrt, parentheses, toggleMode,          // editor
+  newFormula, findInLibrary, goLibrary, goCalc, goStudy, goRecognize, goSettings;   // global
+  ShortcutScope get scope;
+  String get titleKey;                              // 本地化键 shortcut.<name>
+}
+final class KeyChord {
+  const KeyChord(this.key, {this.ctrl = false, this.shift = false, this.alt = false});
+  final LogicalKeyboardKey key; final bool ctrl, shift, alt;     // key 不为修饰键；不支持 Win 键组合
+  static KeyChord? fromEvent(KeyEvent e);           // 修饰状态取 HardwareKeyboard.instance；纯修饰键返回 null
+  String get label;                                 // 显示用，如 "Ctrl+Shift+="
+  String encode();                                  // 持久化用，如 "ctrl+shift+0x0000003d"（keyId 十六进制）
+  static KeyChord? decode(String s);                // 非法返回 null
+}
+final class Keymap {                                // 不可变；每个命令 0–2 个组合键
+  const Keymap(this.bindings);
+  final Map<ShortcutCommand, List<KeyChord>> bindings;
+  ShortcutCommand? lookup(KeyChord chord, ShortcutScope scope);
+}
+const Keymap defaultKeymap;                         // 见下表“默认按键”列
+bool isReservedChord(KeyChord c);                   // 下表“保留”各行；为 true 的组合键不能分配给命令
+final class KeymapHolder extends ValueNotifier<Keymap> {
+  KeymapHolder() : super(defaultKeymap);
+  bool suspended = false;                           // 为 true 时两个按键处理器一律返回 ignored（WIN-14 录制组合键期间使用）
+}
+final class WindowsEditorBindings implements EditorPlatformBindings { const WindowsEditorBindings(this.holder); final KeymapHolder holder; }   // accessoryBar 恒返回 null
+final class WindowsShellKeys implements ShellKeyHandler { const WindowsShellKeys(this.holder); final KeymapHolder holder; }
 final class WindowsInkPolicy implements InkInputPolicy { const WindowsInkPolicy(); }
 void installWindowsEditing(CompositionContext ctx);
-// 登记以上三者；向 SettingsSections 加入 order 60 的“快捷键”区（按下表渲染只读列表）；追加到 ports_windows.dart 的 platformInstallers
+// 登记 KeymapHolder、WindowsEditorBindings、WindowsShellKeys、WindowsInkPolicy；追加到 ports_windows.dart 的 platformInstallers
 ```
 
-快捷键（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未列出的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-37）：
+默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-37）：
 
-| 范围 | 按键 | 动作 |
-| --- | --- | --- |
-| 编辑器 | Ctrl+/ | `insertTemplate(TemplateId.fraction)` |
-| 编辑器 | Ctrl+6 | `insertTemplate(TemplateId.superscript)` |
-| 编辑器 | Ctrl+-（主键盘减号） | `insertTemplate(TemplateId.subscript)` |
-| 编辑器 | Ctrl+R | `insertTemplate(TemplateId.sqrt)` |
-| 编辑器 | Ctrl+9 | `insertTemplate(TemplateId.parentheses)` |
-| 编辑器 | Ctrl+E | `setMode(LaTeX 与结构化互换)`；返回 false 时不切换（CORE-37 规则） |
-| 编辑器 | Tab、Shift+Tab、方向键、Home/End、Backspace/Delete、Ctrl+Z/Y | 由 `DefaultEditorBindings` 处理 |
-| 全局 | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 / Ctrl+5 | `nav.go('/library')` / `'/calc'` / `'/study'` / `'/recognize'` / `'/settings'` |
+| 范围 | 命令 | 默认按键 | 动作 | 依据 |
+| --- | --- | --- | --- | --- |
+| 编辑器 | 上标 `superscript` | Ctrl+Shift+=（Ctrl+加号） | `insertTemplate(TemplateId.superscript)` | Word 上标 |
+| 编辑器 | 下标 `subscript` | Ctrl+= | `insertTemplate(TemplateId.subscript)` | Word 下标 |
+| 编辑器 | 分式 `fraction` | Ctrl+/ | `insertTemplate(TemplateId.fraction)` | Word 公式线性格式以“/”生成分式 |
+| 编辑器 | 根号 `sqrt` | Ctrl+R | `insertTemplate(TemplateId.sqrt)` | 本应用约定（Word 与常见 LaTeX 编辑器无默认键） |
+| 编辑器 | 圆括号 `parentheses` | Ctrl+9 | `insertTemplate(TemplateId.parentheses)` | 本应用约定（数字键 9 上为“(”） |
+| 编辑器 | 结构化 / LaTeX 切换 `toggleMode` | Ctrl+E | `setMode` 互换；返回 false 时不切换（CORE-37 规则） | 本应用约定 |
+| 全局 | 新建公式 `newFormula` | Alt+= | `nav.go('/library/new')` | Word 插入公式 |
+| 全局 | 在公式库中查找 `findInLibrary` | Ctrl+F | `nav.go('/library?search=1')`（CORE-38 聚焦搜索框） | Word 与 LaTeX 编辑器的查找 |
+| 全局 | 公式库 / 计算 / 学习 / 识别 / 设置 | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 / Ctrl+5 | `nav.go` 到 `/library`、`/calc`、`/study`、`/recognize`、`/settings` | 本应用约定 |
+| 保留（固定） | 撤销 / 重做 | Ctrl+Z / Ctrl+Y、Ctrl+Shift+Z | `undo` / `redo`（Ctrl+Z、Ctrl+Y 由 `DefaultEditorBindings` 处理，Ctrl+Shift+Z 由本卡转为 `redo`） | Word；Overleaf 等 LaTeX 编辑器 |
+| 保留（固定） | 编辑与导航 | Ctrl+C/X/V/A、方向键、Home/End、Tab/Shift+Tab、Backspace/Delete、Enter、Esc | CORE-37 与文本框 | 系统与 Word 通用 |
+| 保留（不可分配） | 系统与输入法 | Alt+F4、Alt+Tab、含 Win 键的组合、Ctrl+Space、Shift+Space、Ctrl+.、Ctrl+Alt+任意键 | 不处理，交给系统 | 系统窗口操作；微软拼音等输入法的中英文、全半角与标点切换；Ctrl+Alt 与 AltGr 等价 |
 
 ```text
 WindowsInkPolicy：
@@ -725,20 +760,94 @@ WindowsInkPolicy：
 - 错误码：无（只实现按键与输入策略接缝）。
 
 **实现约束**
-- 全局快捷键只用 Ctrl+数字，不与编辑器快捷键重叠（`ShellKeyHandler` 先于页面收到按键，CORE-36）；不注册系统级热键（`RegisterHotKey`）。
-- 不处理无 Ctrl 修饰的字符键；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-37），本卡不另做 IME 处理。
-- 快捷键表是本卡与“快捷键”区共用的唯一常量表，帮助内容不另行维护。
+- 分发：两个处理器都先以 `KeyChord.fromEvent` 取组合键，再查 `holder.value`（键位修改即时生效，不需重启）。`WindowsShellKeys` 只查 `global` 范围；`WindowsEditorBindings` 只查 `editor` 范围，未命中再交给 `DefaultEditorBindings`。`ShellKeyHandler` 先于页面收到按键（CORE-36），WIN-14 保证同一组合键不会同时分配给两个命令。
+- `defaultKeymap` 是默认键位的唯一来源；WIN-14 的设置区、帮助列表与“恢复默认”都由它与 `KeymapHolder` 渲染，不另行维护表格。
+- 键位比较用逻辑键（`LogicalKeyboardKey`），使“=”“/”“9”等按键在中文与英文键盘布局下一致；小键盘的“/”“=”不等同于主键盘按键。
+- 不处理无 Ctrl 或 Alt 修饰的字符键；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-37），本卡不另做 IME 处理；不注册系统级热键（`RegisterHotKey`）。
 - 手写延迟预算见 CORE-01 预算表“手写墨迹上屏”（Windows ≤ 40 ms），由 WIN-13 测量。
 - 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`）；M0 在锁定的 Flutter 版本上验证，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。
 
 **验收标准**
-- [R08] Widget 测试：在 `FormulaEditor` 中按 Ctrl+/ 后源码为 `\frac{\fmlhole}{\fmlhole}`，按 Tab 选区移到第二个空位；Ctrl+E 后模式切换；表中每个编辑器快捷键触发对应动作。
-- [R19] Widget 测试：在任意页面按 Ctrl+3，`AppNavigator` 收到 `'/study'`；编辑器获得焦点时按 Ctrl+3 同样导航，按 Ctrl+/ 不导航。
-- [R08] 手动：使用微软拼音输入法在 LaTeX 模式输入中文注释，组合期间方向键与 Backspace 不移动公式光标，Ctrl 快捷键在上屏后才生效。
+- [R08] Widget 测试：在 `FormulaEditor` 中按 Ctrl+/ 后源码为 `\frac{\fmlhole}{\fmlhole}`，按 Tab 选区移到第二个空位；Ctrl+Shift+= 插入上标、Ctrl+= 插入下标；Ctrl+E 切换模式；表中每个编辑器命令触发对应动作；Ctrl+Shift+Z 与 Ctrl+Y 都执行重做。
+- [R19] Widget 测试：在任意页面按 Ctrl+3，`AppNavigator` 收到 `'/study'`；Alt+= 收到 `'/library/new'`；Ctrl+F 收到 `'/library?search=1'`；编辑器获得焦点时按 Ctrl+3 同样导航，按 Ctrl+/ 不导航。
+- [R08] 单元测试：把 `holder.value` 换成分式为 Ctrl+Shift+F 的键位后，Ctrl+Shift+F 插入分式、Ctrl+/ 不再插入；`suspended = true` 时两个处理器均返回 ignored；`isReservedChord` 对 Ctrl+C、Ctrl+Space、Ctrl+.、Alt+F4、Ctrl+Alt+E 返回 true；`KeyChord.encode` 与 `decode` 往返一致。
+- [R08] 手动：使用微软拼音输入法在 LaTeX 模式输入中文注释，组合期间方向键与 Backspace 不移动公式光标，Ctrl 快捷键在上屏后才生效；Ctrl+Space 切换输入法不被本应用拦截。
 - [R06] 单元测试：`WindowsInkPolicy` 对 stylus 返回 true，`stylusSeen: true` 时 touch 返回 false，invertedStylus 判为橡皮擦；手动（二合一设备）：笔书写时手掌不留笔迹，笔尾擦除整笔。
-- [R08] 设置页“快捷键”区列出表中全部按键。
 
-**规模**：约 300 行；`app/lib/platform/windows/editing/`。
+**规模**：约 360 行；`app/lib/platform/windows/editing/`。
+
+### WIN-14 快捷键自定义
+
+**目标**：在设置页提供快捷键自定义入口：查看全部快捷键、为命令录制新的组合键、检测冲突与保留键、恢复默认；自定义键位按设备保存（README §6 Q11）。
+
+**范围**
+- 包含：`KeymapPrefs`（键位的读取与保存）；`KeymapEditorVm`（分配、冲突、清除与恢复默认）；设置区“快捷键”（order 60）与录制对话框；启动时加载自定义键位；安装点 `installWindowsKeymap`。
+- 不包含：按键分发、默认键位表与保留键规则（WIN-08）；键位方案的导入导出、多套预设方案与跨设备同步（V1 不做）；LaTeX 命令补全与公式库批量键盘操作（README §6 Q16（待确认））。
+
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08
+
+**接口契约**
+
+使用的上游类型（定义见 WIN-06、WIN-08、CORE-36）：`WindowsPrefs`（`get/set` 字符串偏好）、`ShortcutCommand`、`ShortcutScope`、`KeyChord`、`Keymap`、`defaultKeymap`、`isReservedChord`、`KeymapHolder`、`SettingsSection`、`SettingsSections`。
+
+```dart
+// app/lib/platform/windows/keymap/
+final class KeymapPrefs {
+  KeymapPrefs(this._prefs);                         // WindowsPrefs（WIN-06）
+  Future<Keymap> load();                            // 读偏好 keymap.v1；缺失 → defaultKeymap；解析失败或含保留键 → defaultKeymap 并记 AppLog warning
+  Future<void> save(Keymap k);                      // 只写与 defaultKeymap 不同的命令；全部与默认相同时删除该偏好
+}
+sealed class AssignResult { const AssignResult(); }
+final class Assigned extends AssignResult {}
+final class Rejected extends AssignResult { final String reasonKey; }        // 见实现约束 ②
+final class Conflict extends AssignResult { final ShortcutCommand other; }  // 该组合键已分配给 other
+final class KeymapEditorVm extends ChangeNotifier {
+  KeymapEditorVm(this._holder, this._prefs);
+  List<ShortcutCommand> get commands;               // 按 ShortcutCommand 声明顺序，界面按 scope 分组
+  List<KeyChord> chordsOf(ShortcutCommand c);
+  bool isDefault(ShortcutCommand c);
+  AssignResult tryAssign(ShortcutCommand c, KeyChord chord, {int slot = 0});  // slot 0 或 1；Assigned 时立即生效并保存
+  Future<void> replace(ShortcutCommand c, KeyChord chord, {int slot = 0});    // 用户确认“替换”后：从原命令移除该键再分配
+  Future<void> clear(ShortcutCommand c, int slot);
+  Future<void> resetCommand(ShortcutCommand c);
+  Future<void> resetAll();                          // 需界面二次确认
+}
+void installWindowsKeymap(CompositionContext ctx);
+// 登记 order 12 启动钩子：KeymapPrefs.load → KeymapHolder.value；向 SettingsSections 加入 order 60 的“快捷键”区；追加到 platformInstallers（在 installWindowsEditing 之后）
+```
+
+```text
+偏好 keymap.v1（WindowsPrefs，HKCU\Software\BubeiGongshi\Prefs 下的字符串值）：
+  {"v": 1, "bindings": {"fraction": ["ctrl+shift+0x00000066"], "sqrt": []}}
+  只含与默认不同的命令；值为 0–2 个 KeyChord.encode() 字符串，空数组表示该命令不分配按键；
+  未知命令名忽略（向前兼容）；"v" 不为 1 时整体按默认处理
+设置区“快捷键”：
+  分“编辑器”“全局”两组，每行：命令名称 | 组合键 1 | 组合键 2 | “更改”“清除”“恢复默认”（与默认不同时显示）
+  组底部列出 WIN-08 表中的“保留（固定）”按键作说明，不可编辑；顶部“全部恢复默认”
+录制对话框：
+  打开时 KeymapHolder.suspended = true，关闭时恢复；显示“请按下新的组合键”，捕获下一次非修饰键的 KeyDownEvent
+  Esc 取消；Rejected 显示原因并等待重按；Conflict 显示“已被『<命令名>』使用”与“替换”“取消”
+```
+
+- 错误码：无（偏好无效时回退默认并记日志，不向用户报错）。
+
+**实现约束**
+- ① 一个组合键在全部命令中只能出现一次（不分范围）：全局命令先于页面收到按键，若与编辑器命令同键，编辑器命令永远不会触发。
+- ② 拒绝的组合键：`isReservedChord` 为 true（显示“系统或输入法使用该组合键”）；不含 Ctrl 或 Alt 且不是 F2～F12（显示“需要包含 Ctrl 或 Alt”）；Shift+字符（显示“会与正常输入冲突”）。
+- ③ 修改即时生效：每次成功分配、清除或恢复后写 `KeymapHolder.value` 并调用 `KeymapPrefs.save`；保存失败时保留内存中的键位并提示“快捷键未能保存，重启后将恢复为上次保存的设置”。
+- ④ 设置区与帮助只读取 `defaultKeymap`、`KeymapHolder` 与 `ShortcutCommand.titleKey`，不复制键位表；新增命令时只改 WIN-08。
+- ⑤ 只在 Windows 登记；共享界面不出现平台判断（设置区经 CORE-36 `SettingsSections` 接入）。
+- 外部前提：无新增第三方库。
+
+**验收标准**
+- [R08] 单元测试：把分式改为 Ctrl+Shift+F 后 `KeymapHolder.value` 立即生效；重新 `load` 后保持；偏好中只含 `fraction` 一项；`resetCommand` 后偏好被删除。
+- [R08] 单元测试：把根号设为 Ctrl+/ 返回 `Conflict(fraction)`；`replace` 后分式不再有该键、根号有；把新建公式（全局）设为 Ctrl+R 返回 `Conflict(sqrt)`。
+- [R08] 单元测试：Ctrl+C、Ctrl+Space、Ctrl+.、Alt+F4、Ctrl+Alt+E、单独字母 A、Shift+A 均返回 `Rejected`；F5 与 Alt+Shift+M 返回 `Assigned`。
+- [R19] 单元测试：`keymap.v1` 为非法 JSON、`"v": 2` 或含保留键时 `load` 返回 `defaultKeymap` 且不抛异常；`resetAll` 后键位等于 `defaultKeymap` 且偏好被删除。
+- [R08] Widget 测试：设置页“快捷键”区按 WIN-08 默认表列出全部命令与按键；录制对话框打开期间按 Ctrl+3 不导航、按 Ctrl+/ 不插入分式；修改后的键位在列表中显示并标记可“恢复默认”。
+- [R08] 手动：开启微软拼音输入法时录制 Ctrl+Space 被拒绝并提示原因；修改“下标”为 Ctrl+Shift+- 后在编辑器中立即可用，重启应用后仍然有效。
+
+**规模**：约 300 行；`app/lib/platform/windows/keymap/`。
 
 ### WIN-10 网络传输
 
