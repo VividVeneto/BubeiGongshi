@@ -18,7 +18,8 @@
 1. 目标模块卡全文（从 `### CORE-xx` / `### AND-xx` / `### WIN-xx` 标题到下一张卡标题之前）。
 2. 该卡依赖的全部模块卡（含间接依赖）的“接口契约”段。
 3. CORE-01、CORE-02 的“接口契约”段。
-4. 卡片引用“README §6 Qx”时，附上 §6 对应行。
+4. 附正文引用的相关契约段、本卡 [Rxx] 在 README §5 的行、§6 影响模块卡含本卡或卡内引用的 Q 行、引用的 ADR 行与补充章节。
+5. 附将修改的 contracts/ 现有文件、锁定版本与已有实现，统计字符数（超过 80000 提示拆卡/分段，不省略）。
 
 只实现本卡“范围/包含”中的内容，遵守“实现约束”；不修改依赖模块的接口，确需修改时停止并说明需要改哪张卡。
 
@@ -32,7 +33,7 @@
 
 ## 依赖方向（CORE-01）
 
-1. `fml-ast` 不依赖解析器、存储与 UI；`fml-type` 只依赖 `fml-ast`、`fml-units`、`fml-notation`；`fml-eval` 只依赖 `fml-ast`、`fml-type`、`fml-units`；`fml-typeset` 不直接读字体文件。
+1. `fml-ast` 不依赖解析器、存储与 UI；`fml-type` 只依赖 `fml-ast`、`fml-units`、`fml-notation`；`fml-eval` 只依赖 `fml-ast`、`fml-type`、`fml-units`；`fml-typeset` 不直接读字体文件。解析、绑定、校验与常数解析的编排由 CORE-56 的 fml-ffi 处理层完成，ConstantValue 是 CORE-05 的纯数据类型。
 2. 领域 crate 无 I/O（不访问网络、文件、时钟与平台 API），时间、随机数与文件内容由调用方传入。
 3. `fml-store` 可依赖领域 crate，反之不可。
 4. `fml-ffi` 是唯一允许出现 `extern "C"` 的 crate。

@@ -22,56 +22,66 @@ Android 端的职责边界：
 graph TD
   A01["AND-01 工程与构建"]
   A02["AND-02 权限与清单"]
-  A03["AND-03 相册、文件导入与导出"]
-  A04["AND-04 相机"]
   A05["AND-05 生命周期、进程恢复与运行时信息"]
   A06["AND-06 本地存储、Keystore 与生物识别"]
+  A03["AND-03 相册、文件导入与导出"]
+  A04["AND-04 相机"]
   A07["AND-07 手写与编辑器的 Android 适配"]
-  A08["AND-08 本地通知与提醒自检"]
   A09["AND-09 网络传输"]
+  A08["AND-08 本地通知与提醒自检"]
   A11["AND-11 打包、签名与发布"]
   A12["AND-12 性能、能耗与真机矩阵"]
   A13["AND-13 Android 触摸交互与横竖屏适配"]
   C03["CORE-03 C ABI 与 Dart 绑定"]
   C04["CORE-04 平台端口契约"]
-  C13["CORE-13 本地库"]
-  C20["CORE-20 统计与提醒"]
-  C21["CORE-21 密钥体系"]
-  C36["CORE-36 应用壳"]
-  C37["CORE-37 编辑器"]
-  C40["CORE-40 识别界面"]
-  C42["CORE-42 发布流水线"]
-  C52["CORE-52 复制格式导出"]
+  C36["CORE-36 应用壳、组装层、账户入口与导航"]
+  C13["CORE-13 本地库 Schema、单写者与迁移"]
+  C21["CORE-21 密钥体系与加密原语"]
+  C52["CORE-52 公式复制格式与富格式导出"]
+  C37["CORE-37 公式渲染组件与编辑器"]
+  C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
+  C20["CORE-20 学习统计、掌握度与本地提醒"]
+  C42["CORE-42 发布流水线、版本矩阵与回滚"]
   C55["CORE-55 界面设计系统与主题"]
   A01 --> C03
   A01 --> C04
+  A02 --> C04
   A02 --> A01
-  A05 --> A01
+  A05 --> C04
   A05 --> C36
-  A06 --> A01
+  A05 --> A01
+  A05 --> A02
+  A06 --> C04
   A06 --> C13
   A06 --> C21
+  A06 --> A01
   A03 --> C04
   A03 --> C52
+  A04 --> C04
   A04 --> A02
   A07 --> C04
   A07 --> C37
   A07 --> C40
-  A08 --> A02
-  A08 --> C20
   A09 --> C04
-  A11 --> A02
+  A08 --> C04
+  A08 --> C20
+  A08 --> A02
   A11 --> C42
+  A11 --> A01
+  A11 --> A02
+  A12 --> A03
   A12 --> A04
   A12 --> A07
   A12 --> A08
-  A12 --> A03
   A12 --> A09
   A12 --> A11
   A12 --> A13
+  A13 --> C04
+  A13 --> C36
+  A13 --> C55
+  A13 --> A01
   A13 --> A02
   A13 --> A05
-  A13 --> C55
 ```
 
 ## 2. 建议实施顺序
@@ -90,18 +100,18 @@ graph TD
 
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
-| AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、02、03、04 | 约 300 行 |
-| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、02、04，AND-01 | 约 245 行 |
-| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、02、04、52 | 约 500 行 |
-| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、02、04，AND-02 | 约 420 行 |
-| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、02、04、36，AND-01 | 约 250 行 |
-| AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、02、04、13、21，AND-01 | 约 420 行 |
-| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、02、04、37、40 | 约 220 行 |
-| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、02、04、20，AND-02 | 约 380 行 |
-| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、02、04 | 约 260 行 |
-| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、02、42，AND-01、02 | 约 260 行 |
-| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、02，AND-03、04、07、08、09、11、13 | 约 490 行 |
-| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、02、04、36、55，AND-01、02、05 | 约 380 行 |
+| AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 约 300 行 |
+| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 约 245 行 |
+| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-52 | 约 500 行 |
+| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 约 420 行 |
+| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 约 250 行 |
+| AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 约 420 行 |
+| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40 | 约 220 行 |
+| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 约 380 行 |
+| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04 | 约 260 行 |
+| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 约 260 行 |
+| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 约 490 行 |
+| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05 | 约 380 行 |
 
 > AND-10（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载与管理并入 CORE-51，存储紧张时的识别历史清理并入 CORE-50（两端共用同一 Dart 实现）。编号不复用；理由见附录 D。
 
@@ -213,7 +223,7 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 
 **范围**
 - 包含：`AndroidManifest.xml` 声明；运行时权限请求封装（Dart 接口 + Kotlin 通道）；拒绝与“不再询问”后的引导；合并清单审计脚本（含 AND-13 窗口属性的审计）；备份规则文件的引用（规则内容由 AND-06 定义）。
-- 不包含：各功能对权限的具体使用（AND-04 相机、AND-08 通知）；MainActivity 窗口属性的取值（AND-13 属性表 b，本卡只写入清单并审计）。
+- 不包含：各功能对权限的具体使用（AND-04 相机、AND-08 通知）；MainActivity 窗口属性的取值（AND-02 接口契约窗口属性表，本卡只写入清单并审计）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、AND-01
 
@@ -240,7 +250,7 @@ MethodChannel "fml/android/permissions"（Kotlin 侧 PermissionsHandler.kt，挂
                     拒绝且 shouldShowRequestPermissionRationale 为 false 且曾请求过 → permanently_denied）
   openSettings → null（Settings.ACTION_APPLICATION_DETAILS_SETTINGS）
 tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过；1 时逐行打印多出或缺少的权限，
-  以及违反 AND-13 属性表 b 的 Activity 与属性（任一 Activity 声明 screenOrientation 或 resizeableActivity="false"；
+  以及违反 AND-02 接口契约窗口属性表 的 Activity 与属性（任一 Activity 声明 screenOrientation 或 resizeableActivity="false"；
   MainActivity 的 configChanges 集合、windowSoftInputMode 与表不符；application 未声明 enableOnBackInvokedCallback="true"）
 ```
 
@@ -254,7 +264,19 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 
 - 错误码：调用方在 `denied/permanentlyDenied` 时由端口抛 `PLATFORM_PERMISSION_DENIED`（CORE-04 登记），本卡不新增错误码。
 - 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器、AND-03 的剪贴板 `FileProvider` 均为 `exported="false"`）。
-- 窗口属性：MainActivity 按 AND-13 属性表 b 声明（不声明 `android:screenOrientation`，跟随系统旋转，README §6 Q17；`resizeableActivity="true"`；`configChanges`、`windowSoftInputMode` 与表一致）；AND-04 的 CameraActivity 同样不声明 `screenOrientation`。
+- 窗口属性：MainActivity 按 AND-02 接口契约窗口属性表 声明（不声明 `android:screenOrientation`，跟随系统旋转，README §6 Q17；`resizeableActivity="true"`；`configChanges`、`windowSoftInputMode` 与表一致）；AND-04 的 CameraActivity 同样不声明 `screenOrientation`。
+
+b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
+
+| 属性 | 取值 | 理由 |
+| --- | --- | --- |
+| `android:screenOrientation` | 不声明（unspecified） | 跟随系统自动旋转与旋转锁定，手机与平板相同（Q17） |
+| `android:resizeableActivity` | `true` | 分屏、自由窗口、折叠屏 |
+| `android:configChanges` | `orientation\|keyboardHidden\|keyboard\|screenSize\|smallestScreenSize\|locale\|layoutDirection\|fontScale\|screenLayout\|density\|uiMode` | 与 Flutter 工程模板一致；旋转、尺寸、字号、深色变化由 Flutter 重排，不重建 Activity |
+| `android:windowSoftInputMode` | `adjustResize` | 软键盘高度经 `viewInsets` 交给 Flutter |
+| `android:enableOnBackInvokedCallback` | `true`（声明在 `<application>`，覆盖 Android 13） | 系统预测性返回 |
+| 不声明 | `<layout>` 最小宽高、`maxAspectRatio`、`supportsPictureInPicture` | 不限制窗口尺寸与宽高比 |
+
 
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
@@ -265,7 +287,7 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 
 **验收标准**
 - [R38] `check_android_manifest.py`：Release 构建的合并清单权限集合等于上表；在 `app/build.gradle` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
-- [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-13 属性表 b 声明时退出 0。
+- [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-02 接口契约窗口属性表 声明时退出 0。
 - [R38] Widget 测试（假通道）：用户在用途说明中点“暂不”时不调用系统请求；`permanently_denied` 时返回 `permanentlyDenied` 且不再弹系统框。
 - [R31] 手动：拒绝相机权限后，“相册导入”与“文件导入”仍可用并能完成识别。
 - [R04] 手动：拒绝通知权限后学习功能不受影响，提醒设置页显示“提醒未开启”。
@@ -278,10 +300,10 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 **目标**：向共享层提供 Android 生命周期事件与运行时信息，并保证应用被系统回收后能经 Flutter 状态恢复回到原页面。
 
 **范围**
-- 包含：`AppLifecycle` 与 `RuntimeInfo` 端口实现；`onTrimMemory` 映射为 `lowMemory`；Activity 重建与 Flutter 状态恢复的平台配置；配置变化（旋转、平板、折叠屏、分屏、深色、字号）时不重建 Activity 的生命周期衔接（清单属性见 AND-13 属性表 b）。
+- 包含：`AppLifecycle` 与 `RuntimeInfo` 端口实现；`onTrimMemory` 映射为 `lowMemory`；Activity 重建与 Flutter 状态恢复的平台配置；配置变化（旋转、平板、折叠屏、分屏、深色、字号）时不重建 Activity 的生命周期衔接（清单属性见 AND-02 接口契约窗口属性表）。
 - 不包含：收到事件后的业务反应（CORE-46 在 `resumed` 时同步、CORE-40 在 `paused/lowMemory` 时卸载模型、CORE-37 草稿去抖、CORE-19 学习游标）；路由恢复的共享配置（CORE-36 `restorationScopeId`）；双栏布局（共享界面卡）；系统栏、edge-to-edge、启动主题与跟随系统字号、深色、动画缩放的界面处理（AND-13）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、AND-01
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02
 
 **接口契约**
 
@@ -314,10 +336,12 @@ MethodChannel "fml/android/runtime"     snapshot → {api_level: int, locale: "z
   映射：os='android'；osVersion=api_level 的十进制字符串；availMemBytes=ActivityManager.MemoryInfo.availMem；
         dpiScale=density（DisplayMetrics.density，1.0=160 dpi）；abi=Build.SUPPORTED_ABIS[0]；gpuAvailable=false（V1 不探测）
 AndroidManifest 中 MainActivity 的 configChanges、resizeableActivity、windowSoftInputMode 与 enableOnBackInvokedCallback
-  以 AND-13 属性表 b 为唯一定义，本卡不另列取值
+  以 AND-02 接口契约窗口属性表 为唯一定义，本卡不另列取值
 ```
 
 - 本卡不新增错误码；通道调用失败时 `snapshot()` 返回 `availMemBytes=0`、`gpuAvailable=false` 的保底值，不抛异常。
+
+- 测试诊断通道 fml/android/lifecycle 的 createCount() → int，由 MainActivity.onCreate 自增；同进程计数起始 1，进程重启重新计数；AND-13 windowMetrics 只转发此值。
 
 **实现约束**
 - 不使用常驻服务和前台服务；后台不做周期性网络轮询。
@@ -990,7 +1014,7 @@ MethodChannel "fml/android/interaction"（InteractionHandler.kt，挂在 MainAct
         window.decorView.performHapticFeedback(下表常量)，不带 FLAG_IGNORE_GLOBAL_SETTING；不用 Vibrator，不申请 VIBRATE
   animatorScale → double（Settings.Global.ANIMATOR_DURATION_SCALE；读取失败为 1.0）
   windowMetrics → {smallest_width_dp, orientation: "portrait" | "landscape", in_multi_window: bool,
-                   cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button", create_count: int}
+                   cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button", create_count: int /* 转发 AND-05 lifecycle.createCount */}
                    只供集成测试与诊断使用，界面布局不读（布局只按 MediaQuery，CORE-55）
 EventChannel  "fml/android/interaction/events"
   ContentObserver 监听 ANIMATOR_DURATION_SCALE → {"animatorScale": double}
@@ -1008,16 +1032,7 @@ a. 触感映射
 
 触发需同时满足两项：应用内“触感反馈”开关（`AppearancePref.haptics`，CORE-47 外观页，默认开）为开；系统“触摸振动”为开（由 `performHapticFeedback` 不带忽略标志自然保证）。
 
-b. MainActivity 窗口属性（唯一定义；AND-02 审计，AND-05 引用）
-
-| 属性 | 取值 | 理由 |
-| --- | --- | --- |
-| `android:screenOrientation` | 不声明（unspecified） | 跟随系统自动旋转与旋转锁定，手机与平板相同（Q17） |
-| `android:resizeableActivity` | `true` | 分屏、自由窗口、折叠屏 |
-| `android:configChanges` | `orientation\|keyboardHidden\|keyboard\|screenSize\|smallestScreenSize\|locale\|layoutDirection\|fontScale\|screenLayout\|density\|uiMode` | 与 Flutter 工程模板一致；旋转、尺寸、字号、深色变化由 Flutter 重排，不重建 Activity |
-| `android:windowSoftInputMode` | `adjustResize` | 软键盘高度经 `viewInsets` 交给 Flutter |
-| `android:enableOnBackInvokedCallback` | `true`（声明在 `<application>`，覆盖 Android 13） | 系统预测性返回 |
-| 不声明 | `<layout>` 最小宽高、`maxAspectRatio`、`supportsPictureInPicture` | 不限制窗口尺寸与宽高比 |
+b. MainActivity 窗口属性：只引用 AND-02 的唯一属性表。
 
 c. 启动主题与系统栏
 
