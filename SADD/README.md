@@ -171,7 +171,7 @@ v5 的主要变化：
 | R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | CORE-08、CORE-14、CORE-38 |
 | R16 | 量纲匹配时可把公式代入到别的公式中同量纲的部分 | 原文 | V1 | 槽位候选排序、代入条件检查、推导关系 | CORE-11、CORE-14、CORE-48 |
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | CORE-11、CORE-48 |
-| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-41、AND-01、WIN-01 |
+| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、AND-01、WIN-01 |
 | R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | CORE-02、CORE-03、CORE-04、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-41、CORE-43、CORE-47、CORE-56、WIN-01、WIN-03、WIN-08、WIN-14 |
 | R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-41、CORE-52、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | CORE-16 |
@@ -426,7 +426,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-29 | 识别契约与后端注册 | 端侧核心 | Rust crate | `crates/fml-recognize/src/{lib.rs, registry.rs, ink.rs}` | S5 |
 | CORE-30 | 图片解码与预处理 | 端侧核心 | Rust crate | `crates/fml-imgproc/` | S5 |
 | CORE-31 | 识别候选后处理与忠实转写 | 端侧核心 | Rust crate | `crates/fml-recognize/src/post.rs` | S5 |
-| CORE-32 | 识别会话状态机与历史 GC | 端侧核心 | Rust crate | `crates/fml-recognize/src/session.rs`、`crates/fml-store/src/recognition/` | S5 |
+| CORE-32 | 识别会话状态机与历史 GC | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-recognize/src/session.rs`、`crates/fml-store/src/recognition/`（附属 `app/lib/recognition/history_key.dart`） | S5 |
 | CORE-35 | 本地识别模型后端 | 端侧核心 | Rust crate | `crates/fml-recognize-local/` | S5 |
 | CORE-52 | 公式复制格式与富格式导出 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-export/`（附属 `crates/fml-ffi/src/ops/export.rs`）、`app/lib/export/` | S3 |
 
