@@ -214,3 +214,7 @@
 | B-F-06 | 高 | 已修订 | CORE-19 | RecentStats由调用层查询并注入step |
 | B-F-07 | 高 | 已修订 | CORE-20 | StatsInput补书卡时间与学习日，缓存全量重算 |
 | U-F12 | 高 | 已修订 | CORE-16、19；README §5 | 干扰项审校来源与可复现出题验收 |
+| C-F-01 | 高 | 已修订 | CORE-01、37～55、41；AGENTS | Widget与用例路径/绑定分离，DEP-5覆盖 |
+| C-F-02 | 高 | 已修订 | CORE-01、28、41；AND-09/WIN-10 | 网络构造白名单单一来源，仅平台net目录 |
+| C-F-03 | 高 | 已修订 | CORE-55 | 显式FmlTokens/FmlTheme、of签名与缺省错误 |
+| U-F20 | 高 | 已覆盖 | CORE-55 | 与C-F-03同一缺口，一并补类型/用法/验收 |

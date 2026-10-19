@@ -37,7 +37,7 @@
 2. 领域 crate 无 I/O（不访问网络、文件、时钟与平台 API），时间、随机数与文件内容由调用方传入。
 3. `fml-store` 可依赖领域 crate，反之不可。
 4. `fml-ffi` 是唯一允许出现 `extern "C"` 的 crate。
-5. Dart 的 `ui/` 不得直接 import `binding/`、`platform/` 或发起 HTTP，只调用 `lib/<feature>/` 用例；共享界面中不得出现平台判断。
+5. Dart 分层：`app/lib/ui/<feature>/` 只放 Widget、绘制与路由视图，不 import `binding/`、`platform/` 或发起 HTTP；`app/lib/<feature>/` 放 ViewModel、用例、Controller、Worker 与 DTO，可持有 CoreBinding；`composition/` 构造与注入服务，平台实现只经端口调用；共享界面不得判断平台。
 6. 平台层不得实现公式解析、量纲与单位换算、排版布局、FSRS 调度、同步合并、资源包验签。
 
 ## 提交约定（CORE-01）

@@ -297,6 +297,8 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 
 | ADR-V5-29 | FSRS API 与状态包装 | 算法基准固定 fsrs=6.6.2，使用FSRS::new/next_states/memory_state/compute_parameters；学习状态按CORE-17表由项目包装，不引入rs-fsrs；Burn仅该版本dev-dependency（官方docs.rs核实2026-10-19），包体仍测产物。此算法/向量固定版是V5-15通用最新稳定规则的明确例外，升级先修此ADR及向量 | 照抄不存在的整套调度API无法生成FS向量；另引状态机破坏同日重复规则 | Q34改变或库升级时重审，真实实现补锁文件与独立FS参照输出 | 采纳 | CORE-17；README Q34 |
 
+| ADR-V5-30 | Dart分层、网络构造与主题入口 | ui只放Widget/绘制，VM/用例/DTO在lib特性目录，composition负责构造；网络构造名单唯一文件归CORE-01；FmlTheme.of返回8项聚合FmlTokens，缺扩展明确失败 | 放宽ui绑定会让平台/传输渗入，双扫描白名单会误伤平台实现 | 新平台或新主题令牌时修订对应契约 | 采纳 | CORE-01、28、37～55、41；AGENTS |
+
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
 筛选条件：支持 API 或 SMTP 发送事务邮件、有免费额度、可替换。用量估算：每次注册约 1～2 封，找回口令另计。
