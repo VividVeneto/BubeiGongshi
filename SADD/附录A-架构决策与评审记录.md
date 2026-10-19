@@ -259,7 +259,7 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-008 | 识别隔离 | 统一识别契约，后端可插拔，输出视为不可信 | 绑定单一后端：无法替换 | — | 采纳 | CORE-29 |
 | ADR-009 | YOLO | 只在实验分支 `codex/exp-yolo-recognizer`，主线零依赖 | 进入主线：违背原需求 | 达到附录 B 合入门槛且甲方同意 | 采纳 | 附录 B |
 
-### A.4.2 v5 新增 ADR（2026-10-18；ADR-V5-12～20 为 v5.1 编码就绪修订新增的工程选择，状态均为待定，M0 定案后改为采纳或修订；ADR-V5-21、22 为 2026-10-19 甲方确认的产品决定，状态为采纳）
+### A.4.2 v5 新增 ADR（2026-10-18；ADR-V5-12～20 为 v5.1 编码就绪修订新增的工程选择，状态均为待定，M0 定案后改为采纳或修订；ADR-V5-21～23 为 2026-10-19 甲方确认的产品决定，状态为采纳）
 
 | 编号 | 决策 | 结论 | 被否方案的代价 | 重新评估条件 | 状态 | 模块卡 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -285,6 +285,7 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-20 | HTTP 传输实现 | 推荐：两端都用 `dart:io` `HttpClient` 实现 `HttpTransport`（系统证书、系统静态代理、断点续传），平台差异只在代理读取；由 CORE-28 `NetworkGuard` 包裹 | 原生 OkHttp / WinHTTP：需要大块数据跨通道流式回传与两套取消语义；第三方 HTTP 插件：引入额外依赖与权限 | 需要证书固定、PAC 自动代理或 HTTP/3 时 | 待定（M0 定案；正文按推荐方案撰写） | AND-09、WIN-10、CORE-28 |
 | ADR-V5-21 | 复制公式的剪贴板格式 | 一次复制同时写入多种常见格式，由粘贴目标自动选用：纯文本为 LaTeX 源码；MathML（Windows 以 Office 识别的格式名写入，供 Word 等转为可编辑公式）；HTML 片段（内嵌 PNG，alt 为 LaTeX）；SVG；PNG（Windows 另加 CF_DIB 与 text/x-latex；Android 写 text/plain、text/html 与经 FileProvider 的 image/png）；“复制为”菜单单独复制 LaTeX、Unicode 文本、MathML 或图片。格式内容由 Rust（MathML、SVG）与共享 Dart（PNG、HTML）统一生成，平台卡只负责写入；不写应用私有格式，不做复制后自动清空 | 只复制 LaTeX 与图片：粘贴到 Word 只得到图片、无法再编辑；应用私有格式：无外部程序能识别，徒增维护；复制后自动清空：与系统剪贴板历史行为冲突且易误伤用户 | Office 不再识别 MathML 剪贴板格式、出现主流目标需要的新格式（如 OMML）或剪贴板内容被证实泄露隐私时 | 采纳（甲方 2026-10-19 确认，README §6 Q12） | CORE-37、CORE-52、AND-03、WIN-05 |
 | ADR-V5-22 | Windows 快捷键默认键位与自定义 | 默认键位按“Word 有默认键则从 Word，LaTeX 编辑器有通行键则从之，二者都没有才用本应用约定”确定（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Y 与 Ctrl+Shift+Z）；设置页提供自定义（录制、冲突替换、恢复默认），键位以 WIN-08 `defaultKeymap` 为唯一来源，自定义差异存在设备偏好 `keymap.v1`；撤销、剪贴板、导航键固定，系统与输入法组合键（Ctrl+Space、Shift+Space、Ctrl+.、Ctrl+Alt、Win 组合）不可分配 | 固定键位：习惯 Word 或 LaTeX 编辑器的用户无法改到熟悉的键；允许改撤销与剪贴板键：与系统文本框行为冲突，易误操作；照搬 LaTeX 编辑器的 Ctrl+Space 补全：与中文输入法切换键冲突 | 甲方要求跨设备同步键位、提供多套预设方案，或 Android 端需要实体键盘快捷键时 | 采纳（甲方 2026-10-19 确认，README §6 Q11） | WIN-08、WIN-14、CORE-38 |
+| ADR-V5-23 | LaTeX 命令补全与公式库批量操作 | 两项都在共享界面实现、两端一致：补全由 CORE-53 经 CORE-37 `LatexSourceAssist` 接入，候选只来自 CORE-06 白名单子集的数据文件，键入 `\` 或 `\begin{` 自动弹出，不设手动触发键；批量操作由 CORE-54 经 CORE-38 `LibraryListDecorator` 接入，按键沿用文件管理器习惯，Rust 侧 `library.batch` 单个写事务执行、可取消并整批回滚、一次最多 10000 条；同时补齐 CORE-14 的条目元数据修改（`library.update_meta`）与回收站查询（`SearchQuery.trashed`） | 用 Ctrl+Space 手动触发补全：与中文输入法切换键冲突；允许用户自定义宏扩充补全：与 CORE-06 禁止宏定义冲突；批量操作逐条调用单项 op：一万条需上万次跨语言调用且无法整体回滚；只在 Windows 实现：接实体键盘的 Android 设备体验不一致 | 甲方要求自定义片段、补全与列表按键可自定义，或批量导出、批量复制进入 V1 时 | 采纳（甲方 2026-10-19 确认，README §6 Q16） | CORE-14、CORE-37、CORE-38、CORE-53、CORE-54、WIN-08 |
 
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 

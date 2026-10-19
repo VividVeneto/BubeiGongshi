@@ -675,7 +675,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 **范围**
 - 包含：快捷键模型 `ShortcutCommand`、`KeyChord`、`Keymap`，默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-37 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`）；`WindowsInkPolicy`（实现 CORE-40 `InkInputPolicy`）；安装点 `installWindowsEditing`。
-- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；LaTeX 命令补全与公式库批量键盘操作（V1 暂不做，见 README §6 Q16（待确认））。
+- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40
 
@@ -748,6 +748,7 @@ void installWindowsEditing(CompositionContext ctx);
 | 全局 | 公式库 / 计算 / 学习 / 识别 / 设置 | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 / Ctrl+5 | `nav.go` 到 `/library`、`/calc`、`/study`、`/recognize`、`/settings` | 本应用约定 |
 | 保留（固定） | 撤销 / 重做 | Ctrl+Z / Ctrl+Y、Ctrl+Shift+Z | `undo` / `redo`（Ctrl+Z、Ctrl+Y 由 `DefaultEditorBindings` 处理，Ctrl+Shift+Z 由本卡转为 `redo`） | Word；Overleaf 等 LaTeX 编辑器 |
 | 保留（固定） | 编辑与导航 | Ctrl+C/X/V/A、方向键、Home/End、Tab/Shift+Tab、Backspace/Delete、Enter、Esc | CORE-37 与文本框 | 系统与 Word 通用 |
+| 保留（固定） | LaTeX 补全与公式库批量操作 | 补全弹层的 ↑/↓、PageUp/PageDown、Tab、Enter、Esc；公式库列表的 Space、Shift+方向键、Ctrl+A、Delete、Ctrl+T、Shift+F10 | CORE-53、CORE-54（共享界面处理，本卡不拦截） | 补全按键同 TeXstudio、Overleaf；列表按键同 Windows 资源管理器；Ctrl+T 为本应用约定 |
 | 保留（不可分配） | 系统与输入法 | Alt+F4、Alt+Tab、含 Win 键的组合、Ctrl+Space、Shift+Space、Ctrl+.、Ctrl+Alt+任意键 | 不处理，交给系统 | 系统窗口操作；微软拼音等输入法的中英文、全半角与标点切换；Ctrl+Alt 与 AltGr 等价 |
 
 ```text
@@ -770,7 +771,7 @@ WindowsInkPolicy：
 **验收标准**
 - [R08] Widget 测试：在 `FormulaEditor` 中按 Ctrl+/ 后源码为 `\frac{\fmlhole}{\fmlhole}`，按 Tab 选区移到第二个空位；Ctrl+Shift+= 插入上标、Ctrl+= 插入下标；Ctrl+E 切换模式；表中每个编辑器命令触发对应动作；Ctrl+Shift+Z 与 Ctrl+Y 都执行重做。
 - [R19] Widget 测试：在任意页面按 Ctrl+3，`AppNavigator` 收到 `'/study'`；Alt+= 收到 `'/library/new'`；Ctrl+F 收到 `'/library?search=1'`；编辑器获得焦点时按 Ctrl+3 同样导航，按 Ctrl+/ 不导航。
-- [R08] 单元测试：把 `holder.value` 换成分式为 Ctrl+Shift+F 的键位后，Ctrl+Shift+F 插入分式、Ctrl+/ 不再插入；`suspended = true` 时两个处理器均返回 ignored；`isReservedChord` 对 Ctrl+C、Ctrl+Space、Ctrl+.、Alt+F4、Ctrl+Alt+E 返回 true；`KeyChord.encode` 与 `decode` 往返一致。
+- [R08] 单元测试：把 `holder.value` 换成分式为 Ctrl+Shift+F 的键位后，Ctrl+Shift+F 插入分式、Ctrl+/ 不再插入；`suspended = true` 时两个处理器均返回 ignored；`isReservedChord` 对 Ctrl+C、Ctrl+Space、Ctrl+.、Alt+F4、Ctrl+Alt+E、Ctrl+T、Shift+F10 返回 true；`KeyChord.encode` 与 `decode` 往返一致。
 - [R08] 手动：使用微软拼音输入法在 LaTeX 模式输入中文注释，组合期间方向键与 Backspace 不移动公式光标，Ctrl 快捷键在上屏后才生效；Ctrl+Space 切换输入法不被本应用拦截。
 - [R06] 单元测试：`WindowsInkPolicy` 对 stylus 返回 true，`stylusSeen: true` 时 touch 返回 false，invertedStylus 判为橡皮擦；手动（二合一设备）：笔书写时手掌不留笔迹，笔尾擦除整笔。
 
@@ -782,7 +783,7 @@ WindowsInkPolicy：
 
 **范围**
 - 包含：`KeymapPrefs`（键位的读取与保存）；`KeymapEditorVm`（分配、冲突、清除与恢复默认）；设置区“快捷键”（order 60）与录制对话框；启动时加载自定义键位；安装点 `installWindowsKeymap`。
-- 不包含：按键分发、默认键位表与保留键规则（WIN-08）；键位方案的导入导出、多套预设方案与跨设备同步（V1 不做）；LaTeX 命令补全与公式库批量键盘操作（README §6 Q16（待确认））。
+- 不包含：按键分发、默认键位表与保留键规则（WIN-08）；键位方案的导入导出、多套预设方案与跨设备同步（V1 不做）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键（固定，经 WIN-08 表中“保留（固定）”行只读列出）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08
 

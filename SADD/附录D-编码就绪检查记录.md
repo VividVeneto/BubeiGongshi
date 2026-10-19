@@ -1,7 +1,7 @@
 # 附录 D：编码就绪检查记录 v5.1
 
-> 版本：v5.1 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q11、Q12 确认后的修订） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
-> 关联文档：[README](README.md)（§8.5 就绪定义、§6 待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～22）。
+> 版本：v5.1 ｜ 检查日期：2026-10-18（2026-10-19 补充 Q11、Q12、Q16 确认后的修订） ｜ 效力：说明性（规范性要求以 README 与 01～03 的模块卡为准）。
+> 关联文档：[README](README.md)（§8.5 就绪定义、§6 待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～23）。
 
 ## D.1 检查方法
 
@@ -9,17 +9,17 @@
 - 清单：README §8.5 的 a～g 七项（结构与规模、依赖闭合、契约唯一、契约可编码、验收可测、追踪一致、外部前提）。
 - 机械项（字段齐全与顺序、规模上限与构建单元、依赖编号方向、依赖与依赖图及模块索引一致、依赖无环、实施阶段覆盖与先后、README §5 与卡内 [Rxx] 双向一致）用一次性脚本检查，脚本不入库。修订前共发现 51 项问题；修订后 74 张卡、0 项问题。
 - 语义项（类型与错误码可追溯、DTO 与表结构完整、验收可执行、外部前提）逐卡人工判断。
-- 结论口径：**就绪** = 未修改即满足就绪定义；**已修订** = 修订后满足就绪定义；**待确认阻塞** = 缺信息且无法合理推断，暂不能编码。按 README §6 Q11～Q15 暂行默认值撰写的卡不算阻塞（Q11、Q12 已于 2026-10-19 确认；Q16 由 Q11 拆出，仍待确认），在“遗留问题”中注明。
+- 结论口径：**就绪** = 未修改即满足就绪定义；**已修订** = 修订后满足就绪定义；**待确认阻塞** = 缺信息且无法合理推断，暂不能编码。按 README §6 Q11～Q15 暂行默认值撰写的卡不算阻塞（Q11、Q12 与由 Q11 拆出的 Q16 已于 2026-10-19 确认），在“遗留问题”中注明。
 
 ## D.2 统计
 
 | 文档 | 卡数（含撤销） | 就绪 | 已修订 | 新增卡 | 已撤销 | 待确认阻塞 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 公共核心 | 52 | 0 | 44 | 8 | 0 | 0 |
+| 01 公共核心 | 54 | 0 | 44 | 10 | 0 | 0 |
 | 02 Android 端 | 12 | 0 | 11 | 0 | 1 | 0 |
 | 03 Windows 端 | 14 | 0 | 12 | 1 | 1 | 0 |
 
-- 新增卡（9 张）：CORE-45 邮箱验证码与发信（自 CORE-22 拆出）、CORE-46 同步与升级协调器（自 CORE-26 拆出）、CORE-47 设置页与账户安全界面（自 CORE-36 拆出）、CORE-48 计算器、代入与计算链界面（自 CORE-38 拆出）、CORE-49 学习统计、提醒设置与自建书界面（自 CORE-39 拆出）、CORE-50 识别结果、云端确认与识别历史界面（自 CORE-40 拆出）、CORE-51 资源包下载、导入与管理界面（自 AND-10、WIN-11 抽出两端共用部分）、CORE-52 公式复制格式与富格式导出（2026-10-19 按 README §6 Q12 确认新增）、WIN-14 快捷键自定义（2026-10-19 按 README §6 Q11 确认新增）。
+- 新增卡（11 张）：CORE-45 邮箱验证码与发信（自 CORE-22 拆出）、CORE-46 同步与升级协调器（自 CORE-26 拆出）、CORE-47 设置页与账户安全界面（自 CORE-36 拆出）、CORE-48 计算器、代入与计算链界面（自 CORE-38 拆出）、CORE-49 学习统计、提醒设置与自建书界面（自 CORE-39 拆出）、CORE-50 识别结果、云端确认与识别历史界面（自 CORE-40 拆出）、CORE-51 资源包下载、导入与管理界面（自 AND-10、WIN-11 抽出两端共用部分）、CORE-52 公式复制格式与富格式导出（2026-10-19 按 README §6 Q12 确认新增）、CORE-53 LaTeX 命令补全、CORE-54 公式库批量选择与批量操作（2026-10-19 按 README §6 Q16 确认新增）、WIN-14 快捷键自定义（2026-10-19 按 README §6 Q11 确认新增）。
 - 撤销卡：AND-10、WIN-11。两卡的内容是两端相同的 Dart 行为，并入 CORE-50、CORE-51，平台差异只剩端口实现（ADR-V5-19（待定））。编号不复用。
 - 现行卡数：74 张（公共核心 51、Android 11、Windows 12）。
 
@@ -50,7 +50,7 @@
 | CORE-11 | 公式间代入、推导链与计算链 | 已修订 | MatchLevel、RevisionSnapshot、AncestryLookup、RevisionLookup 定义；rank_candidates 增 include_cross_kind 参数；错误码触发条件 | — |
 | CORE-12 | 排版 DisplayList | 已修订 | 补 WrapMode、Rect、PathSeg、DrawCmd 定义与 layout_version；明确 typeset.load_fonts/layout 请求响应，hit_test 改为 Flutter 侧按 hit_regions 判定；错误码触发条件；性能验收引用 CORE-01 预算行；Hole 虚线框；新增 op typeset.glyph_outlines（Flutter 无法按字形 ID 绘制）；2026-10-19：公开 glyph_outline 供 CORE-52 SVG 导出 | 数学字体最终选型待附录 C 许可审查；开发期用 Latin Modern Math |
 | CORE-13 | 本地库 Schema、单写者与迁移 | 已修订 | 补 WriteTx/ReadTx、OutboxOp、IntegrityReport；迁移文件命名与序号规则；基础设施表 DDL；业务表归属清单（DDL 下放到归属卡）；错误码触发条件；外部前提 rusqlite/SQLCipher | — |
-| CORE-14 | 公式库仓储 | 已修订 | 复用 CORE-05 的条目/修订类型，补 NewRevision、ItemView、Page、RevisionDiff 等；搜索语义；8 张业务表与 FTS5 列定义；新增 library.substitution_pool（CORE-11 引用）与 LIB_IMPORT_TOO_LARGE；CSV 细则；验收补 [R04.j] 标签与可测数值；mastery_cache 表归属移至本卡（CORE-14 搜索需按掌握度筛选），MasteryState 统一为 CORE-20 原有四态；calculation_plan 表归属移至 CORE-48；补脱离规则 | — |
+| CORE-14 | 公式库仓储 | 已修订 | 复用 CORE-05 的条目/修订类型，补 NewRevision、ItemView、Page、RevisionDiff 等；搜索语义；8 张业务表与 FTS5 列定义；新增 library.substitution_pool（CORE-11 引用）与 LIB_IMPORT_TOO_LARGE；CSV 细则；验收补 [R04.j] 标签与可测数值；mastery_cache 表归属移至本卡（CORE-14 搜索需按掌握度筛选），MasteryState 统一为 CORE-20 原有四态；calculation_plan 表归属移至 CORE-48；补脱离规则；2026-10-19（Q16）：新增 ItemMeta 与 update_meta（library.update_meta；原契约中编辑页的标签与课程无处保存）、SearchQuery.trashed（回收站页原无查询入口）、LIB_META_INVALID（规模仍约 500，搜索语义段压缩表述） | — |
 | CORE-15 | 资源包格式、验签与安装 | 已修订 | 补 Manifest、ManifestEntry、EntryReader、SecurityState、UpdateMetadata、PackOffer；各 op 请求响应；installed_pack 表；11 个错误码触发条件表；外部前提（ed25519-dalek、zip、tough 等）；元数据验收 | 首个签名 key_id 须在发布前登记（CORE-16/43） |
 | CORE-16 | 内容管线与课程内容包 | 已修订 | 补条目主要字段类型与取值表（考试范围、要求层级改用拼音代号）、命令退出码与报告 JSON、CONTENT_ 错误码、签名私钥格式；验收补 [R39] 独立条目与 [R04.f][R04.g] 标签；外部前提（YAML crate、离线签名机） | 各课程包内容按批次作为数据任务编写 |
 | CORE-17 | 卡片生成与 FSRS 排程 | 已修订 | 补 EventFlags、RequirementLevel、FsrsParams、CardSchedule、DailyCaps、DueQueue、OptimizeOutcome；各 op 请求响应；study_card/review_event 表；重放顺序；错误码触发条件；FS-01～FS-08 样例；fsrs 版本核实为 6.6.2；评分映射明确归 CORE-19；规模声明附属 | — |
@@ -73,8 +73,8 @@
 | CORE-34 | 云识别客户端与授权回执 | 已修订 | 与 CORE-33 新接口对齐（policy/consents/jobs）；同意改由服务端记录（删除本地 consent_receipt 表）；年龄自我声明 + 监护人确认；实现 ConsentVerifier 并给出校验规则；幂等键用 UUIDv5(session, imageHash) 免持久化；recog.register_remote 登记时机；状态映射表含会话状态；错误表（新增 CLOUD_TOKEN_EXPIRED、CLOUD_PREVIEW_STALE）；外部前提；新增安装点说明（installers.dart 追加一行） | 监护人身份不核验，按 README §6 Q14（待确认）暂行默认撰写 |
 | CORE-35 | 本地识别模型后端 | 已修订 | 模型扩展字段从 manifest 移到包内 model/model.json（原写法与 CORE-15“未知字段拒绝”冲突）；给出 model.json 全字段；InferenceEngine 内部抽象 + FakeEngine，使运行时未定案也可编码；预处理与束搜索流程；FFI op recog.local.register/unregister/unload_all；错误表；卸载时机；CORE-01 预算表新增两行 | ADR-V5-13（待定） 推理运行时（待定）；实际模型与许可待附录 B/C 实验结论 |
 | CORE-36 | 应用壳、组装层、账户入口与导航 | 已修订（拆分） | 改名“应用壳、组装层、账户入口与导航”；新增组装层 composeApp 与 installers.dart 安装点机制（后续卡各追加一行）、AppDeps、SyncFacade/UpgradeFacade 门面及 Disabled 实现（原 CORE-46 引用但未定义）、启动钩子 order 表与登记者、账户入口含邮箱验证码与找回口令路由；依赖加 CORE-22；设置页拆到新卡 CORE-47 | — |
-| CORE-37 | 公式渲染组件与编辑器 | 已修订 | 重写：源码为唯一事实、UTF-8/UTF-16 换算、停靠点导航、空位 \fmlhole 与 15 种模板片段、删除/撤销/粘贴/模式切换规则、EditorWorker 后台 isolate、字形路径绘制、错误码与界面行为表；依赖去掉 CORE-36，加 CORE-04、CORE-08；新增 EditorWorker.layoutStatic 与 MathText（只读公式显示，供 38/39/48/49 使用）；2026-10-19：去掉 FormulaRichCopy，改为 FormulaCopyFormat、FormulaCopier 接缝与共享 FormulaCopyButton（“复制为”菜单） | 默认输入模式不保存偏好，按 README §6 Q13（待确认）暂行默认撰写 |
-| CORE-38 | 公式库界面 | 已修订（拆分） | 原卡含公式库+计算器+代入+计算链，超出 500 行；本卡只保留公式库界面：路由、LibraryVm/FormulaDetailVm/FormulaEditVm(SaveOutcome)/ImportWizardVm/UserUnitsVm；附属草稿仓储与 formula_draft 表及 library.draft_* op；修正原卡错误 op 名；错误码与界面行为表；验收补 [R04.j]、[R08]、[R15]；新建页接受 NewFormulaArgs 预填 LaTeX 并以 Saved 作为返回值（供 CORE-50）；2026-10-19：详情页与列表菜单加入复制公式（CORE-37 FormulaCopyButton）；`/library?search=1` 聚焦搜索框（供 WIN-08 查找快捷键） | — |
+| CORE-37 | 公式渲染组件与编辑器 | 已修订 | 重写：源码为唯一事实、UTF-8/UTF-16 换算、停靠点导航、空位 \fmlhole 与 15 种模板片段、删除/撤销/粘贴/模式切换规则、EditorWorker 后台 isolate、字形路径绘制、错误码与界面行为表；依赖去掉 CORE-36，加 CORE-04、CORE-08；新增 EditorWorker.layoutStatic 与 MathText（只读公式显示，供 38/39/48/49 使用）；2026-10-19：去掉 FormulaRichCopy，改为 FormulaCopyFormat、FormulaCopier 接缝与共享 FormulaCopyButton（“复制为”菜单）；2026-10-19（Q16）：新增 LatexSourceAssist / LatexSourceSession 接缝，LaTeX 源码框可由 CORE-53 包裹 | 默认输入模式不保存偏好，按 README §6 Q13（待确认）暂行默认撰写 |
+| CORE-38 | 公式库界面 | 已修订（拆分） | 原卡含公式库+计算器+代入+计算链，超出 500 行；本卡只保留公式库界面：路由、LibraryVm/FormulaDetailVm/FormulaEditVm(SaveOutcome)/ImportWizardVm/UserUnitsVm；附属草稿仓储与 formula_draft 表及 library.draft_* op；修正原卡错误 op 名；错误码与界面行为表；验收补 [R04.j]、[R08]、[R15]；新建页接受 NewFormulaArgs 预填 LaTeX 并以 Saved 作为返回值（供 CORE-50）；2026-10-19：详情页与列表菜单加入复制公式（CORE-37 FormulaCopyButton）；`/library?search=1` 聚焦搜索框（供 WIN-08 查找快捷键）；2026-10-19（Q16）：LibraryQuery.trashed、LibraryListDecorator 接缝（CORE-54 多选）、保存时调用 library.update_meta，规模约 500 | — |
 | CORE-39 | 学习会话界面 | 已修订（拆分） | 原卡含统计、提醒与自建书且依赖 CORE-40（违反依赖方向）；改为学习会话界面：路由、StudyHomeVm/BookshelfVm/PlanSettingsVm/SessionVm（SessionScreen 由 UiCommand 驱动）、AnswerInputRegistry 扩展点（手写由 CORE-40 注册，依赖倒置）；错误码与界面行为表；验收补 R04.a/d/e/f/g/h 方括号标签 | — |
 | CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 已修订（拆分） | 原卡页面类只有空壳且无流程定义；改为 RecognitionFlow 流程控制器（sealed RecognitionStep，逐步对应 CORE-32 合法转换与 op 调用）、InkController/InkCanvas、CropEnhancePage、HandwritingAnswerInput（注册到 CORE-39 扩展点）、installRecognition；错误码与界面行为表；验收覆盖 R06/R31/R32/R33/R40/R26/R04.e/R03 | 缩略图资产（AssetKind::Thumbnail）的生成方未定义，暂由 Confirmed 图兼用 |
 | CORE-41 | CI 门禁与可维护性度量 | 已修订 | 补检查脚本的命令行、输出格式与退出码、规则编号表；新增 check_unsafe（与 CORE-01 允许清单一致，修正原文“只允许 fml-ffi”）、check_sadd（就绪定义机检）、run_all；工作流只编排；规模声明主包与附属 | Dart 圈复杂度只能近似统计 |
@@ -84,11 +84,13 @@
 | CORE-45 | 邮箱验证码与发信 | 已修订（新增卡） | 自 CORE-22 拆出：邮箱验证码生成/存储/限流、/v1/auth/email-codes、EmailSender 与阿里云/腾讯云/Fake 实现、主备切换；README §5 R24 与附录 A ADR-V5-11 同步 | 发信账号与域名由 CORE-43 部署注入 |
 | CORE-46 | 同步与升级协调器 | 已修订（新增卡） | 自原 CORE-26 拆出 Dart 侧网络协调：SyncApi、SyncCoordinator、UpgradeCoordinator、KeyService；异常处理表；实现 CORE-36 定义的 SyncFacade/UpgradeFacade；SyncStatus 等类型移至 CORE-36 facades.dart，UpgradeCoordinator.run 改用门面类型；新增安装点 installSync | CORE-36 须定义 SyncFacade/UpgradeFacade；平台组装（AND/WIN composition）须注入实现 |
 | CORE-47 | 设置页与账户安全界面 | 已修订（新增卡） | 设置页与账户安全界面（从 CORE-36 拆出）：设置子路由、同步状态、升级向导、恢复码一次性展示、设备管理、导出/恢复、keep_last；视图模型可单测 | — |
-| CORE-48 | 计算器、代入与计算链界面 | 已修订（新增卡） | 由 CORE-38 拆出：计算器（6 步数值求根）、代入向导、计算链；附属 calculation_plan 表（归属自 CORE-14 移入）与 library.plan_* op；op 名按 CORE-10/11 实际契约 | — |
+| CORE-48 | 计算器、代入与计算链界面 | 已修订（新增卡） | 由 CORE-38 拆出：计算器（6 步数值求根）、代入向导、计算链；附属 calculation_plan 表（归属自 CORE-14 移入）与 library.plan_* op；op 名按 CORE-10/11 实际契约；2026-10-19：代入结果保存按 CORE-14 新 library.create 请求填写 meta | — |
 | CORE-49 | 学习统计、提醒设置与自建书界面 | 已修订（新增卡） | 由 CORE-39 拆出：统计页（自绘图表、热力图分档）、提醒设置（device.reminder_time）、自建书编辑器 | — |
 | CORE-50 | 识别结果、云端确认与识别历史界面 | 已修订（新增卡） | 由 CORE-40 拆出：RecognizePage 与路由、CandidateVm（逐符号校正、经 CORE-38 新建页保存后 recog.adopt）、CloudConsentPage、UploadPreviewPage、HistoryVm；2026-10-19：候选页“复制 LaTeX”改为复制公式（FormulaCopyButton） | — |
 | CORE-51 | 资源包下载、导入与管理界面 | 已修订（新增卡） | 从撤销的 AND-10、WIN-11 中抽出两端共用的资源包下载、断点续传、离线导入、更新检查与管理界面：PackService（offers/installed/checkUpdates/download/importFile/uninstall）、PackTaskState、PacksVm、installPacks；空间检查 PACK_STORAGE_LOW 与 PACK_DOWNLOAD_INCOMPLETE；调用 CORE-15 pack.install（带 expected_size/expected_blake3） | — |
 | CORE-52 | 公式复制格式与富格式导出 | 已修订（新增卡，2026-10-19） | 按 Q12 确认新增：fml-export（MathML Core、SVG）、op export.formula、DefaultFormulaCopier（格式组合表、PNG 经 paintDisplayList、HTML 片段、16 项缓存、无写入器降级）、FormulaClipboardWriter 接缝、错误码 EXPORT_NOT_RENDERABLE / EXPORT_TOO_LARGE | 新错误码须先写入 contracts/errors/registry.yaml；Office 对 MathML 剪贴板格式的识别在 M0 验证（WIN-05） |
+| CORE-53 | LaTeX 命令补全 | 已修订（新增卡，2026-10-19） | 按 Q16 确认新增：latex_commands.json（CORE-06 白名单子集）、contextAt/rankCandidates/applyCandidate 纯函数、补全弹层与按键（↑/↓、Tab/Enter、Esc，不占用 Ctrl+Space）、空位选中、独立撤销步、组合输入期间不弹出；经 CORE-37 LatexSourceAssist 接入 | — |
+| CORE-54 | 公式库批量选择与批量操作 | 已修订（新增卡，2026-10-19） | 按 Q16 确认新增：SelectedIds/AllMatching 选择模型、键盘鼠标触控交互表、编辑标签对话框、移入回收站撤销；附属 library.batch（单事务、可取消回滚、≤ 10000 条）；新错误码 LIB_BATCH_TOO_LARGE、LIB_TAGS_LIMIT、LIB_BATCH_CANCELLED；经 CORE-38 LibraryListDecorator 接入 | 新错误码须先写入 registry.yaml |
 
 ## D.5 Android 端
 
@@ -118,7 +120,7 @@
 | WIN-05 | 剪贴板与多格式复制 | 已修订 | 实现 CORE-04 ClipboardAdapter 与 CORE-52 FormulaClipboardWriter（2026-10-19 按 Q12 确认改写）：一次写入 MathML（三种格式名）、CF_HTML、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex；粘贴图片读 PNG/CF_DIBV5/CF_DIB；修正错误码名为 PARSE_FORBIDDEN_COMMAND | Office 识别 MathML 剪贴板格式名的行为在 M0 用 Microsoft 365 验证；手动粘贴矩阵结果待记入 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | 已修订 | 补全通道契约、paused/resumed 判定、低内存通知、关闭流程（closeRequested → 托盘或退出）、单实例与窗口位置规则；新增 WindowsPrefs、TrayPresence 接缝、WindowsShell.exitApp 与设置区；布局断点与深色模式归共享界面 | 关闭窗口默认退出、首次关闭不询问，按 README §6 Q15（待确认） |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | 已修订 | 定义 DPAPI 包装格式、.applock 的 Windows Hello 签名派生第二层、StoreArea 目录表、受保护 DACL、错误映射与“安全说明”设置区；依赖加 CORE-36 | — |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器与全局快捷键、笔输入策略；原卡引用的 EditorActions 不存在，已删除；2026-10-19 按 Q11 确认：默认键位改为贴近 Word 与 LaTeX 编辑器（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Shift+Z），新增 ShortcutCommand、KeyChord、Keymap、defaultKeymap、保留键规则与 KeymapHolder，只读帮助区移交 WIN-14，规模约 360 | LaTeX 命令补全与公式库批量键盘操作按 README §6 Q16（待确认）暂不做；Flutter Windows 笔事件上报需 M0 验证 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | 已修订 | 改为经 CORE-36/37/40 接缝实现：编辑器与全局快捷键、笔输入策略；原卡引用的 EditorActions 不存在，已删除；2026-10-19 按 Q11 确认：默认键位改为贴近 Word 与 LaTeX 编辑器（上标 Ctrl+Shift+=、下标 Ctrl+=、插入公式 Alt+=、查找 Ctrl+F、重做 Ctrl+Shift+Z），新增 ShortcutCommand、KeyChord、Keymap、defaultKeymap、保留键规则与 KeymapHolder，只读帮助区移交 WIN-14，规模约 360 | Q16 确认后补全与批量操作由 CORE-53、CORE-54 在共享界面实现，本卡把其按键列为保留（Ctrl+T、Shift+F10 不可分配）；Flutter Windows 笔事件上报需 M0 验证 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | 已修订 | 定义应用内定时规则（同日一次、时间变化与睡眠唤醒补发窗口 2 h）、托盘通道与菜单、通知点击、关闭到托盘与开机自启；不再使用 Toast COM 激活 | 应用完全退出时不提醒（设置区说明） |
 | WIN-10 | 网络传输 | 已修订 | 改为纯传输实现（与 AND-09 同构，dart:io HttpClient、静态系统代理、续传、取消、异常映射）；云识别调用移至 CORE-34；移到 S2 | PAC 自动代理不支持 |
 | WIN-11 | 资源包获取与识别历史平台存储 | 已撤销 | 资源包下载与管理并入 CORE-51，存储检查与历史清理并入 CORE-50、CORE-32；两端共用同一 Dart 实现；编号不复用 | — |
