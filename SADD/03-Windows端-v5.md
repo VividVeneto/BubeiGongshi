@@ -1173,7 +1173,9 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 
 本卡登记CORE-04 ScreenSecurity接缝，通过interaction通道对topHwnd设置窗口捕获策略；Windows 10 2004+请求WDA_EXCLUDEFROMCAPTURE，旧版请求WDA_MONITOR，失败返回false；1809效果为M0实测前提，不能承诺截图一定被阻止。
 
-LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：箭头/Home/End/PageUp/PageDown→move，Shift组合→extend，Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
+LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
+
+ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，不另定义字段；本卡契约套件测试开启/关闭、失败、两页嵌套最后释放与窗口重建重放。
 
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
