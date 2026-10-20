@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {pack, load, blocks, segment, writeOutput, filterJsonArray, filterJsonObject, jsonItems, schemaRefs} from './pack.mjs';
+import {pack, load, blocks, segment, writeOutput, filterJsonArray, filterJsonObject, jsonItems, schemaRefs, definedSymbols} from './pack.mjs';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -248,4 +248,37 @@ test('denoising cuts material size markedly', () => {
   const r = pack('CORE-26');
   const saved = r.report.filteredFiles.reduce((s, f) => s + f.originalBytes - f.includedBytes, 0);
   assert.ok(saved > 150000, String(saved));
+});
+
+
+test('indirect dependencies contribute only blocks that define a needed symbol; mention-only blocks are counted', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-'));
+  const sadd = path.join(root, 'SADD'); fs.mkdirSync(sadd);
+  try {
+    const card = (id, deps, contract) => `### ${id} fixture\n\n**依赖**：${deps}\n\n**接口契约**\n\n${contract}\n\n**实现约束**\n\nfixture\n\n`;
+    const indirect = [
+      '```rust\npub struct FooType { pub bar: BarType }\n```',
+      '```rust\nimpl FooType {\n    pub fn helper(&self) -> u8;\n}\n```',
+      '说明：FooType 只在 mention-only-prose 中被提到。',
+      '```rust\npub struct BarType {}\n```',
+      '```rust\npub struct UnrelatedType {}\n```',
+      '| 码 | 级别 |\n| --- | --- |\n| `FOO_FAILED` | error |',
+      '- `foo.do_thing` body={} ok={}',
+      '```rust\npub const MAX_FOO: usize = 3;\n```',
+    ].join('\n\n');
+    fs.writeFileSync(path.join(sadd, '01-公共核心-v5.md'), card('CORE-01', '', 'root') + card('CORE-02', '', 'errors') +
+      card('CORE-20', 'CORE-01', indirect) + card('CORE-10', 'CORE-20', 'direct uses FooType, FOO_FAILED, foo.do_thing and MAX_FOO') +
+      card('CORE-57', 'CORE-01、CORE-02、CORE-10', 'target'));
+    for (const f of ['02-Android端-v5.md', '03-Windows端-v5.md', 'README.md', '附录A-架构决策与评审记录.md']) fs.writeFileSync(path.join(sadd, f), '');
+    const result = pack('CORE-57', {sadd});
+    for (const s of ['pub struct FooType', 'impl FooType', 'pub struct BarType', '`FOO_FAILED` | error', '`foo.do_thing` body', 'MAX_FOO: usize']) assert.ok(result.text.includes(s), s);
+    assert.ok(!result.text.includes('mention-only-prose')); assert.ok(!result.text.includes('UnrelatedType'));
+    const entry = result.report.manifest.find(m => m.card === 'CORE-20');
+    assert.equal(entry.mode, 'symbols'); assert.equal(entry.mentionOnly, 1);
+    assert.deepEqual([...definedSymbols('impl<T> Display for FooType {}')], ['FooType']);
+  } finally {
+    assert.equal(path.dirname(path.resolve(root)), path.resolve(os.tmpdir()));
+    assert.ok(path.basename(root).startsWith('sadd-pack-'));
+    fs.rmSync(root, {recursive: true, force: true});
+  }
 });
