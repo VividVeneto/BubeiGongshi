@@ -21,6 +21,25 @@ export const docOf = id => DOCS.find(d => id.startsWith(d.prefix + '-'));
 export const folderFor = (id, stage) => stage === 'S0' ? 'S0' : docOf(id).dir;
 export const cardFileName = (stage, id, group) => `${stage}_${id}_${group}.md`;
 
+// 测试方案（验收标准）剥离到 SADD/Test/<同名文件夹>/S编号_卡号_TEST.md；卡片中“验收标准”字段只留一行引用，
+// 读取时按引用把测试文件自“**验收标准**”行起的内容原样拼回，工具看到的卡片全文与剥离前逐字节一致。
+export const TEST_DIR = 'Test';
+export const TEST_FILE = /^(S\d)_((?:CORE|AND|WIN)-\d+)_TEST\.md$/;
+export const ACCEPT_LINE = '**验收标准**';
+export const testFileName = (stage, id) => `${stage}_${id}_TEST.md`;
+export const testRelOf = (folder, stage, id) => `${TEST_DIR}/${folder}/${testFileName(stage, id)}`;
+const TEST_REF = /^\*\*验收标准\*\*：测试方案全文见 \[([^\]\n]+)\]\(([^)\n]+)\)[^\n]*\n/m;
+/** 卡片中替代“验收标准”字段的引用行（不含换行）。 */
+export const testRef = rel => `**验收标准**：测试方案全文见 [${rel}](../${rel})；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。`;
+/** 测试文件开头（拼回时不含这部分）。 */
+export const testHeader = (id, title, folder, cardName) =>
+  `# ${id} 测试方案\n\n> 来源卡：[${cardName}](../../${folder}/${cardName})（${title}）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（` + '`S编号_卡号_TEST.md`' + `）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。\n\n`;
+/** 测试文件中拼回卡片的部分：自“**验收标准**”行起到文件末尾。 */
+export function testBody(text) {
+  const i = text.indexOf('\n' + ACCEPT_LINE + '\n');
+  return i < 0 ? null : text.slice(i + 1);
+}
+
 export function layoutOf(sadd) {
   const legacy = FILES.some(f => fs.existsSync(path.join(sadd, f)));
   const split = DOCS.some(d => fs.existsSync(path.join(sadd, d.dir, OVERVIEW)));
@@ -30,7 +49,8 @@ export function layoutOf(sadd) {
 
 /** 列出拆分布局中的卡片文件；issues 记录命名与位置问题，由 DTOcheck 报告。 */
 export function listCardFiles(sadd) {
-  const cards = new Map(); const issues = [];
+  const cards = new Map(); const issues = []; const referenced = new Set();
+  const testRoot = path.join(sadd, TEST_DIR); const testsExist = fs.existsSync(testRoot);
   for (const folder of FOLDERS) {
     const dir = path.join(sadd, folder);
     if (!fs.existsSync(dir)) continue;
@@ -43,7 +63,30 @@ export function listCardFiles(sadd) {
       const [, stage, id, group] = m;
       if (!GROUPS.includes(group)) issues.push({id: 'LAYOUT-01', msg: `${rel}: 分组“${group}”不在 ${GROUPS.join('、')} 之内`});
       if (cards.has(id)) throw new Error(`卡片 ${id} 有多个文件：${cards.get(id).rel}、${rel}`);
-      cards.set(id, {id, rel, folder, stage, group, text: fs.readFileSync(path.join(dir, name), 'utf8')});
+      const raw = fs.readFileSync(path.join(dir, name), 'utf8');
+      const card = {id, rel, folder, stage, group, raw, text: raw};
+      const ref = raw.match(TEST_REF); const want = testRelOf(folder, stage, id);
+      if (ref) {
+        if (ref[1] !== want || ref[2] !== `../${want}`) issues.push({id: 'LAYOUT-06', msg: `${rel}: 测试方案引用应为 [${want}](../${want})，实际为 [${ref[1]}](${ref[2]})`});
+        const file = path.join(sadd, want);
+        const test = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+        const body = test && testBody(test);
+        if (!test) issues.push({id: 'LAYOUT-06', msg: `${rel}: 引用的测试方案 ${want} 不存在`});
+        else if (!body || !test.startsWith(`# ${id} 测试方案\n`)) issues.push({id: 'LAYOUT-06', msg: `${want}: 必须以“# ${id} 测试方案”开头并含独立一行“${ACCEPT_LINE}”`});
+        else { card.text = raw.replace(ref[0], () => body); card.test = {rel: want, text: test}; referenced.add(want); }
+      } else if (testsExist && new RegExp(`^\\*\\*验收标准\\*\\*$`, 'm').test(raw)) {
+        issues.push({id: 'LAYOUT-07', msg: `${rel}: “验收标准”应剥离到 ${want}，卡片只留引用行`});
+      }
+      cards.set(id, card);
+    }
+  }
+  if (testsExist) for (const entry of fs.readdirSync(testRoot).sort()) {
+    const sub = path.join(testRoot, entry);
+    if (!FOLDERS.includes(entry) || !fs.statSync(sub).isDirectory()) { issues.push({id: 'LAYOUT-06', msg: `${TEST_DIR}/${entry}: ${TEST_DIR}/ 下只允许 ${FOLDERS.join('、')} 文件夹`}); continue; }
+    for (const name of fs.readdirSync(sub).sort()) {
+      const rel = `${TEST_DIR}/${entry}/${name}`;
+      if (!TEST_FILE.test(name)) issues.push({id: 'LAYOUT-06', msg: `${rel}: 文件名不符合“S编号_卡号_TEST.md”`});
+      else if (!referenced.has(rel)) issues.push({id: 'LAYOUT-06', msg: `${rel}: 没有卡片引用该测试方案（卡片改名后测试文件应同步改名）`});
     }
   }
   return {cards, issues};

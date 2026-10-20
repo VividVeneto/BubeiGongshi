@@ -25,7 +25,7 @@ export function load(sadd = path.join(ROOT, 'SADD')) {
       // 拆分布局下 file/line 指向卡片文件本身；doc 始终是卡片所属的原文档。
       const own = cardFiles.get(m[1]);
       cards.set(m[1], {id: m[1], doc, file: own?.rel ?? doc, line: own ? 1 : text.slice(0, m.index).split('\n').length,
-        body, contract, deps: [...new Set(deps)]});
+        body, contract, deps: [...new Set(deps)], ...(own?.test ? {testFile: own.test.rel} : {})});
     }
   }
   return cards;
@@ -255,6 +255,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   if (undefinedIdentifiers.length) warnings.push('SDK/third-party or undefined identifiers require review; see undefinedIdentifiers');
   const header = `# ${id} 会话材料\n\n生成时间：${new Date().toISOString()}；字符按 Unicode code point 计数。\n`+
     `完整材料由下列分段共同组成，分段不是独立编码会话；全部读完后才能实现。\n\n未创建文件：${missing.join('、') || '无'}。\n\n`+
+    (target.testFile ? `目标卡“验收标准”取自测试方案 ${target.testFile}（已按卡片中的引用拼回下方目标卡正文）；实现与测试改动须同步修改该文件。\n\n` : '')+
     `去噪：contracts 只收录与目标卡及直接依赖（${ownerList}）相关的内容，其余列名并给出 SHA-256，见文末“contracts 清单”与 report.json 的 filteredFiles；附录 A 只收录相关 ADR 行与补充章节。\n`;
   const text = header + '\n' + sections.join('\n\n');
   const chars = [...text].length;
