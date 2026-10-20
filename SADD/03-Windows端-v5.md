@@ -23,6 +23,20 @@ Windows 端的职责边界：
 
 ```mermaid
 graph TD
+  C03["CORE-03 C ABI 与 Dart 绑定"]
+  C04["CORE-04 平台端口契约"]
+  C13["CORE-13 本地库 Schema、单写者与迁移"]
+  C20["CORE-20 学习统计、掌握度与本地提醒"]
+  C21["CORE-21 密钥体系与加密原语"]
+  C23["CORE-23 账户状态、登录边界与本机解锁"]
+  C36["CORE-36 应用壳、组装层、账户入口与导航"]
+  C37["CORE-37 公式渲染组件与编辑器"]
+  C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
+  C50["CORE-50 识别结果、云端确认与识别历史界面"]
+  C52["CORE-52 公式复制格式与富格式导出"]
+  C55["CORE-55 界面设计系统与主题"]
+  C42["CORE-42 发布流水线、版本矩阵与回滚"]
+  C43["CORE-43 服务端部署、资源分发与监控"]
   W01["WIN-01 工程与构建"]
   W02["WIN-02 安装器与卸载"]
   W03["WIN-03 自更新客户端"]
@@ -38,20 +52,6 @@ graph TD
   W12["WIN-12 代码签名与发布检查"]
   W13["WIN-13 性能与环境矩阵"]
   W16["WIN-16 启动器与更新恢复"]
-  C03["CORE-03 C ABI 与 Dart 绑定"]
-  C04["CORE-04 平台端口契约"]
-  C42["CORE-42 发布流水线、版本矩阵与回滚"]
-  C36["CORE-36 应用壳、组装层、账户入口与导航"]
-  C43["CORE-43 服务端部署、资源分发与监控"]
-  C13["CORE-13 本地库 Schema、单写者与迁移"]
-  C21["CORE-21 密钥体系与加密原语"]
-  C50["CORE-50 识别结果、云端确认与识别历史界面"]
-  C52["CORE-52 公式复制格式与富格式导出"]
-  C37["CORE-37 公式渲染组件与编辑器"]
-  C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
-  C55["CORE-55 界面设计系统与主题"]
-  C20["CORE-20 学习统计、掌握度与本地提醒"]
-  C23["CORE-23 账户状态、登录边界与本机解锁"]
   W01 --> C03
   W01 --> C04
   W02 --> C42
@@ -127,21 +127,21 @@ graph TD
 
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
-| WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 约 280 行 |
-| WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 约 300 行 |
-| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16 | 约 360 行 |
-| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 约 450 行 |
-| WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 约 320 行 |
-| WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 约 420 行 |
-| WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 约 450 行 |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15 | 约 460 行 |
-| WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 约 380 行 |
-| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04 | 约 240 行 |
-| WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 约 250 行 |
-| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 约 430 行 |
-| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15 | 约 340 行 |
-| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06 | 约 440 行 |
-| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 约 500 行 |
+| WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 280 |
+| WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 300 |
+| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16 | 360 |
+| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 450 |
+| WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
+| WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
+| WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15 | 460 |
+| WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
+| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04 | 240 |
+| WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 250 |
+| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 430 |
+| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15 | 340 |
+| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06 | 440 |
+| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 500 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
