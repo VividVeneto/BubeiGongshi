@@ -285,6 +285,17 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 
 模块卡布局（2026-10-20 起）：每张卡一个文件，命名 `S编号_卡号_分组.md`。S0 阶段的卡统一放在 `S0/`，其余按卡号前缀放在 `core/`、`and/`、`win/`。分组按实际功能，共 8 个：基座、引擎、界面、功能、账户、扩展、平台、发布。`core/`、`and/`、`win/` 的 `00-总览.md` 保留原 01/02/03 中卡片以外的内容（§0～§3 与各章引言），并在卡片原位置写 `<!-- sadd:card 卡号 -->` 标记。正文中的“01/02/03”“所在文档 §2/§3”仍指对应总览与其卡片的合集。阶段或分组变化时文件要改名，所以引用卡片一律写卡号，不写路径。测试方案（2026-10-21 起）：每张卡的“验收标准”全文放在 `Test/` 下与卡片同名文件夹中的 `S编号_卡号_TEST.md`（如 `S0/S0_CORE-57_基座.md` 对应 `Test/S0/S0_CORE-57_TEST.md`），卡片的“验收标准”字段只留一行引用“**验收标准**：测试方案全文见 [Test/…](../Test/…)”。按卡片编程时直接引用该文件写测试；修改卡片功能（接口契约、范围等）时在同一提交同步修改测试方案；卡片因阶段变化改名时测试文件同步改名。工具读取卡片时按引用把测试文件自“**验收标准**”行起的内容原样拼回，`pack.mjs` 材料与各项检查看到的仍是完整卡片（含验收标准）。布局由 `node tools/DTOcheck/run.mjs` 的 LAYOUT 检查约束（LAYOUT-06 测试文件缺失/孤立/命名或引用不符，LAYOUT-07 卡片仍内联验收标准），工具按标记拼回完整文档（`tools/sadd/layout.mjs`；剥离工具 `tools/sadd/split-tests.mjs`）。
 
+### 7.1 工具项（不属于正式代码）
+
+下列文档工具单独列为工具项：不属于任何模块卡，不计入任何卡的规模，不进入产品构建与发布，也不做整卡复核与就绪评级（2026-10-21 确认）。模块卡（如 CORE-57、CORE-76）可以调用工具项，但工具项不是卡片交付物；将来要把某个工具项转为正式代码，先新开卡。工具项改动用 `chore(sadd): …` 提交，并须保持 `node tools/DTOcheck/run.mjs --strict` 与 `node --test tools/sadd/*.test.mjs tools/DTOcheck/*.test.mjs` 通过。
+
+| 工具项 | 路径 | 用途 | 使用方 |
+| --- | --- | --- | --- |
+| 布局读写 | `tools/sadd/layout.mjs` | 读取拆分布局：按 00-总览.md 的卡片标记与 Test/ 的测试方案引用拼回完整文档，产生 LAYOUT 检查项 | pack（CORE-57）、stats/audit（CORE-76）、reservations（CORE-75）、DTOcheck |
+| 拆分迁移 | `tools/sadd/split.mjs` | 一次性：三份文档拆为每卡一个文件（2026-10-20 已执行） | 仅迁移时使用 |
+| 测试方案剥离 | `tools/sadd/split-tests.mjs` | 一次性：各卡“验收标准”剥离到 Test/（2026-10-21 已执行） | 仅迁移时使用 |
+| 文档一致性检查 | `tools/DTOcheck/`（含其测试） | 卡↔索引↔依赖图↔阶段、DTO manifest/schema/示例、错误码登记、布局检查 | 改文档或 contracts/ 时运行 |
+
 ## 8. vibe coding 使用说明
 
 验证责任（不混算完成条件）：R05内容生产/审校属于M-CONTENT，CORE-16只自动验收工具与fixture；R42.a原创性与信息组织以设计负责人＋甲方签字为准，截图/组件测试不代替主观评审；R42.c真机预算由AND-12/WIN-13执行，早期代码卡只负责采样/fixture，不被未到真机阻塞代码验收，但产品交付仍待实测。
@@ -533,7 +544,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
 | WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |
-| CORE-57 | 会话材料生成与文档统计工具 | 工程与发布 | 材料与统计 | `tools/sadd/` | S0 |
+| CORE-57 | 会话材料生成与文档统计工具 | 工程与发布 | 材料与统计 | `tools/sadd/pack.mjs` | S0 |
 | CORE-67 | DTO schema 编译与漂移检查 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/gen_dto.py`、`contracts/dto/` | S0 |
 | CORE-69 | 源文件词法与依赖隐私门禁 | 工程与发布 | 新增职责 | `tools/ci/{common,source_scan,check_deps,check_privacy}.py` | S0 |
 | CORE-70 | SADD结构与验收索引门禁 | 工程与发布 | 新增职责 | `tools/sadd/structure.mjs` | S0 |
