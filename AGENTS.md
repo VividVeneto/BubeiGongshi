@@ -32,7 +32,7 @@
 
 ## 依赖方向（CORE-01）
 
-1. `fml-ast` 不依赖解析器、存储与 UI；`fml-type` 只依赖 `fml-ast`、`fml-units`、`fml-notation`；`fml-eval` 只依赖 `fml-ast`、`fml-type`、`fml-units`；`fml-typeset` 不直接读字体文件。解析、绑定、校验与常数解析的编排由 CORE-56 的 fml-ffi 处理层完成，ConstantValue 是 CORE-05 的纯数据类型。
+1. `fml-ast` 不依赖解析器、存储与 UI；`fml-type` 只依赖 `fml-ast`、`fml-units`、`fml-notation`；`fml-eval` 只依赖 `fml-ast`、`fml-type`、`fml-units`；`fml-typeset` 不直接读字体文件。解析、绑定、校验与常数解析的编排由 CORE-56 的 fml-ffi 处理层完成，ConstantValue 是 CORE-05 的纯数据类型。通用例外：所有 crate 可依赖 `fml-error`；需要取消检查的 crate 可依赖 `fml-ast` 仅为使用 `CancelFlag`。
 2. 领域 crate 无 I/O（不访问网络、文件、时钟与平台 API），时间、随机数与文件内容由调用方传入。
 3. `fml-store` 可依赖领域 crate，反之不可。
 4. `fml-ffi` 是唯一允许出现 `extern "C"` 的 crate。
