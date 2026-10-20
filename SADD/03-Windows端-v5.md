@@ -553,6 +553,7 @@ abstract interface class SecureKeyValueStore {
 abstract interface class LocalFileStore {
   Future<Directory> root(StoreArea area);
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
+  /// dir须在本应用私有根目录内（解析符号链接后的真实路径）；越界抛ArgumentError，不创建/修改目标。
   Future<void> excludeFromSystemBackup(Directory dir);
 }
 ```
@@ -628,7 +629,8 @@ abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
 }
-abstract interface class ImageDropSource { Stream<DroppedImages> drops({Future<bool> Function(int count, int bytes, int other)? confirmFolder}); }
+abstract interface class ImageDropSource {          // 平台卡经 platformInstallers 登记（WIN-04）；未登记时识别页不响应拖放
+  Stream<DroppedImages> drops({Future<bool> Function(int count, int bytes, int other)? confirmFolder}); }
 ```
 
 本卡实现（`app/lib/platform/windows/picker/`）：
@@ -706,8 +708,8 @@ abstract interface class ClipboardAdapter {
   Future<void> writeText(String text);
   Future<ImportedImage?> readImage();                         // 剪贴板无图片或平台不支持时返回 null
 }
-abstract interface class FormulaClipboardWriter {
-  Future<bool> write(FormulaClipboardPayload payload);         // 字段定义见 CORE-52 FormulaClipboardPayload
+abstract interface class FormulaClipboardWriter {  // 平台卡经 PlatformPorts.platformInstallers 登记（WIN-05、AND-14）
+  Future<bool> write(FormulaClipboardPayload payload);   // 平台不支持的字段忽略；返回 true 表示系统已显示复制反馈（如 Android 13+）
 }
 ```
 
@@ -784,16 +786,16 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 实现的接缝（逐字摘录，定义见 CORE-36、CORE-59、CORE-64）：
 
 ```dart
-abstract interface class EditorPlatformBindings {
-  KeyEventResult handleKey(FormulaEditorController c, KeyEvent e);
-  Widget? accessoryBar(BuildContext context, FormulaEditorController c);
+abstract interface class EditorPlatformBindings {   // 平台卡经 PlatformPorts.platformInstallers 登记；未登记时用 DefaultEditorBindings
+  KeyEventResult handleKey(FormulaEditorController c, KeyEvent e);        // 结构化模式下公式区持有焦点时调用
+  Widget? accessoryBar(BuildContext context, FormulaEditorController c);  // 显示在公式区与符号面板之间；null 表示无
 }
-abstract interface class ShellKeyHandler {
+abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型后登记者覆盖），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
   KeyEventResult handle(KeyEvent event, AppNavigator nav); }
-abstract interface class InkInputPolicy {
-  bool accept(PointerDownEvent e, {required bool stylusSeen});
-  double? pressureOf(PointerEvent e);
-  bool isEraser(PointerEvent e);
+abstract interface class InkInputPolicy {          // 平台卡经 PlatformPorts.platformInstallers 登记（AND-07、WIN-08）
+  bool accept(PointerDownEvent e, {required bool stylusSeen});   // false = 整笔丢弃（防手掌误触）；stylusSeen = 本画布清空后出现过触控笔
+  double? pressureOf(PointerEvent e);                            // 0..1；null = 不记录压力
+  bool isEraser(PointerEvent e);                                 // true = 该笔为擦除（触及的笔画整笔删除）
 }
 ```
 
@@ -1016,11 +1018,16 @@ BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppComman
 实现与使用的接缝（逐字摘录，定义见 CORE-55 §接口契约、CORE-36 §接口契约、WIN-06）：
 
 ```dart
-abstract interface class InputModalitySource { InputModality get initial; Stream<InputModality> get changes; }
-abstract interface class MotionScaleSource { double get scale; Stream<double> get changes; }
-abstract interface class DevicePrefStore { Future<String?> read(String key); Future<void> write(String key, String value); }
-abstract interface class ShortcutLabelSource { String? labelOf(String commandId); Listenable get changes; }
-abstract interface class ShellKeyHandler { KeyEventResult handle(KeyEvent event, AppNavigator nav); }
+abstract interface class InputModalitySource {       // 平台登记（AND-13：touch；WIN-15：pointer，平板模式或触摸时 touch）；未登记时 initial = touch
+  InputModality get initial; Stream<InputModality> get changes;
+}
+abstract interface class MotionScaleSource { double get scale; Stream<double> get changes; }   // 可选（AND-13 系统动画时长缩放），取值 0～10
+abstract interface class DevicePrefStore {           // 设备级偏好：不进档案库、不同步、不进备份
+  Future<String?> read(String key); Future<void> write(String key, String value);   // key 匹配 ^[a-z0-9_.]{1,64}$
+}
+abstract interface class ShortcutLabelSource { String? labelOf(String commandId); Listenable get changes; }   // 可选（WIN-15 登记，键位变化时通知）；未登记时 ShortcutHint 不显示
+abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型后登记者覆盖），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
+  KeyEventResult handle(KeyEvent event, AppNavigator nav); }
 // 只读使用：AppearanceController.resolved / resolvedChanges（ResolvedAppearance.brightness、colors）；
 //           FmlCommands.invoke / isAvailable（CORE-55）；WindowsPrefs.get / set（WIN-06）
 ```
@@ -1165,6 +1172,8 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
 
+主题变化时在平台UI线程设置DWM属性后，调用SetWindowPos(topHwnd,null,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED)请求边框重算，并RedrawWindow(...,RDW_FRAME|RDW_INVALIDATE)请求非客户区重绘；不激活/移动窗口。对属性不支持/设置失败记warning并使用系统默认标题栏，不将调用成功当视觉实测通过。Windows 10 1809/11、高对比度切换仍由WIN-13在M0/S7实测。
+
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
 - `defaultStudyBindings` 是学习键位默认值的唯一来源；WIN-14 设置区、`ShortcutHint` 文本与“恢复默认”都由它与 `StudyKeymapHolder` 渲染。
@@ -1195,6 +1204,8 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 - [R42.c] WIN-13 在基线机型与二合一机型上测量 CORE-01 预算表 a 段所列五行，P95 在 Windows 列预算内。
 
 - [R11][R42.d] Fake库scope按↓/Shift+↓分别只invoke move.down/extend.down一次；文本焦点不调用，方向repeat可调用，Delete repeat不调用；WIN-08内层handled时库/学习均不调用，未声明命令继续焦点链。
+
+- [R42.d] 主机切换深浅色及高对比度，截取标题栏确认更新；切换前后位置/尺寸/前台窗口不变，DWM失败夹具回退系统默认且不崩溃。
 
 **规模**：约 440 行；`app/lib/platform/windows/interaction/`（约 260 行）、`app/windows/runner/interaction_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 120 行）、`app/integration_test/windows/interaction_test.dart`（约 60 行），同属 `app/` 构建单元。
 
