@@ -300,6 +300,8 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 
 | ADR-V5-35 | P1 职责拆分 | 保留原编号，新增 CORE-57～CORE-66，材料工具、组件/编辑、库工具/草稿、API/账户页/控制器、墨迹、同步快照各单一构建职责；旧消费者同步依赖与阶段，fml-store 持 I/O、fml-sync 保持纯规则 | 顶格单卡跨多个子系统会迫使编码会话再改契约 | 实现估算超500行先继续拆卡 | 采纳（修订方决定） | CORE-22、CORE-23、CORE-26、CORE-36、CORE-37、CORE-38、CORE-40、CORE-55、CORE-57、CORE-58、CORE-59、CORE-60、CORE-61、CORE-62、CORE-63、CORE-64、CORE-65、CORE-66 |
 
+| ADR-V5-36 | Android API 分档与导入所有权 | 认证器按 API 分档、权限白名单按来源卡启用；CORE-04 明确导入批次时限；MainActivity 模块化、S0 正式 Unsupported 桩；官方依据见 §A.4.7 | 省略 API 条件会在旧系统抛错；发布引用 test Fake 无法构建 | AndroidX 或 SDK 升级，M0 探针不通过 | 采纳（修订方决定） | CORE-04、AND-01、AND-02、AND-03、AND-05、AND-06、AND-08、AND-12 |
+
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
 筛选条件：支持 API 或 SMTP 发送事务邮件、有免费额度、可替换。用量估算：每次注册约 1～2 封，找回口令另计。
@@ -361,6 +363,13 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 出处：[object/token_oauth_util.go](https://github.com/casdoor/casdoor/blob/master/object/token_oauth_util.go)、[object/token_jwt.go](https://github.com/casdoor/casdoor/blob/master/object/token_jwt.go)、[object/token_oauth.go](https://github.com/casdoor/casdoor/blob/master/object/token_oauth.go)、[controllers/auth.go](https://github.com/casdoor/casdoor/blob/master/controllers/auth.go)、[object/application.go](https://github.com/casdoor/casdoor/blob/master/object/application.go)。
 
 用户可见行为不变：敏感操作本来就要求 300 s 内交互登录（刷新从不更新 auth_time）；刷新令牌被重放时整族失效，用户需重新登录，这是 OAuth 安全实践的常规结果。
+
+### A.4.7 P1 Android 官方事实依据（2026-10-20 核实）
+
+- [AndroidX PromptInfo](https://developer.android.com/reference/androidx/biometric/BiometricPrompt.PromptInfo.Builder)：28–29 不支持 STRONG 与设备凭据组合；[BiometricPrompt](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt) 的 CryptoObject 约束分 API，不把非加密提示等同密钥认证。
+- [多选契约](https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.PickMultipleVisualMedia)：多选最小2；系统/SAF fallback 的数量行为仍需返回后校验，不信任供应方遵守上限。
+- [AndroidX core 清单源码](https://android.googlesource.com/platform/prebuilts/sdk/+/fa1474c543bdd7eaa690ba935d9ea8249fd12880/current/androidx/manifests/androidx.core_core/AndroidManifest.xml)：自定义动态接收器 signature 权限。
+- [16 KB 页支持](https://developer.android.com/guide/practices/page-sizes)：r28 默认对齐，r27 需显式支持；仍检查每个第三方 .so 与 Rust 产物。真机/ROM 及锁定 AndroidX 组合未实测，保留 M0 外部前提，不将官方 API 存在等同交付验证。
 
 ## A.5 开发前冻结清单
 

@@ -158,7 +158,7 @@ CORE-55 的界面接缝（不属于 CORE-04 端口，经 `platformInstallers` �
 **目标**：建立 Android 工程，把 Rust 核心编译为 `libfmlcore.so` 并经 C ABI 加载，组装 Android 端口，产出可在真机运行的调试包。
 
 **范围**
-- 包含：`app/android/` Gradle 工程与 `MainActivity`；Cargo 交叉编译（cargo-ndk）的 Gradle 任务；ABI 选择；`libfmlcore.so` 打包；`main_android.dart` 入口；`composition/ports_android.dart` 组装（未实现的端口先用 CORE-04 的 Fake）；工具链版本文件；调试构建。
+- 包含：`app/android/` Gradle 工程与 `MainActivity`；Cargo 交叉编译（cargo-ndk）的 Gradle 任务；ABI 选择；`libfmlcore.so` 打包；`main_android.dart` 入口；`composition/ports_android.dart` 组装（未实现的端口先用 CORE-04 的 UnsupportedXxx）；工具链版本文件；调试构建。
 - 不包含：清单权限（AND-02）；签名与发布（AND-11）；各端口的具体实现（AND-03～10）；ABI 版本校验与“核心不可用”页面（CORE-04 `runPlatformApp`）。
 
 **依赖**：CORE-01、CORE-02、CORE-03、CORE-04
@@ -181,15 +181,15 @@ void main() => runPlatformApp(const CoreLibrarySpec('libfmlcore.so'), buildAndro
 
 // app/lib/composition/ports_android.dart
 PlatformPorts buildAndroidPorts();
-// 每个端口字段一行：初始全部为 CORE-04 的 FakeXxx，并 debugPrint('port <字段名>: fake')；
+// 每个端口字段一行：初始全部为 CORE-04 的 UnsupportedXxx（lib/ports/unsupported/），并 debugPrint('port <字段名>: unsupported')；
 // platformInstallers 初始为 const []；AND-07、AND-08 各向其中追加一项（追加行同样不计入规模）。
 // AND-03～AND-09 实现某端口时只替换该字段对应的一行（替换行不计入该卡规模，也不视为跨构建单元）。
 ```
 
 ```text
 app/android/
-  settings.gradle、build.gradle、app/build.gradle    Android Gradle 工程（Kotlin DSL 或 Groovy 由 M0 定，全工程统一）
-  app/src/main/kotlin/.../MainActivity.kt            FlutterActivity 子类；本卡只注册 MethodChannel 前缀 "fml/android/"，各平台卡在其下建自己的通道
+  settings.gradle、build.gradle、app/build.gradle    Android Gradle 工程（统一 Kotlin DSL，文件后缀 .gradle.kts）
+  app/src/main/kotlin/.../MainActivity.kt            FlutterActivity 子类；本卡构造 AndroidChannelModule 列表，逐个 attach；通道全名必须唯一，不存在“注册前缀”机制
   toolchain.versions                                 ndk=、cargo-ndk=、gradle=、agp=、kotlin=、camerax=、biometric= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
 Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
   cargo ndk -t arm64-v8a [-t armeabi-v7a] [-t x86_64（仅 debug）] -o app/src/main/jniLibs build -p fml-ffi [--release]
@@ -208,15 +208,28 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 
 - 本卡不新增错误码；核心加载失败与 ABI 不符由 CORE-04 `runPlatformApp` 处理。
 
+原生模块扩展（仅 MainActivity 属本卡）：
+
+```kotlin
+interface AndroidChannelModule {
+  fun attach(activity: FlutterActivity, engine: FlutterEngine)
+  fun onTrimMemory(level: Int) {}
+  fun onNewIntent(intent: Intent) {}
+  fun detach() {}
+}
+```
+
+各平台卡在自身目录实现模块，`AndroidModules.kt` 只追加工厂一行；MainActivity 统一 configureFlutterEngine/生命周期/Intent 转发，销毁按逆序 detach；ActivityResult 注册在 STARTED 之前。AndroidManifest.xml 由 AND-02 唯一维护，新增能力提交声明片段与白名单差异，不由多卡同时改主体；ports_android.dart 每卡只替换自己的端口字段。
+
 **实现约束**
 - 绑定方式只用 C ABI + `dart:ffi`（ffigen 生成），不使用 flutter_rust_bridge（附录 A ADR-V5-02）。
-- 原生库按 16 KB 内存页对齐（NDK r27 及以上默认；更早版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
+- 原生库按 16 KB 内存页对齐（NDK r28 及以上默认；r27 显式开启 flexible page sizes，Rust 链接始终验证，旧版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
 - Release 构建开启 R8，`proguard-rules.pro` 保留 Flutter 与各 MethodChannel 处理类；`.so` 去除调试符号，符号文件另行归档（AND-11）。
 - 构建可复现：`toolchain.versions` 中的版本即 CI 使用的版本；Rust 构建设置 `--remap-path-prefix` 与固定 `SOURCE_DATE_EPOCH`。
 - 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX、androidx.biometric 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
 
 **验收标准**
-- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
+- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `jniLibs` 中的 `libfmlcore.so` 后安装，应用显示“核心版本不匹配，请重新安装”，不崩溃。
 - [R41] `app/lib/ui/` 中 `Platform.isAndroid` 与平台判断零命中（CI 规则由 CORE-41 执行）；Android 专属 Dart 代码只在 `app/lib/platform/android/`、`main_android.dart` 与 `ports_android.dart`。
 - [R23] 两次干净构建得到的 `libfmlcore.so` 哈希一致；`llvm-readelf -l` 显示所有 LOAD 段对齐为 0x4000。
@@ -260,11 +273,16 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
   MainActivity 的 configChanges 集合、windowSoftInputMode 与表不符；application 未声明 enableOnBackInvokedCallback="true"）
 ```
 
-允许声明的权限只有：
+最终权限白名单（系统普通权限不弹运行时框；按来源卡启用，审计为“必需集合 ⊆ 实际集合 ⊆ 最终白名单”，可选库项随锁定依赖启用）：
 
 | 权限 | 时机 |
 | --- | --- |
-| `INTERNET` | 安装时（普通权限） |
+| `INTERNET` | 普通；AND-09 网络 |
+| `ACCESS_NETWORK_STATE` | 普通；AND-09 网络变化 |
+| `RECEIVE_BOOT_COMPLETED` | 普通；AND-08 提醒重排 |
+| `USE_BIOMETRIC` | 普通；AND-06/AndroidX |
+| `USE_FINGERPRINT`（maxSdkVersion=28） | 兼容普通；AND-06/AndroidX |
+| `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX core 合入，signature 自定义 permission 与 uses-permission 成对审计 |
 | `CAMERA` | 用户第一次点击“拍照识别”时 |
 | `POST_NOTIFICATIONS`（Android 13+） | 用户开启复习提醒时 |
 
@@ -287,12 +305,12 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
 - 每次请求前先显示用途说明；拒绝后不反复弹窗，只在用户再次主动使用该功能时提示并提供“去设置”。
-- 第三方依赖带入的权限必须在清单中用 `tools:node="remove"` 移除，或在附录 A 新增 ADR 说明。
+- 第三方依赖带入的白名单权限保留并核对 protectionLevel/maxSdkVersion；白名单外项先核实用途，再移除并跑能力测试，或先修 ADR 与本表，不得删掉生物识别/动态接收器正常工作所需权限。
 - 不使用权限类第三方插件，权限请求只经本卡通道；不使用 Google Play 服务专属能力（推送、Play Integrity、Google 登录），保证无 GMS 设备可用。
 - 审计脚本输入为 Gradle 生成的 `build/intermediates/merged_manifests/release/AndroidManifest.xml`；CI 在 release 构建后调用（CORE-41 的 `ci.yml` 追加一步）。
 
 **验收标准**
-- [R38] `check_android_manifest.py`：Release 构建的合并清单权限集合等于上表；在 `app/build.gradle` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
+- [R38] `check_android_manifest.py`：Release 构建的合并清单包含本阶段必需集合且属于上表白名单；S7 完整能力包包含全部启用项；在 `app/build.gradle` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
 - [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-02 接口契约窗口属性表 声明时退出 0。
 - [R38] Widget 测试（假通道）：用户在用途说明中点“暂不”时不调用系统请求；`permanently_denied` 时返回 `permanentlyDenied` 且不再弹系统框。
 - [R31] 手动：拒绝相机权限后，“相册导入”与“文件导入”仍可用并能完成识别。
@@ -426,7 +444,8 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 
 **实现约束**
 - 创建密钥：API 28+ 先请求 StrongBox（`setIsStrongBoxBacked(true)`），`StrongBoxUnavailableException` 时降级为普通 Keystore；`keystore.level` 由 `KeyInfo` 判定（API 31+ 用 `securityLevel`，更早用 `isInsideSecureHardware`），如实返回 `software`。
-- `.applock` 别名：API 30+ 用 `setUserAuthenticationParameters(0, BIOMETRIC_STRONG 或 DEVICE_CREDENTIAL)`，解包时以 `BiometricPrompt.CryptoObject` 逐次认证；API 26–29 用 10 s 时效认证，解包前先经 androidx.biometric 认证（允许设备凭据）；认证提示文案为“解锁公式库”。
+- `.applock` 别名：API 26–29 采用 10 s 时效密钥，PromptInfo 使用 BIOMETRIC_WEAK | DEVICE_CREDENTIAL，authenticate 不传 CryptoObject；认证成功立即解包，过时重认证，不在 API 28–29 构造 STRONG | DEVICE_CREDENTIAL。API 30+ 使用 setUserAuthenticationParameters(0, AUTH_BIOMETRIC_STRONG | AUTH_DEVICE_CREDENTIAL)，PromptInfo 匹配 STRONG | DEVICE_CREDENTIAL 并使用 CryptoObject；设备凭据与 CryptoObject 的具体 AndroidX/ROM 组合列外部前提（M0 实测），不支持时返回 PLATFORM_UNSUPPORTED，不降级为无认证密钥。该参数用 KeyProperties.AUTH_*，不能把 BiometricManager.BIOMETRIC_* 数值传给 KeyGenParameterSpec。
+- 指纹变更不是所有密钥通用失效条件：时效密钥及允许设备凭据的密钥不能承诺“新增指纹必失效”。测试真实 KeyPermanentlyInvalidatedException 映射；生物识别专用、每次认证密钥的 enrollment 失效另在真机条件测试，不能套到支持 PIN 的默认配置。
 - 备份：清单 `android:allowBackup="false"`，并提供 `data_extraction_rules.xml`（Android 12+：cloud-backup 与 device-transfer 均排除全部域）与 `full_backup_content.xml`（排除全部域）；`excludeFromSystemBackup` 对上述根目录内的路径为空操作，对根目录之外的路径抛 `ArgumentError`。
 - 不使用 MediaStore 与公共目录；恢复出厂或清除应用数据会丢失本机密钥，提示文案由 CORE-23/CORE-47 负责。
 - `freeBytes()` 取 `StatFs(noBackupFilesDir).availableBytes`；空间不足的处理由调用方按 CORE-15、CORE-32 的规则执行，本卡不删除任何文件。
@@ -436,7 +455,7 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 - [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore`、`BiometricPrompt` 契约套件在真机（`integration_test/android/storage_test.dart`）全部通过。
 - [R27] 手动：执行 `adb shell bmgr backupnow <package>` 与设备迁移后，新设备上不存在 `database/`、`recognition/`、`drafts/` 内容。
 - [R27] 在支持 StrongBox、仅 TEE、模拟器三类设备上 `securityLevel` 分别返回 `strongBox`、`tee`、`software`。
-- [R25] 开启应用锁后新增一个指纹：`unwrap(".applock")` 抛 `PLATFORM_KEY_UNAVAILABLE`；取消认证对话框时抛 `PLATFORM_AUTH_FAILED`；`.db` 别名不受影响。
+- [R25] 开启应用锁后在 API 26/28/29/30/34 逐档验证上述认证器组合；注入或真机触发永久失效时 unwrap 抛 PLATFORM_KEY_UNAVAILABLE；取消认证对话框时抛 `PLATFORM_AUTH_FAILED`；`.db` 别名不受影响。
 - [R27] 篡改 `wrap` 结果中任一字节后 `unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`。
 
 **规模**：约 420 行；`app/lib/platform/android/storage/` 与 `app/android/.../KeystoreBridge.kt`、两个备份规则 XML（同属 `app/` 构建单元）。
@@ -521,7 +540,7 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 **实现约束**
 - 不申请存储权限，不调用 `takePersistableUriPermission`；读取一次即复制，不保存源 URI 与原文件路径。
 - Dart/Kotlin 层除 HEIC 转换外不解码图片；HEIC 解码在原生侧降采样输出，不把全尺寸 Bitmap 交给 Dart。
-- `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束时删除副本；应用启动时清空 `cacheDir/tmp-import/`（在 `AndroidImagePicker` 构造时异步执行）。
+- `ImportedImage.expiresAt` 为创建后 1 h；到期或CORE-04 定义的批次结束时删除副本；应用启动时清空 `cacheDir/tmp-import/`（在 `AndroidImagePicker` 构造时异步执行）。
 - 只删除本应用创建的副本，绝不删除或修改相册与文件管理器中的原始文件；不向相册写入。
 - 剪贴板只在用户点击“粘贴”时读取、点击“复制公式”时写入，不在后台监听；不写应用私有 MIME，不设置复制后自动清空，不设置 `EXTRA_IS_SENSITIVE`。
 - 附属清单条目：`<provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.clip" android:exported="false" android:grantUriPermissions="true">`，路径文件 `res/xml/clip_paths.xml` 只含 `<cache-path name="clip" path="clip/"/>`；同步把该 provider 加入 AND-02 `check_android_manifest.py` 白名单（与 AND-08 登记 receiver 的做法相同）。
@@ -529,7 +548,7 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 
 **验收标准**
 - [R38] 手动：分别通过 Photo Picker 与 SAF 选择图片，均返回 `ImportedImage`；全程未出现存储权限请求。
-- [R38] 选择 11 张时只返回 10 个；导入会话结束后 `cacheDir/tmp-import/` 为空。
+- [R38] 选择 11 张时只返回 10 个；CORE-04 定义的批次结束后 `cacheDir/tmp-import/` 为空。
 - [R31] 选择一张 25 MiB 的图片：`byteLength` 正确，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE`，未产生副本；在 API 28+ 选择 HEIC 照片得到 `image/jpeg`。
 - [R36] 导入并完成识别后，原始相册图片的哈希与修改时间不变。
 - [R27] `saveAs` 经 SAF 保存 50 MiB 流后文件哈希与源一致；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 文件时抛 `PLATFORM_FILE_TYPE_MISMATCH`。
@@ -707,6 +726,7 @@ void installAndroidEditing(CompositionContext ctx) {
 
 ```dart
 abstract interface class HttpTransport {
+  /// 只允许编译期白名单主机；游客态由 CORE-28 的 NetworkGuard 在调用前拦截。
   Future<HttpResult> send(HttpRequestDto req, {CancelToken? cancel});
 }
 ```
@@ -772,10 +792,10 @@ send(req, cancel) 步骤：
 
 ```dart
 abstract interface class NotificationScheduler {
-  Future<bool> requestPermission();
-  Future<void> scheduleDailyReminder(LocalTime time, String body);
+  Future<bool> requestPermission();                           // 已授权或无需授权返回 true
+  Future<void> scheduleDailyReminder(LocalTime time, String body); // 只保留一个每日提醒，重复调用替换；body 只含待复习数量
   Future<void> cancelAll();
-  Stream<void> taps();
+  Stream<void> taps();                                        // 用户点击提醒通知；应用由通知冷启动时，首个订阅者也收到这一次
 }
 abstract interface class ReminderSelfCheck {
   Future<List<ReminderCheckItem>> run();
@@ -923,7 +943,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 
 ```text
 tools/perf/android/（本卡实现；退出码 0 全部达标 / 1 有不达标项 / 2 脚本错误）
-  run_matrix.sh [--serial <id>]...   对每台已连接设备：flutter drive --profile 运行上表测试 20 次，结果写 out/<设备>/<测试>.json
+  run_matrix.sh [--serial <id>]...   对每台已连接设备：按 CORE-01 测量口径运行 release 外部采样；框架内观测可用 profile 但不能作为 release 达标证据，结果写 out/<设备>/<测试>.json
                                      JSON：{device, android_api, ram_gb, rom, orientation, metric, unit, samples[], p50, p95, budget, pass}
   summarize.py out/ → out/report.md  按 report_template.md 汇总，每项 P50、P95、预算、是否达标
   energy_check.sh --minutes 30       运行“学习 + 识别”脚本后导出 batterystats，检查：无持有 > 60 s 的唤醒锁、后台无网络、无前台服务
@@ -938,7 +958,7 @@ app/integration_test/android/
 - 错误码：无。
 
 **实现约束**
-- 只用 Profile 或 Release 构建测量；每项至少 20 次采样，报告 P50 与 P95；预算比较按 P95。
+- 最终性能证据只用 Release，冷启动至少30次、核心操作至少1000次、图片至少100张，其他项及预热/设备条件完整引用 CORE-01 测量口径；Profile 仅定位问题，报告注明，不混合样本。
 - 不达标项须在发布前由对应卡修复，或在附录 A 记录豁免（含原因与期限）后才可签字发布。
 - 测试不依赖网络（云识别与资源包下载不在本卡测量），飞行模式下可运行。
 - 外部前提：真机矩阵设备由甲方或开发团队提供（附录 D 记录到位情况）；`adb`、Flutter SDK 版本随 ADR-V5-15 锁定。
