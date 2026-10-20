@@ -172,8 +172,8 @@ v5 的主要变化：
 | R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | CORE-08、CORE-14、CORE-60 |
 | R16 | 量纲匹配时可把公式代入到别的公式中同量纲的部分 | 原文 | V1 | 槽位候选排序、代入条件检查、推导关系 | CORE-11、CORE-14、CORE-48 |
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | CORE-11、CORE-48 |
-| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、AND-01、WIN-01 |
-| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-47、CORE-41、CORE-43、WIN-01、WIN-03、WIN-08、WIN-14 |
+| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、CORE-67、AND-01、WIN-01 |
+| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-47、CORE-41、CORE-43、CORE-67、WIN-01、WIN-03、WIN-08、WIN-14 |
 | R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-41、CORE-57、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | CORE-01、CORE-29 |
@@ -364,7 +364,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 93 张卡——前端 47 张，端侧核心 30 张，后端 5 张，工程与发布 11 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
+- 统计：共 94 张卡——前端 47 张，端侧核心 30 张，后端 5 张，工程与发布 12 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 前端会话只需要端侧核心与后端卡的 **接口契约**（op 名、DTO、错误码、服务端 API），不需要其实现约束与验收标准；端侧核心与后端会话同理，只需要前端卡中调用方的契约。§8.1 的材料清单不变。
 
@@ -474,7 +474,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-43 | 服务端部署、资源分发与监控 | 后端 | 服务端 | `server/deploy/`、`server/src/ops/` | S7 |
 | CORE-45 | 邮箱验证码与发信 | 后端 | 服务端 | `server/src/email/` | S2 |
 
-#### 工程与发布（11 张）
+#### 工程与发布（12 张）
 
 - 范围：仓库根约定、`contracts/`、`tools/`、`.github/`、`installer/` 与发布脚本。
 - 检查命令：`python tools/ci/run_all.py`（依次运行全部 CI 检查脚本，CORE-41）；涉及 Rust 或 Dart 的部分同时运行对应命令。
@@ -492,3 +492,4 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
 | WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |
 | CORE-57 | 会话材料生成与文档统计工具 | 工程与发布 | 材料与统计 | `tools/sadd/` | S0 |
+| CORE-67 | DTO schema 编译与漂移检查 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/gen_dto.py`、`contracts/dto/` | S0 |

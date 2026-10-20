@@ -981,7 +981,7 @@ void installWindowsKeymap(CompositionContext ctx);
 
 **范围**
 - 包含：CORE-55 接缝的 Windows 实现（`WindowsInputModalitySource`、`WindowsMotionScale`、`WindowsDevicePrefStore`、`WindowsShortcutLabels`）；全应用唯一的 `ShellKeyHandler` 实现 `WindowsKeyRouter`；组合键模型 `KeyChord`（自 WIN-08 移入）；学习流程键盘命令表 `StudyCommand`、默认键位 `defaultStudyBindings` 与持有者 `StudyKeymapHolder`；跟随 `AppearanceController.resolvedChanges` 的标题栏 `WindowsTitleBar`；最小窗口尺寸；原生 `interaction_channel.cpp`（顶层窗口消息委托）；安装点 `installWindowsInteraction` 及其在 `ports_windows.dart` 中的登记行；焦点、悬停、右键菜单、滚轮与触摸板滚动的 Windows 行为对照表及其真机验收。
-- 不包含：宽度分档、矮高度、密度、组件、焦点环样式、悬停提示时长、动效与“减少动效”、高对比度令牌（CORE-55 §接口契约，本卡不重定义）；学习各状态的命令声明与动作（CORE-39 `StudyCommands` 与 `FmlCommandScope`）；窗口位置恢复、PerMonitorV2 与 DPI 重绘、单实例（WIN-06）；编辑器与全局快捷键、保留键规则（WIN-08）；快捷键设置界面与 `keymap.v1` 持久化（WIN-14）；`UiFeedbackSink`（Windows 不登记，桌面无触感，外观页“触感反馈”开关因此不显示）。
+- 不包含：宽度分档、矮高度、密度、组件、焦点环样式、悬停提示时长、动效与“减少动效”、高对比度令牌（CORE-55 §接口契约，本卡不重定义）；学习各状态的命令声明与动作（CORE-39 动作绑定与 CORE-58 `FmlCommandScope`）；窗口位置恢复、PerMonitorV2 与 DPI 重绘、单实例（WIN-06）；编辑器与全局快捷键、保留键规则（WIN-08）；快捷键设置界面与 `keymap.v1` 持久化（WIN-14）；`UiFeedbackSink`（Windows 不登记，桌面无触感，外观页“触感反馈”开关因此不显示）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58
 
