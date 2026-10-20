@@ -133,7 +133,7 @@ graph TD
 
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
-| S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本与运行时快照） |
+| S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本；运行时快照端口未实现时显示固定的“未实现”提示） |
 | S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 与 Hello 包装可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
 | S5 识别与云识别 | WIN-04、WIN-05、WIN-08、WIN-14 | 文件、拖放、剪贴板导入；多格式复制；快捷键（含自定义）与笔输入 |
@@ -166,9 +166,9 @@ graph TD
 
 | 端口（CORE-04） | Windows 实现 | 卡片 |
 | --- | --- | --- |
-| `SecureKeyValueStore` | DPAPI（`CryptProtectData`，当前用户范围）；`.applock` 别名另加 Windows Hello 签名派生密钥 | WIN-07 |
+| `SecureKeyValueStore` | DPAPI（`CryptProtectData`，当前用户范围）；`.applock` 别名在 Windows 11 上解包前加 Windows Hello 用户同意验证，密钥本身仍只受 DPAPI 保护（README §6 Q41，待确认） | WIN-07 |
 | `LocalFileStore` | `%LOCALAPPDATA%\BubeiGongshi\` 下按 `StoreArea` 分目录，受保护 DACL | WIN-07 |
-| `BiometricPrompt` | Windows Hello（`UserConsentVerifier`） | WIN-07 |
+| `BiometricPrompt` | Windows Hello（`UserConsentVerifier`；窗口归属的验证经 `IUserConsentVerifierInterop`，要求 Windows 11 build 22000 起） | WIN-07 |
 | `ImagePicker` | `IFileOpenDialog` 多选 | WIN-04 |
 | `DocumentPicker` | `IFileOpenDialog` 按扩展名过滤 | WIN-04 |
 | `FileExporter` | `IFileSaveDialog`，默认“文档” | WIN-04 |
@@ -532,10 +532,10 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 
 ### WIN-07 本地存储、DPAPI 与 Windows Hello
 
-**目标**：提供 Windows 私有目录、DPAPI 密钥包装与基于 Windows Hello 的应用锁包装，并在设置页如实说明 DPAPI 的安全边界。
+**目标**：提供 Windows 私有目录、DPAPI 密钥包装，以及基于 Windows Hello 用户同意验证的应用锁解锁门，并在设置页如实说明 DPAPI 和解锁门各自的安全边界。
 
 **范围**
-- 包含：`LocalFileStore`、`SecureKeyValueStore`、`BiometricPrompt` 端口实现；各 `StoreArea` 根目录与私有 ACL；`.applock` 别名的 Windows Hello 第二层包装；设置页“安全说明”区。
+- 包含：`LocalFileStore`、`SecureKeyValueStore`、`BiometricPrompt` 端口实现；各 `StoreArea` 根目录与私有 ACL；`.applock` 别名的 Windows Hello 验证门（解包前验证，不是密钥级保护）；设置页“安全说明”区。
 - 不包含：数据库（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机、应用锁策略与退避（CORE-23）；档案子目录（共享层在各根目录下建 `<profile_id>/`）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01
@@ -567,13 +567,16 @@ abstract interface class BiometricPrompt {
 ```text
 wrap   {alias, secret}  → bytes
        普通别名：0x02 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
-       以.applock结尾：当前一律PLATFORM_UNSUPPORTED；持久化密钥保护方案尚未成立，禁止生成0x03或用签名哈希作恢复密钥
-unwrap {alias, wrapped} → bytes   .applock当前PLATFORM_UNSUPPORTED；普通别名版本字节不符、DPAPI 解密失败、GCM 校验失败、凭据不存在 → PLATFORM_KEY_UNAVAILABLE；
-                                   Hello 被取消或验证失败 → PLATFORM_AUTH_FAILED
-delete {alias}          → null    .applock 别名同时删除对应 Hello 凭据
-level  {alias}          → 普通别名"dpapi"；.applock当前PLATFORM_UNSUPPORTED，未验证能力不声明dpapi_with_hello
-hello.available         → bool    KeyCredentialManager.IsSupportedAsync()
-hello.verify {message}  → bool    IUserConsentVerifierInterop::RequestVerificationForWindowAsync(hwnd, message)，Verified 为 true
+       以 .applock 结尾：0x04 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
+       0x03 是已废弃的“Hello 签名派生密钥”格式，任何版本都不生成
+unwrap {alias, wrapped} → bytes   普通别名：版本字节不是 0x02 或 DPAPI 解密失败 → PLATFORM_KEY_UNAVAILABLE
+                                   .applock：版本字节不是 0x04（含 0x03）或 DPAPI 解密失败 → PLATFORM_KEY_UNAVAILABLE
+delete {alias}          → null    只删除调用方保存的包装结果对应的本地状态；Windows 没有需要另删的 Hello 凭据
+level  {alias}          → 两类别名都返回 "dpapi"；不返回 "dpapi_with_hello"（该枚举值留给今后经 ADR 确立的密钥级方案）
+hello.available         → bool    build ≥ 22000 且 UserConsentVerifier.CheckAvailabilityAsync() == Available；build < 22000 直接 false
+hello.verify {message}  → string  build ≥ 22000 时调用 IUserConsentVerifierInterop::RequestVerificationForWindowAsync(topHwnd, message)，
+                                   返回 UserConsentVerificationResult 的小驼峰名（verified、deviceNotPresent、notConfiguredForUser、
+                                   disabledByPolicy、deviceBusy、retriesExhausted、canceled）；build < 22000 → PLATFORM_UNSUPPORTED
 free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 ```
 
@@ -591,21 +594,28 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_AUTH_FAILED`、`PLATFORM_UNSUPPORTED`、`PLATFORM_IO`；本卡不新增错误码。
 
-2026-10-20已读取Microsoft官方RequestSignAsync与IUserConsentVerifierInterop文档：后者仅为用户同意验证提供HWND调用，不证明存在IKeyCredentialManagerInterop，也未证明签名值可作为稳定可恢复密钥。hello.verify传WIN-01 topHwnd；凭据创建/签名的桌面归属窗口、提示前后台与持久化包装能力均为M0阻断项，不能把UserConsent验证等同密钥保护。来源见ADR-V5-37补充。
+`.applock` 的验证顺序由 Dart `WindowsKeyStore` 执行，通道 wrap/unwrap 只处理字节格式：`wrap(".applock")` 先查 hello.available，为 false 时抛 `PLATFORM_UNSUPPORTED`、不调用通道 wrap；`unwrap(".applock")` 先调 hello.verify，结果不是 verified（含 canceled、retriesExhausted、deviceBusy、deviceNotPresent、notConfiguredForUser、disabledByPolicy）时抛 `PLATFORM_AUTH_FAILED`、不调用通道 unwrap，也不删除密文。
+
+`BiometricPrompt` 映射：`isAvailable()` = hello.available；`authenticate(reasonKey)` 以本地化文案调用 hello.verify，verified → true，deviceNotPresent / notConfiguredForUser / disabledByPolicy → 抛 `PLATFORM_UNSUPPORTED`，其余 → false。
+
+应用锁在 Windows 上的含义（README §6 Q41，待确认）：Windows 11（build 22000 起）上，`.applock` 解包前必须通过 Windows Hello 用户同意验证，用来防止他人在已登录的 Windows 会话中直接打开应用；DbKey 仍只由 DPAPI 保护，能以当前用户身份运行的程序可以绕过这道门。Windows 10 上 `hello.available` 为 false，不提供应用锁。依据（2026-10-20 核实 Microsoft 官方文档）：桌面应用应使用 [RequestVerificationForWindowAsync](https://learn.microsoft.com/en-us/windows/win32/api/userconsentverifierinterop/nf-userconsentverifierinterop-iuserconsentverifierinterop-requestverificationforwindowasync)，文档标明最低客户端为 Windows build 22000；[RequestVerificationAsync](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverifier.requestverificationasync) 只适用于 UWP；[UserConsentVerificationResult](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverificationresult) 与 [UserConsentVerifierAvailability](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverifieravailability) 的取值即上表。基于 KeyCredential 签名派生密钥的方案未经证实可稳定恢复，不采用（ADR-V5-37）。
 
 **实现约束**
 - 首次创建 `%LOCALAPPDATA%\BubeiGongshi\` 时设置受保护 DACL（`SetNamedSecurityInfoW` + `PROTECTED_DACL_SECURITY_INFORMATION`）：只授予当前用户与 SYSTEM 完全控制，不继承父目录权限。
 - 数据只写 `%LOCALAPPDATA%`（不漫游）；不写安装目录、桌面、下载与公共文档目录；`excludeFromSystemBackup` 对数据根内路径为空操作，对根外路径抛 `ArgumentError`。
-- DPAPI 不等于 Windows Hello，界面不得混称；“安全说明”区必须列出：更换 Windows 用户或重置系统后密钥不可恢复；同机管理员与已解锁会话中的恶意软件不在防护范围内；卸载、重装、重置前应导出备份或开启同步；第三方整盘备份软件可能复制密文目录。
+- DPAPI 不等于 Windows Hello，界面不得混称；“安全说明”区必须列出：更换 Windows 用户或重置系统后密钥不可恢复；同机管理员与已解锁会话中的恶意软件不在防护范围内；卸载、重装、重置前应导出备份或开启同步；第三方整盘备份软件可能复制密文目录；开启应用锁时另列一条“应用锁只在打开应用时要求 Windows Hello 验证，数据仍只受 DPAPI 保护”。Windows 10 上设置页不显示应用锁开关，“安全说明”区注明原因。
+- Windows Hello 被移除或被策略禁用后，`.applock` 解包持续返回 `PLATFORM_AUTH_FAILED`，密文不删除；用户在 Windows 设置中重新配置 Hello 后即可解锁。
 - `freeBytes` 只读不删；空间不足由调用方按 CORE-15、CORE-32、CORE-50 的规则处理。
-- 外部前提：Windows Hello 需设备已设置 PIN 或生物识别；C++/WinRT 随 Windows SDK 提供，不引入其他库。
+- 外部前提：Windows Hello 需设备已设置 PIN 或生物识别；C++/WinRT 随 Windows SDK 提供，不引入其他库。M0 须在 Windows 11 22000 及最新版本实测：验证框归属 topHwnd 并显示在前台、`CheckAvailabilityAsync` 可从桌面进程调用。若实测 Windows 10 1809～22H2 也支持该 interop，另修 ADR-V5-37 与 Q41 后再放开，不得凭推测放开。
 
 **验收标准**
 - [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore`、`BiometricPrompt` 契约套件（`integration_test/windows/storage_test.dart`）全部通过。
 - [R27] 把数据目录复制到另一 Windows 用户下运行，`unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`，应用提示且不崩溃；篡改包装结果任一字节同样抛该码。
 - [R27] `icacls "%LOCALAPPDATA%\BubeiGongshi"` 只列出当前用户与 SYSTEM，且无继承项。
-- [R25] 开启应用锁后 `unwrap(".applock")` 弹出 Windows Hello；取消时抛 `PLATFORM_AUTH_FAILED`；删除该 Hello 凭据后抛 `PLATFORM_KEY_UNAVAILABLE`；`.db` 别名不受影响。
-- [R27] 设置页显示“安全说明”区，包含上述四项说明。
+- [R25] Windows 11 上开启应用锁后 `unwrap(".applock")` 弹出归属主窗口的 Windows Hello，verified 后返回原密钥；取消时抛 `PLATFORM_AUTH_FAILED` 且包装结果仍可在下次 verified 后解开；`.db` 别名不受影响。
+- [R25] Dart 单元测试（Fake `fml/windows/keystore` 通道）：hello.available 返回 false 时 `isAvailable` 为 false、`wrap(".applock")` 抛 `PLATFORM_UNSUPPORTED` 且通道未收到 wrap；hello.verify 返回 notConfiguredForUser 时 `unwrap(".applock")` 抛 `PLATFORM_AUTH_FAILED` 且通道未收到 unwrap，改为 verified 后成功；通道对首字节 0x03 或 0x02 的 `.applock` 包装结果返回 `PLATFORM_KEY_UNAVAILABLE`；`securityLevel` 对两类别名都返回 `dpapi`；`authenticate` 在 disabledByPolicy 时抛 `PLATFORM_UNSUPPORTED`、canceled 时返回 false。
+- [R25] 手动 checklist（WIN-13 汇总）：Windows 10 22H2 上 `isAvailable` 为 false、设置页无应用锁开关；Windows 11 上验证框归属主窗口并显示在前台。
+- [R27] 设置页显示“安全说明”区，包含上述各项说明；Windows 11 开启应用锁后多出应用锁一条，Windows 10 不显示应用锁开关并注明原因。
 
 **规模**：约 450 行；`app/lib/platform/windows/storage/` 与 `app/windows/runner/keystore_channel.cpp`（同属 `app/` 构建单元）。
 
