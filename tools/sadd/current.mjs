@@ -6,6 +6,10 @@ export function validateCurrent(rows, columns, cards, reviews, appendix='') {
   const errors=[],seen=new Set(),reviewed=new Map();
   const gradeColumn=reviewColumn(columns),statusColumn=columns.indexOf('当前状态');
   if(gradeColumn<0)errors.push('SADD-12: missing current review column');
+  const statusCount=columns.filter(c=>c==='当前状态').length;
+  if(statusCount!==1)errors.push(`SADD-12: expected exactly one 当前状态 column, found ${statusCount}`);
+  const idCount=columns.filter(c=>c==='编号').length;
+  if(idCount!==1)errors.push(`SADD-12: expected exactly one 编号 column, found ${idCount}`);
   const records=new Map();
   const section=appendix.split('## D.12 ')[1]?.split('## D.13 ')[0]??'';
   for(const line of section.split('\n')) {
@@ -32,6 +36,7 @@ export function validateCurrent(rows, columns, cards, reviews, appendix='') {
   }
   for(const row of rows) {
     const cells=row.split('|').map(x=>x.trim()),id=cells[1];
+    if(statusColumn>=0 && cells.length!==columns.length)errors.push(`SADD-12: row width ${cells.length} differs from header width ${columns.length} for ${id}`);
     if(seen.has(id))errors.push(`SADD-12: duplicate current card ${id}`);
     seen.add(id);
     if(!cards.has(id))errors.push(`SADD-12: unknown current card ${id}`);
