@@ -135,7 +135,7 @@ graph TD
 
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
-| WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 280 |
+| WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 380 |
 | WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 300 |
 | WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65 | 360 |
 | WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 450 |
@@ -181,7 +181,7 @@ graph TD
 **目标**：建立 Windows 桌面工程，把 Rust 核心编译为 `fmlcore.dll` 并按绝对路径安全加载，组装 Windows 端口，产出可运行的 Release 构建。
 
 **范围**
-- 包含：`app/windows/` CMake 工程与 runner；Cargo 构建 `x86_64-pc-windows-msvc` 并把 `fmlcore.dll` 装入构建输出；DLL 搜索路径加固；`main_windows.dart` 入口；`composition/ports_windows.dart` 组装（未实现的端口先用 CORE-04 的 Fake）；通道注册约定；版本资源；工具链版本文件。
+- 包含：`app/windows/` CMake 工程与 runner；Cargo 构建 `x86_64-pc-windows-msvc` 并把 `fmlcore.dll` 装入构建输出；DLL 搜索路径加固；`main_windows.dart` 入口；`composition/ports_windows.dart` 组装（未实现的端口先用 CORE-04 的 Unsupported 占位）；通道注册约定；版本资源；工具链版本文件。
 - 不包含：安装器与启动器（WIN-02、WIN-16）；自更新（WIN-03）；签名（WIN-12）；各端口实现（WIN-04～10）；ABI 校验与“核心不可用”页面（CORE-04 `runPlatformApp`）。
 
 **依赖**：CORE-01、CORE-02、CORE-03、CORE-04
@@ -213,7 +213,7 @@ String appDirFile(String name) => File(Platform.resolvedExecutable).parent.uri.r
 
 // app/lib/composition/ports_windows.dart
 PlatformPorts buildWindowsPorts();
-// 每个端口字段一行：初始全部为 CORE-04 的 FakeXxx，并 debugPrint('port <字段名>: fake')；cameras 恒为 WIN-04 的不支持实现（WIN-04 完成前用 Fake）。
+// 每个端口字段一行：初始全部为 CORE-04 的 Unsupported 占位Xxx，并 debugPrint('port <字段名>: unsupported')；camera 恒为 WIN-04 的不支持实现（WIN-04 完成前用 UnsupportedCamera）。
 // platformInstallers 初始为 const []；WIN-03、WIN-04、WIN-05、WIN-06、WIN-07、WIN-08、WIN-09 各向其中追加一项。
 // WIN-04～WIN-10 实现某端口时只替换该字段对应的一行；替换与追加行不计入该卡规模，也不视为跨构建单元。
 ```
@@ -234,6 +234,13 @@ app/windows/
 
 - 本卡不新增错误码；核心加载失败与 ABI 不符由 CORE-04 `runPlatformApp` 处理。
 
+**runner 公共约定（ADR-V5-37）**
+- WIN-01 唯一维护 flutter_window.cpp；每卡只追加 `RegisterXxxChannel(messenger, topHwnd, viewHwnd)` 一行。topHwnd 是 Win32Window 顶层窗口；viewHwnd 取 `controller->view()->GetNativeWindow()`，不得混用。
+- 通道 handler、MethodResult 回复、EventSink/InvokeMethod 均在平台线程执行。工作线程仅计算/复制，把含 request_id 的结果放进互斥队列，再 PostMessage(topHwnd, WM_APP+1,0,0) 唤醒；唯一调度 delegate 在平台线程取结果并回复一次。PostMessage 失败须回收结果；窗口关闭后丢弃未回复请求，不访问 messenger。
+- 顶层消息每卡登记 RegisterTopLevelWindowProcDelegate，保存 token，关闭时注销。子视图消息须由本卡可移除的 SetWindowSubclass 转发到对应模块；不得替换引擎 WndProc，不在工作线程直接访问 HWND 对象所有者。消息只观察返回 nullopt，消费才返回 LRESULT。
+- 退出顺序：停止接受请求→取消任务/等待工作线程→注销等待句柄/事件/窗口委托与子类化→释放通道与 messenger 引用→销毁 FlutterViewController/窗口。清理幂等；不在持锁状态 join 或发送同步窗口消息。
+- Release：C++ runner/启动器编译 `/Zi`、链接 `/DEBUG:FULL /Brepro /PDBALTPATH:%_PDB%`；Rust `[profile.release] debug = "line-tables-only"`，Windows target rustflags 加 `-C link-arg=/Brepro`（保持路径映射）。PDB 保留构建产物，仅符号归档发布，不能装入安装器；完整可复现性仍由两次干净构建验证。
+
 **实现约束**
 - 绑定方式只用 C ABI + `dart:ffi`（ADR-V5-02）；只按绝对路径加载 `fmlcore.dll`，不经当前工作目录、PATH 或用户目录搜索。
 - `fmlcore.dll` 静态链接 C 运行时（`+crt-static`），不依赖另行安装的 VC++ 运行库；Flutter 自带的 `msvcp140.dll` 等按 Flutter 模板随包分发。
@@ -242,13 +249,13 @@ app/windows/
 - 外部前提：Visual Studio 生成工具（MSVC）、Windows SDK、CMake、Inno Setup 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`；Rust 与 Flutter 以 CORE-01 的 `rust-toolchain.toml`、`app/.flutter-version` 为准。
 
 **验收标准**
-- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 fake。
+- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `fmlcore.dll` 后启动，显示“核心版本不匹配，请重新安装”，不崩溃；删除 `fmlcore.dll` 后显示“核心组件加载失败，请重新安装”。
 - [R19] DLL 劫持测试：在当前工作目录与 `%PATH%` 首个目录放置同名 `fmlcore.dll` 后从其他目录启动，Process Monitor 显示只加载了 exe 同目录中的 DLL。
 - [R41] `app/lib/ui/` 中 `Platform.isWindows` 与平台判断零命中（CORE-41 规则）；Windows 专属 Dart 代码只在 `app/lib/platform/windows/`、`main_windows.dart` 与 `ports_windows.dart`。
 - [R23] 两次干净构建得到的 `fmlcore.dll` 哈希一致；`dumpbin /dependents` 显示其不依赖 `vcruntime140.dll`。
 
-**规模**：约 280 行（CMake、runner 修改、入口与组装）；`app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart`（同属 `app/` 构建单元）。
+**规模**：约 380 行（CMake、runner 修改、入口与组装）；`app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart`（同属 `app/` 构建单元）。
 
 ### WIN-02 安装器与卸载
 
@@ -374,8 +381,8 @@ installRoot = File(Platform.resolvedExecutable).parent.parent（即 %LOCALAPPDAT
 check：GET 清单 → schema != 1、launcher_protocol != 1 或字段缺失视为无更新；version 按 SemVer 不高于当前、等于 state.json 中 skipped_version、
        或 min_os_build 大于 RuntimeSnapshot.osVersion 的 build 号 → null
 download：freeBytes < size × 3 → PLATFORM_UPDATE_DISK_FULL；完成后 SHA-256 不符 → 删除文件，PLATFORM_UPDATE_HASH_MISMATCH；
-          通道 "fml/windows/update" verify {path} → {ok, publisher}（WinVerifyTrust + 签名者 CN）；ok 为 false 或 publisher 不等于
-          常量 kExpectedPublisher → 删除文件，PLATFORM_UPDATE_SIG_INVALID；全部通过后去掉 .part 后缀并进入 UpdateReady
+          通道 "fml/windows/update" verify {path} → {ok, signer_cert_sha256}（WinVerifyTrust 验链/时间戳/吊销策略后计算实际签名叶证书 DER 的 SHA-256）；ok 为 false 或指纹不在
+          编译期 kAllowedSignerCertSha256 集合 → 删除文件，PLATFORM_UPDATE_SIG_INVALID；全部通过后去掉 .part 后缀并进入 UpdateReady
 安装：退出前启动 WIN-16 的 --install-after-exit <installer 绝对路径> --version <offer.version> --pid <本进程 PID> --created <本进程创建 FILETIME>；
       update 通道按 WIN-16 命名管道协议 10 s 内连接、核验服务端 PID，读到 armed\n 后 shell.exitApp；连接失败、超时或内容不符
       → UpdateFailed(PLATFORM_IO)，保留安装包、不退出。不在 detached 事件中竞争启动 Inno；安装成功后不自动重启应用，下次启动由 WIN-16 验证。
@@ -390,10 +397,10 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 
 **实现约束**
 - 不在应用运行时替换已加载文件：新版本装入新目录，切换由启动器在下次启动完成；不静默强制重启。
-- 清单完整性依靠 HTTPS 与安装包 Authenticode 签名（签名者 CN 固定为 `kExpectedPublisher`）；不另设清单签名私钥。
+- 清单完整性依靠 HTTPS 与安装包 Authenticode 签名（实际签名证书指纹在编译期白名单内）；不另设清单签名私钥。
 - 游客也可检查更新；请求不带账户令牌与设备标识（NetworkGuard 对 `updateCheck` 的规则见 CORE-28）。
 - 下载客户端不控制或终止验证进程；仅实现 WIN-16 的安装与健康协议。
-- 外部前提：签名证书主体 CN 在 M0 登记后写入 `kExpectedPublisher`；证书获取见 WIN-12。
+- 外部前提：签名叶证书 DER SHA-256 小写64位十六进制在 S7 登记后写入 `kAllowedSignerCertSha256`；证书获取见 WIN-12。
 
 **验收标准**
 - [R23] 手动：从 1.0.0 经设置页更新到 1.1.0，数据与设置保留；下载中断网后恢复，续传完成且哈希一致。
@@ -847,7 +854,7 @@ WindowsInkPolicy：
     devices：GetPointerDevices 中 type 为 POINTER_DEVICE_TYPE_INTEGRATED_PEN（integrated = true）或 POINTER_DEVICE_TYPE_EXTERNAL_PEN（false）的项，name 取 productString
     wintab_driver：%SystemRoot%\System32\Wintab32.dll 存在（数位板驱动通常会安装；只判断文件存在，不加载）
   事件 devicesChanged：收到 WM_POINTERDEVICECHANGE（插拔数位板、驱动切换 Windows Ink 后）时发出，500 ms 内合并为一次
-  窗口初始化：对主窗口 SetProp(L"MicrosoftTabletPenServiceProperty", TABLET_DISABLE_PRESSANDHOLD | TABLET_DISABLE_FLICKS)，
+  窗口初始化：先 RegisterPointerDeviceNotifications(topHwnd, FALSE)，失败记录 PLATFORM_IO、设备枚举仍可手动刷新；对 viewHwnd（Flutter 子视图）及 topHwnd SetProp(L"MicrosoftTabletPenServiceProperty", TABLET_DISABLE_PRESSANDHOLD | TABLET_DISABLE_FLICKS)，
     并在 WM_TABLET_QUERYSYSTEMGESTURESTATUS 返回同值——笔或手指长按不再弹出系统右键圆环，笔势不触发翻页
 
 设置区“笔与数位板”（order 65）：
@@ -859,6 +866,8 @@ WindowsInkPolicy：
 ```
 
 - 错误码：无（只实现按键与输入策略接缝）。
+
+笔消息子类化使用 WIN-01 runner 协议；在 viewHwnd 处理 WM_TABLET_QUERYSYSTEMGESTURESTATUS，销毁时 RemoveProp/RemoveWindowSubclass。Windows 10 1809、数位板驱动组合为外部前提（M0 实测并记录 D），不可从 API 存在推定设备行为。
 
 **实现约束**
 - 分发：两个处理器都先以 `KeyChord.fromEvent` 取组合键，再查 `holder.value`（键位修改即时生效，不需重启）。`WindowsShellKeys` 只查 `global` 范围，由 WIN-15 `WindowsKeyRouter` 先行调用（学习命令在其后查找，见 WIN-15 b）；`WindowsEditorBindings` 只查 `editor` 范围，未命中再交给 `DefaultEditorBindings`。`WindowsKeyRouter`（WIN-15，全应用唯一的 `ShellKeyHandler`）先于页面收到按键（CORE-36），WIN-14 保证同一组合键不会同时分配给两个命令（含 WIN-15 学习命令）。
@@ -949,7 +958,7 @@ void installWindowsKeymap(CompositionContext ctx);
 - ① 一个组合键在全部命令中只能出现一次（不分范围，含“学习”组）：全局命令先于页面收到按键，若与编辑器命令同键，编辑器命令永远不会触发。
 - ② 拒绝的组合键：`isReservedChord` 为 true（显示“系统或输入法使用该组合键”）；不含 Ctrl 或 Alt 且不是 F2～F12（显示“需要包含 Ctrl 或 Alt”）；Shift+字符（显示“会与正常输入冲突”）。例外：`unmodifiedAllowed` 为 true 的学习命令（WIN-15）另允许不带修饰的字母 A～Z 与数字 0～9（仍先查 `isReservedChord`），因 WIN-15 在焦点位于文本框时不分发这类按键。
 - ③ 修改即时生效：每次成功分配、清除或恢复后写 `KeymapHolder.value` 并调用 `KeymapPrefs.save`；保存失败时保留内存中的键位并提示“快捷键未能保存，重启后将恢复为上次保存的设置”。
-- ④ 设置区与帮助只读取 `defaultKeymap`、`KeymapHolder` 与 `ShortcutCommand.titleKey`，不复制键位表；新增编辑器或全局命令时只改 WIN-08，新增学习命令时只改 WIN-15（命令 ID 先在 CORE-39 `StudyCommands` 登记）。
+- ④ 设置区与帮助只读取 `defaultKeymap`、`KeymapHolder` 与 `ShortcutCommand.titleKey`，不复制键位表；新增编辑器或全局命令时只改 WIN-08，新增学习命令时只改 WIN-15（命令 ID 先在 CORE-58 `StudyCommand` 登记）。
 - ⑤ 只在 Windows 登记；共享界面不出现平台判断（设置区经 CORE-36 `SettingsSections` 接入）。
 - 外部前提：无新增第三方库。
 
@@ -1002,14 +1011,7 @@ final class KeyChord {                              // 自 WIN-08 移入，签�
   String encode();                                  // 持久化用，如 "ctrl+0x0010000000d"（keyId 十六进制）
   static KeyChord? decode(String s);                // 非法返回 null
 }
-enum StudyCommand {                                 // 顺序即设置页“学习”组显示顺序；id 逐字等于 CORE-39 StudyCommands，用作持久化键（WIN-14）
-  primary('study.primary'), option1('study.option1'), option2('study.option2'), option3('study.option3'),
-  option4('study.option4'), rateKnew('study.rateKnew'), rateForgot('study.rateForgot'), skip('study.skip'),
-  pause('study.pause'), appeal('study.appeal'), prevQuestion('study.prevQuestion'), nextQuestion('study.nextQuestion');
-  const StudyCommand(this.id); final String id;
-  bool get unmodifiedAllowed;                       // option1～4、rateKnew、rateForgot 为 true：可用不带修饰的字母或数字键
-  String get titleKey;                              // 本地化键 shortcut.study.<name>
-}
+// StudyCommand 从 CORE-58 app/lib/design/commands.dart 导入；不得复制枚举或字符串表。
 const Map<StudyCommand, List<KeyChord>> defaultStudyBindings;    // 见下表 a“默认按键”列；每个命令 0–2 个组合键
 final class StudyKeymapHolder extends ValueNotifier<Map<StudyCommand, List<KeyChord>>> {
   StudyKeymapHolder() : super(defaultStudyBindings);
@@ -1076,7 +1078,7 @@ EventChannel  "fml/windows/interaction/events"
 
 a. 学习流程键盘命令（S2～S4 由本卡按默认键处理；S5 起 WIN-14 把本表并入 `keymap.v1` 可自定义列表“学习”组）
 
-| 命令 ID（CORE-39） | `StudyCommand` | 默认按键 | 作用 | 分发条件 |
+| 命令 ID（CORE-58） | `StudyCommand` | 默认按键 | 作用 | 分发条件 |
 | --- | --- | --- | --- | --- |
 | `study.primary` | `primary` | Ctrl+Enter | 当前状态的唯一主操作：首页开始或续学、公式输入题提交、反馈页下一题、默写末题提交、暂停后继续、小结继续、过期页返回首页 | 任意焦点（含公式编辑器与文本框） |
 | `study.option1`～`study.option4` | `option1`～`option4` | 1 / 2 / 3 / 4，另 A / B / C / D | 选择 A～D 并提交 | 不带修饰；焦点不在可编辑文本内 |
@@ -1096,7 +1098,7 @@ b. 分发规则（`WindowsKeyRouter.handle`）
 | 1 | `suspended` 为 true，或事件既不是 `KeyDownEvent` 也不是 `KeyRepeatEvent` → ignored |
 | 2 | 已 `attach` 的内层处理器（WIN-08 `WindowsShellKeys`）先处理，返回 handled 即结束 |
 | 3 | 事件为 `KeyRepeatEvent` → ignored（学习命令不响应按住重复，避免连续提交）；否则 `KeyChord.fromEvent` 后查本地 `StudyKeymap.lookup(KeyChord)`（对象方法，非 FFI op），未命中 → ignored |
-| 4 | 命中命令的组合键不带修饰时：`primaryFocus` 位于 `EditableText` 内、或输入法组合未结束 → ignored，按键照常交给输入 |
+| 4 | 命中命令的组合键不带修饰时：`primaryFocus.context` 自身或 ancestor 是 `EditableText`（含只读时按只读处理）、或最近 EditableText.controller.value.composing 非空且有效 → ignored，按键照常交给输入 |
 | 5 | `FmlCommands.isAvailable(id)` 为 false → ignored（按键继续交给页面）；为 true → `FmlCommands.invoke(id)`，返回 handled |
 
 c. 窗口尺寸与断点（分档规则见 CORE-55 d，本表只列 Windows 典型窗口）
@@ -1132,7 +1134,7 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 - 错误码：无（通道失败时输入方式取 `pointer`、动画取 1.0、标题栏保持系统默认，记 AppLog warning，不向用户报错）。
 
 **实现约束**
-- 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 以 a 表字符串与 CORE-39 `StudyCommands` 逐字对应（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
+- 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
 - `defaultStudyBindings` 是学习键位默认值的唯一来源；WIN-14 设置区、`ShortcutHint` 文本与“恢复默认”都由它与 `StudyKeymapHolder` 渲染。
 - 设备偏好：登记 `WindowsDevicePrefStore`，`appearance.v1`（含 `haptics` 字段，Windows 上无意义但原样保存）写入 WIN-06 的 `HKCU\Software\BubeiGongshi\Prefs`；不写 `%LOCALAPPDATA%` 下的 `device_prefs/`，卸载时随整键删除（WIN-02），不进同步与备份（README §6 Q19）。
 - 标题栏：全应用只有 `WindowsTitleBar` 调用 `titleBar`；Windows 10 只切深浅色，Windows 11 另设底色与文字色；不自绘标题栏、不扩展客户区（保留系统贴靠布局与窗口按钮）。
@@ -1325,23 +1327,26 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
   build_release.ps1 -Version <x.y.z> -ApiHost <host> -PackHost <host> [-Unsigned]
       1 flutter build windows --release --dart-define=FML_API_HOST=… --dart-define=FML_PACK_HOST=…
       2 cmake 构建 installer/windows/launcher（Release，/Brepro）
-      3 未给 -Unsigned 时 sign.ps1 签名构建输出中全部 .exe 与 .dll（含 Flutter 与插件 DLL）与启动器
+      3 未给 -Unsigned 时 sign.ps1 仅签名本项目生成的 runner、fmlcore.dll、启动器；Flutter/插件/微软运行库作为供应方制品，保持原字节与签名，按 dependency-pes.json 记录来源/哈希/签名策略
       4 ISCC（WIN-02 参数；未给 -Unsigned 时传 /DSignToolName=fmlsign 与 /Sfmlsign="pwsh sign.ps1 $f"）→ dist\BubeiGongshi-<v>-setup.exe
       5 verify_signatures.ps1、check_artifacts.py、archive_symbols.ps1、gen_update_manifest.py 依次执行，任一非 0 即停止
   sign.ps1 <path…>
       硬件令牌：signtool sign /fd SHA256 /tr $env:FML_SIGN_TIMESTAMP_URL /td SHA256 /sha1 $env:FML_SIGN_CERT_THUMBPRINT <path>
       云签名：设置 $env:FML_SIGN_COMMAND 时改为执行该命令（{path} 占位）；两个变量都缺失 → 退出 2
-  verify_signatures.ps1 -Dir <dir>   对目录内全部 PE 文件 signtool verify /pa /all，并核对签名者 CN 等于 tools/release/windows/publisher.txt
+  verify_signatures.ps1 -Dir <dir>   对自有 PE 文件 signtool verify /pa /all，并核对实际签名叶证书 DER SHA-256 在 signer-pins.json；依赖 PE 按 dependency-pes.json 的锁定哈希与供应方签名策略校验，未知 PE 拒绝
   check_artifacts.py --setup <exe> --build <dir>
       安装器字节 ≤ CORE-01 预算表“安装包”行的 Windows 值（70 MB）；
       构建输出与安装器解包内容（innounp 或 ISCC 输出清单）不含 .pdb、.map、测试证书；
       对全部文件做密钥字符串扫描（CORE-41 secret_scan 规则）；fmlcore.dll 的 dumpbin /dependents 不含 vcruntime140.dll
-  archive_symbols.ps1 -Version <v>   复制 bubeigongshi_app.pdb、fmlcore.pdb、BubeiGongshi.pdb 到 dist\symbols\<v>\ 并写 SHA256SUMS
+  archive_symbols.ps1 -Version <v>   先断言三个 PDB 存在且非空（缺失退出1），再复制 bubeigongshi_app.pdb、fmlcore.pdb、BubeiGongshi.pdb 到 dist\symbols\<v>\ 并写 SHA256SUMS
   gen_update_manifest.py --setup <exe> --version <v> --pack-host <host> --notes <md>   输出 dist\windows\update.json（格式见 WIN-03）
-  publisher.txt                      签名证书主体 CN（M0 登记，与 WIN-03 kExpectedPublisher 一致）
+  signer-pins.json                   {"schema":1,"cert_sha256":["<64位小写hex>"]}；生成 WIN-03 编译期白名单
+  dependency-pes.json                {"schema":1,"files":[{"path":"<相对路径>","sha256":"<64hex>","signature":"microsoft|vendor|hash-only","source":"<锁定发布来源>"}]}；禁止路径穿越，微软 DLL 必须有效微软签名
 ```
 
 - 错误码：脚本不经核心，不使用错误码。
+
+证书轮换：先发布含旧/新双指纹、仍由旧证书签名的桥接版本，再以新证书发布；未安装桥接版的客户端引导手动安装。不从网络清单扩展信任；CN 不作为身份依据。供应方二进制绝不重签（ADR-V5-37）。
 
 **实现约束**
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。

@@ -371,6 +371,12 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 - [AndroidX core 清单源码](https://android.googlesource.com/platform/prebuilts/sdk/+/fa1474c543bdd7eaa690ba935d9ea8249fd12880/current/androidx/manifests/androidx.core_core/AndroidManifest.xml)：自定义动态接收器 signature 权限。
 - [16 KB 页支持](https://developer.android.com/guide/practices/page-sizes)：r28 默认对齐，r27 需显式支持；仍检查每个第三方 .so 与 Rust 产物。真机/ROM 及锁定 AndroidX 组合未实测，保留 M0 外部前提，不将官方 API 存在等同交付验证。
 
+### A.4.8 Windows runner、按键与发布（ADR-V5-37，2026-10-20）
+
+采用 FocusManager early handler、平台线程结果队列与证书指纹白名单。已读取 Flutter 3.35.7 的 [focus_manager.dart](https://github.com/flutter/flutter/blob/3.35.7/packages/flutter/lib/src/widgets/focus_manager.dart) 和 [hardware_keyboard.dart](https://github.com/flutter/flutter/blob/3.35.7/packages/flutter/lib/src/services/hardware_keyboard.dart)：early handler 在焦点链之前，HardwareKeyboard 广播全部 handler，不短路。锁定 Flutter 版本必须回归此行为。
+
+官方依据：[平台通道线程](https://docs.flutter.dev/platform-integration/platform-channels)、[指针通知](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpointerdevicenotifications)、[MSVC DEBUG](https://learn.microsoft.com/en-us/cpp/build/reference/debug-generate-debug-info?view=msvc-170)。指针/子HWND、1809 Hello interop 和扩展解码的实际设备行为列为 M0 外部前提；不得用 API 文档替代真机结果。签名格式由 WIN-12 所有，WIN-03 只消费生成的 pin 集合。关联 CORE-36/58、WIN-01/03/08/12/15。
+
 ## A.5 开发前冻结清单
 
 进入大规模 UI 或内容录入前必须冻结以下契约，未冻结前不得开始，否则后期返工成本会远高于文档修订成本：
