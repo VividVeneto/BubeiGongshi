@@ -25,6 +25,7 @@ graph TD
   C13["CORE-13 本地库 Schema、单写者与迁移"]
   C20["CORE-20 学习统计、掌握度与本地提醒"]
   C21["CORE-21 密钥体系与加密原语"]
+  C28["CORE-28 隐私守卫、日志与复现包"]
   C36["CORE-36 应用壳、组装层、账户入口与导航"]
   C37["CORE-37 公式渲染组件与编辑器"]
   C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
@@ -68,6 +69,7 @@ graph TD
   A07 --> C59
   A07 --> C64
   A09 --> C04
+  A09 --> C28
   A08 --> C04
   A08 --> C20
   A08 --> A02
@@ -114,7 +116,7 @@ graph TD
 | AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
 | AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64 | 220 |
 | AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
-| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04 | 260 |
+| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-28 | 260 |
 | AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
 | AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 490 |
 | AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58 | 380 |
@@ -718,7 +720,7 @@ void installAndroidEditing(CompositionContext ctx) {
 - 包含：`AndroidHttpTransport`（基于 `dart:io` `HttpClient`）；系统代理读取（通道 `fml/android/net`）；异常到 CORE-04 错误码的映射；契约套件真机运行。
 - 不包含：主机白名单、用途与授权检查（CORE-28 `NetworkGuard` 包裹本卡实现）；云识别前后台行为（CORE-34）；资源包下载流程（CORE-51）；服务端（CORE-22、CORE-33、CORE-43）。
 
-**依赖**：CORE-01、CORE-02、CORE-04
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-28
 
 **接口契约**
 
@@ -1108,6 +1110,10 @@ f. 屏幕方向与窗口变化
 | 相机取景 | 见 AND-04 方向处理 |
 
 - 错误码：无（通道失败时触感静默跳过、动画缩放取 1.0，不抛异常）。
+
+本卡登记CORE-04 ScreenSecurity接缝，使用模块在Activity UI线程设置/清除FLAG_SECURE，按请求回传成功状态；应用级引用计数由注入控制器统一维护，恢复重建窗口时重放当前值。
+
+LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：箭头/Home/End/PageUp/PageDown→move，Shift组合→extend，Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
 **实现约束**
 - 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。

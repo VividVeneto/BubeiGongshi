@@ -166,7 +166,7 @@ v5 的主要变化：
 | R09 | ISO 标准字符正常输入 | 原文 | V1 | Unicode 存储、ISO 80000-2 符号能力表（可输入/可渲染/可计算三级） | CORE-56、CORE-06、CORE-07、CORE-59 |
 | R10 | 可输入 LaTeX 公式 | 原文 | V1 | LaTeX 子集白名单解析器、语义往返导出 | CORE-05、CORE-06、CORE-12、CORE-52、CORE-53、CORE-59、WIN-05 |
 | R11 | 公式库：查看已录入公式 | 原文 | V1 | 公式条目与不可变修订、检索、历史与恢复 | CORE-05、CORE-14、CORE-38、CORE-54 |
-| R12 | 查看公式时输入变量充当计算器 | 原文 | V1 | 求值、反解、数值求根、单位换算、计算链 | CORE-56、CORE-07、CORE-10、CORE-11、CORE-48 |
+| R12 | 查看公式时输入变量充当计算器 | 原文 | V1 | 求值、反解、数值求根、单位换算、计算链 | CORE-56、CORE-07、CORE-10、CORE-11、CORE-46、CORE-48 |
 | R13 | 每个公式严格匹配量纲 | 原文 | V1 | Dimension + QuantityKind + MathKind，量纲多态 | CORE-56、CORE-07、CORE-08、CORE-09、CORE-31 |
 | R14 | 录入时可调整量纲 | 原文 | V1 | 符号量纲声明编辑、即时校验、待重校标记 | CORE-08、CORE-09、CORE-14、CORE-59 |
 | R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | CORE-08、CORE-14、CORE-60 |

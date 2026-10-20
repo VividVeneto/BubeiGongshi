@@ -29,6 +29,7 @@ graph TD
   C20["CORE-20 学习统计、掌握度与本地提醒"]
   C21["CORE-21 密钥体系与加密原语"]
   C23["CORE-23 账户状态、登录边界与本机解锁"]
+  C28["CORE-28 隐私守卫、日志与复现包"]
   C36["CORE-36 应用壳、组装层、账户入口与导航"]
   C37["CORE-37 公式渲染组件与编辑器"]
   C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
@@ -88,17 +89,20 @@ graph TD
   W08 --> W15
   W08 --> C59
   W08 --> C64
+  W08 --> C28
   W14 --> C04
   W14 --> C36
   W14 --> W06
   W14 --> W08
   W14 --> W15
+  W14 --> C28
   W15 --> C04
   W15 --> C36
   W15 --> C55
   W15 --> W01
   W15 --> W06
   W15 --> C58
+  W15 --> C28
   W10 --> C04
   W09 --> C04
   W09 --> C20
@@ -142,13 +146,13 @@ graph TD
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64 | 460 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28 | 460 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
 | WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04 | 240 |
 | WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 250 |
 | WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 430 |
-| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15 | 340 |
-| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58 | 440 |
+| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28 | 340 |
+| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28 | 440 |
 | WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 500 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
@@ -755,7 +759,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 - 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-59 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-64 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
 - 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28
 
 **接口契约**
 
@@ -900,7 +904,7 @@ WindowsInkPolicy：
 - 包含：`KeymapPrefs`（键位的读取与保存，含学习命令）；把 WIN-15 `StudyCommand` 并入可自定义列表“学习”组；`KeymapEditorVm`（分配、冲突、清除与恢复默认）；设置区“快捷键”（order 60）与录制对话框；启动时加载自定义键位；安装点 `installWindowsKeymap`。
 - 不包含：按键分发、默认键位表与保留键规则（WIN-08；学习命令的分发、默认键位与命令 ID 见 WIN-15）；键位方案的导入导出、多套预设方案与跨设备同步（V1 不做）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键（固定，经 WIN-08 表中“保留（固定）”行只读列出）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28
 
 **接口契约**
 
@@ -983,7 +987,7 @@ void installWindowsKeymap(CompositionContext ctx);
 - 包含：CORE-55 接缝的 Windows 实现（`WindowsInputModalitySource`、`WindowsMotionScale`、`WindowsDevicePrefStore`、`WindowsShortcutLabels`）；全应用唯一的 `ShellKeyHandler` 实现 `WindowsKeyRouter`；组合键模型 `KeyChord`（自 WIN-08 移入）；学习流程键盘命令表 `StudyCommand`、默认键位 `defaultStudyBindings` 与持有者 `StudyKeymapHolder`；跟随 `AppearanceController.resolvedChanges` 的标题栏 `WindowsTitleBar`；最小窗口尺寸；原生 `interaction_channel.cpp`（顶层窗口消息委托）；安装点 `installWindowsInteraction` 及其在 `ports_windows.dart` 中的登记行；焦点、悬停、右键菜单、滚轮与触摸板滚动的 Windows 行为对照表及其真机验收。
 - 不包含：宽度分档、矮高度、密度、组件、焦点环样式、悬停提示时长、动效与“减少动效”、高对比度令牌（CORE-55 §接口契约，本卡不重定义）；学习各状态的命令声明与动作（CORE-39 动作绑定与 CORE-58 `FmlCommandScope`）；窗口位置恢复、PerMonitorV2 与 DPI 重绘、单实例（WIN-06）；编辑器与全局快捷键、保留键规则（WIN-08）；快捷键设置界面与 `keymap.v1` 持久化（WIN-14）；`UiFeedbackSink`（Windows 不登记，桌面无触感，外观页“触感反馈”开关因此不显示）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28
 
 **接口契约**
 
@@ -1132,6 +1136,10 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 | DPI | 100%～200% 与跨显示器移动由 WIN-06 重绘；本卡只保证最小尺寸随 DPI 换算、分档按新逻辑尺寸重算且页面状态不丢 | WIN-06 + 本卡 |
 
 - 错误码：无（通道失败时输入方式取 `pointer`、动画取 1.0、标题栏保持系统默认，记 AppLog warning，不向用户报错）。
+
+本卡登记CORE-04 ScreenSecurity接缝，通过interaction通道对topHwnd设置窗口捕获策略；Windows 10 2004+请求WDA_EXCLUDEFROMCAPTURE，旧版请求WDA_MONITOR，失败返回false；1809效果为M0实测前提，不能承诺截图一定被阻止。
+
+LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：箭头/Home/End/PageUp/PageDown→move，Shift组合→extend，Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
