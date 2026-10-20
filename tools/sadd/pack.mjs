@@ -44,6 +44,25 @@ export function blocks(text) {
 // Lower-case field names (id, profile_id, etc.) are not definition identities.
 const tokens = text => new Set(text.match(/\b(?:[A-Z][a-z]+(?:[A-Z][A-Za-z0-9]*)+|[A-Z]+(?:_[A-Z0-9]+)+|[a-z_]+\.[a-z_]+(?:\.[a-z_]+)*)\b/g) ?? []);
 const refs = text => [...new Set(text.match(/\b(?:CORE|AND|WIN)-\d+\b/g) ?? [])];
+// 间接依赖只收录“定义”了所需符号的块：类型/trait/接口声明、impl/extension、常量、错误码等表格首列、行首 op 名。
+// 只提到符号而未定义它的块（说明、示例、调用方叙述）不收录，在 report.manifest[].mentionOnly 中计数。
+const DEFINITION_PATTERNS = [
+  /\b(?:struct|enum|class|trait|type|typedef|interface|mixin|union|mod)\s+([A-Za-z_]\w*)/g,
+  /\bconst\s+([A-Za-z_]\w*)/g,
+  /\bimpl(?:<[^>\n]*>)?\s+(?:[\w:]+(?:<[^>\n]*>)?\s+for\s+)?([A-Za-z_]\w*)/g,
+  /\bextension\s+(?:type\s+)?([A-Za-z_]\w*)(?:\s+on\s+([A-Za-z_]\w*))?/g,
+  /^\|\s*`?([A-Za-z_][\w.]*)`?\s*\|/gm,
+  /^(?:[-*]\s+)?`?([a-z_]+(?:\.[a-z_]+)+)`?(?=[\s:：(（=]|body|例)/gm,
+];
+const definitionCache = new Map();
+export function definedSymbols(text) {
+  let out = definitionCache.get(text);
+  if (out) return out;
+  out = new Set();
+  for (const pattern of DEFINITION_PATTERNS) for (const m of text.matchAll(pattern)) for (const name of m.slice(1)) if (name) out.add(name);
+  definitionCache.set(text, out);
+  return out;
+}
 export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   const cards = load(sadd); const target = cards.get(id);
   if (!target) throw new Error(`Unknown card: ${id}`);
@@ -70,7 +89,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   while (change) {
     change = false;
     for (const b of pending) {
-      if (b.used || ![...tokens(b.text)].some(t => need.has(t))) continue;
+      if (b.used || ![...definedSymbols(b.text)].some(t => need.has(t))) continue;
       b.used = true; change = true;
       const list = selected.get(b.key) ?? []; list.push(b); selected.set(b.key, list);
       for (const t of tokens(b.text)) need.add(t);
@@ -96,8 +115,10 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
     const kept = full.has(key) || !closure.has(key) ? list : list.sort((a,b) => a.index-b.index).map(b=>b.text);
     const text = kept.join('\n');
     sections.push(`## ${key} (${c.file}:${c.line})\n\n${text}`);
-    manifest.push({card: key, mode: key === id ? 'target' : full.has(key) ? 'full-contract' : !closure.has(key) ? 'outside-context' : 'symbols',
-      before: c.contract.length, after: text.length, retained: [...tokens(text)].sort()});
+    const mode = key === id ? 'target' : full.has(key) ? 'full-contract' : !closure.has(key) ? 'outside-context' : 'symbols';
+    // 提到了所需符号、但不定义任何所需符号而未收录的块数（只对间接依赖统计）。
+    const mentionOnly = mode !== 'symbols' ? undefined : pending.filter(b => b.key === key && !b.used && [...tokens(b.text)].some(t => need.has(t))).length;
+    manifest.push({card: key, mode, before: c.contract.length, after: text.length, retained: [...tokens(text)].sort(), ...(mentionOnly === undefined ? {} : {mentionOnly})});
   }
   // 与本卡相关的卡：目标卡、直接依赖，以及 AGENTS 规定始终整份收录的 CORE-01/02（即 full）。
   const related = full;
