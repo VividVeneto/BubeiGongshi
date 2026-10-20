@@ -105,15 +105,7 @@ TUF 适配核实状态（A-32）：当前 `verify_update_metadata(now_ms)` 与 t
 - 激活后旧版本目录在无读者句柄时才删除；Windows 上重命名失败时保留旧指针，延迟到下次启动激活。
 - 外部前提：`ed25519-dalek`、`blake3`、`zip`（只用读取与存储/deflate）、`semver`、TUF 客户端 `tough` crate，版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`；TrustRoot 公钥与私钥保管流程由 CORE-16 与 CORE-43 提供，发布前须登记首个 `key_id`。
 
-**验收标准**
-- [R29] bootstrap 包在断网首次启动时可用，应用可完成公式输入、校验与排版。
-- [R30] 安全用例（`crates/fml-pack/tests/`，夹具由测试内生成的测试密钥签名）：签名错误、公钥被替换、条目哈希错误、版本降级、安全序号回滚、依赖缺失、超限、每条危险路径、包内可执行文件均被拒绝，且返回上表对应错误码；每例结束后旧包仍可 `open_entry`。
-- [R30] 元数据：过期 timestamp 返回 `PACK_METADATA_EXPIRED` 且已安装包可用；snapshot 版本回退返回 `PACK_EPOCH_ROLLBACK`。
-- [R30] 中断用例：下载或解压中途终止后旧包可用、无半截目录；崩溃恢复只保留完整已验证目录。
-- [R01] 同一包在 Android 与 Windows 安装后条目数、逻辑 ID 与内容哈希一致。
-- [R19] 对 manifest 解析与 ZIP 读取做模糊测试 24 小时无 panic。
-- [R30] 回滚：安装 v2（epoch 2）后用 v1 时期的 pack_meta.db 覆盖当前库并重启，`pack.recover` 后生效 `max_epoch` 仍为 2、安装 epoch 1 的包返回 `PACK_EPOCH_ROLLBACK`；删除 pack_meta.db 后从完成标记重建索引，高水位不降；active.json 指向要求更高 min_app_version 的目录时回退到 previous_version。
-- [R29] 引擎层：安装含单位条目的包后 CORE-56 generation + 1 且新单位可用于 `calc.evaluate`；与现有包同 ID 冲突的包被拒、旧包与 generation 不变；卸载后单位消失。
+**验收标准**：测试方案全文见 [Test/core/S4_CORE-15_TEST.md](../Test/core/S4_CORE-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 500 行；主包 `crates/fml-pack/`（约 450 行），附属：领域表迁移 `crates/fml-pack/migrations/0001_pack_meta.sql` 与仓储 `crates/fml-pack/src/meta.rs`（约 20 行，DDL 不计）、op 处理与 Pack 层推送 `crates/fml-ffi/src/ops/pack.rs`（约 30 行）。
 

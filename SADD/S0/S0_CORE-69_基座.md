@@ -18,9 +18,7 @@ DEP-1/3/4查Cargo依赖图及extern C声明；DEP-2查领域crate中的std::fs/n
 - 逐文件估算：common60、词法层100、deps90、privacy60、fixtures/tests120，合计430；不实现完整Dart/Rust语义解析器，超出上述子集先报warning并申请拆卡。
 - 外部前提：CORE-01锁定Python/PyYAML并创建policies；工具不存在前明确pending。
 
-**验收标准**
-- [R18][R26] 每条DEP/PRIV规则至少正反例各1：注释/字符串无误报，真实违规返回1并带正确行号；语法损坏返回2；ctx.http正例通过、ports.http反例失败、不可判定.http为warning且生成checklist。
-- [R20] CI和本地同一输入Finding字节相同；未知policy版本拒绝，不能忽略白名单文件缺失。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-69_TEST.md](../Test/S0/S0_CORE-69_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 430 行；主包 `tools/ci/`（含120行测试）。
 

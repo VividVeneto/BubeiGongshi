@@ -72,14 +72,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/e
 - 组装：`installLatexCompletion` 追加到 CORE-36 `installers.dart` 的 `featureInstallers`，紧随 `installFormulaCopy`。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 外部前提：只用 Flutter SDK；不新增第三方包。
 
-**验收标准**
-- [R10] 单元测试 `contextAt`：`\fr|` 为 CommandPrefix(typed "fr")；`a\\|` 为 null；`\\\al|` 为 CommandPrefix；`\begin{pm|` 为 EnvironmentPrefix(typed "pm")；`\begin{pmatrix}|` 为 null；源码前含中文与全角字符时下标正确。
-- [R10] 单元测试排序：`\fr|` 首项为 `frac`；`\Del|` 中 `Delta` 先于 `delta`；`\sq|` 含 `sqrt`；子序列 `\ifty|` 能找到 `infty` 且排在前缀匹配项之后；同档内 `recent` 次数高者在前。
-- [R08] 单元测试接受：`\fr|` 接受 `frac` 得 `\frac{\fmlhole}{\fmlhole}` 且选中第一个空位；`a\al|pha` 接受 `alpha` 得 `a\alpha`；`\begin{pm|}` 接受 `pmatrix` 得完整 2×2 环境且不残留多余 `}`。
-- [R08] Widget 测试（LaTeX 模式 `FormulaEditor`）：键入 `\su` 弹出含 `sum` 的列表；↓ 后 Enter 插入第二项；Esc 后继续键入字母不再弹出，键入新的 `\` 后再次弹出；弹层可见时源码框始终持有焦点；接受后撤销一次恢复为 `\su`；点按候选与按 Enter 结果相同。
-- [R08] Widget 测试：模拟输入法组合“阿尔法”期间不弹出；`features` 未登记 `LatexSourceAssist` 时源码框行为与 CORE-37 一致。
-- [R10] 数据测试：`latex_commands.json` 每项的 `insert` 经 `engine.check` 只可能出现 `PARSE_HOLE_UNFILLED`，不出现 `PARSE_UNSUPPORTED_COMMAND` 与 `PARSE_FORBIDDEN_COMMAND`；`palette.json` 中每个命令都有对应项；不含禁止清单中的名称。
-- [R03] 性能：rankCandidates按CORE-01“补全rankCandidates”行，由AND-12/WIN-13在S7真机测量；本卡Widget只验证候选正确及帧泵后可见，不用Fake计时证明性能。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-53_TEST.md](../Test/core/S3_CORE-53_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行；用例/状态目录 `app/lib/editor/completion/`；`app/lib/ui/editor/completion/`（数据文件 `app/assets/editor/latex_commands.json` 不计行数）。
 

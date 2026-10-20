@@ -43,11 +43,7 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 - provider条目由AND-02合并清单主体维护，本卡只追加：androidx.core.content.FileProvider，authority=${applicationId}.clip，exported=false/grantUriPermissions=true；res/xml/clip_paths.xml仅cache-path name=clip path=clip/；白名单追加一行。
 - 仅删除自有clip文件，copy目录保留最后一次；外部接收方URI临时授权能力为M0实测前提，微信/QQ/便签结果记D，失败退text/plain。
 
-**验收标准**
-- [R08] 仪器测试：以 CORE-52 夹具负载 `write` 后读回主剪贴项：描述含 text/plain、text/html、image/png，`coerceToText` 为 LaTeX 源码，`htmlText` 等于负载 html，URI 可经 `ContentResolver` 读出与负载相同的 PNG；连续复制两次后 `cacheDir/clip/` 只剩 1 个文件；“复制为图片”只有 image/png。
-- [R08] 手动矩阵（结果记入附录 D）：“复制公式”后在系统便签/备忘录粘贴得到 LaTeX 或图片、在微信输入框粘贴得到 LaTeX 文本、“复制为 → 图片”后在支持图片粘贴的聊天应用得到公式图片。
-- [R08] 单元测试：长度已知 20 MiB+1 的图片直接抛 `PLATFORM_FILE_TOO_LARGE`；长度未知的流复制到 20 MiB+1 字节即停止、删除副本并抛同一码；GIF、HEIC、SVG 返回 `PLATFORM_UNSUPPORTED`；PNG 的 MIME 按实际解码结果为 image/png，扩展名改为 .jpg 也不变。
-- [R01] CORE-04 ClipboardAdapter契约套件通过；读取无图片返回null，下一次readImage即结束上一批，已复制到业务staging的文件不被清理。
+**验收标准**：测试方案全文见 [Test/and/S3_AND-14_TEST.md](../Test/and/S3_AND-14_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 240 行；app/lib/platform/android/clipboard/、app/android/.../ClipboardBridge.kt与res/xml/clip_paths.xml（同app构建单元），附属清单与审计白名单追加行。
 

@@ -74,13 +74,7 @@ pack.check_updates/install的完整响应分别是CORE-15 PackOffer[]/InstalledP
 - 组装：`installPacks` 追加到 CORE-36 `installers.dart` 的 `featureInstallers` 末尾；`packRoutes` 追加到 `app/lib/composition/routes.dart`；页面只收 VM 与 `deps.ui`。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 外部前提：无新增第三方库（`ValueListenable` 来自 Flutter SDK）。
 
-**验收标准**
-- [R30] `FakeHttpTransport` 提供元数据与包文件夹具：`checkUpdates` 返回 4 个课程包报价；`download` 依次产生 `PackDownloading` → `PackInstalling` → `PackDone`，之后 `installed()` 含该包且再次检查不再报价同版本。
-- [R30] 续传：传输层在一半字节处抛 `NET_OFFLINE` → 状态 `PackFailed(resumable: true)`；再次下载的请求 `rangeStart` 等于已收字节，安装成功。
-- [R29] `importFile` 导入篡改过的 `.fmlpack` 返回 `PACK_SIG_INVALID`，原已装版本仍在 `installed()` 中，暂存文件被删除。
-- [R39] 筛选“高中”时可见 `content-high-school-math` 与 `content-high-school-physics`，筛选“大学 + 物理”只见 `content-university-physics`。
-- [R26] 游客档案下完成检查与下载：`FakeHttpTransport` 记录的请求均为 `packBase` 主机、用途为 `updateCheck` 或 `packDownload`、无 `Authorization` 头。
-- [R29] `freeBytes` 小于阈值时 `download` 直接返回 `PackFailed('PACK_STORAGE_LOW')`，未发出请求。
+**验收标准**：测试方案全文见 [Test/core/S4_CORE-51_TEST.md](../Test/core/S4_CORE-51_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；用例/状态目录 `app/lib/packs/`；`app/lib/ui/packs/`。
 

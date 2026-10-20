@@ -32,11 +32,7 @@ List<GoRoute> libraryToolsRoutes(AppDeps deps);
 - 控件取 CORE-58、令牌取 CORE-55；平台只经端口。
 - 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
 
-**验收标准**
-- [R04][R04.j] 导入 100 行 CSV（其中 3 行错误）：报告 accepted 97、rejected 3 且行号正确；失败行可导出为 CSV。
-- [R15] 单位页：定义 `user:li = 500 m` 后出现在列表且 units.list_user 返回该单位；循环定义显示 `UNIT_CYCLE`；被公式引用的单位删除时显示 `UNIT_IN_USE`。
-
-- [R11][R42.b] Fake导入5001行或超过8MiB时停在选择文件；行错误列入报告并继续；textScaler=2.0无异常、向导每步恰一主按钮；单位页UNIT_*复用CORE-14/08错误在表单就地显示。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-60_TEST.md](../Test/core/S3_CORE-60_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 320 行；主包 `app/lib/library/import/`、`app/lib/library/units/`、`app/lib/ui/library/import/`、`app/lib/ui/library/units/`（含测试与必要的同构建单元接缝）。
 

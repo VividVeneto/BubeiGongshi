@@ -61,12 +61,7 @@ API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依
 
 主机作业归AND-12；本卡可用Fake事件/通道完成阶段内自动验收，S7真机证据另记。
 
-**验收标准**
-- [R27] 集成测试（`integration_test/android/lifecycle_test.dart`）：在 `/library` 路由下用 `adb shell am kill <package>` 杀进程（应用在后台），重新打开后回到 `/library`。
-- [R03] `adb shell am send-trim-memory <package> RUNNING_LOW` 后 `events()` 收到一次 `lowMemory`，10 s 内重复发送不再收到；应用不崩溃。
-- [R01] CORE-04 的 `AppLifecycle` 与 `RuntimeInfo` 契约套件在真机通过；`snapshot()` 的 `osVersion` 等于 `Build.VERSION.SDK_INT`，`abi` 为 `arm64-v8a`。
-- [R08][R42.e] 手机与平板横竖屏切换、折叠屏展开/折叠与分屏调整时 Activity 不重建（Kotlin 侧 `onCreate` 计数不变），当前路由保持。
-- [R42.e] 开发者选项“不保留活动”开启后，在 `/library` 切到后台再返回，Activity 重建（`onCreate` 计数加 1）且回到 `/library`。
+**验收标准**：测试方案全文见 [Test/and/S2_AND-05_TEST.md](../Test/and/S2_AND-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 250 行；`app/lib/platform/android/lifecycle/` 与 MainActivity 中的通道代码（同属 `app/` 构建单元）。
 

@@ -84,15 +84,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/l
 - 列表修饰：公式库页与回收站页（`LibraryQuery.trashed = true`）在 `features` 中有 `LibraryListDecorator` 时用 `wrapList` 包裹列表、用 `decorateItem` 包裹每个列表项；本卡不实现多选。
 - 复制公式：详情页标题栏与列表项菜单放置 CORE-59 `FormulaCopyButton`（`latex` 为当前修订的 `source_latex`，`notationProfileId` 为该公式的记号方案，`userDecls` 为当前修订的symbols声明快照），本卡不直接访问剪贴板。
 
-**验收标准**
-- [R11] Widget 测试（Fake CoreBinding 回放）与集成测试（真实核心）各一套：搜索、按学科/课程/来源/量纲/掌握度/校验状态筛选、打开详情、查看历史与差异、恢复旧版生成新修订、移入回收站与恢复。
-- [R11] Widget 测试：打开 `/library?search=1` 后搜索框持有焦点，键入文字即触发搜索。
-- [R08] Widget 测试：详情页点击“复制公式”后登记的假 `FormulaCopier` 收到当前修订的 `source_latex`、声明快照userDecls与 `format: auto`；列表项菜单“复制为 → 图片”收到 `format: image`。
-- [R11] 10000 条测试库：列表滚动满足 CORE-01 全局资源预算表“列表滚动”行；首屏满足“公式库搜索首屏（10000 条）”行。
-- [R08] 编辑页：含空位或 Error 时保存禁用；Warning 时确认后修订带 `ConfirmRecord`；编辑中杀进程，重开编辑页提示恢复草稿且源码、声明、标题一致。
-- [R42.e] Widget 测试：宽 1200 时点击列表项在右栏显示详情且路由为 `/library/:itemId`；宽缩到 800 后详情变为整页，返回回到列表且滚动位置不变。
-
-- [R42.e][R42.b] 页面接入验收（Fake CoreBinding 提供 200 条条目）：`/library` 滚到第 120 条、`/library/:itemId/edit` 标题框输入“动能”且编辑器源码为 `E_k=\frac{1}{2}mv^2`、光标在 `m` 前，分别在 360×800 ↔ 800×360 往返 3 次：页面 `State` 为同一对象，滚动偏移、标题文本、编辑器源码与光标、焦点不变，期间不发出 `library.*` 调用、不另存草稿；`textScaler` 2.0 下列表、详情、编辑页 `tester.takeException()` 为 null；编辑页恰有 1 个 `FmlButtonVariant.primary`（“保存”），列表页 0 个（“新建”为浮动按钮）；宽档（1280×800）为 `TwoPane` 且无选中时右侧为空状态。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-38_TEST.md](../Test/core/S3_CORE-38_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；主包 `app/lib/library/`、`app/lib/ui/library/`（不含 import/、units/）。
 

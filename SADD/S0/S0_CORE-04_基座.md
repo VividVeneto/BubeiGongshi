@@ -190,18 +190,7 @@ HttpTransport流式续传统一协议：rangeStart>=0且仅saveTo可用；>0时�
 - 端口接口只用 Dart SDK 与 `dart:io` 类型，不引入第三方包类型；平台差异只体现在实现与注释中，接口文本两端相同。
 - 平台卡内联本卡签名时须逐字复制本节代码，不得增删参数或改写注释。
 
-**验收标准**
-- [R01] `app/test/ports/contract/` 下每个端口的契约套件对 Fake 实现通过；AND、WIN 卡用同一套件在真机上跑通各自实现。
-- [R41] 两端实现分别位于 `app/lib/platform/android/` 与 `app/lib/platform/windows/`；`tools/ci/check_deps.py` 验证用例与 UI 不 import 平台目录。
-- [R19] `FeatureRegistry` 同类型重复登记抛 `StateError`；`startupHooks` 按 order 稳定排序。
-- [R18] `runPlatformApp` 注入返回 MAJOR+1 的假绑定时显示 `CoreUnavailableScreen(abiMismatch)` 且 `buildPorts` 未被调用；注入抛 `ArgumentError` 的 `open` 时显示 `loadFailed`。
-- [R19] 构造 `LocalTime(24, 0)`、`pick(maxCount: 0)`、`pick(maxCount: 11)` 均抛 `ArgumentError`；过期 `ImportedImage` 的 `readBytes` 抛 `PLATFORM_IO`；`FakeHttpTransport` 对未预置请求抛 `StateError`（测试夹具缺失，不冒充网络策略错误）。
-- [R20] 错误码表中每个 `PLATFORM_*`、`NET_*` 码都在 `registry.yaml` 中且有中文消息键。
-- [R01] Widget 测试：`smokeEntry` 在 Fake `RuntimeInfo.snapshot` 抛 `PLATFORM_UNSUPPORTED` 时显示 ABI 版本与固定文案“运行时信息待平台卡实现”、无异常；返回快照时显示快照字段。
-
-- [R27] LocalFileStore契约套件：私有子目录排除成功；兄弟目录、../越界、指向外部的符号链接（平台支持时）抛ArgumentError且目标不变；Fake与真实端口相同。
-
-- [R19] 安装点夹具A返回未完成Future、B读取A登记值：A未完成时B不执行，A完成后按顺序执行B；A失败则compose失败且不发布AppDeps，不运行后续安装点；同步安装点亦保持既定顺序。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-04_TEST.md](../Test/S0/S0_CORE-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；主包 `app/`：`app/lib/ports/` 与 `app/lib/composition/{composition,entry}.dart`（约 300 行），`app/test/fakes/` 与 `app/test/ports/contract/`（约 180 行）。无跨构建单元附属。CORE-36 只消费 composition.dart，另拥有其余壳/聚合文件；entry.dart 仅按本卡约定切换 appEntry 一行，不能重写这些原语。
 

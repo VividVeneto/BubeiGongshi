@@ -56,13 +56,7 @@ Envelope v2字段、Rust结构和编码唯一归CORE-68，本卡/客户端都imp
 - 同步不是备份：服务端数据库每日加密备份由 CORE-43 负责。
 - 外部前提：对象存储 S3 兼容接口（产品随 CORE-43 部署选定）；sqlx 与 PostgreSQL 版本随 ADR-V5-15锁定。
 
-**验收标准**
-- [R28] 集成测试（`server/tests/sync.rs`）：推送 → 拉取往返；重复推送同 op_id 返回原 server_seq；同 op_id 不同哈希返回 CONFLICT；每个超限条件返回 `SYNC_PAYLOAD_TOO_LARGE`；分页拉取在 `max_bytes` 内且游标连续。
-- [R28] 快照：分片上传 → 提交 → `latest` 返回分片清单；缺分片提交返回 `SYNC_SNAPSHOT_INCOMPLETE`；第 3 个快照提交后最旧快照被清理。
-- [R28] 重置：`/v1/sync/reset` 后纪元 + 1，旧纪元的推送与游标分别返回 `SYNC_EPOCH_STALE` 与 `SYNC_CURSOR_INVALID`。
-- [R28] 服务端存储检查：数据库与对象存储中无可解析的公式文本（注入已知明文后扫描零命中）。
-- [R28] 账户删除：认证时间超过 300 s 被拒；删除后令牌失效、数据查询为空、对象存储无该账户前缀；费用墓碑与安全日志按例外保留。
-- [R26] 未注册（无令牌）请求一律 401；[R18] 用 A 的令牌拉取或推送 B 的数据返回 404。
+**验收标准**：测试方案全文见 [Test/core/S6_CORE-25_TEST.md](../Test/core/S6_CORE-25_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 500 行；`server/`（`server/src/sync/`、`server/src/account/` 与迁移 `server/migrations/0025_sync.sql`，DDL 不计）。
 

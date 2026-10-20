@@ -73,14 +73,7 @@ Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平�
 - 不使用 Toast COM 激活与 AppUserModelId 注册（系统通知由 `NIF_INFO` 呈现）；专注助手开启时系统可能隐藏通知，任务栏闪烁仍生效。
 - 卸载时自启值由 WIN-02 删除。
 
-**验收标准**
-- [R04] 手动：设置 1 分钟后提醒，关闭窗口到托盘，按时出现系统通知；点击通知后主窗口显示并进入学习页（CORE-36 `taps()`）。
-- [R04] 单元测试（假时钟）：提醒时刻前 1 s 安排的 Timer 到时只提醒一次；同一天再次 `scheduleDailyReminder` 后不重复提醒；模拟 `resumed` 发生在时刻后 30 min 且当天未提醒时补发一次，3 h 后不补发。
-- [R04] 开机自启默认关闭；开启后注销再登录，应用驻留托盘且无主窗口；关闭开关后 Run 值被删除。
-- [R26] 提醒全流程抓包无网络请求；通知正文只含数量。
-- [R03] 托盘菜单“退出”后进程结束、托盘图标消失。
-
-- [R23][R27] 已登出的注册用户（停在账户入口）以 --minimized 首启时，账户入口等待超过 120 s 托盘仍存在；点“打开”能显示账户入口，首帧健康标记已写；模拟托盘创建失败时窗口保持可见。
+**验收标准**：测试方案全文见 [Test/win/S4_WIN-09_TEST.md](../Test/win/S4_WIN-09_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；`app/lib/platform/windows/notify/` 与 `app/windows/runner/tray_channel.cpp`（同属 `app/` 构建单元）。
 

@@ -68,11 +68,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/e
 - 绘制：`Glyph` 用 `typeset.glyph_outlines` 得到的路径绘制（按 `size / units_per_em` 缩放并翻转 y 轴），`Glyph.font` 先经 `DisplayList.font_ids` 换成字体 ID 再请求，路径按 `(engineGeneration, font_id, glyph_id)` 缓存（上限 4096 条）；`Rule` 画矩形，`Path` 按描边或填充绘制；不使用平台字体渲染公式字形。语义标签用 `semantic_text`。
 - 外部前提：只用 Flutter SDK 自带库（`dart:isolate`、`dart:ui` 的 `Path`）；不引入第三方编辑器或数学渲染包（附录 A ADR-V5-04）。空位记法 `\fmlhole` 见 ADR-V5-17。
 
-**验收标准**
-- [R01] 黄金图测试：固定Linux CI镜像/Flutter/字体/缩放对同一DisplayList主机黄金图像素差≤1%；两端真机布局和截图对照归AND-12/WIN-13 checklist，不承诺跨栅格器像素相等。
-- [R03] 自动化只验证连续输入100字符的请求去重、最新结果上屏与帧时间样本导出，Fake计时不判预算；S7由两平台性能卡在参考设备运行benchmark，worker按 CORE-01“公式解析（≤256 节点）”“量纲校验”“单式排版”三行分别判定，界面按“点击到可见反馈”行判定。预算按已采纳 ADR-V5-25，不把M0实测写成另一次采纳。
-
-- [R19] worker缓存填满后同ID替换字体，下一次query/通知清旧分区，结果和glyph轮廓来自新代数；通知丢失仍因命中前query失效。check后layout前更新时丢弃整链并重试，不组合不同快照。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-37_TEST.md](../Test/core/S2_CORE-37_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行；主包 `app/lib/editor/editor_worker.dart`、`app/lib/ui/editor/formula_view.dart`、`app/lib/ui/editor/math_text.dart`、`app/lib/render/`。
 

@@ -30,9 +30,7 @@ engine.generation/wait_generation读取CORE-56 generation_status，exhausted或u
 - 逐文件估算：原生查询/等待90、CORE-56发布通知附属20、Dart源90、测试120，合计320；不得为通知新增C导出或全局活动账户。
 - 外部前提：CORE-01锁Rust/Dart；无网络/新第三方库；profile切换先移除旧User层并发布代数，再注入新层。
 
-**验收标准**
-- [R19][R18] 同ID字体替换/用户单位更新/档案切换各令generation递增，旧请求仍标旧代数，缓存不命中旧值；连续两次发布可合并通知，漏通知时refresh仍使缓存失效。
-- [R19] 等待超时返回changed=false；取消后无回调；unavailable发布清缓存，恢复后新query可用；超过2^53的代数往返字节无损，耗尽不回绕。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-73_TEST.md](../Test/core/S1_CORE-73_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 320 行；主包 `crates/fml-ffi/`（原生110与测试80），附属 `app/lib/binding/engine_generation.dart`及测试（130行），向量不计代码。
 

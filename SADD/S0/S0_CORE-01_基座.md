@@ -92,11 +92,7 @@ Cargo workspace：根 `Cargo.toml` 为虚拟 workspace（`resolver = "2"`），`
 - 提交按本卡“提交约定”；main 始终可构建；特性分支生命周期不超过 3 天。
 - 外部前提：Rust stable 工具链、Flutter stable 渠道与 Dart SDK、Python 3（`tools/` 脚本）的具体版本由本卡按 ADR-V5-15 写入上述锁定文件，并在 ADR-V5-15 回填查询日期、版本与兼容依据；Android SDK/NDK 见 AND-01，Visual Studio 生成工具见 WIN-01。
 
-**验收标准**
-- [R18][R23] 干净检出后 仅对本卡仓库骨架运行`cargo build --workspace`和`flutter analyze`成功；平台构建由AND-01/WIN-01验收，依赖检查脚本由CORE-69验收，不是本卡交付前置。
-- [R18] 锁定文件齐全：上述 4 个文件存在、内容可解析且各含查询日期与版本；ADR-V5-15 已回填。CI 只读取这些文件版本的集成断言由 CORE-41 验收，不是本卡交付前置。
-- [R20] `cargo doc --workspace` 无 missing_docs 告警；`dart analyze` 无 `public_member_api_docs` 告警。
-- [R22] 核对main的 `Cargo.toml`、`pubspec.yaml`、`crates/`无YOLO实现、权重或依赖；CORE-42后续发布检查安装产物，脚本实现不计本卡。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-01_TEST.md](../Test/S0/S0_CORE-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行（配置与 README）；仓库根。
 

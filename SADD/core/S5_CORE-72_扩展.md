@@ -16,8 +16,7 @@ psql --set=ON_ERROR_STOP=1 --set=provider_id=<已配置id> --set=day=YYYY-MM-DD 
 - 逐文件估算：SQL50、参数预检/受控调用50、PostgreSQL容器测试100、checklist20，合计220；文档不计代码行。
 - 外部前提：CORE-33迁移与测试PostgreSQL；真实运维账号/供应商对账由甲方提供。
 
-**验收标准**
-- [R40][R19] 两供应商同day熔断：清A后预算仍熔断，清B后关闭标志；重跑不改审计记录，异常事务回滚，跨day互不影响；真实预算未充足时POST仍失败。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-72_TEST.md](../Test/core/S5_CORE-72_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 220 行；主包 `server/`（ops/脚本与同构建单元数据库测试）。
 

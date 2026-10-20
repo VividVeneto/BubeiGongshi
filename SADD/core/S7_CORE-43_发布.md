@@ -53,12 +53,7 @@ server/src/ops/
 - 资源包 CDN 不需要账户，也不接收用户内容；访问日志只保留 IP 与路径的最短必要期限，并在隐私政策中披露；供应商与网络域名清单随隐私政策公开。
 - 外部前提：Docker、PostgreSQL、S3 兼容对象存储、Prometheus、`metrics` 与 `metrics-exporter-prometheus` crate、`tuftool`（tough 项目 CLI）、`age`；版本按 ADR-V5-15 锁定；发信账号与域名、云识别供应商账号由甲方开通。
 
-**验收标准**
-- [R28] 本地用 `compose.yaml` + minio/Fake供应商部署，认证/同步/云识别集成测试通过（邮件集成归CORE-45）；删除 `required_keys.txt` 中任一键的值时 `preflight.py` 退出 1 并指出该键。
-- [R40] 外部前提满足后的人工checklist（云厂商、账号和真实Key由甲方提供；未提供记阻断）：供应商 API Key 轮换演练：注入新 Key 并重启后新请求成功，撤销旧 Key 后无失败，客户端无需更新。
-- [R30] 上传新版本资源包并运行 `tuf/refresh.sh` 后，客户端 `pack.check_updates` 能发现并安装；停用重签 8 天后客户端报告 `PACK_METADATA_EXPIRED`，`fml_tuf_timestamp_expires_seconds` 告警先于过期触发。
-- [R19] 告警演练：用 Fake 供应商制造超时与 UNKNOWN，对应告警按阈值触发；`/metrics` 输出中不含邮箱与账户 ID。
-- [R28] 恢复演练：`restore.sh` 恢复到新实例，同步数据完整，删除清单被重放。
+**验收标准**：测试方案全文见 [Test/core/S7_CORE-43_TEST.md](../Test/core/S7_CORE-43_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；主包 `server/deploy/`（配置与脚本约 260 行），附属：`server/src/ops/`（指标与健康检查约 160 行，与 `server/` 同一 Cargo 构建单元）。
 

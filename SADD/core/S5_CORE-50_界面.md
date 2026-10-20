@@ -97,13 +97,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - 页面销毁时删除 `recog.session.get` 返回的暂存图片。
 - 存储守护：`installStorageGuard` 登记 `StorageStatus` 与 order 55 启动钩子，并订阅 `ports.lifecycle.events()` 的 `resumed` 与 `lowMemory`（两次检查间隔至少 10 分钟）：`ports.files.freeBytes()` < 500 MiB 时 `core.submit('recog.gc', {})` 一次并置 `StorageStatus` 为 true，恢复到 ≥ 600 MiB 后置回 false；提示条文案“存储空间不足，已清理识别缓存；可在设置中减少保留的识别记录”，并提供跳转 `/settings/history`。
 
-**验收标准**
-- [R37] 登记 Fake `ImageDropSource` 并推送含 3 张图、`skippedNotImage = 1` 的批次：流程进入 `Cropping`，来源为 `dragDrop`，并显示跳过提示。
-- [R06] 候选页：选第 2 个候选 → 替换一个符号 → `final_check` 无 Error → `save` 打开新建页且预填该 LaTeX；新建页返回 `Saved` 后调用一次 `recog.adopt`，返回 null 时不调用；Error 级诊断时保存按钮禁用。
-- [R40] 同意页：选“未满 14 周岁”且未勾选监护人同意时提交按钮禁用；预览页显示的文件 SHA-256 等于 `UploadPreview.imageHash`；额度为 0 时不可确认。
-- [R33] 历史页：Pin 的会话在 GC 后仍在列表；一键清空后列表为空；`has_images = false` 项显示“识别图片已清理”。
-- [R26] 游客界面审计：`cloud` 为 null 时识别页、历史页均无云端入口与云端标识（Widget 树中查找不到对应 Key）。
-- [R33] `FakeLocalFileStore.freeBytes` 返回 400 MiB 时启动后恰好提交一次 `recog.gc` 且 `StorageStatus` 为 true；10 分钟内再次 `resumed` 不重复提交。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-50_TEST.md](../Test/core/S5_CORE-50_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；用例/状态目录 `app/lib/recognition/pages/`；`app/lib/ui/recognition/pages/`。
 

@@ -63,12 +63,7 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 - `yolo-experiment` 只存在于实验分支，主线代码中不得出现其注册调用（附录 B）。
 - 外部前提：tiny-skia、png（版本按 ADR-V5-15 锁入 `Cargo.lock`；渲染一致性测试在两端 CI 运行）。
 
-**验收标准**
-- [R07] 契约测试：Fake 本地后端注册后可替换；Fake 本地后端与 CORE-34 返回的 `RawOutput` 经同一后处理（CORE-31）。
-- [R26] `available(Guest)` 不含任何 `networked = true` 的后端；游客传入远程后端 id 返回 `RECOG_BACKEND_NOT_ALLOWED`。
-- [R22] CI 检查：主线源码与依赖树中不存在 `yolo-experiment` 与 YOLO 相关依赖。
-- [R06] 墨迹规范渲染：`crates/fml-recognize/tests/fixtures/ink/` 中 20 组笔迹在 Android 与 Windows 上渲染的 PNG 字节一致，与提交的期望哈希相同。
-- [R19] 错误表逐行测试：空墨迹、超限墨迹、暂存区外路径、未注册 id 各返回约定错误码。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-29_TEST.md](../Test/core/S5_CORE-29_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 320 行；`crates/fml-recognize/src/{lib.rs, registry.rs, ink.rs}`。
 

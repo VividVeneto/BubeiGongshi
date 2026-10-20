@@ -46,11 +46,7 @@ checks中调用CORE-75共享写入点design校验；业务构建后按平台actu
 - 属性测试与模糊测试发现的失败样例保存为回归用例；模型权重不进 Git（发布产物或 LFS，并记录哈希）。
 - 外部前提：GitHub Actions（或等价 CI，迁移时只替换 `.github/workflows/`）；`cargo-deny`、`cargo-audit`、`cargo-llvm-cov`、`lizard`；OpenHarmony SDK 的 Rust 目标（CORE-44）；Windows 构建机的 CMake/CTest 与 MSVC 工具集（WIN-16 启动器）；版本按 ADR-V5-15 锁定。
 
-**验收标准**
-- [R18][R19] 聚合测试用固定脚本stub分别返回0/1/2，验证run_all执行全部manifest项、保留Finding、退出码2优先于1、pending单列且不记通过；不在本卡重测扫描规则。
-- [R18] CI配置校验lint/test/checks/build/deny依赖及weekly产物存在；stub MAINT-1 warning输出annotation而不发评论，失败规则沿唯一所有者脚本报告。
-- [R18] 工具链版本断言（承接 CORE-01）：CI 配置不含硬编码的 Rust/Flutter/Python/Node 版本，只从 CORE-01 锁定文件解析；在测试副本中改写 `app/.flutter-version` 后，CI 解析出的 Flutter 版本随之变化。
-- [R19] required_stage=S0允许未启用业务目标以pending归档，存在的目标失败不能SKIP；发布required_stage=S7遇pending/无签字/无设备返回1，清单缺验收行也失败（解析/覆盖规则归CORE-70）。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-41_TEST.md](../Test/S0/S0_CORE-41_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行；主包 `tools/ci/`（run_all/清单/聚合测试220），附属 `.github/workflows/ci.yml`、`weekly.yml` 与 `CODEOWNERS`（80行，只编排）。
 

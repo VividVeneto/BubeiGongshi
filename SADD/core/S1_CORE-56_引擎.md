@@ -75,17 +75,7 @@ generation耗尽的故障语义：所有发布入口均返回Result，mark_unava
 - 并发只用标准库 `RwLock`/`Mutex`/`Arc`；写锁内不做 I/O、不调用回调，持锁时间只覆盖指针替换。
 - 外部前提：字体官方分发与许可 https://www.gust.org.pl/projects/e-foundry/lm-math；数值依据 BIPM SI 定义与 NIST CODATA 2022。首次构建记录字体和数据哈希。
 
-**验收标准**
-- [R12][R13][R09] 无账户且断网，fml_call 对 F=ma、m=2 kg、a=3 m/s² 得 6 N 并产生非空 DisplayList；cn-default/iso 可切换；无需 S4 文件。
-- [R12] c 同时有 given=3e8、教材=3e8、Exact=299792458 时取 given；去掉 given 取教材，再去掉教材取 Exact，constants_used 保留来源。
-- [R19] 在途任务持 generation=0 时 `set_layer` 成功返回 1，新请求用 1，旧任务仍读 0；损坏层返回 `ENGINE_DATA_INVALID` 且 generation 与层集合不变。
-- [R19] 叠加向量 `contracts/vectors/engine-data-v1/compose.yaml` 全部通过，至少覆盖：Pack 替换内置单位、Pack 改变内置单位量纲被拒、两包同 ID 冲突、User 层含非 `user:` 单位、移除 Pack 层后恢复内置值、追加字体后内置字体下标不变。
-- [R19] `mark_unavailable` 后 `calc.evaluate` 返回 `ENGINE_UNAVAILABLE`；随后 `set_layer` 成功即恢复，结果使用新层。
-- [R19] 并发：8 个线程循环调用 `engine.check`/`calc.evaluate`，1 个写者交替 `set_layer`/`remove_layer` 1000 次，无死锁，每个线程观测到的 generation 单调不减；安装由同一数据生成的 bootstrap 引擎层后，语料的 `engine.check` 结果与 DisplayList 与安装前逐字节一致。
-
-- [R18] 同pack_id从v1升级v2（复用同一单位/字体ID）只保留一个Pack层并更新内容；v2无效时旧快照/generation不变；不同pack_id冲突仍拒绝。
-
-- [R19] 以代数MAX-1夹具成功发布到MAX，再set_layer/remove_layer/mark_unavailable分别返回ENGINE_UNAVAILABLE；Arc与代数不再变化、无通知，后续snapshot和业务op拒绝，generation查询available=false；在途旧Arc可完成，重建实例恢复。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-56_TEST.md](../Test/core/S1_CORE-56_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 500 行；主包 `crates/fml-ffi/`（`engine_context.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；附属同包 assets/engine-v1/ 数据与字体不计代码行。
 

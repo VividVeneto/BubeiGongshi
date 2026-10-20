@@ -60,11 +60,7 @@ CORE-36 composition注入ProfileSessionSource：依赖档案的用例在调用�
 - 明文 DbKey 只在端口/FFI 调用期间存活，使用后清零；异常路径同样清理。
 - 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
 
-**验收标准**
-- [R24][R25] Fake 端口注册/登录/游客路径改变客户端状态；登出后进入 registeredLocked，重新登录恢复；切换档案先关闭旧库。
-- [R27] 刷新令牌仅包装密文落 profile_blob，访问令牌仅内存，登出清理。
-
-- [R24][R27] Fake连续切换A→B：在A请求未排空前B的open不执行，changes依次A/null/B；close失败时仍为null；创建后的wrap/put_blob/open每处注入失败，明文临时缓冲均填零且没有Unlocked通知。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-65_TEST.md](../Test/core/S2_CORE-65_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 460 行；主包 `app/lib/account/`（controller/token_store约240、profile_session约120、测试约100）（含测试与必要的同构建单元接缝）。
 

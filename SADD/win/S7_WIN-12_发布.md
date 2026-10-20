@@ -46,12 +46,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 - 不产出 MSIX：启动器与版本子目录布局（WIN-02、WIN-16）与 MSIX 的只读安装目录和自身更新机制冲突（ADR-V5-12）。
 - 外部前提：代码签名证书（OV 或 EV）与时间戳服务由甲方在 S7 开始前提供；Inno Setup、Windows SDK（signtool）版本见 `app/windows/toolchain.versions`（WIN-01，ADR-V5-15）。
 
-**验收标准**
-- [R01] `verify_signatures.ps1` 对构建输出与安装器全部通过；把一个未签名 DLL 放入目录后退出 1。
-- [R03] 安装器超过 70 MB 时 `check_artifacts.py` 退出 1；含 `.pdb` 时退出 1。
-- [R23] 发布目录含 `dist\symbols\<v>\` 与其 SHA256SUMS、`dist\windows\update.json`；`update.json` 的 sha256 与安装器一致，且被 WIN-03 `check()` 正确解析。
-- [R40] 在构建输出中放入含测试 API Key 字符串的文件，`check_artifacts.py` 退出 1。
-- [R23] 未设置签名变量且未给 `-Unsigned` 时 `build_release.ps1` 退出 2 并说明缺少的变量。
+**验收标准**：测试方案全文见 [Test/win/S7_WIN-12_TEST.md](../Test/win/S7_WIN-12_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 250 行；`tools/release/windows/`。
 

@@ -79,11 +79,7 @@ AndroidChannelModule生命周期补充：唯一MainActivity在onCreate中构造�
 - 宿主锁版门槛：FlutterFragmentActivity须通过AND-02 ActivityResult注册的最小编译探针；当前仅官方主干源码核对，不声称项目兼容已实测。
 - 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
 
-**验收标准**
-- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页，行为按 CORE-04 `smokeEntry`：显示 ABI 版本；runtime 仍为 Unsupported 时显示固定“运行时信息待平台卡实现”、不崩溃，替换为真实端口后显示快照；启动日志列出全部 11 个端口当前为 unsupported。
-- [R18] 用 MAJOR+1 的核心库替换 `jniLibs` 中的 `libfmlcore.so` 后安装，应用显示“核心版本不匹配，请重新安装”，不崩溃。
-- [R41] `app/lib/ui/` 中 `Platform.isAndroid` 与平台判断零命中（CI 规则由 CORE-41 执行）；Android 专属 Dart 代码只在 `app/lib/platform/android/`、`main_android.dart` 与 `ports_android.dart`。
-- [R23] 两次干净构建得到的 `libfmlcore.so` 哈希一致；`llvm-readelf -l` 显示所有 LOAD 段对齐为 0x4000。
+**验收标准**：测试方案全文见 [Test/S0/S0_AND-01_TEST.md](../Test/S0/S0_AND-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行（Gradle 脚本、MainActivity、入口与组装）；`app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart`（同属 `app/` 构建单元）。
 

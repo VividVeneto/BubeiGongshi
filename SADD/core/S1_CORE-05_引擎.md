@@ -200,12 +200,7 @@ pub struct Page<T> { pub items: Vec<T>, pub total: u32, pub page: u32, pub page_
 - 纯数据 crate：无 I/O、无时钟（时间戳由调用方传入）。
 - 外部前提：`uuid`、`blake3`、`serde`、`serde_json`、`proptest`（开发依赖）crate，版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`。
 
-**验收标准**
-- [R10] 属性测试（proptest）：随机 AST 经 `canonical_json` → `from_canonical_json` → 再序列化逐字节一致；规范哈希稳定；AST-01～15 向量逐字节一致；含 U+0001 与换行的字符串分别规范化为 `\u0001` 与 `\n`；`pack_cache_revision_id` 与 `card_id`（空 template_id）写入 ids-v1.json 向量。
-- [R19] 属性测试：每个节点的 NodePath 唯一，`node_at` 能取回该节点；`check_limits` 对 4096 节点、深度 64、64×16 矩阵通过，对 4097 节点、深度 65、65×1 矩阵、33×32（1056 元素）矩阵分别返回对应 `LimitViolation` 且不 panic。
-- [R11] 单元测试：修改一条修订生成新 RevisionId，父修订字段指向旧修订，旧修订内容不变。
-
-- [R19] AST-01～15的规范JSON逐条通过共享schema；AST08的对象分支通过，tuple分支拒绝；multiple的1/3通过、0/4拒绝，空矩阵及空行拒绝；Number.text的+.5、100.保留合法原文；i64的精确上下界通过、上下界外1拒绝。矩形一致性、节点总数/深度和Piecewise缺省条件仅末支等跨字段语义仍由本卡校验。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-05_TEST.md](../Test/core/S1_CORE-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；`crates/fml-ast/`。
 

@@ -52,10 +52,7 @@ tools/ohos-smoke/
 - C 消费者在 x86_64 Linux 主机上以 AddressSanitizer 运行一次，验证头文件不依赖 Dart 专有约定；鸿蒙目标只编译不运行（CI 无鸿蒙设备）。
 - 外部前提：Rust 工具链安装 `aarch64-unknown-linux-ohos` 目标（Rust 二级目标）；OpenHarmony SDK native 工具链版本在 M0 随 ADR-V5-15 锁定并缓存到 CI 镜像；SDK 下载需开发者账号时由开发团队在 M0 办理。
 
-**验收标准**
-- [R02] CI 的 ohos-smoke 作业中 `build.sh --target ohos` 成功，`libfmlcore.so` 导出 `fmlcore.h` 声明的全部函数；人为引入一个只支持 Windows 的依赖后作业失败并阻止合并。
-- [R02] `build.sh --target host` 运行 `consumer.c` 五个步骤全部通过并打印 OK，AddressSanitizer 不报告泄漏或越界。
-- [R02] 删除 `OHOS_NDK_HOME` 后 `build.sh` 以退出码 2 结束并提示缺失的环境变量。
+**验收标准**：测试方案全文见 [Test/core/S7_CORE-44_TEST.md](../Test/core/S7_CORE-44_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 180 行；主包 `tools/ohos-smoke/`（约 160 行），附属：`.github/workflows/ci.yml` 中追加的 ohos-smoke 作业（约 20 行）。
 

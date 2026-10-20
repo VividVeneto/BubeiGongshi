@@ -26,17 +26,7 @@ P2材料控制：间接符号选择只连接类型/错误码/op身份，不用pr
 - 超量卡在附录 D 记录总字符数与分段数。外部前提：已锁定的 Node。
 - 现状：本工具已在 v5.3.2 的文档修订中先行入库（`tools/sadd/`），供文档修订与材料统计使用。它不因此视为本卡完成：本卡仍须按 README §8.5.1 通过整卡复核，并在 CORE-01 锁定 Node 版本后重跑验收；在此之前它的输出只作材料清单，不作就绪证据。测试按文件运行（`node --test tools/sadd/pack.test.mjs tools/sadd/current.test.mjs`），不要把目录作为 `--test` 参数。
 
-**验收标准**
-- [R18][R20] `node --test tools/sadd/pack.test.mjs` 遍历所有有效卡：目标与直接契约完整、分段不超过 80000 字符、拼回后无内容丢失；未知卡和越界路径失败。
-- [R20] 对 WIN-13、AND-12、WIN-14、WIN-08、CORE-50 输出裁剪清单、总量和分段数；超量明确报警，未创建文件明确列出。
-
-- [R18] 材料打包回归覆盖现存/缺失平台锁、依赖卡契约文件、仓库存在但材料缺少的本地类型（显示来源卡及warning）；统计ID集合即使行数相等也拒绝未知/遗漏/重复及非法等级，就绪只读当前状态列。
-
-- [R18] --check-budget对超80000的夹具返回1并保留报告；仅明标下游的引用不展开，混合未分类引用仍全文收录；ADR无关章节排除且列标题、相关章节保留全文。不得用普通字段名触发间接整闭包。
-
-- [R18] 真实材料对CORE-67的34份ready schema及types.schema.json、CORE-75的shared-writes.json均在 files 或 filteredFiles 中有记录，--file 可取回全文；无关 schema 只列名（大小与 SHA-256）、相关 schema 完整；manifest/shared-writes 过滤结果为合法 JSON 且条目与原文件逐字节一致；types 切片含内部引用闭包；旧 part-*.md 被清理；删除引用文件时列入missing；额外引用/$ref越界失败，所有分段拼接逐字节等于 material.md。
-
-- [R18] 间接依赖夹具：定义所需符号的 struct、impl、const、错误码表行、op 行及其传递定义被收录，只提及符号的说明块与无关定义不收录，mentionOnly 计数正确。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-57_TEST.md](../Test/S0/S0_CORE-57_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；主包 `tools/sadd/pack.mjs`（约220）与pack.test.mjs（约160）；current/stats/audit及其测试唯一归CORE-76（下游说明，非契约），本卡不重复实现。
 

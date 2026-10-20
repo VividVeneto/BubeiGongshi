@@ -93,12 +93,7 @@ app/windows/
 - Release 构建 MSVC 链接参数含 `/Brepro`，与 Rust 的路径重映射一起使 DLL 可复现。
 - 外部前提：Visual Studio 生成工具（MSVC）、Windows SDK、CMake、Inno Setup 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`；Rust 与 Flutter 以 CORE-01 的 `rust-toolchain.toml`、`app/.flutter-version` 为准。
 
-**验收标准**
-- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI版本；runtime Unsupported时按CORE-04显示固定未实现提示，不读取不存在快照）；启动日志列出全部 11 个端口当前为 unsupported。
-- [R18] 用 MAJOR+1 的核心库替换 `fmlcore.dll` 后启动，显示“核心版本不匹配，请重新安装”，不崩溃；删除 `fmlcore.dll` 后显示“核心组件加载失败，请重新安装”。
-- [R19] DLL 劫持测试：在当前工作目录与 `%PATH%` 首个目录放置同名 `fmlcore.dll` 后从其他目录启动，Process Monitor 显示只加载了 exe 同目录中的 DLL。
-- [R41] `app/lib/ui/` 中 `Platform.isWindows` 与平台判断零命中（CORE-41 规则）；Windows 专属 Dart 代码只在 `app/lib/platform/windows/`、`main_windows.dart` 与 `ports_windows.dart`。
-- [R23] 两次干净构建得到的 `fmlcore.dll` 哈希一致；`dumpbin /dependents` 显示其不依赖 `vcruntime140.dll`。
+**验收标准**：测试方案全文见 [Test/S0/S0_WIN-01_TEST.md](../Test/S0/S0_WIN-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行（CMake、runner 修改、入口与组装）；`app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart`（同属 `app/` 构建单元）。
 

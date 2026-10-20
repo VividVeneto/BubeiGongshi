@@ -83,14 +83,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/l
 - 组装：`installLibraryBatch` 追加到 CORE-36 `installers.dart` 的 `featureInstallers`；新增错误码 `LIB_BATCH_TOO_LARGE`、`LIB_BATCH_CANCELLED`（LIB_TAGS_LIMIT复用CORE-14） 先写入 `contracts/errors/registry.yaml`（CORE-02）。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 外部前提：只用 Flutter SDK 与已有 Rust 依赖；不新增第三方包。
 
-**验收标准**
-- [R11] Rust 单元测试：100 条测试库，`Query` 目标排除 3 条执行“加标签 期末” → `applied = 97`；其中已有 20 个标签的条目列入 `skipped`（`LIB_TAGS_LIMIT`）；已含该标签的条目计入 `unchanged`；每个有变化的条目恰好写入一条 outbox 记录。
-- [R11] Rust 单元测试：处理到第 50 条时置位取消 → 返回 `LIB_BATCH_CANCELLED` 且数据库与 outbox 无变化；目标展开为 10001 条时返回 `LIB_BATCH_TOO_LARGE`；`Trash` 后 `search` 不再返回这些条目，`trashed = true` 时返回。
-- [R11] Widget 测试（Fake CoreBinding 回放）：Fake分别invoke library.batch.toggle/extend.down/selectAll/clear及鼠标Ctrl/Shift单击的选中结果与选择规则一致；invoke trash后出现撤销提示条，invoke undo发出 `untrash` 且 ID 等于 `appliedIds`；invoke editTags打开编辑标签对话框；触控长按进入选择模式。
-- [R11] Widget 测试：未登记 `LibraryListDecorator` 时列表无复选框、上述语义命令不可用；筛选变化后选择被清空。
-- [R04] 集成测试（真实核心）：回收站页选中 5 条执行“恢复”，5 条回到公式库列表且修订历史不变。
-- [R11] 性能：10000条加一标签按CORE-01“库批量写入”行，期间交互与滚动另按“列表滚动”行；由AND-12/WIN-13在S7分别测量，不以滚动FPS代替事务耗时，本卡只验事务/取消语义。
-- [R42.b] Widget 测试：只点列表顶部“选择”按钮（不长按）即可进入选择模式；`touch` 下复选框点击区域 ≥ 48×48。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-54_TEST.md](../Test/core/S3_CORE-54_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 460 行；用例/状态目录 `app/lib/library/batch/`（选择模型、BatchVm、修饰器与安装点，约 200）；`app/lib/ui/library/batch/`（选择工具栏、复选框与编辑标签对话框，约 130）；附属 `crates/fml-store/src/library/batch.rs` 与 FFI 处理函数 `crates/fml-ffi/src/ops/library_batch.rs`（约 130）。
 

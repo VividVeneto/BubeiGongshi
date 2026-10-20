@@ -48,13 +48,7 @@ tools/release/                （命令行约定同 CORE-41 common.py：退出�
 - 发布检查清单包含：两端真机冒烟、隐私网络审计、制品无供应商 API Key 与调试路径（字符串扫描）、符号与 mapping 归档、许可清单完整、隐私政策与 SDK/域名清单更新。
 - 事故复盘的每个根因必须转为一条自动化测试或门禁。
 
-**验收标准**
-- [R03] 体积门禁：超过上限时发布流水线失败并输出体积构成。
-- [R23] 发布演练：从同一标签在干净环境构建两次，`repro_check.py` 报告 Rust 核心库与资源包哈希一致；SBOM 与许可清单生成；`bump_version.py` 后 Cargo.toml、pubspec.yaml、versionCode、Windows 应用版本资源与 Inno AppVersion 一致，启动器版本资源与 `launcher_protocol` 未被改动。
-- [R40] 制品扫描：APK、AAB、EXE、DLL、资源包中无供应商 API Key 样式字符串与测试密钥。
-- [R23] 回滚演练（S7 两平台主机集成测试与人工checklist，记录构建/设备/数据库断言与恢复证据；本卡脚本单测只验证版本和迁移集合，不把它当本机自动验收）：安装含新迁移的版本 N+1 并写入数据，再覆盖安装回滚版本 N+2（N 的代码 + N+1 的迁移），数据库正常打开且数据完整。
-
-- [R23] bump_version 1.2.3 r0→102030、1.2.3 r1→102031；y=100/r=10/非递增build/超过Android上限均拒绝且不改任何文件。
+**验收标准**：测试方案全文见 [Test/core/S7_CORE-42_TEST.md](../Test/core/S7_CORE-42_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`tools/release/`。
 

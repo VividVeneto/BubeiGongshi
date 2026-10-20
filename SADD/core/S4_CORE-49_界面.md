@@ -83,13 +83,7 @@ ReminderSelfCheck结果读取CORE-20 ReminderCheckItem.state：ok显示正常，
 - 自建书：离开页面时 `dirty` 为真弹出“保存 / 放弃”；章节树操作在内存完成，保存时一次提交整本书。
 - 外部前提：无新增第三方库。
 
-**验收标准**
-- [R04][R04.i] Widget 测试（Fake 核心）：预置 30 天 `StatsReport`，统计页显示连续天数、正确率、平均用时、章节完成率与积压；切到“周”后以 Dart `GranularityDto.week`（wire `"week"`）重新请求，跨度 ≤ 366 天。
-- [R04][R04.i] 热力图分档：学习量 0、5、20、45、80 分别落入 5 档颜色。
-- [R04][R04.i] 提醒：开启并选 21:30 后 `FakeNotificationScheduler` 记录 21:30 的提醒且 `device.reminder_time` 为 21:30；权限被拒时开关回到关闭、设置未写入。
-- [R04][R04.j] 自建书：新建 3 章（含一个二级章）、加入 20 个条目后保存，`study.books.create` 收到的章节树与条目一致；第 5 层章节被拒；删除书后条目仍在公式库。
-- [R04][R04.i] Widget 测试：登记返回两项（一项未通过且 `canFix`）的测试用 `ReminderSelfCheck` 时入口出现，点“去设置”调用 `openFix`；未登记时入口不出现。
-- [R42.f] Widget 测试：切换 5 套预设主题后掌握分布四色与热力图五档颜色不变，均等于 `FmlSemanticColors` 对应值。
+**验收标准**：测试方案全文见 [Test/core/S4_CORE-49_TEST.md](../Test/core/S4_CORE-49_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；用例/状态目录 `app/lib/study_stats/`；`app/lib/ui/study_stats/` 与 `app/lib/ui/books/`（同属 Flutter `app/` 构建单元）。
 

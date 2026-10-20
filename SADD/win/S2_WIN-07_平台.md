@@ -62,11 +62,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 - `freeBytes` 只读不删；空间不足由调用方按 CORE-15、CORE-32、CORE-50 的规则处理。
 - 外部前提：DPAPI 与 ACL API 随 Windows SDK 提供，不引入其他库。
 
-**验收标准**
-- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore` 契约套件（`integration_test/windows/storage_test.dart`）全部通过；`securityLevel` 返回 `dpapi`。
-- [R27] 把数据目录复制到另一 Windows 用户下运行，`unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`，应用提示且不崩溃；篡改包装结果任一字节同样抛该码。
-- [R27] `icacls "%LOCALAPPDATA%\BubeiGongshi"` 只列出当前用户与 SYSTEM，且无继承项。
-- [R27] 设置页显示“安全说明”区，包含上述各项说明。
+**验收标准**：测试方案全文见 [Test/win/S2_WIN-07_TEST.md](../Test/win/S2_WIN-07_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；`app/lib/platform/windows/storage/` 与 `app/windows/runner/keystore_channel.cpp`（同属 `app/` 构建单元）。
 

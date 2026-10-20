@@ -18,11 +18,7 @@ python tools/ci/maint_report.py --root . --out <maint.md> [--previous <maint.jso
 - 逐文件估算：聚合/阈值80、Dart近似70、LCOV与核心集合100、报告50、正反例160，合计460。
 - 外部前提：锁定Python、PyYAML/lizard；不读或上传公式内容。
 
-**验收标准**
-- [R18][R20] 注释/字符串/嵌套闭包/三元表达式夹具给固定期望复杂度，文件与Rust阈值反例返回1，Dart阈值只warning；PR有annotation、weekly有对比、两者均不发评论。
-- [R18] 相同输入重复运行结果字节一致；缺上周报告只标baseline，损坏配置失败2。
-
-- [R18][R20] LCOV夹具4/5=80%通过、3/5退出1；缺核心SF、空报告、缺参数、DA重复/负计数、LF/LH不符、越界路径退出2；集合外高覆盖文件不抬高比例，零分母拒绝；重跑稳定。领域源码集合为空必须pending，--release失败。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-71_TEST.md](../Test/S0/S0_CORE-71_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 460 行；主包 `tools/ci/maint_report.py`与`tools/ci/tests/test_maint.py`。
 
