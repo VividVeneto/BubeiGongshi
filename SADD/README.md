@@ -176,14 +176,14 @@ v5 的主要变化：
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | 自动 | CORE-11、CORE-48 |
 | R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | 自动 | CORE-01、CORE-04、CORE-56、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、CORE-67、CORE-69、CORE-70、CORE-71、CORE-73、CORE-74、AND-01、WIN-01 |
 | R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-37、CORE-47、CORE-52、CORE-41、CORE-43、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、WIN-01、WIN-03、WIN-08、WIN-14 |
-| R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-41、CORE-57、CORE-69、CORE-70、CORE-71、WIN-05 |
+| R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-41、CORE-57、CORE-69、CORE-70、CORE-71、AND-11、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | 自动＋内容（M-CONTENT） | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | 自动 | CORE-01、CORE-29 |
 | R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | 自动 | CORE-01、CORE-22、CORE-41、CORE-42、CORE-74、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-13、WIN-16 |
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | 自动 | CORE-22、CORE-45、CORE-23、CORE-46、CORE-62、CORE-63、CORE-65 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | 自动 | CORE-23、CORE-24、CORE-46、CORE-27、CORE-47、CORE-63、CORE-65 |
-| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-50、CORE-51、CORE-41、CORE-62、CORE-69、AND-09、AND-08、WIN-03、WIN-10、WIN-09 |
-| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、AND-05、AND-06、AND-03、WIN-02、WIN-03、WIN-06、WIN-07、WIN-04、WIN-09、WIN-16 |
+| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-50、CORE-51、CORE-41、CORE-62、CORE-69、AND-09、AND-08、AND-11、WIN-03、WIN-10、WIN-09 |
+| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-04、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、AND-05、AND-06、AND-03、WIN-02、WIN-03、WIN-06、WIN-07、WIN-04、WIN-09、WIN-16 |
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-36、CORE-47、CORE-43、CORE-66、CORE-68 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | 自动＋模型（M-MODEL） | CORE-15、CORE-35、CORE-51 |
 | R30 | 端侧只需加载通用资源包 | 原文 | V1 | 两端共用 Rust 加载器、同一包格式与包 ID | 自动 | CORE-15、CORE-16、CORE-51、CORE-43、AND-09、WIN-10 |
@@ -196,7 +196,7 @@ v5 的主要变化：
 | R37 | 桌面端可用文件管理器选择照片 | 原文 | V1 | IFileOpenDialog、拖拽、剪贴板 | 自动＋真机（AND-12/WIN-13） | CORE-50、WIN-04、WIN-05 |
 | R38 | 安卓端可用文件管理器选择照片 | 原文 | V1 | SAF `ACTION_OPEN_DOCUMENT` + Photo Picker | 自动＋真机（AND-12/WIN-13） | AND-02、AND-03 |
 | R39 | 高中数学、高中物理内容属于现有需求 | 甲方确认 2026-10-10 | 阶段 | 两个高中内容包，教育阶段与范围标签 | 自动＋内容（M-CONTENT） | CORE-16、CORE-51 |
-| R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | 自动 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-50、CORE-42、CORE-43、CORE-62、CORE-72、AND-09、AND-11、WIN-10、WIN-12 |
+| R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | 自动 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-50、CORE-42、CORE-43、CORE-62、CORE-72、AND-09、WIN-10、WIN-12 |
 | R41 | Android 与 Windows 规范独立说明 | 甲方确认 2026-10-10 | V1 | 02、03 两份平台文档各自含构建、输入、存储、云识别、GC 与验收 | 自动＋真机（AND-12/WIN-13） | CORE-04、AND-01、AND-12、WIN-01、WIN-13 |
 | R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | 自动＋人工评审＋真机 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-49、CORE-54、CORE-55、CORE-58、CORE-59、CORE-60、CORE-63、CORE-64、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-14、WIN-15、WIN-13 |
 | R42.a | 以不背单词为灵感、简洁高效：只借鉴交互模式与信息组织（一屏一事、主操作醒目、首页即今日任务、反馈即时克制），视觉识别原创 | 甲方新增 2026-10-19 | V1 | CORE-55 设计原则；ADR-V5-24 | 自动＋人工评审＋真机 | CORE-36、CORE-39、CORE-58 |
