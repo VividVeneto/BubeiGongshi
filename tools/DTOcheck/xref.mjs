@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Report, ROOT, loadCards, closureOf, errorDefs, typeDefs, isErrorCode, readJson, printReport, argOf} from './lib.mjs';
+import {Report, ROOT, loadCards, closureOf, errorDefs, errorRefs, typeDefs, isErrorCode, readJson, printReport, argOf} from './lib.mjs';
 
 export const DEFAULT_BASELINE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'baseline', 'xref.json');
 const MULTI_HUMP = /^[A-Z][a-z0-9]+(?:[A-Z][A-Za-z0-9]*)+$/;
@@ -22,7 +22,7 @@ export function collectXref({sadd = path.join(ROOT, 'SADD'), root = ROOT} = {}) 
   const cards = loadCards(sadd);
   const eDefs = errorDefs(cards), tDefs = typeDefs(cards);
   const prefixes = new Set([...eDefs.keys()].map(c => c.split('_')[0]));
-  const out = {dupErr: [], undefErr: new Set(), undefTypes: new Set(), multiDefTypes: [], crossDep: new Set(), undefOps: [], opsNoOwnerMention: [], policyOwner: [], policyUndefined: [], unregistered: []};
+  const out = {dupErr: [], undefErr: new Set(), undefTypes: new Set(), multiDefTypes: [], crossDep: new Set(), undefOps: [], opsNoOwnerMention: [], policyOwner: [], policyUndefined: [], unregistered: [], refOwner: []};
   for (const [code, list] of eDefs) if (list.length > 1) out.dupErr.push(`${code}: ${list.join(',')}`);
   for (const [t, list] of tDefs) if (list.length > 1) out.multiDefTypes.push(`${t}: ${list.join(',')}`);
 
@@ -41,6 +41,12 @@ export function collectXref({sadd = path.join(ROOT, 'SADD'), root = ROOT} = {}) 
       if (owners.includes(c.id)) continue;
       if (owners.length === 1 && !deps.has(owners[0])) out.crossDep.add(`${c.id} uses ${t} (${owners[0]})`);
     }
+  }
+
+  // 错误码引用表声明的“唯一定义卡”必须真是定义该码的卡
+  for (const ref of errorRefs(cards)) for (const code of ref.codes) {
+    const defs = eDefs.get(code);
+    if (defs && !ref.owners.some(o => defs.includes(o))) out.refOwner.push(`${ref.card} 引用 ${code} 声明唯一定义卡 ${ref.owners.join('/')}，实际定义在 ${defs.join(',')}`);
   }
 
   // 预分配登记（shared-writes.json 的 error 项）与卡片中的错误码定义必须一致
@@ -78,7 +84,7 @@ export function collectXref({sadd = path.join(ROOT, 'SADD'), root = ROOT} = {}) 
     }
   }
   for (const k of ['undefErr', 'undefTypes', 'crossDep']) out[k] = [...out[k]].sort();
-  out.policyOwner.sort(); out.policyUndefined.sort(); out.unregistered.sort(); out.dupErr.sort(); out.multiDefTypes.sort(); out.undefOps = [...new Set(out.undefOps)].sort(); out.opsNoOwnerMention.sort();
+  out.refOwner.sort(); out.policyOwner.sort(); out.policyUndefined.sort(); out.unregistered.sort(); out.dupErr.sort(); out.multiDefTypes.sort(); out.undefOps = [...new Set(out.undefOps)].sort(); out.opsNoOwnerMention.sort();
   return out;
 }
 
@@ -88,6 +94,7 @@ export function checkXref({sadd, root, baselinePath = null} = {}) {
   const r = new Report('xref');
   const x = collectXref({sadd, root});
   for (const d of x.dupErr) r.error('XREF-01', `错误码在多张卡的定义表中重复：${d}`);
+  for (const d of x.refOwner) r.error('XREF-05', `错误码引用表的唯一定义卡写错：${d}`);
   for (const d of x.policyOwner) r.error('XREF-02', `预分配登记与卡内定义的 owner 不一致：${d}`);
   for (const d of x.unregistered) r.error('XREF-03', `卡内定义的错误码未在 shared-writes.json 登记：${d}`);
   for (const d of x.policyUndefined) r.error('XREF-04', `shared-writes.json 登记了卡内没有定义的错误码：${d}`);
@@ -101,7 +108,7 @@ export function checkXref({sadd, root, baselinePath = null} = {}) {
       if (gone.length) r.warn(`XREF-GONE-${k}`, `${gone.length} 条基线项已消失，可用 --update-baseline 更新`);
     } else for (const i of x[k]) r.warn(`XREF-${k}`, i);
   }
-  r.stats = Object.fromEntries([['dupErr', x.dupErr.length], ['policyOwner', x.policyOwner.length], ['unregistered', x.unregistered.length], ['policyUndefined', x.policyUndefined.length], ...BASELINE_KEYS.map(k => [k, x[k].length])]);
+  r.stats = Object.fromEntries([['dupErr', x.dupErr.length], ['refOwner', x.refOwner.length], ['policyOwner', x.policyOwner.length], ['unregistered', x.unregistered.length], ['policyUndefined', x.policyUndefined.length], ...BASELINE_KEYS.map(k => [k, x[k].length])]);
   r.stats.baseline = base ? 'applied' : 'none';
   r.data = x;
   return r;

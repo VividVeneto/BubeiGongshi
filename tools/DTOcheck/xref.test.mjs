@@ -66,3 +66,16 @@ test('预分配登记：owner 不一致、缺登记、登记了无定义的错�
   const ids = checkXref({sadd: root + '/SADD', root}).errors.map(x => x.id).sort();
   assert.deepEqual(ids, ['XREF-02', 'XREF-03', 'XREF-04']);
 });
+
+test('错误码单元格允许“（HTTP 状态）”后缀；引用表声明的唯一定义卡必须是真定义卡', () => {
+  const root = fresh('| 错误码 | 级别 | 可重试 | 触发条件 |\n| --- | --- | --- | --- |\n| `DEMO_HTTP`（503） | error | 是 | x |');
+  assert.deepEqual(collectXref({sadd: root + '/SADD', root}).undefErr, []);
+  const ok = fresh('| 错误码 | 级别 | 可重试 | 触发条件 |\n| --- | --- | --- | --- |\n| `DEMO_HTTP`（503） | error | 是 | x |');
+  mutate(ok, CORE, '**接口契约**\n\n\n\n**实现约束**\n- 无\n\n**规模**：约 120', '**接口契约**\n\n| 错误码引用 | 唯一定义卡 | 本卡处理 |\n| --- | --- | --- |\n| `DEMO_HTTP` | CORE-05 | 透传 |\n\n**实现约束**\n- 无\n\n**规模**：约 120');
+  assert.deepEqual(collectXref({sadd: ok + '/SADD', root: ok}).refOwner, []);
+  mutate(ok, CORE, '| `DEMO_HTTP` | CORE-05 | 透传 |', '| `DEMO_HTTP` | CORE-01 | 透传 |');
+  const bad = collectXref({sadd: ok + '/SADD', root: ok}).refOwner;
+  assert.equal(bad.length, 1); assert.ok(bad[0].includes('DEMO_HTTP'));
+  mutate(ok, CORE, '| `DEMO_HTTP` | CORE-01 | 透传 |', '| `DEMO_HTTP` | CORE-01/05 | 透传 |');
+  assert.deepEqual(collectXref({sadd: ok + '/SADD', root: ok}).refOwner, []);
+});

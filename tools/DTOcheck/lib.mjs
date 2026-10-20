@@ -62,7 +62,7 @@ export function errorDefs(cards) {
       const cells = line.split('|').map(x => x.trim());
       if (/^错误码/.test(cells[1] ?? '')) { mode = /引用/.test(cells[1]) ? 'ref' : 'def'; continue; }
       if (mode !== 'def') continue;
-      const m = (cells[1] ?? '').match(/^`([A-Z][A-Z0-9_]*)`$/);
+      const m = (cells[1] ?? '').match(/^`([A-Z][A-Z0-9_]*)`(?:（\d+）)?$/);   // 允许“`CODE`（HTTP 状态）”写法
       if (m && isErrorCode(m[1])) {
         const list = defs.get(m[1]) ?? [];
         if (!list.includes(c.id)) list.push(c.id);
@@ -92,3 +92,28 @@ export function typeDefs(cards) {
 /** 从卡片中提取版本/规模文本等常用字段。 */
 export function scaleLine(body) { return body.match(/^\*\*规模\*\*[^\n]*/m)?.[0] ?? ''; }
 export function scaleNumber(body) { return Number(scaleLine(body).match(/约\s*(\d+)\s*行/)?.[1] ?? NaN); }
+
+/**
+ * 提取“错误码引用”表中的引用：每行 {card: 引用所在卡, codes: [...], owners: [被声明的唯一定义卡...]}。
+ * 带通配的写法（如 `IMG_*`）不展开；“CORE-33/34”展开为两张卡。
+ */
+export function errorRefs(cards) {
+  const refs = [];
+  for (const c of cards.values()) {
+    let mode = null;
+    for (const line of c.body.split('\n')) {
+      if (!line.startsWith('|')) { mode = null; continue; }
+      const cells = line.split('|').map(x => x.trim());
+      if (/^错误码/.test(cells[1] ?? '')) { mode = /引用/.test(cells[1]) ? 'ref' : 'def'; continue; }
+      if (mode !== 'ref' || /^-+$/.test(cells[1] ?? '')) continue;
+      const codes = [...(cells[1] ?? '').matchAll(/`([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`/g)].map(m => m[1]);
+      const owners = [];
+      for (const m of (cells[2] ?? '').matchAll(/(CORE|AND|WIN)-(\d+)((?:\/\d+)*)/g)) {
+        owners.push(`${m[1]}-${m[2]}`);
+        for (const extra of m[3].split('/').filter(Boolean)) owners.push(`${m[1]}-${extra}`);
+      }
+      if (codes.length && owners.length) refs.push({card: c.id, codes, owners});
+    }
+  }
+  return refs;
+}
