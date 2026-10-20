@@ -15,13 +15,12 @@
 
 ## 每次会话的材料（README §8.1）
 
-1. 目标模块卡全文（从 `### CORE-xx` / `### AND-xx` / `### WIN-xx` 标题到下一张卡标题之前）。
-2. 该卡依赖的全部模块卡（含间接依赖）的“接口契约”段。
-3. CORE-01、CORE-02 的“接口契约”段。
-4. 附正文引用的相关契约段、本卡 [Rxx] 在 README §5 的行、§6 影响模块卡含本卡或卡内引用的 Q 行、引用的 ADR 行与补充章节。
-5. 附将修改的 contracts/ 现有文件、锁定版本与已有实现，统计字符数（超过 80000 提示拆卡/分段，不省略）。
+1. 先运行 `node tools/sadd/pack.mjs <卡号> --file <将修改的已有实现>`（可重复 --file），读目标卡全文、完整直接依赖契约与 CORE-01/02；间接依赖按符号保守收集。
+2. 附正文引用的相关契约、本卡 [Rxx] 的 README §5 行、§6 影响本卡/正文引用的 Q 行、ADR 全行与补充章节。
+3. 附 contracts/ 现有文件、锁定版本与已有实现；未创建文件明确标出。以 report.json 记录字符数、保留来源与 warning。
+4. 超过 80000 字符按无损 part-N.md 分段全部读完，在附录D登记总量/分段及处理方式，不静默省略。需要新的符号或文件时重生成；工具 warning 不能替代语义复核。
 
-只实现本卡“范围/包含”中的内容，遵守“实现约束”；不修改依赖模块的接口，确需修改时停止并说明需要改哪张卡。
+只实现本卡“范围/包含”中的内容，遵守“实现约束”；不修改依赖模块的接口，确需修改时停止并留下 README §8.4 契约变更单，由所有者修订、同步消费者、重生成材料并在D复检后继续。
 
 ## 规则（README §8.4）
 
@@ -37,7 +36,7 @@
 2. 领域 crate 无 I/O（不访问网络、文件、时钟与平台 API），时间、随机数与文件内容由调用方传入。
 3. `fml-store` 可依赖领域 crate，反之不可。
 4. `fml-ffi` 是唯一允许出现 `extern "C"` 的 crate。
-5. Dart 分层：`app/lib/ui/<feature>/` 只放 Widget、绘制与路由视图，不 import `binding/`、`platform/` 或发起 HTTP；`app/lib/<feature>/` 放 ViewModel、用例、Controller、Worker 与 DTO，可持有 CoreBinding；`composition/` 构造与注入服务，平台实现只经端口调用；共享界面不得判断平台。
+5. Dart 分层：`app/lib/ui/<feature>/` 只放 Widget、绘制与路由视图，不 import `binding/`（仅 CORE-67 生成的纯数据 `binding/dto/*.g.dart` 可只读 import）、`platform/` 或发起 HTTP；`app/lib/<feature>/` 放 ViewModel、用例、Controller、Worker 与 DTO，可持有 CoreBinding；`composition/` 构造与注入服务，平台实现只经端口调用；共享界面不得判断平台。
 6. 平台层不得实现公式解析、量纲与单位换算、排版布局、FSRS 调度、同步合并、资源包验签。
 
 ## 提交约定（CORE-01）

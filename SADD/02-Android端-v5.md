@@ -487,7 +487,7 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 
 **接口契约**
 
-实现的端口与接缝（CORE-04，逐字摘录；`ImportedImage`、`PickedDocument` 定义见 CORE-04，`FormulaClipboardPayload` 见 CORE-52）：
+实现的端口与接缝（CORE-04，逐字摘录；`ImportedImage`、`PickedDocument` 定义见 CORE-04）：
 
 ```dart
 abstract interface class ImagePicker {
