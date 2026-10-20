@@ -98,5 +98,5 @@ Store读写/加密批次编排和上述接收Store的API归fml-store::sync；纯
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-26_TEST.md](../Test/core/S6_CORE-26_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 440 行；主包 `crates/fml-store/src/sync/`（push70、pull100、payload60、merge编排50、测试60），附属 `crates/fml-sync/src/merge.rs`（纯合并60）、`crates/fml-ffi/src/ops/sync.rs`（40）。不含CORE-66的snapshot/rotation；实作超估算必须先拆卡；批次持久化已拆出为 CORE-78。
+**规模**：约 380 行；主包 `crates/fml-store/src/sync/`（push70、pull100、payload60、merge编排50；不含测试约60），附属 `crates/fml-sync/src/merge.rs`（纯合并60）、`crates/fml-ffi/src/ops/sync.rs`（40）。不含CORE-66的snapshot/rotation；实作超估算必须先拆卡；批次持久化已拆出为 CORE-78。
 

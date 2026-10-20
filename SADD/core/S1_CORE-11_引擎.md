@@ -70,5 +70,5 @@ rank_candidates不返回业务Err；对每个候选新建 `Subst`，按 CORE-77 
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-11_TEST.md](../Test/core/S1_CORE-11_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 480 行；主包 `crates/fml-derive/`（算法/纯查询300、测试120），附属 `crates/fml-ffi/src/ops/derive.rs`（快照注入及三个op60）；不含计划持久化。
+**规模**：约 360 行；主包 `crates/fml-derive/`（算法/纯查询300；不含测试约120），附属 `crates/fml-ffi/src/ops/derive.rs`（快照注入及三个op60）；不含计划持久化。
 

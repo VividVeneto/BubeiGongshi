@@ -118,5 +118,5 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-23_TEST.md](../Test/core/S2_CORE-23_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 485 行；主包 `crates/fml-store/src/account/`（注册表/包装密文150、状态/打开关闭130、设置40、OsRandom25、测试140），附属 `crates/fml-ffi/src/ops/account.rs`（40）；迁移SQL为数据。
+**规模**：约 385 行；主包 `crates/fml-store/src/account/`（注册表/包装密文150、状态/打开关闭130、设置40、OsRandom25；不含测试约140），附属 `crates/fml-ffi/src/ops/account.rs`（40）；迁移SQL为数据。
 

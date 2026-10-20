@@ -46,4 +46,4 @@ pub fn invalidate_all(tx: &mut WriteTx, reason: InvalidateReason) -> Result<u32 
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-78_TEST.md](../Test/core/S6_CORE-78_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 210 行；`crates/fml-store/src/sync/batch.rs`（实现约 120 行，测试约 90 行；表迁移为数据不计，同属 fml-store 构建单元）。
+**规模**：约 120 行；`crates/fml-store/src/sync/batch.rs`（不含测试约 90 行；表迁移为数据不计，同属 fml-store 构建单元）。

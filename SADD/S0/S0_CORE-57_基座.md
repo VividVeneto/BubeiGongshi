@@ -28,5 +28,5 @@ P2材料控制：间接符号选择只连接类型/错误码/op身份，不用pr
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-57_TEST.md](../Test/S0/S0_CORE-57_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `tools/sadd/pack.mjs`（约220）与pack.test.mjs（约160）；current/stats/audit及其测试唯一归CORE-76（下游说明，非契约），本卡不重复实现。
+**规模**：约 420 行；主包 `tools/sadd/pack.mjs`（约420，按 2026-10-21 实际行数；不含测试 pack.test.mjs 约280）；current/stats/audit及其测试唯一归CORE-76（下游说明，非契约），本卡不重复实现。
 

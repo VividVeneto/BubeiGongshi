@@ -20,5 +20,5 @@ DEP-1/3/4查Cargo依赖图及extern C声明；DEP-2查领域crate中的std::fs/n
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-69_TEST.md](../Test/S0/S0_CORE-69_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 430 行；主包 `tools/ci/`（含120行测试）。
+**规模**：约 310 行；主包 `tools/ci/`（不含测试约120行）。
 

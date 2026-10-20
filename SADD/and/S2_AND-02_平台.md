@@ -76,5 +76,5 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-02_TEST.md](../Test/and/S2_AND-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `app/`（清单/permissions/handler约175），附属 `tools/ci/check_android_manifest.py`（解析/规则110、正反fixtures测试95）；窗口属性同表唯一。
+**规模**：约 285 行；主包 `app/`（清单/permissions/handler约175），附属 `tools/ci/check_android_manifest.py`（解析/规则110；不含正反fixtures测试约95）；窗口属性同表唯一。
 

@@ -58,5 +58,5 @@ pub fn unify(a: &DimExpr, b: &DimExpr, s: &mut Subst) -> Result<(), UnifyError>;
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-77_TEST.md](../Test/core/S1_CORE-77_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 400 行（实现 230、测试 170）；`crates/fml-type/src/dim.rs`（含 crate 骨架与测试，及必要的同构建单元接缝）。
+**规模**：约 230 行（不含测试约 170 行）；`crates/fml-type/src/dim.rs`（含 crate 骨架与测试，及必要的同构建单元接缝）。
 

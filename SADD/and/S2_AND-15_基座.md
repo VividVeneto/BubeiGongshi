@@ -26,4 +26,4 @@ Android路径为filesDir/host-fixture/<run_id>/{ready,probe}.json，主机am sta
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-15_TEST.md](../Test/and/S2_AND-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 470 行；主包tools/android/host_tests/（驱动120、场景/证据110、自测100），附属fixture_app/lib/main.dart与测试桥（100）、模板构建/CI（40）。
+**规模**：约 370 行；主包tools/android/host_tests/（驱动120、场景/证据110；不含自测约100），附属fixture_app/lib/main.dart与测试桥（100）、模板构建/CI（40）。

@@ -64,5 +64,5 @@ installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动�
 
 **验收标准**：测试方案全文见 [Test/win/S7_WIN-16_TEST.md](../Test/win/S7_WIN-16_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 310 行，文件/进程/管道适配约 110 行，CTest 故障夹具约 80 行；超过预算先再拆卡）。
+**规模**：约 420 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 310 行，文件/进程/管道适配约 110 行；不含 CTest 故障夹具约 80 行；超过预算先再拆卡）。
 

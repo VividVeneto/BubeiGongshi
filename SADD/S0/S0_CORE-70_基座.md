@@ -22,5 +22,5 @@ PR6现行等级/就绪证据核对调用CORE-76，本卡只检查发布验收清
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-70_TEST.md](../Test/S0/S0_CORE-70_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 440 行；主包 `tools/sadd/`（含100行测试），附属 `tools/ci/check_sadd.py`（20行转发）。
+**规模**：约 340 行；主包 `tools/sadd/`（不含测试约100行），附属 `tools/ci/check_sadd.py`（20行转发）。
 
