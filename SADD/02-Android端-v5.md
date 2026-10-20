@@ -31,6 +31,9 @@ graph TD
   C52["CORE-52 公式复制格式与富格式导出"]
   C55["CORE-55 界面设计系统与主题"]
   C42["CORE-42 发布流水线、版本矩阵与回滚"]
+  C58["CORE-58 设计组件、命令与外观入口"]
+  C59["CORE-59 公式编辑控制器与输入组件"]
+  C64["CORE-64 墨迹控制器与手写画布"]
   A01["AND-01 工程与构建"]
   A02["AND-02 权限与清单"]
   A05["AND-05 生命周期、进程恢复与运行时信息"]
@@ -62,6 +65,8 @@ graph TD
   A07 --> C04
   A07 --> C37
   A07 --> C40
+  A07 --> C59
+  A07 --> C64
   A09 --> C04
   A08 --> C04
   A08 --> C20
@@ -82,6 +87,7 @@ graph TD
   A13 --> A01
   A13 --> A02
   A13 --> A05
+  A13 --> C58
 ```
 
 ## 2. 建议实施顺序
@@ -106,12 +112,12 @@ graph TD
 | AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 420 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 250 |
 | AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
-| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40 | 220 |
+| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64 | 220 |
 | AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
 | AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04 | 260 |
 | AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
 | AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 490 |
-| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05 | 380 |
+| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58 | 380 |
 
 > AND-10（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载与管理并入 CORE-51，存储紧张时的识别历史清理并入 CORE-50（两端共用同一 Dart 实现）。编号不复用；理由见附录 D。
 
@@ -612,10 +618,10 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 **目标**：通过 CORE-37、CORE-40 预留的接缝，为 Android 提供手写输入策略（触控笔优先、防手掌误触、压力、橡皮擦）与软键盘上方的模板快捷栏。
 
 **范围**
-- 包含：`AndroidInkPolicy`（实现 CORE-40 `InkInputPolicy`）；`AndroidEditorBindings`（实现 CORE-37 `EditorPlatformBindings`，含软键盘快捷栏）；安装点 `installAndroidEditing` 及其在 `ports_android.dart` 中的登记行。
+- 包含：`AndroidInkPolicy`（实现 CORE-64 `InkInputPolicy`）；`AndroidEditorBindings`（实现 CORE-59 `EditorPlatformBindings`，含软键盘快捷栏）；安装点 `installAndroidEditing` 及其在 `ports_android.dart` 中的登记行。
 - 不包含：画布、笔画模型与撤销（CORE-40）；编辑器逻辑、模板与符号面板（CORE-37）；笔迹渲染为识别图（CORE-29 `render_ink`）；原生 `MotionEvent` 采集（不做，笔迹点来自 Flutter 指针事件）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64
 
 **接口契约**
 
@@ -959,7 +965,7 @@ app/integration_test/android/
 - 包含：CORE-55 接缝的 Android 实现（`AndroidInputModalitySource`、`AndroidHaptics`、`AndroidMotionScale`）；跟随 `AppearanceController.resolvedChanges` 的系统栏样式 `AndroidSystemBars`；安装点 `installAndroidInteraction` 及其在 `ports_android.dart` 中的登记行；MainActivity 窗口属性（屏幕方向、`configChanges`、可调整大小、软键盘模式、预测性返回）的唯一定义；启动主题、edge-to-edge 与 displayCutout 模式（`styles.xml`）；Kotlin 侧 `InteractionHandler.kt`（触感、动画缩放、窗口度量）；系统返回、内边距与屏幕方向的行为对照表及其真机验收。
 - 不包含：`DevicePrefStore`（使用 CORE-55 默认实现，见实现约束）；宽度分档、矮高度、密度、组件、动效时长与“减少动效”处理（CORE-55）；返回处理逻辑（CORE-36 路由与各页面 `PopScope`，本卡只给对照表并做真机验收）；生命周期与进程恢复（AND-05）；权限与清单审计脚本（AND-02，按本卡属性表审计）；相机界面的方向处理（AND-04）；软键盘快捷栏与触控笔策略（AND-07）；动态取色（ADR-V5-24 不做）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58
 
 **接口契约**
 
@@ -1108,3 +1114,4 @@ f. 屏幕方向与窗口变化
 - [R42.c] AND-12 在真机矩阵上测量 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，P95 在预算内。
 
 **规模**：约 380 行；`app/lib/platform/android/interaction/`（约 190 行）、`app/android/.../InteractionHandler.kt`（约 90 行）、`app/android/app/src/main/res/values*/styles.xml` 与清单中 MainActivity 属性（约 50 行）、`app/integration_test/android/interaction_test.dart`（约 50 行），同属 `app/` 构建单元。
+
