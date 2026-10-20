@@ -39,11 +39,7 @@ pub fn final_check(latex: &str, env: &SymbolEnv, units: &dyn UnitRegistry) -> Re
 - 无可靠置信度时 `confidence` 为 None，界面提示用户确认，不编造分数。
 - 不能解析的候选仍显示原文，供用户手工修改。
 
-**验收标准**
-- [R06] 后处理单元测试：Fake 后端返回 5 个候选（含非法 LaTeX、量纲错误、正确式），输出 ≤ 3 个，且查找模式下正确式排第一。
-- [R13] 量纲错误候选带诊断且保存时被 `final_check` 阻止。
-- [R04] 作答模式：返回 `m v^2`（漏 ½）时候选不被纠正为 ½mv²，交给判分后判错（与 CORE-18 GX-05 联测）。
-- [R07] 含脚本标签、超长输出与外链的返回被拒绝。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-31_TEST.md](../Test/core/S5_CORE-31_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；主包 `crates/fml-recognize/src/post.rs`；附属 `crates/fml-ffi/src/ops/recog_post.rs`（三个 op 的薄适配，约 40 行）。fml-recognize 不依赖 fml-ffi，对 CORE-56 的依赖只来自这个附属适配。
 

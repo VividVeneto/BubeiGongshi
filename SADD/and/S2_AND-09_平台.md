@@ -55,11 +55,7 @@ User-Agent使用FML/<AppVersion> Android；AppVersion唯一取发布构建--dart
 - 后台不保持连接、不使用前台服务或 WorkManager；应用退到后台时进行中的请求由调用方决定是否取消。
 - 外部前提：不引入 HTTP 插件或 OkHttp；Kotlin 侧只有代理查询一个方法。
 
-**验收标准**
-- [R01] CORE-04 `HttpTransport` 契约套件在真机上对本实现通过（测试服务器由 `integration_test/android/http_server.dart` 在主机启动，证书为测试 CA，测试构建临时信任）。
-- [R30] 续传：服务器发送一半后断开 → 抛 `NET_OFFLINE`，`saveTo` 保留已收字节；以 `rangeStart` 重发收到 206 后文件哈希与源一致；服务器忽略 Range 返回 200 时文件被截断重写且哈希一致。
-- [R26] 经CORE-28包装后http/Cookie在守卫被拒且底层未收到请求；自签名证书服务器返回 `NET_TLS`。
-- [R40] 服务器延迟 40 s 响应、`timeout` 30 s 时抛 `NET_TIMEOUT`；请求进行中调用 `cancel()` 后 1 s 内抛 `FfiCancelled` 且服务器观察到连接关闭。
+**验收标准**：测试方案全文见 [Test/and/S2_AND-09_TEST.md](../Test/and/S2_AND-09_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 260 行；`app/lib/platform/android/net/` 与 `app/android/.../NetBridge.kt`（同属 `app/` 构建单元）。
 

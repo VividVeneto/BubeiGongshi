@@ -24,10 +24,6 @@ Windows ready/probe在--host-root/<run_id>/，主机仅读取该已解析绝对�
 - 外部前提：Python与pywinauto/comtypes精确版本由WIN-01锁入app/windows/toolchain.versions及平台requirements；M0验证UIA与锁定Flutter的可访问性树。甲方提供1809/11交互桌面、双DPI及笔设备，缺失仍pending。
 - 主包tools/windows/host_tests/，参数数组启动；路径校验后仅清理专用fixture根，不碰其他进程与用户目录。
 
-**验收标准**
-- [R19][R37] window/restart/dialog/tray fixture四场景输出pass和完整证据；错误automation_id/超时失败，Session0/锁屏输出pending/3，未知case退出2。
-- [R19] 终止目标fixture后主机重启验证状态；同名其他进程不受影响；取消保留日志并恢复测试偏好。
-
-- [R19] 构建fixture后由artifact定位exe/校验哈希，启动/重启boot握手成功；旧run/错误case/PID/截断JSON拒绝；生产目标无fixture参数，未知exe或缺artifact退出2。
+**验收标准**：测试方案全文见 [Test/win/S2_WIN-17_TEST.md](../Test/win/S2_WIN-17_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 460 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100、自测100），附属fixture_app/lib/main.dart（90）、模板构建/CI（40）。

@@ -117,14 +117,7 @@ expected_generation 只用于引擎快照消费op（CORE-56五op及CORE-11三个
 - 外部前提：Dart `ffigen` 包（版本按 ADR-V5-15 锁入 `pubspec.lock`）；Android NDK 与 MSVC 工具链见 AND-01、WIN-01。
 - 选型：C ABI + dart:ffi 单一导出面，不另引入第二套绑定导出，使未来鸿蒙 NAPI 复用同一头文件（附录 A ADR-V5-02）。
 
-**验收标准**
-- [R01] 契约测试（`crates/fml-ffi/tests/abi.rs` 与 `app/test/binding_test.dart`）：同一组 fixtures 在 Android 与 Windows 上得到逐字节相同的输出。
-- [R19] 故障注入：过期句柄、重复释放、空指针、超限 DTO、未知 op、未知 DTO 主版本、op 内 panic 均返回上表约定的返回码与错误码，进程不崩溃；第 65 个并发长任务返回 `-6`。
-- [R01] 取消测试：提交长任务后立即 `fml_cancel`，回调至多触发一次，`fml_cancel` 返回0后该 job 的任务资源归零；已投递回调经 Dart 消费后未释放缓冲区归零；Store 句柄按 close 单独计数。
-- [R02] `contracts/include/fmlcore.h` 能被纯 C 程序编译链接（由 CORE-44 执行）。
-- [R19] dispose 测试（`app/test/binding_test.dart`）：有 3 个活跃 job 时 dispose 后新 call/submit 被拒绝、3 个 job 均收到 cancel；首次 `fml_register_completion(NULL, NULL)` 返回 -6 时绑定继续处理事件循环、不阻塞 isolate，迟到结果仍被释放，计数归零后注销成功并关闭 listener；非主 isolate 的绑定 dispose 不注销全局 listener。
-
-- [R27][R19] A/B两个档案并发写同名fixture只改变各自库；缺handle返回AUTH_NO_PROFILE，A视图传B的profile_id返回FFI_BAD_ARG，关闭A后旧worker请求返回FFI_STALE_HANDLE且B不变；close等在途租约排空并清零敏感副本。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-03_TEST.md](../Test/S0/S0_CORE-03_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 490 行；主包 `crates/fml-ffi/`（约 330 行），附属：跨语言另一侧 `app/lib/binding/`（约 150 行）与 `contracts/include/fmlcore.h`（约 10 行声明；ffigen 生成物不计手写行）。业务 schema/生成器归 CORE-67，本卡不接手。
 

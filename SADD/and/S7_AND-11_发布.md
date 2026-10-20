@@ -47,11 +47,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 - R8 规则保留 Flutter 引擎与各 MethodChannel 处理类；JNI 不需要保留规则（核心库经 `dart:ffi` 加载，不经 JNI）。
 - 外部前提：Android SDK build-tools（`apksigner`、`zipalign`，版本 ≥ 35 以支持 `-P 16`）、`bundletool`、NDK 的 `llvm-readelf`；版本写入 `app/android/toolchain.versions`（ADR-V5-15）。
 
-**验收标准**
-- [R01] 在 CI 发布作业中 `build_release.sh` → `check_artifacts.py` → `archive_symbols.sh` 全部退出 0；用 bundletool 从 AAB 生成的设备 APK 与官网 APK 在同一真机上运行 AND-01 冒烟（显示 ABI 版本）结果一致。
-- [R01] 用另一证书签名的 APK 放入 dist 时 `check_artifacts.py` 退出 1 并指出证书不符；去掉 16 KB 对齐的 .so 时退出 1。
-- [R23] `dist/` 中存在 `fml-<版本>-android-symbols.zip`，其中含 mapping.txt 与 Dart 符号；`collect_artifacts.py` 的清单列出 AAB、APK 与符号包的哈希。
-- [R26][R20] 对本卡产出运行 CORE-42 `scan_secrets.py` 退出 0；缺少签名环境变量时 `build_release.sh` 退出 2 且不产出未签名制品。
+**验收标准**：测试方案全文见 [Test/and/S7_AND-11_TEST.md](../Test/and/S7_AND-11_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 260 行；主包 `tools/release/android/`（约 220 行），附属：`app/android/app/build.gradle.kts` release 段与 `proguard-rules.pro`（约 40 行）。
 

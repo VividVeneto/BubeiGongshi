@@ -61,10 +61,7 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03；读取快�
 - 绑定不改 AST 结构；切换方案只改显示，规范 AST 哈希与 SymbolId 不变。
 - 常数集带版本；界面显示所用值、来源与版本；中间计算不修约。
 
-**验收标准**
-- [R09] 方案切换测试：tan/tg、arctan/arctg、ln/lg/log_a、A*、D(X)/Var(X)、C_n^k、EX²、ν 与 n 在两方案间切换，显示随方案变化，规范哈希与 SymbolId 不变。
-- [R13] 歧义测试：同一方案内同字形多义报 `NOTATION_AMBIGUOUS`；`y = log x` 报 `NOTATION_LOG_BASE` 且状态为 Unresolved（DX-16）。
-- [R12] 常数测试：同一常数同时存在 given、textbook、exact 时取 given；切换常数集后结果记录所用来源与版本。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-07_TEST.md](../Test/core/S1_CORE-07_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 400 行（不含方案数据）；`crates/fml-notation/`。
 

@@ -23,13 +23,7 @@ error_codes为该op可返回的业务错误及成功diagnostics代码并集，�
 - 生成器只负责格式，不推测领域默认值；oneOf为密封变体，enum固定字符串，int64映射Dart int、decimal/uint64/int128/positive-int128映射String、base64映射Uint8List；类型名冲突失败。
 - 共享 DTO 放生成目录；ui可import纯数据生成文件，不得持CoreBinding。schema变更走README8.4契约变更流程。
 
-**验收标准**
-- [R18][R19] fixtures覆盖对象、可选、enum、oneOf、数组、公共$ref；Rust/Dart读同一fixture字段一致；两次生成字节相同；删字段/破坏$ref/手改生成文件均使--check失败。
-- [R19] x-sensitive路径出现于日志模板的反例失败；有效业务op缺schema或例子时门禁失败，pending显式报告。
-
-- [R18][R19] --required-stage S2核对S0～S2每个op的owner/mode/scope/字段/$ref与examples均ready，删除任一schema/例子或制造外部$ref失败；后期pending清单独立输出且不伪造通过。递归AST、外部标记枚举、typed AST有非空成功及未知变体/整数越界反例。
-
-- [R19] manifest反例：derive/units漏业务码、engine.export漏PARSE_UNICODE_NOT_EXPORTABLE、calc.evaluate漏EVAL_DOMAIN、store.open漏STORE_BUSY、create_registered漏AUTH_PROFILE_EXISTS均使镜像核对失败；错误码未注册或重复归属失败；core.log_init不得混入网络守卫错误。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-67_TEST.md](../Test/S0/S0_CORE-67_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；主包 `tools/ci/gen_dto.py`（图解析/校验140、类型生成130、序列化90、测试120），附属 `contracts/dto/` schema与向量（数据不计代码）。递归/枚举超此估算时先拆卡，不能删校验子集。
 

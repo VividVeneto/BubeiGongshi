@@ -27,8 +27,7 @@ wire: version=2/kind=event；UUID小写带连字符；nonce标准base64解码24�
 - 只依赖serde/uuid及纯校验，不访问时钟、文件、网络或Store。
 - server与端侧同用本crate；未知entity_type隔离策略归调用方。
 
-**验收标准**
-- [R28] 两侧读同一向量，规范序列化字节相同（`to_canonical_json` 与向量中的规范字节逐字节一致，且全部字符串字段为不需转义的 ASCII）；非法base64/nonce长度/哈希/整数越界拒绝；不因UUID为v5拒绝。
+**验收标准**：测试方案全文见 [Test/core/S6_CORE-68_TEST.md](../Test/core/S6_CORE-68_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 120 行；`crates/fml-sync-proto/`，附属 `contracts/vectors/envelope-v2.json`。
 

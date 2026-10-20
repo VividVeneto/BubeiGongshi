@@ -93,14 +93,7 @@ account_key读取接缝归本卡：load_account_keys(store)在同一只读快照
 - 本卡不发网络请求；联网协调（注册或登录、上传与下载包装记录、首次同步）由 CORE-46 完成并做端到端测试。
 - 外部前提：`uuid` crate（v5 特性）随 CORE-13 锁定。
 
-**验收标准**
-- [R25] 故障注入：在每两个步骤之间杀进程，重启后 `resume_on_start` + `advance` 继续，最终状态一致；LocalCommitted 之前任一步失败或 `abandon` 后游客数据完整可用且可继续写入。
-- [R28] LocalCommitted 后 `sync_outbox` 含全部用户公式、修订与复习事件各一次；`account_key_wrap` 只含恢复码 / 同步密语包装记录；outbox 与 `KeyOutput` 中没有 DbKey 与识别历史。
-- [R26] 升级开始前游客期间无任何上传（Fake `HttpTransport` 审计）。
-- [R28] T-GUESTMERGE：游客并入本机已有账户档案，预置内容派生条目去重、事件不重复、用户公式重复时出现提示、构造的随机 ID 冲突被重映射且引用完整。
-- [R28] CORE-05 的 pack_item_id/card_id 对固定输入产生固定 UUID（黄金值写入测试），不同字段边界（如 `"ab","c"` 与 `"a","bc"`）结果不同。
-
-- [R28] 档案提交前/后、注册表投影前/后、registry_pending 清除前分别崩溃并重开：最终档案/注册表一致、首次 outbox 各一次，无已提交数据丢失；平台密钥不可用、档案未打开或ProfileSession无效时业务路由不开放；密钥可用即自动打开，不弹应用认证。
+**验收标准**：测试方案全文见 [Test/core/S6_CORE-24_TEST.md](../Test/core/S6_CORE-24_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；主包 `crates/fml-store/src/sync/`（`crates/fml-store/src/sync/upgrade.rs`，约 400 行），附属：领域表迁移 `crates/fml-store/migrations/0024_upgrade.sql` 与仓储（约 50 行，DDL 不计）。
 

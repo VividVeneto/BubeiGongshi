@@ -67,17 +67,7 @@ Photo Picker数量分支在返回结果后统一截断至maxCount并去重；即
 - `ImportedImage.expiresAt` 为创建后 1 h；到期或CORE-04 定义的批次结束时删除副本；应用启动时清空 `cacheDir/tmp-import/picker/`（初始化Future完成清理后才允许首次pick；不在构造时启动悬空异步删除，不触碰camera/clipboard目录）。
 - 只删除本应用创建的副本，绝不删除或修改相册与文件管理器中的原始文件；不向相册写入。
 
-**验收标准**
-- [R38] 手动：分别通过 Photo Picker 与 SAF 选择图片，均返回 `ImportedImage`；全程未出现存储权限请求。
-- [R38] 选择 11 张时只返回 10 个；CORE-04 定义的批次结束后 `cacheDir/tmp-import/picker/` 为空。
-- [R31] 选择一张 25 MiB 的图片：`byteLength` 正确，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE`，未产生副本；在 API 28+ 选择 HEIC 照片得到 `image/jpeg`。
-- [R36] 导入并完成识别后，原始相册图片的哈希与修改时间不变。
-- [R27] `saveAs` 经 SAF 保存 50 MiB 流后文件哈希与源一致；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 文件时抛 `PLATFORM_FILE_TYPE_MISMATCH`。
-- [R01] CORE-04 的 `ImagePicker`、`FileExporter`、`DocumentPicker` 契约套件在真机通过（选择器步骤用 UI Automator 驱动）。
-
-- [R38] 相机已有有效批次时初始化picker及连续两次pick，只删除picker旧批次；首次pick必须等待启动清理，返回文件仍可读。
-
-- [R38] 主机/假ActivityResult分别以max=1、2、10验证单选/多选分支；SAF返回11张仅复制前10张，取消返回[]。真机选择器由AND-15框架（下游说明，非契约）在S7集中执行。
+**验收标准**：测试方案全文见 [Test/and/S5_AND-03_TEST.md](../Test/and/S5_AND-03_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 360 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`（同属 `app/` 构建单元），附属：`tools/ci/check_android_manifest.py` 白名单一行。
 

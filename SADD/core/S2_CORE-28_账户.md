@@ -115,13 +115,7 @@ core.log_init目标目录不可写或日志文件创建失败复用CORE-04 PLATF
 - 复现包只由用户手动生成，预览确认后经 `FileExporter` 保存；不自动上传；`syntheticSource = false` 时预览页显著提示“包含原始公式”。
 - 外部前提：无新增第三方依赖。
 
-**验收标准**
-- [R26] 游客网络审计：S2 用假账户状态、固定合成请求完成首次启动、录入与导出；学习和拍照端到端由后续功能卡追加，`FakeHttpTransport` 只记录到 `packHost` 的请求，且请求无 `Authorization` 头、请求体不含用户内容。
-- [R26] 放行表逐格测试：每种账户状态 × 每种用途 × 有无令牌，结果与上表一致。
-- [R40] 缺少或伪造授权令牌的 `cloudRecognition` 请求被拦截并报 `PRIVACY_CONSENT_MISSING`，内层传输未收到请求。
-- [R19] 复现包包含 op、trace_id、错误码与诊断、版本、平台、源码、AST、DisplayList 与日志尾部；对含路径、令牌、恢复码、邮箱的输入生成后，脱敏扫描结果为零命中。
-- [R20] 日志扫描：注入已知公式文本、路径与令牌后运行全流程，`app.log` 与 `core.log` 零命中；`LogCode` 传入非错误码文本时断言失败。
-- [R27] `diagnostics` 用途在所有状态下返回 `PRIVACY_DIAGNOSTICS_DISABLED`；日志文件位于 `StoreArea.logs` 且轮转后不超过 15 MiB。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-28_TEST.md](../Test/core/S2_CORE-28_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；主包 `app/`（`app/lib/privacy/` 与测试，约 400 行）；附属：`crates/fml-error/src/log.rs`（约 80 行，Rust 侧日志写入与 `core.log_init`）。
 

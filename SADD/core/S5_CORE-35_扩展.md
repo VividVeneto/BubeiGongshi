@@ -80,14 +80,7 @@ pub fn decode_tokens(ids: &[i64], vocab: &[String]) -> Result<String, FmlError>;
 - 性能按 CORE-01 预算表“本地模型识别”“本地模型首次加载”两行验收；`benchmark` 字段只作说明，以本卡验收的实测为准。
 - 外部前提：运行时二选一（ONNX Runtime 的 Rust 绑定 `ort`，或 MNN 的 C API 自写绑定）及其版本，M0 定案（ADR-V5-13（待定））；可用的公开模型与许可见附录 B、附录 C；在模型就绪前，本卡全部单测与集成测试用 `FakeEngine` 与 `tests/fixtures/model-fake/` 假模型包完成。
 
-**验收标准**
-- [R06] 编码验收：断网安装 tests/fixtures/model-fake/（项目自有固定输入与 token，无第三方权重）后，固定样本经 FakeEngine 给出预期候选，完整验证注册、预处理、解码、卸载与错误映射。真实 ≥200 条样本及 ExpRate ±2 个百分点移到附录 C M-MODEL，不作为本卡编码完成条件。
-- [R06] 用 `FakeEngine`：`preprocess` 输出形状与数值与金标准一致；束搜索在 `eos` 与 `max_tokens` 处正确停止；取消后 100 ms 内返回 `RECOG_CANCELLED`。
-- [R29] 主安装包中不含模型权重（构建产物文件清单检查）；未安装模型时 `recog.backends` 不含本地后端，识别入口显示“不可用”。
-- [R03] FakeEngine 下验证 OOM 释放与时限分支；真实运行时性能由 M-MODEL 验收：识别时内存峰值不超过 `memory_budget_mb`；`unload_all` 后 5 s 内驻留内存回落到加载前 +20 MB 以内；单式识别与首次加载满足 CORE-01 预算表。
-- [R07] 本地后端与云端后端经同一 `Registry` 注册与替换；安装新版本模型包后重新 `register` 即替换旧后端。
-- [R29] `model.json` 缺许可字段、含未知字段或运行时不匹配时拒绝注册，错误码符合上表；不带 `fake-engine` feature 的构建注册 `runtime = "fake"` 的夹具包返回 `RECOG_MODEL_INCOMPATIBLE`。
-- [R29] 已注册并加载的模型包执行 `pack.uninstall` 成功，之后 `recog.backends` 不再列出该后端，版本目录已删除。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-35_TEST.md](../Test/core/S5_CORE-35_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`crates/fml-recognize-local/`（不含测试夹具）。
 

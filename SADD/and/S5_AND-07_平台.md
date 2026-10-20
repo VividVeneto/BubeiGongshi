@@ -68,13 +68,7 @@ void installAndroidEditing(CompositionContext ctx) {
 - 触控笔悬停与书写时由 CORE-55 `InputModalityScope` 按 `PointerDeviceKind.stylus` 切换输入方式，本卡不另行登记（AND-13 只登记 `touch`）；画布不设系统手势排除区，从屏幕左右边缘手势区起笔交给系统返回，已写笔画由 CORE-40 保留。
 - 墨迹上屏延迟预算见 CORE-01 预算表“手写墨迹上屏”（Android ≤ 50 ms），由 AND-12 测量。
 
-**验收标准**
-- [R06] 单元测试：`AndroidInkPolicy` 对 stylus 按下返回 true；`stylusSeen: true` 时 touch 返回 false；`radiusMajor: 30` 的 touch 返回 false；`pressure 0.5`（min 0、max 1）得 0.5；invertedStylus 判为橡皮擦。
-- [R06] 手动（触控笔平板）：用笔书写时手掌压在屏幕上不留笔迹；只用手指的手机上可正常书写；笔尾橡皮擦删除整笔。
-- [R08] Widget 测试：模拟 `viewInsets.bottom = 300` 时 `FormulaEditor` 下方出现快捷栏，点“分式”后源码为 `\frac{\fmlhole}{\fmlhole}`，点“下一空位”后选区移到第二个空位；`viewInsets.bottom = 0` 时无快捷栏。
-- [R08] 手动：软键盘弹出时公式区与快捷栏均可见，不被键盘遮挡。
-- [R42.b] Widget 测试：`TemplateBar` 每个按钮的命中区不小于 48×48 dp。
-- [R42.e] 手动：手机横屏弹出软键盘时公式区、快捷栏与主按钮均可见；横竖屏切换后快捷栏仍在键盘上方，已输入内容不丢。
+**验收标准**：测试方案全文见 [Test/and/S5_AND-07_TEST.md](../Test/and/S5_AND-07_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 220 行；`app/lib/platform/android/editing/`。
 

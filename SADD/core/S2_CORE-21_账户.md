@@ -116,15 +116,7 @@ pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &Secre
 - 密钥轮换：更换同步密语或重新生成恢复码只重新包装；设备吊销或怀疑泄露时生成新 AccountDataKey，`key_version` + 1，重新加密快照（由 CORE-26 执行）。所有包装记录带 `key_version` 与创建时间，旧包装在用户确认后过期。
 - 云识别供应商 API Key 与本 crate 无关，只在服务端（CORE-33）。
 
-**验收标准**
-- [R28] 测试向量：KV-01～KV-07 全部通过（KV-01 直接以标准示例的固定 nonce 调用 `seal`，逐字节匹配）；篡改密文、AAD 或 nonce 任一字节均返回 `CRYPTO_DECRYPT_FAILED`。
-- [R28] 随机端口：`FixedRandom` 给定字节时 `random_key`、`new_recovery_code`、`wrap` 结果确定；rng 返回错误或字节耗尽时四个函数（含 `seal_with_rng`）均返回 `CRYPTO_RNG_FAILED`，不 panic；`cargo tree -p fml-crypto` 不含 `getrandom`（可由依赖图检查脚本断言）。
-- [R28] 恢复码：生成 10 万个均为 27 字符且校验通过；对每个样本做全部单字符替换与相邻交换，均被校验字符发现（返回 `CRYPTO_RECOVERY_CODE_FORMAT`）。
-- [R28] T-UNLOCK（S7 真机 benchmark / 手动 checklist，由两平台性能卡收集设备、构建、原始30次样本与统计；不计本卡自动化完成条件）：同步密语解锁（默认 `KdfParams`）在 CORE-01 登记的 Android 基准设备上 P95 ≤ 2 s，内存峰值 ≤ 128 MiB（本卡安全约束，不属于 CORE-01 预算表的性能指标）；测量方法：release 构建 30 次。
-- [R19] 静态检查：工作区内除本 crate 外无代码直接依赖密码学库（`cargo deny` 规则或依赖图检查）。
-- [R27] 日志与崩溃报告扫描测试：注入已知密钥字节后，日志、复现包中零命中。
-
-- [R28] WR-01/02 字节往返；WR-NEG-01、乱序键/非最短/重复键/错误 salt 长度均拒绝；改变 kind/version 后 unwrap 标签校验失败。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-21_TEST.md](../Test/core/S2_CORE-21_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`crates/fml-crypto/`。
 

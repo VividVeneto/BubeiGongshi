@@ -48,12 +48,7 @@ pub trait EmailSender: Send + Sync {
 - Casdoor 不配置原生邮件 provider（或只指向本服务内部受认证适配器），其公开注册、找回与“发送验证码”入口关闭；所有验证码都经本卡发出。部署检查由 CORE-43 执行（附录 A §A.4.4）。
 - 外部前提：阿里云邮件推送与腾讯云 SES 的发信账号、已验证发信域名与 API 凭据由 CORE-43 提供（附录 A §A.4.3）；两家 HTTP API 的签名方式按各自官方文档实现，SDK 是否引入在 M0 定（ADR-V5-15）；单元测试只用 Fake，供应商实现以录制的请求样例做契约测试。
 
-**验收标准**
-- [R24] 邮箱验证码（集成测试 + `FakeEmailSender`）：正确验证码注册成功；过期（第 11 分钟，注入时钟）返回 `AUTH_EMAIL_CODE_EXPIRED`；第 5 次输错后正确码也被拒；已用过的验证码再次使用被拒；60 秒内重复获取返回 `AUTH_RATE_LIMITED`；同一邮箱第 11 次（当日）与同一 IP 第 21 次（每小时）获取被拒。
-- [R24] 已注册与未注册邮箱获取验证码的响应码与响应体一致；数据库与日志中查不到明文验证码与完整邮箱。
-- [R24] 主发信通道返回可重试错误时切到备用通道，用户只收到一封有效邮件；两个通道都失败返回 `AUTH_EMAIL_SEND_FAILED` 且不扣减限流次数。
-
-- [R24] Fake发信连续失败超过1h/5%及日发送≥免费额度80%时告警触发；email.*必填配置、真实域名SPF/DKIM/DMARC与账号额度由本卡checklist核实，CORE-43仅导出通用metrics。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-45_TEST.md](../Test/core/S2_CORE-45_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；主包 `server/`（`server/src/email/` 与 `server/src/auth/email_codes_route.rs`）。
 

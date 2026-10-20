@@ -60,18 +60,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 界面语言简体中文：使用 Inno Setup 非官方翻译 `ChineseSimplified.isl`（随许可证一并入库于 `installer/windows/`），自定义文本写在 `[CustomMessages]`。
 - 外部前提：Inno Setup 6.x 具体版本见 `app/windows/toolchain.versions` 的 `inno=`（WIN-01，ADR-V5-15）；AppId GUID 在 M0 生成后写入脚本且永不更改。
 
-**验收标准**
-- [R01] 在标准用户（非管理员）账户上安装，无 UAC 提示；开始菜单快捷方式启动应用；Windows 10 1709 上安装器拒绝运行。
-- [R27] 卸载选“保留本机数据”→ 重新安装后原数据可打开；选“同时删除本机数据”并确认 → `%LOCALAPPDATA%\BubeiGongshi\` 与 `HKCU\Software\BubeiGongshi` 不存在。
-- [R27] 点“取消卸载并打开应用导出备份”后应用启动，“应用和功能”中仍有本应用。
-- [R23] 已装 1.1.0 时运行 1.0.0 安装器被拒绝；经 WIN-16 `--install-after-exit` 以 `/UPDATE=1` 安装 1.2.0 后 `current.txt` 仍为 1.1.0、`pending.txt` 为 1.2.0、`app-1.2.0\` 存在；直接运行带 `/UPDATE=1` 的安装器只放置 `app-1.2.0\`，不产生控制文件。
-- [R03] 应用运行时启动卸载，提示先关闭应用（AppMutex 生效）。
-
-- [R23] 旧应用延迟 0/800/5000 ms 退出时自动更新均在进程句柄结束后启动 Inno；30 s 未退出则中止且 current/pending 不变；安装器非零退出不启动新版本。
-
-- [R23] 自动更新过程中固定启动器未被覆盖，安装器不因其 exe 文件占用失败；不兼容 launcher_protocol 的清单拒绝自动安装；手工安装 FileVersion 更高的启动器时替换，启动器运行中（Launcher mutex 存在）不替换。
-
-- [R23] 启动器处于 verifying 时手工运行安装器：--register-install 返回 1，提示稍后重试，current/pending/journal 不变。
+**验收标准**：测试方案全文见 [Test/win/S7_WIN-02_TEST.md](../Test/win/S7_WIN-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 300 行；`installer/windows/`（安装脚本与其中的 Code 段；翻译文件为第三方文件，不计入）。
 

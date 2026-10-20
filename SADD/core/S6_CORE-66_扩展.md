@@ -37,11 +37,7 @@ FFI唯一归属：sync.reencrypt、sync.snapshot_build、sync.snapshot_apply均�
 - 不发网络、不持有令牌；服务端上传/确认由 CORE-46（下游说明，非契约）。
 - 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
 
-**验收标准**
-- [R28] T-SNAPSHOT（M3 读路径）：`apply_snapshot` 后再应用其后的增量，结果与全量重放一致。
-- [R28] 轮换中断后重试不重复事件，旧记录仍可解密；快照分片缺失/篡改不能修改业务库。
-- [R28] 目录分片协议：用接近上限的 64 MiB 测试库 `build_snapshot` 得到 ≤ 256 个、每个 ≤ 4 MiB 的分片，FFI 请求与响应 JSON 均 < 64 KiB；缺一片、少一片、片序错乱、改一字节、清单哈希被改均报 `SYNC_SNAPSHOT_CORRUPT`，业务库字节与游标不变；构建中途取消后 `out_dir` 不存在；路径在暂存区之外、符号链接、非空 `out_dir` 报 `SYNC_PATH_INVALID`；`cleanup_snapshot_dirs` 只删除超龄的 `snapshot-*` 目录。
-- [R28] 轮换（`reencrypt_for_rotation`）使用 `FixedRandom` 时结果确定；rng 失败返回 `CRYPTO_RNG_FAILED` 且不入队部分条目；轮换提交在同一事务调 CORE-78 `invalidate_all(KeyRotated)`，使未 ACK 的 `push_batch` 作废，条目留在 outbox 按新密钥重建（与 CORE-26 的批次失效用例联测）。
+**验收标准**：测试方案全文见 [Test/core/S6_CORE-66_TEST.md](../Test/core/S6_CORE-66_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 400 行；主包 `crates/fml-store/src/sync/snapshot.rs`、`crates/fml-store/src/sync/rotation.rs`（含测试与必要的同构建单元接缝）；附属 `crates/fml-ffi/src/ops/sync_snapshot.rs`（三个 submit op 的薄适配，约 40 行）。
 

@@ -59,15 +59,7 @@ app/integration_test/android/
 - 测试不依赖网络（云识别与资源包下载不在本卡测量），飞行模式下可运行。
 - 外部前提：真机矩阵设备由甲方或开发团队提供（附录 D 记录到位情况）；`adb`、Flutter SDK 版本随 ADR-V5-15 锁定。
 
-**验收标准**
-- [R03] 4 GB 中端机上 `run_matrix.sh` 全部项 P95 达标并生成 `out/report.md`；人为把某预算改小 1 ms 时脚本退出 1 并标出该项。
-- [R31] `import_20_images_test.dart` 在 4 GB 机型上连续导入 20 张 1200 万像素 JPEG（经M-HOST主机驱动的AND-03正式选择器，两批各10张，禁止虚构测试注入路径）不 OOM，峰值内存增量在 CORE-01 预算内。
-- [R03] `energy_check.sh` 在 30 分钟脚本后退出 0（无长唤醒锁、无后台网络、无前台服务）。
-- [R08][R04] `process_restore_test.dart`：编辑公式草稿与学习会话进行中执行 `adb shell am kill <包名>`（模拟后台回收），重新打开后回到原页面，草稿内容与会话进度保留。
-- [R01] `consistency_test.dart` 输出与 WIN-13 的 Windows 输出逐字节一致（AST JSON、诊断码、NodePath）。
-- [R42.c] 手机与平板在竖屏、横屏下，“点击到可见反馈（按压态出现）”“作答到判定反馈（提交到判定条出现，含判分）”“转场与动效”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”P95 均在 CORE-01 预算内，`report.md` 按设备与方向分列。
-- [R42.e] `rotation_test.dart` 在手机与平板上竖→横、横→竖各 20 次，旋转前后编辑草稿文本与列表滚动偏移不变。
-- [R41] `report_template.md` 逐项列出 02 文档全部手动验收项，矩阵中每台设备填写完成后作为 Android 发布签字依据。
+**验收标准**：测试方案全文见 [Test/and/S7_AND-12_TEST.md](../Test/and/S7_AND-12_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 490 行；主包 `app/integration_test/android/`（约 370 行），附属：`tools/perf/android/`（约 120 行，脚本与模板）。
 

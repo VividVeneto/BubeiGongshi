@@ -62,13 +62,7 @@ installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动�
 - 备份/回滚只允许写文档指定目录，路径正规化拒绝重解析点逃逸；写者退出之前禁止复制与恢复。备份保留到 opened 后的 committed → idle 清理或恢复核验完成；committed 期间保留 app-<C>。
 - 首帧健康只表示壳与路由可呈现；opened 只表示档案打开（含迁移）成功；二者都不代表同步成功。后续同步、账户失败由对应模块报告，不自动回滚用户已打开的档案；整库恢复后由同步客户端按 ADR-V5-33 更换设备身份，本卡不改库内容。
 
-**验收标准**
-- [R23][R27] CTest 故障注入覆盖每次文件提交前后、复制中断、CreateProcess/PID 登记间隙与重启；最终为完整 C+原库或已确认 N，不出现混合数据库。
-- [R23] 验证期间连续双击 20 次只激活现有实例，不产生第二个 N、不回滚；已有实例运行时启动不进入 verifying；N 以返回码 10 退出时 journal 回到 pending、数据库未被恢复，与异常退出分别验证。
-- [R23][R27] N 崩溃/超时恢复后数据库哈希与快照一致；模拟 TerminateProcess 后句柄仍未结束不改库；5 次 rename 失败进入救援，保留 C 与唯一备份，不启动损坏库。
-- [R23][R27] 陈旧 healthy/opened、错误 nonce、错误版本均不能提交或清理；首帧完成后停在账户入口超过 120 s 不回滚；提交后档案始终未打开时备份与 app-C 保留，第 4 次启动出现恢复对话框，选择恢复后数据库哈希与快照一致；--minimized 同样通过。
-- [R23] 安装模式校验 PID 创建时间、armed 确认、30 s 超时与 Inno 非零退出（写 update-failed.txt 并提示，current/pending 不变）；只有旧进程结束后启动安装器；成功后不自动启动应用且 pending=N。
-- [R23] journal、manifest、healthy/opened、update-failed 与黄金文件逐字节一致；截断、含未知键或 schema=2 的 journal 进入救援且不改文件；其他进程抢先创建同名管道时客户端拒绝；verifying 期间 `--register-install` 返回 1 且文件不变。
+**验收标准**：测试方案全文见 [Test/win/S7_WIN-16_TEST.md](../Test/win/S7_WIN-16_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 500 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 310 行，文件/进程/管道适配约 110 行，CTest 故障夹具约 80 行；超过预算先再拆卡）。
 

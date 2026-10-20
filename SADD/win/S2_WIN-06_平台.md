@@ -79,13 +79,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 - 退出流程不做数据保存逻辑：学习进度由 CORE-39 每步写库，其他功能在 `paused/detached` 时自行收尾；800 ms 后无论如何退出。
 - 偏好键只允许设备级设置（窗口、托盘、自启、快捷键、外观 `appearance.v1`），由各 WIN 卡在本卡登记的 `WindowsPrefs` 上读写；卸载时整键删除（WIN-02）。
 
-**验收标准**
-- [R01] CORE-04 的 `RuntimeInfo`、`AppLifecycle` 契约套件在 Windows 10 1809 与 Windows 11 上通过；最小化发 `paused`、还原发 `resumed`，切换到其他窗口不发事件。
-- [R01] 手动：100%、150%、200% 缩放下公式与界面无模糊；在两块不同 DPI 的显示器间拖动窗口，公式即时按新 DPI 绘制。
-- [R01] 窗口位于副显示器时退出，断开副显示器后启动，窗口出现在主显示器可见区域。
-- [R27] 已运行时再次启动，任务管理器中只有一个 `bubeigongshi_app.exe`，已运行窗口被激活。
-- [R01] S2用Fake页面记录paused/detached及托盘destroy，退出在2 s内结束且顺序正确；学习会话恢复联测由WIN-13在S7执行。
-- [R01] 以 `--minimized` 启动（含开机自启）录屏逐帧无窗口闪现；模拟托盘创建失败时 2 s 内显示窗口；dwData 不符的 WM_COPYDATA 被忽略。
+**验收标准**：测试方案全文见 [Test/win/S2_WIN-06_TEST.md](../Test/win/S2_WIN-06_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`app/lib/platform/windows/window/` 与 `app/windows/runner/` 中的 `app/windows/runner/window_channel.cpp`、单实例与窗口位置代码（同属 `app/` 构建单元）。
 

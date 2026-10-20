@@ -116,14 +116,7 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 - `DbKey`、刷新令牌明文不落盘、不进日志；Dart 侧 `Uint8List` 用后填零。
 - 外部前提：rusqlite（随 CORE-13 锁定）；登录的系统浏览器回调用 AND-03 / WIN-04 提供的深链处理（`fml://auth/callback`）。
 
-**验收标准**
-- [R24] 状态机单元测试：Uninitialized 下调用任何业务 op 返回 `AUTH_NO_PROFILE`；RegisteredLocked 下返回 `AUTH_LOCKED`；首次启动只显示账户入口（与 CORE-36 集成测试）。
-- [R24] 注册流程（Fake `HttpTransport` 模拟 CORE-22/45）：获取验证码 → 注册（201 `{ account_id }`，响应中无授权码与令牌）→ 授权码 + PKCE 登录 → 换令牌 → 生成注册档案；刷新令牌在 `profile_blob` 中只以包装密文存在。
-- [R25] 游客创建后全部本地功能可用；同一系统用户第二次创建游客返回 `AUTH_GUEST_EXISTS`。
-- [R26] 游客状态网络白名单测试：Fake `HttpTransport` 记录全部请求，只有用户显式触发的资源包下载与更新检查，且请求不含用户内容（与 CORE-28 守卫联测）。
-- [R28] 注册后默认不开启同步，用户确认开启后才产生上传请求。
-- [R27] 登出后数据库已关闭、密钥已清零、`profile.logged_out` 为真，重启后停在账户入口；重新登录可打开；删除本地数据需二次确认后才执行；游客档案重启后自动打开。
-- [R28] OsRandom：对两次 `fill` 返回不同字节（概率检查）；注入平台失败的替身时返回 `CRYPTO_RNG_FAILED`，且不产生全零输出；`fml-crypto` 依赖图不含 `getrandom`（CORE-21 检查），`getrandom` 只出现在 `fml-store`。
+**验收标准**：测试方案全文见 [Test/core/S2_CORE-23_TEST.md](../Test/core/S2_CORE-23_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 485 行；主包 `crates/fml-store/src/account/`（注册表/包装密文150、状态/打开关闭130、设置40、OsRandom25、测试140），附属 `crates/fml-ffi/src/ops/account.rs`（40）；迁移SQL为数据。
 

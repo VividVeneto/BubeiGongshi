@@ -81,15 +81,7 @@ picker与drop分别拥有staging/tmp-import/picker/<batch_id>/和drop/<batch_id>
 - 拖放只在识别页订阅期间生效（CORE-50）；其他页面拖入时 `drops` 无订阅者，事件被丢弃且不复制文件。
 - 外部前提：HEIC/HEIF的WIC编解码能力取决于系统、HEIF图像扩展与可能需要的HEVC视频扩展（含授权）；1809/11组合须M0实测。任一解码步骤失败提示“当前系统无法解码，请检查HEIF/HEVC扩展或转换为JPEG”，不保证安装某一扩展必然成功。
 
-**验收标准**
-- [R37] 手动：经文件对话框选择 1 张与 10 张图片均进入裁剪页；选择 12 张时只导入前 10 张。
-- [R37] 拖入 3 张图片与 1 个 txt：识别页进入裁剪，提示跳过 1 个非图片文件；拖入含 200 张图片的文件夹先显示数量与大小确认框，取消后无副本产生。
-- [R31] 拖入 25 MiB 图片：不复制，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE` 并提示；导入 1200 万像素 JPEG 期间界面无超过 100 ms 的帧卡顿（DevTools 时间线）。
-- [R36] 导入并完成识别后 本次picker/drop批次目录为空，其他适配器仍有效，原文件哈希与修改时间不变；`WindowsCamera.capture()` 抛 `PLATFORM_UNSUPPORTED`。
-- [R27] 经保存对话框导出 50 MiB 备份：默认位于“文档”，文件哈希与源一致；取消返回 false 且无 `.fmlpart` 残留；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 抛 `PLATFORM_FILE_TYPE_MISMATCH`。
-- [R01] CORE-04 的 `ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController` 契约套件（对话框步骤以 显式FML_TEST_BUILD构建中的FML_TEST_DIALOG_RESULT编译期define注入预设路径；默认入口为空；正式发布CI拒绝FML_TEST_*，非测试构建发现非空define在运行时抛StateError）在 Windows 10 与 11 上通过。
-
-- [R19][R36] 交错启动picker清理与clipboard.readImage：初始化完成后首个pick才复制；活动clipboard批次在picker/drop构造、选择、结束及到期清理后仍可读；结束A只删A目录，原文件哈希/mtime不变。
+**验收标准**：测试方案全文见 [Test/win/S5_WIN-04_TEST.md](../Test/win/S5_WIN-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；`app/lib/platform/windows/picker/` 与 `app/windows/runner/file_dialog.cpp`（同属 `app/` 构建单元）。
 

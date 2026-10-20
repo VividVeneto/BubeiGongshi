@@ -64,11 +64,7 @@ securityLevel==software仅报告能力，不在Kotlin或端口弹界面；CORE-6
 - 不使用 MediaStore 与公共目录；恢复出厂或清除应用数据会丢失本机密钥，提示文案由 CORE-23/CORE-47 负责。
 - `freeBytes()` 取 `StatFs(noBackupFilesDir).availableBytes`；空间不足的处理由调用方按 CORE-15、CORE-32 的规则执行，本卡不删除任何文件。
 
-**验收标准**
-- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore` 契约套件在真机（`integration_test/android/storage_test.dart`）全部通过。
-- [R27] 手动：执行 `adb shell bmgr backupnow <package>` 与设备迁移后，新设备上不存在 `database/`、`recognition/`、`drafts/` 内容。
-- [R27] 在支持 StrongBox、仅 TEE、模拟器三类设备上 `securityLevel` 分别返回 `strongBox`、`tee`、`software`。
-- [R27] 篡改 `wrap` 结果中任一字节后 `unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`。
+**验收标准**：测试方案全文见 [Test/and/S2_AND-06_TEST.md](../Test/and/S2_AND-06_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`app/lib/platform/android/storage/` 与 `app/android/.../KeystoreBridge.kt`、两个备份规则 XML（同属 `app/` 构建单元）。
 

@@ -57,13 +57,7 @@ pub fn glyph_outline(font: &FontData, glyph_id: u16) -> Option<(u16 /* units_per
 - `Hole` 排为虚线方框（宽 0.6 em、高 0.8 em，`Path` 描边 1 px），登记 hit region，`semantic_text` 读作“空位”。
 - 选型：保留自研 Rust 布局与 DisplayList，不改为 Flutter 侧公式渲染库（附录 A ADR-V5-04，对 v4 ADR-002 的不采纳决定）。
 
-**验收标准**
-- [R01] 快照测试（insta）：语料中全部公式的 DisplayList JSON 在 Android 与 Windows 构建上逐字节一致；光栅化允许像素差异，但布局尺寸与 NodePath 一致。
-- [R08] hit-test：点击错误节点区域返回对应 NodePath；属性测试保证 DisplayList 中的 NodePath 与 AST 节点一一对应。
-- [R10] 缺字形返回 `TYPESET_MISSING_GLYPH`；超深嵌套返回 `TYPESET_DEPTH_EXCEEDED`；超长公式在 `max_width` 内换行。
-- [R08] 无障碍：`semantic_text` 对语料抽样 50 条与人工期望一致。
-- [R01] 多字体：在 `fonts` 末尾追加一个扩展字体后，不使用它的公式 DisplayList 逐字节不变；`font_ids` 只列实际引用的字体，`Glyph.font` 均为其合法下标。
-- [R03] 性能：单式排版满足 CORE-01 全局资源预算表“单式排版”行；测量方法：criterion 基准对语料中 ≤256 节点公式取 P95。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-12_TEST.md](../Test/core/S1_CORE-12_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 500 行（排版规则为主，字体解析使用开源 OpenType 解析库）；`crates/fml-typeset/`。
 

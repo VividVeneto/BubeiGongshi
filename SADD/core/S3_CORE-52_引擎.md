@@ -80,15 +80,7 @@ EngineContext.snapshot返回Result；FFI适配先用snapshot()?取得Arc再检�
 - 组装：`installFormulaCopy` 追加到 CORE-36 `installers.dart` 的 `featureInstallers`，紧随 `installEditorInput`；各页面的复制入口为 CORE-59 `FormulaCopyButton`，本卡不提供界面。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 外部前提：Rust 侧无新增第三方库（XML 转义自写，测试用 dev-dependency `roxmltree` 解析输出，版本按 ADR-V5-15 锁入 `Cargo.lock`）；Dart 侧只用 Flutter SDK。
 
-**验收标准**
-- [R08] 语料全部可解析公式导出的 MathML 能被 `roxmltree` 解析，元素只属于 MathML Core；`a\cdot b`、`a\times b`、`ab` 分别得到 ·、×、`&#x2062;`；`\frac{a}{b}` 与 `a/b` 分别得到 `mfrac` 与 `<mo>/</mo>`；附带的 annotation 等于原 LaTeX。
-- [R08] SVG 只含允许的元素；`<path>` 数等于 DisplayList 中 Glyph 与 Path 命令数之和，`<rect>` 数等于 Rule 数；`<title>` 为 LaTeX 原文。
-- [R08] 单元测试（登记假写入器）：五种选择得到的负载字段与“格式组合”表逐格一致；含 `\fmlhole` 时“自动”只含 text 与 latex，`formatsFor` 只含 auto 与 latex；未登记写入器时调用 `clipboard.writeText`。
-- [R10] 源码中的 `<`、`&`、`"` 在 MathML、SVG 与 HTML 中均被转义；HTML 与 SVG 输出中不出现 `<script`、`on*=` 属性与 `http:`/`https:` 链接。
-- [R20] 复制后检查日志目录，不含公式源码与导出内容。
-- [R03] 性能：按CORE-01预算表“公式复制”行，由AND-12/WIN-13在S7真机测量；本卡Fake只验证负载与时序，不计真机完成条件。
-
-- [R08][R19] 相同源码/方案但不同声明、格式或同ID新字体不能命中旧导出；一次复制的display/SVG/PNG代数一致，更新竞态按CORE-73重试，第二次竞态返回可重试错误且剪贴板未写旧图片。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-52_TEST.md](../Test/core/S3_CORE-52_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 450 行；主包 `crates/fml-export/`（约 260 行），附属：FFI 处理函数 `crates/fml-ffi/src/ops/export.rs`（约 30 行）与跨语言另一侧 `app/lib/export/`（约 160 行）。
 

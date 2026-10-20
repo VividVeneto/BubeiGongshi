@@ -1,0 +1,12 @@
+# CORE-40 测试方案
+
+> 来源卡：[S5_CORE-40_界面.md](../../core/S5_CORE-40_界面.md)（识别流程编排、手写画布与图片预处理界面）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（`S编号_卡号_TEST.md`）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。
+
+**验收标准**
+- [R06] 流程测试（Fake 核心与 Fake 端口）：`startInk` → `ChoosingBackend` → `run(local)` → `CandidatesReady`；会话转换序列为 Imported → Preview → Running → Succeeded。
+- [R31] `startImages` 3 张：逐张进入 `Cropping`，生成 3 个会话；第 2 张解码失败时跳过并在结束时汇总。
+- [R32] 修改增强选项后 `previewPath` 更新；在 `CloudPreviewing` 调用 `backToCrop` 后必须重新预览确认，旧 `ConsentToken` 未被使用。
+- [R33] `keep_last = 5` 时导入 8 张 `needsKeepLastWarning` 为 true；`keep_last = 0` 时为 false。
+- [R40] 注册用户云端路径（Fake `CloudRecognitionService`）：无同意 → `CloudConsentNeeded` → 同意 → `CloudPreviewing` → 确认 → `Running` → `CandidatesReady`；`cancel()` 后会话为 Cancelled；`CloudUnknown` 不触发重提。
+- [R26] 游客：`ChoosingBackend.backends` 不含 networked 后端，且未调用任何 `CloudRecognitionService` 方法。
+- [R04][R04.e] 手写作答：识别返回 `m v^2` 时编辑器显示原样转写；未点“确认作答”前不调用 `AnswerSink`；确认后提交 `answer_mode = handwriting`。

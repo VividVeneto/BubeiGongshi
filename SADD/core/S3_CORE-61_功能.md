@@ -31,8 +31,7 @@ library.draft_put body=FormulaDraft，ok={}；get body={draft_key}、ok={draft?:
 - FFI 处理函数归 fml-ffi，作为跨语言薄适配附属约30行；Rust 仓储不能依赖 Flutter。
 - 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
 
-**验收标准**
-- [R08] 同键覆盖、缺键Rust返回None、FFI ok为{}（不是null，也不是{draft:null}）、删除幂等；中途失败事务回滚，重开库读取源码、声明、标题一致。
+**验收标准**：测试方案全文见 [Test/core/S3_CORE-61_TEST.md](../Test/core/S3_CORE-61_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 160 行；主包 `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0061_formula_draft.sql`（含测试与必要的同构建单元接缝）；附属 `crates/fml-ffi/src/ops/library_draft.rs`（FFI 薄适配，约 30 行）。
 

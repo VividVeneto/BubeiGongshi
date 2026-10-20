@@ -68,13 +68,7 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - 旋转时不调用 `unbindAll`；只有 `onPause` 才释放相机。
 - 外部前提：CameraX（`camera-core`、`camera-camera2`、`camera-lifecycle`、`camera-view`）版本随 ADR-V5-15 锁定。
 
-**验收标准**
-- [R31] 手动：拍照 → 裁剪 → 增强 → 识别 → 校正 → 保存全流程通过；照片未出现在系统相册；照片 EXIF 中无 GPS 字段。
-- [R32] 取景时遮挡光线、晃动或倾斜手机，提示依次出现“光线太暗”“请对焦或保持稳定”“请把手机放平”。
-- [R03] 取景中按 Home 键，`adb shell dumpsys media.camera` 显示相机已释放；返回后可继续拍摄。
-- [R31] 拒绝相机权限后 `capture()` 抛 `PLATFORM_PERMISSION_DENIED`，应用不崩溃。
-- [R42.e] 单元测试：设备方向角 0°、44°、46°、135°、225°、315° 分别映射为 `ROTATION_0`、`ROTATION_0`、`ROTATION_270`、`ROTATION_180`、`ROTATION_90`、`ROTATION_0`。
-- [R42.e] 手动（手机与平板）：自动旋转开启时取景中旋转设备，预览不黑屏、不重新打开相机，快门位置随方向变化；系统锁定竖屏时横持拍摄，照片在裁剪页正立显示。
+**验收标准**：测试方案全文见 [Test/and/S5_AND-04_TEST.md](../Test/and/S5_AND-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 420 行；`app/lib/platform/android/camera/` 与 `app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt`（同属 `app/` 构建单元）。
 

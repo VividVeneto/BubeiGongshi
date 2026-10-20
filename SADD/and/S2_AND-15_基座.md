@@ -24,10 +24,6 @@ Android路径为filesDir/host-fixture/<run_id>/{ready,probe}.json，主机am sta
 - 外部前提：Python/SDK读CORE-01及AND-01锁文件；甲方提供OEM/无GMS/平板真机。锁定Flutter语义树、UiAutomator可见性须M0探针；不可见时使用明确的fixture结果文件，不猜坐标。
 - 主包tools/android/host_tests/，附属fixture仅假端口/无个人数据；所有命令用参数数组，不拼shell输入。
 
-**验收标准**
-- [R19][R38] fixture执行lifecycle/picker/notification/rotation均产出pass与必需证据；每场景故意错误控件/超时/取消得到fail，设备缺失得到pending/3。
-- [R19] 杀死fixture后主机仍存活并验证重启状态；trim/旋转后恢复原设置，两个并行serial输出不混写；未知case退出2。
-
-- [R19] build_fixture产物哈希/包名/组件可校验；新run与重启boot握手均成功；旧run/错误case/PID/截断JSON被拒绝；run-as不可用为pending，fixture未生成退出2；生产APK不能替代fixture。
+**验收标准**：测试方案全文见 [Test/and/S2_AND-15_TEST.md](../Test/and/S2_AND-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 470 行；主包tools/android/host_tests/（驱动120、场景/证据110、自测100），附属fixture_app/lib/main.dart与测试桥（100）、模板构建/CI（40）。

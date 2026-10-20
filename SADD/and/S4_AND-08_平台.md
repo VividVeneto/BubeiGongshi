@@ -76,14 +76,7 @@ selfCheck可确定布尔判定true→state=ok、false→warn；仅autostart与�
 - `RECEIVE_BOOT_COMPLETED` 权限与 Receiver 声明在 AND-02 清单白名单内登记（本卡提交时同步更新 `check_android_manifest.py` 白名单的这一项）。
 - 同一天最多显示一次提醒（`last_shown_day` 判断），时区变化后按新时区的本地时刻重排。
 
-**验收标准**
-- [R04][R04.i] 手动：设置 2 分钟后提醒并锁屏，通知在 15 分钟内出现，点击后进入学习页（`/study`）；应用被划掉后点击通知冷启动同样进入学习页。
-- [R04][R04.i] 手动：设置提醒后重启手机，次日同一时刻通知仍出现；修改系统时区后提醒按新时区本地时刻触发。
-- [R04][R04.i] 自检：在关闭通知、开启电池优化的设备上 `permission` 与 `battery_optimization` 为未通过，“去设置”分别打开对应系统页；无 GMS 的国产 ROM（至少两家）上“自启动”跳转到厂商页面或应用详情页。
-- [R26] 提醒全流程无网络请求（抓包为空）；通知正文审计只含数量。
-- [R01] CORE-04 `NotificationScheduler` 契约套件在真机通过（`taps()` 项以 UI Automator 点击通知驱动）。
-
-- [R04] 假通道autostart返回unknown时自检页问题数不增加、显示中性说明；permission拒绝返回warn并提供系统设置。
+**验收标准**：测试方案全文见 [Test/and/S4_AND-08_TEST.md](../Test/and/S4_AND-08_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；`app/lib/platform/android/notify/` 与 `app/android/.../` 下的 ReminderBridge、ReminderReceiver、RomSettings 三个 Kotlin 文件（同属 `app/` 构建单元）。
 

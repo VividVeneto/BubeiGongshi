@@ -19,9 +19,7 @@ route key允许根/及带:param的规范段；参数名以字母起始，参数�
 - Node标准库，版本读CORE-01；现版本仅作设计工具先行，锁文件缺失前不视为整卡就绪。
 - policy不分配整段AUTH等公共前缀，逐码owner以CORE-02标准定义表为依据；尚无标准表的历史码列未注册阻断，不靠猜测补登记。
 
-**验收标准**
-- [R18] 正例预分配通过；同kind重复key、未知owner、非法route/order、未知字段/版本退出1；坏JSON/文件缺失退出2。
-- [R18] actual只含已预分配子集通过且mode=implementation；相同key改owner/point或新增未分配项失败；不带actual时只输出design。
+**验收标准**：测试方案全文见 [Test/S0/S0_CORE-75_TEST.md](../Test/S0/S0_CORE-75_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 220 行；主包tools/sadd/（验证器100、正反例120），contracts/policies/shared-writes.json为数据。
 

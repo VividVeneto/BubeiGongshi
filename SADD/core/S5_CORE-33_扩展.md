@@ -91,18 +91,7 @@ recognition_job增加quota_state reserved/charged/refunded、reserved_units、qu
 
 配额规则落点包括request handler和worker同一数据库事务，不能用内存计数替代。
 
-**验收标准**
-- [R40] 集成测试（Fake 供应商）：提交 → 查询 → 成功；取消；供应商超时；供应商返回非法内容被过滤。
-- [R40] 幂等：同键同图重复提交只产生一次供应商调用；同键不同图返回 409；worker 在提交后崩溃 → UNKNOWN 且不重调。
-- [R26] 无令牌、游客或配额耗尽时不向供应商发起任何请求（Fake 供应商调用计数为 0）。
-- [R26][R40] 同意：无 consent、consent 属于其他账户、`policy_version` 过期或未满 14 周岁未经监护人确认时返回 `CLOUD_CONSENT_INVALID`，Fake 供应商调用计数为 0；提升 `recognition.policy_version` 后旧 consent 全部失效。
-- [R40] `image_hash` 与图片不符返回 `CLOUD_HASH_MISMATCH`；取消已提交任务时结果被丢弃且 `billed` 如实返回。
-- [R40] 清理：终态后 60 s 内临时图片不存在；日志中无图片字节与识别文本（扫描）。
-- [R07] 更换供应商只需新增 `VisionProvider` 实现与配置，客户端无改动。
-
-- [R40] 并发50个同键请求只预占一次；配额边界、未提交取消、已计费失败、未知跨日对账、重复回执逐项断言charged/reserved与spent_units，均不出现负值或重复扣减。
-
-- [R40] budget剩余恰为max_per_job时仅一个并发新job预占成功，再少1时全部拒绝；实际费用超预占据实记账并熔断，重复回执不重复收费，跨日回执结算原day。
+**验收标准**：测试方案全文见 [Test/core/S5_CORE-33_TEST.md](../Test/core/S5_CORE-33_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；主包 `server/src/recognition/`（路由80、worker100、配额/幂等100、provider边界60、迁移40、测试100）；运维解除脚本迁至CORE-72，不计入本卡。首个供应商适配另据实测规模复评，当前仅Fake，不以未选供应商估算为已交付。
 

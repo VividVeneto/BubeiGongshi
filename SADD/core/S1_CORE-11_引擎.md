@@ -68,12 +68,7 @@ rank_candidates不返回业务Err；对每个候选新建 `Subst`，按 CORE-77 
 - 派生修订默认只读；编辑前须“脱离溯源”，脱离后生成独立修订并标“已脱离”。被引用的母修订删除时，派生修订转为独立修订并记录提示（由 CORE-14 执行）。
 - 计算链要求相邻步量纲合一且 QuantityKind 匹配，单位自动换算，不生成修订；计划可保存与重放。
 
-**验收标准**
-- [R16] 代入集 `tests/fixtures/dimension/sx.yaml`：SX-01 a = dv/dt 代入 F = ma 生成 F = m·dv/dt；SX-03 约束变量自动换名；SX-04 方差代入切比雪夫不等式仍为 VerifiedPolymorphic；SX-06 多值反解两支。
-- [R17] 防误代：SX-02 力矩代入能量变量默认不列为候选，确认后可代入并留记录；SX-05 在 10000 条公式池中为 Count 槽位列候选时不出现 Probability、Correlation 量。
-- [R16] SX-07 编辑派生修订返回 `DERIVE_READ_ONLY`，脱离后生成独立修订；SX-08 深度 9、节点超 4096、互相依赖均被拒绝。
-- [R12] 计算链：两步计划重放结果与逐步手算一致，单位自动换算，修订数不变。
-- [R16] 跨修订合一：目标槽位类型 `L·D0` 与来源输出 `T·D0`（两份 typed 均自 D0 编号）按协议代入成功、不报 `DERIVE_TYPE_MISMATCH`；`rank_candidates` 对同样两份 typed 判定量纲可合一（MatchLevel 不低于 `DimensionUnified`）；候选输出量纲的合一触发 `Overflow` 时该候选被省略且其余候选照常排序。
+**验收标准**：测试方案全文见 [Test/core/S1_CORE-11_TEST.md](../Test/core/S1_CORE-11_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 480 行；主包 `crates/fml-derive/`（算法/纯查询300、测试120），附属 `crates/fml-ffi/src/ops/derive.rs`（快照注入及三个op60）；不含计划持久化。
 

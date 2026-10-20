@@ -74,17 +74,7 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 - 不使用权限类第三方插件，权限请求只经本卡通道；不使用 Google Play 服务专属能力（推送、Play Integrity、Google 登录），保证无 GMS 设备可用。
 - 审计脚本输入为 Gradle 生成的 `build/intermediates/merged_manifests/release/AndroidManifest.xml`；CI 在 release 构建后调用（CORE-41 的 `ci.yml` 追加一步）。
 
-**验收标准**
-- [R38] `check_android_manifest.py`：Release 构建的合并清单包含本阶段必需集合且属于上表白名单；S7 完整能力包包含全部启用项；在 `app/build.gradle.kts` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
-- [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-02 接口契约窗口属性表 声明时退出 0。
-- [R38] Widget 测试（假通道）：用户在用途说明中点“暂不”时不调用系统请求；`permanently_denied` 时返回 `permanentlyDenied` 且不再弹系统框。
-- [R31] 手动：拒绝相机权限后，“相册导入”与“文件导入”仍可用并能完成识别。
-- [R04] 手动：拒绝通知权限后学习功能不受影响，提醒设置页显示“提醒未开启”。
-- [R01] 在无 GMS 的国产手机上完成首次启动、游客模式、学习与识别冒烟。
-
-- [R38] 合并清单launchMode=singleTop正例通过；缺失/改standard的夹具审计失败并定位属性。
-
-- [R38] 审计fixtures逐一验证：删除本阶段必需INTERNET→失败；新增READ_MEDIA_IMAGES→失败；多个库合并同一正常权限→集合去重通过；signature自定义permission缺uses或反向缺声明、protectionLevel非signature→失败；CAMERA/POST_NOTIFICATIONS被maxSdkVersion截断到低于目标支持区间→失败；未引入可选AndroidX动态权限时不强加，成对引入时通过。报告包含manifest行、来源、期望/实际，不能只比较权限数量。
+**验收标准**：测试方案全文见 [Test/and/S2_AND-02_TEST.md](../Test/and/S2_AND-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 **规模**：约 380 行；主包 `app/`（清单/permissions/handler约175），附属 `tools/ci/check_android_manifest.py`（解析/规则110、正反fixtures测试95）；窗口属性同表唯一。
 
