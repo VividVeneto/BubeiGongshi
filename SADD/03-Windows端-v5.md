@@ -13,8 +13,8 @@ Windows 端的职责边界：
 - 只实现 CORE-04 §4 定义的平台端口，以及工程、安装、更新、窗口、键盘效率等 Windows 专属事务。
 - 不得在 C++/C# 或 Windows 专属 Dart 代码中实现公式解析、量纲与单位、排版、判分、FSRS、同步合并、资源包验签或识别后处理；这些只调用 Rust 核心（经 CORE-03 §4 的 `CoreBinding`）。
 - Windows 专属 Dart 代码放在 `app/lib/platform/windows/`，原生代码放在 `app/windows/`；共享界面 `app/lib/ui/` 中不得出现 `Platform.isWindows` 分支。
-- 桌面端的输入优先级与 Android 不同：LaTeX 源码 > 结构化模板 > 图片/手写导入（默认模式由 CORE-37 `defaultEditorMode` 按 `RuntimeInfo` 决定）。
-- 平台专属界面行为只经接缝接入：`PlatformPorts.platformInstallers`（CORE-04）登记 `EditorPlatformBindings`、`InkInputPolicy`（CORE-37、CORE-40）、`ShellKeyHandler`、`SettingsSections`、`AppNavigator`（CORE-36）、`FormulaClipboardWriter`（CORE-52）、`ImageDropSource`（CORE-50）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（CORE-55）；不修改共享界面文件。
+- 桌面端的输入优先级与 Android 不同：LaTeX 源码 > 结构化模板 > 图片/手写导入（默认模式由 CORE-59 `defaultEditorMode` 按 `RuntimeInfo` 决定）。
+- 平台专属界面行为只经接缝接入：`PlatformPorts.platformInstallers`（CORE-04）登记 `EditorPlatformBindings`（CORE-59）、`InkInputPolicy`（CORE-64）、`ShellKeyHandler`、`SettingsSections`、`AppNavigator`（CORE-36）、`FormulaClipboardWriter`（CORE-52）、`ImageDropSource`（CORE-50）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（CORE-55）；不修改共享界面文件。
 - 桌面交互（WIN-15）：键鼠优先，学习流程可全程用键盘完成；全应用只有 WIN-15 的 `WindowsKeyRouter` 登记为 `ShellKeyHandler`，WIN-08 的全局快捷键挂入其中；最小窗口 600 × 500 逻辑像素；视觉与交互遵守 CORE-55，Windows 不登记 `UiFeedbackSink`。
 
 ## 1. 模块依赖图
@@ -134,7 +134,7 @@ graph TD
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
 | S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本；运行时快照端口未实现时显示固定的“未实现”提示） |
-| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 与 Hello 包装可用；HTTPS 传输契约套件通过 |
+| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 包装与（Windows 11）Hello 应用锁验证门可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
 | S5 识别与云识别 | WIN-04、WIN-05、WIN-08、WIN-14 | 文件、拖放、剪贴板导入；多格式复制；快捷键（含自定义）与笔输入 |
 | S7 发布 | WIN-16、WIN-02、WIN-03、WIN-12、WIN-13 | 签名安装器、卸载、自更新与回滚演练；环境矩阵达标 |
@@ -547,7 +547,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 ```dart
 abstract interface class SecureKeyValueStore {
   Future<Uint8List> wrap(String alias, Uint8List secret);     // 返回包装后的密文；alias 匹配 ^[a-z0-9_.-]{1,64}$
-  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；需认证的别名认证失败或取消抛 PLATFORM_AUTH_FAILED
+  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；需认证的别名认证失败或取消抛 PLATFORM_AUTH_FAILED；系统认证当前不可用（未配置、被策略禁用或无设备）抛 PLATFORM_UNSUPPORTED
   Future<void> delete(String alias);                          // 别名不存在时静默成功
   Future<KeySecurityLevel> securityLevel(String alias);
 }
@@ -594,7 +594,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_AUTH_FAILED`、`PLATFORM_UNSUPPORTED`、`PLATFORM_IO`；本卡不新增错误码。
 
-`.applock` 的验证顺序由 Dart `WindowsKeyStore` 执行，通道 wrap/unwrap 只处理字节格式：`wrap(".applock")` 先查 hello.available，为 false 时抛 `PLATFORM_UNSUPPORTED`、不调用通道 wrap；`unwrap(".applock")` 先调 hello.verify，结果不是 verified（含 canceled、retriesExhausted、deviceBusy、deviceNotPresent、notConfiguredForUser、disabledByPolicy）时抛 `PLATFORM_AUTH_FAILED`、不调用通道 unwrap，也不删除密文。
+`.applock` 的验证顺序由 Dart `WindowsKeyStore` 执行，通道 wrap/unwrap 只处理字节格式：`wrap(".applock")` 先查 hello.available，为 false 时抛 `PLATFORM_UNSUPPORTED`、不调用通道 wrap；`unwrap(".applock")` 先调 hello.verify：canceled、retriesExhausted、deviceBusy 抛 `PLATFORM_AUTH_FAILED`；deviceNotPresent、notConfiguredForUser、disabledByPolicy 抛 `PLATFORM_UNSUPPORTED`（CORE-23 不计入退避，提示重新启用 Hello）；两种情况都不调用通道 unwrap，也不删除密文。
 
 `BiometricPrompt` 映射：`isAvailable()` = hello.available；`authenticate(reasonKey)` 以本地化文案调用 hello.verify，verified → true，deviceNotPresent / notConfiguredForUser / disabledByPolicy → 抛 `PLATFORM_UNSUPPORTED`，其余 → false。
 
@@ -604,7 +604,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 - 首次创建 `%LOCALAPPDATA%\BubeiGongshi\` 时设置受保护 DACL（`SetNamedSecurityInfoW` + `PROTECTED_DACL_SECURITY_INFORMATION`）：只授予当前用户与 SYSTEM 完全控制，不继承父目录权限。
 - 数据只写 `%LOCALAPPDATA%`（不漫游）；不写安装目录、桌面、下载与公共文档目录；`excludeFromSystemBackup` 对数据根内路径为空操作，对根外路径抛 `ArgumentError`。
 - DPAPI 不等于 Windows Hello，界面不得混称；“安全说明”区必须列出：更换 Windows 用户或重置系统后密钥不可恢复；同机管理员与已解锁会话中的恶意软件不在防护范围内；卸载、重装、重置前应导出备份或开启同步；第三方整盘备份软件可能复制密文目录；开启应用锁时另列一条“应用锁只在打开应用时要求 Windows Hello 验证，数据仍只受 DPAPI 保护”。Windows 10 上设置页不显示应用锁开关，“安全说明”区注明原因。
-- Windows Hello 被移除或被策略禁用后，`.applock` 解包持续返回 `PLATFORM_AUTH_FAILED`，密文不删除；用户在 Windows 设置中重新配置 Hello 后即可解锁。
+- Windows Hello 被移除或被策略禁用后，`.applock` 解包返回 `PLATFORM_UNSUPPORTED`（不计入退避），密文不删除；用户在 Windows 设置中重新配置 Hello 后即可解锁。
 - `freeBytes` 只读不删；空间不足由调用方按 CORE-15、CORE-32、CORE-50 的规则处理。
 - 外部前提：Windows Hello 需设备已设置 PIN 或生物识别；C++/WinRT 随 Windows SDK 提供，不引入其他库。M0 须在 Windows 11 22000 及最新版本实测：验证框归属 topHwnd 并显示在前台、`CheckAvailabilityAsync` 可从桌面进程调用。若实测 Windows 10 1809～22H2 也支持该 interop，另修 ADR-V5-37 与 Q41 后再放开，不得凭推测放开。
 
@@ -613,7 +613,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 - [R27] 把数据目录复制到另一 Windows 用户下运行，`unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`，应用提示且不崩溃；篡改包装结果任一字节同样抛该码。
 - [R27] `icacls "%LOCALAPPDATA%\BubeiGongshi"` 只列出当前用户与 SYSTEM，且无继承项。
 - [R25] Windows 11 上开启应用锁后 `unwrap(".applock")` 弹出归属主窗口的 Windows Hello，verified 后返回原密钥；取消时抛 `PLATFORM_AUTH_FAILED` 且包装结果仍可在下次 verified 后解开；`.db` 别名不受影响。
-- [R25] Dart 单元测试（Fake `fml/windows/keystore` 通道）：hello.available 返回 false 时 `isAvailable` 为 false、`wrap(".applock")` 抛 `PLATFORM_UNSUPPORTED` 且通道未收到 wrap；hello.verify 返回 notConfiguredForUser 时 `unwrap(".applock")` 抛 `PLATFORM_AUTH_FAILED` 且通道未收到 unwrap，改为 verified 后成功；通道对首字节 0x03 或 0x02 的 `.applock` 包装结果返回 `PLATFORM_KEY_UNAVAILABLE`；`securityLevel` 对两类别名都返回 `dpapi`；`authenticate` 在 disabledByPolicy 时抛 `PLATFORM_UNSUPPORTED`、canceled 时返回 false。
+- [R25] Dart 单元测试（Fake `fml/windows/keystore` 通道）：hello.available 返回 false 时 `isAvailable` 为 false、`wrap(".applock")` 抛 `PLATFORM_UNSUPPORTED` 且通道未收到 wrap；hello.verify 返回 canceled 时 `unwrap(".applock")` 抛 `PLATFORM_AUTH_FAILED`、返回 notConfiguredForUser 时抛 `PLATFORM_UNSUPPORTED`，两种情况通道都未收到 unwrap，改为 verified 后成功；通道对首字节 0x03 或 0x02 的 `.applock` 包装结果返回 `PLATFORM_KEY_UNAVAILABLE`；`securityLevel` 对两类别名都返回 `dpapi`；`authenticate` 在 disabledByPolicy 时抛 `PLATFORM_UNSUPPORTED`、canceled 时返回 false。
 - [R25] 手动 checklist（WIN-13 汇总）：Windows 10 22H2 上 `isAvailable` 为 false、设置页无应用锁开关；Windows 11 上验证框归属主窗口并显示在前台。
 - [R27] 设置页显示“安全说明”区，包含上述各项说明；Windows 11 开启应用锁后多出应用锁一条，Windows 10 不显示应用锁开关并注明原因。
 
@@ -715,7 +715,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 
 **范围**
 - 包含：`ClipboardAdapter` 端口实现（文本经 Flutter `Clipboard`，图片经原生通道）；`WindowsFormulaClipboard`（实现 CORE-52 `FormulaClipboardWriter`）与登记；CF_HTML 包装。
-- 不包含：各格式内容的生成（CORE-52）；复制按钮与“复制为”菜单（CORE-37）；粘贴文本的解析与安全预算（CORE-37 `paste` → CORE-06）；粘贴图片后的裁剪（CORE-40/50）。
+- 不包含：各格式内容的生成（CORE-52）；复制按钮与“复制为”菜单（CORE-59）；粘贴文本的解析与安全预算（CORE-59 粘贴 → CORE-06）；粘贴图片后的裁剪（CORE-40/50）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-52、WIN-04
 
@@ -784,7 +784,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 **验收标准**
 - [R37] 手动：用截图工具复制公式区域，在识别页按 Ctrl+V 进入裁剪预览；从画图复制（仅 CF_DIB）同样可粘贴。
-- [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_FORBIDDEN_COMMAND` 并定位（经 CORE-37 `paste`）。
+- [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_FORBIDDEN_COMMAND` 并定位（经 CORE-59 编辑控制器的粘贴处理）。
 - [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，九个注册/标准格式名（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在且内容逐字节等于输入；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
 - [R08] 手动矩阵（结果记入附录 D）：在公式详情点“复制公式”后，记事本得到 LaTeX 源码；Word 得到可编辑公式或清晰图片；画图得到图片；浏览器富文本框得到图片；“复制为 → Unicode 文本”在记事本得到 Unicode 文本。
 - [R20] 粘贴与复制后检查 `logs\`，不含剪贴板文本与公式源码。
@@ -794,17 +794,17 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 ### WIN-08 编辑器快捷键、输入法与笔输入
 
-**目标**：通过 CORE-36、CORE-37、CORE-40 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔、外接数位板、触屏的手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
+**目标**：通过 CORE-36、CORE-59、CORE-64 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔、外接数位板、触屏的手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
 
 **范围**
 - 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-59 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-64 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
-- 不包含：编辑器逻辑、撤销与模板（CORE-37）；画布与笔画模型（CORE-40）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
+- 不包含：编辑器逻辑、撤销与模板（CORE-59）；画布与笔画模型（CORE-64）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28
 
 **接口契约**
 
-实现的接缝（逐字摘录，定义见 CORE-36、CORE-37、CORE-40）：
+实现的接缝（逐字摘录，定义见 CORE-36、CORE-59、CORE-64）：
 
 ```dart
 abstract interface class EditorPlatformBindings {
@@ -860,7 +860,7 @@ void installWindowsEditing(CompositionContext ctx);
 // 不作为 ShellKeyHandler 登记；追加到 ports_windows.dart 的 platformInstallers（在 installWindowsInteraction 之后）
 ```
 
-默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-37）：
+默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-59）：
 
 | 范围 | 命令 | 默认按键 | 动作 | 依据 |
 | --- | --- | --- | --- | --- |
@@ -869,12 +869,12 @@ void installWindowsEditing(CompositionContext ctx);
 | 编辑器 | 分式 `fraction` | Ctrl+/ | `insertTemplate(TemplateId.fraction)` | Word 公式线性格式以“/”生成分式 |
 | 编辑器 | 根号 `sqrt` | Ctrl+R | `insertTemplate(TemplateId.sqrt)` | 本应用约定（Word 与常见 LaTeX 编辑器无默认键） |
 | 编辑器 | 圆括号 `parentheses` | Ctrl+9 | `insertTemplate(TemplateId.parentheses)` | 本应用约定（数字键 9 上为“(”） |
-| 编辑器 | 结构化 / LaTeX 切换 `toggleMode` | Ctrl+E | `setMode` 互换；返回 false 时不切换（CORE-37 规则） | 本应用约定 |
+| 编辑器 | 结构化 / LaTeX 切换 `toggleMode` | Ctrl+E | `setMode` 互换；返回 false 时不切换（CORE-59 规则） | 本应用约定 |
 | 全局 | 新建公式 `newFormula` | Alt+= | `nav.go('/library/new')` | Word 插入公式 |
 | 全局 | 在公式库中查找 `findInLibrary` | Ctrl+F | `nav.go('/library?search=1')`（CORE-38 聚焦搜索框） | Word 与 LaTeX 编辑器的查找 |
 | 全局 | 学习 `goStudy` / 公式库 `goLibrary` / 识别 `goRecognize` / 设置 `goSettings` | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 | `nav.go` 到 `/study`、`/library`、`/recognize`、`/settings`（与 CORE-36 导航顺序一致）；计算页从公式详情进入，无全局快捷键，Ctrl+5 默认不分配（可在 WIN-14 自定义给其他命令） | 本应用约定 |
 | 保留（固定） | 撤销 / 重做 | Ctrl+Z / Ctrl+Y、Ctrl+Shift+Z | `undo` / `redo`（Ctrl+Z、Ctrl+Y 由 `DefaultEditorBindings` 处理，Ctrl+Shift+Z 由本卡转为 `redo`） | Word；Overleaf 等 LaTeX 编辑器 |
-| 保留（固定） | 编辑与导航 | Ctrl+C/X/V/A、方向键、Home/End、Tab/Shift+Tab、Backspace/Delete、Enter、Esc | CORE-37 与文本框 | 系统与 Word 通用 |
+| 保留（固定） | 编辑与导航 | Ctrl+C/X/V/A、方向键、Home/End、Tab/Shift+Tab、Backspace/Delete、Enter、Esc | CORE-59 与文本框 | 系统与 Word 通用 |
 | 保留（固定） | LaTeX 补全与公式库批量操作 | 补全弹层的 ↑/↓、PageUp/PageDown、Tab、Enter、Esc；公式库列表的 Space、Shift+方向键、Ctrl+A、Delete、Ctrl+T、Shift+F10 | CORE-53、CORE-54（共享界面处理，本卡不拦截） | 补全按键同 TeXstudio、Overleaf；列表按键同 Windows 资源管理器；Ctrl+T 为本应用约定 |
 | 保留（不可分配） | 系统与输入法 | Alt+F4、Alt+Tab、含 Win 键的组合、Ctrl+Space、Shift+Space、Ctrl+.、Ctrl+Alt+任意键 | 不处理，交给系统 | 系统窗口操作；微软拼音等输入法的中英文、全半角与标点切换；Ctrl+Alt 与 AltGr 等价 |
 
@@ -918,7 +918,7 @@ WindowsInkPolicy：
 - 分发：两个处理器都先以 `KeyChord.fromEvent` 取组合键，再查 `holder.value`（键位修改即时生效，不需重启）。`WindowsShellKeys` 只查 `global` 范围，由 WIN-15 `WindowsKeyRouter` 先行调用（学习命令在其后查找，见 WIN-15 b）；`WindowsEditorBindings` 只查 `editor` 范围，未命中再交给 `DefaultEditorBindings`。`WindowsKeyRouter`（WIN-15，全应用唯一的 `ShellKeyHandler`）先于页面收到按键（CORE-36），WIN-14 保证同一组合键不会同时分配给两个命令（含 WIN-15 学习命令）。
 - `defaultKeymap` 是默认键位的唯一来源；WIN-14 的设置区、帮助列表与“恢复默认”都由它与 `KeymapHolder` 渲染，不另行维护表格。
 - 键位比较用逻辑键（`LogicalKeyboardKey`），使“=”“/”“9”等按键在中文与英文键盘布局下一致；小键盘的“/”“=”不等同于主键盘按键。
-- 不处理无 Ctrl 或 Alt 修饰的字符键（学习页不带修饰的选项与自评键由 WIN-15 处理）；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-37），本卡不另做 IME 处理；不注册系统级热键（`RegisterHotKey`）。
+- 不处理无 Ctrl 或 Alt 修饰的字符键（学习页不带修饰的选项与自评键由 WIN-15 处理）；输入法组合期间的按键由 `FormulaEditor` 的文本输入连接先行消费（CORE-59），本卡不另做 IME 处理；不注册系统级热键（`RegisterHotKey`）。
 - 手写延迟预算见 CORE-01 预算表“手写墨迹上屏”（Windows ≤ 40 ms），由 WIN-13 测量。
 - 外部前提：笔输入依赖 Flutter Windows 嵌入层把笔事件上报为 `PointerDeviceKind.stylus`（含压力、笔尾橡皮擦为 `invertedStylus`、侧键为 `kPrimaryStylusButton`、悬停为 `PointerHoverEvent`）；屏上笔与开启 Windows Ink 的外接数位板走同一路径。M0 在锁定的 Flutter 版本上用二合一设备与外接数位板各验证一次，若不满足则笔按鼠标处理、压力为 null，并记入附录 D。书写区外侧键点按是否上报为次键点击同在 M0 核实；不满足时笔用户经“更多”按钮（CORE-55 f 的可见按钮等价）打开同一菜单，并记入附录 D。
 - 不加载 Wintab32.dll、不调用 WinTab API；笔设备检测只用 `GetPointerDevices` 与文件是否存在。关闭系统长按右键与笔势只作用于本应用主窗口。
@@ -1121,6 +1121,7 @@ MethodChannel "fml/windows/interaction"（app/windows/runner/interaction_channel
   clientAreaAnimation → bool（SystemParametersInfo(SPI_GETCLIENTAREAANIMATION)；“设置 → 辅助功能 → 视觉效果 → 动画效果”）
   windowMetrics → {dpi, work_area_px: {w, h}, min_track_px: {w, h}, high_contrast: bool, slate: bool}
         只供集成测试与诊断，界面布局不读（布局只按 MediaQuery，CORE-55）
+  setScreenSecure {enabled: bool} → bool   CORE-04 ScreenSecurity 唯一线格式；SetWindowDisplayAffinity 成功为 true，失败或窗口不可用为 false
 EventChannel  "fml/windows/interaction/events"
   WM_SETTINGCHANGE（lParam 为 "UserInteractionMode" 或 "ConvertibleSlateMode"）→ {"interactionMode": "touch" | "pointer"}
   WM_SETTINGCHANGE（wParam 为 SPI_SETCLIENTAREAANIMATION）→ {"clientAreaAnimation": bool}
