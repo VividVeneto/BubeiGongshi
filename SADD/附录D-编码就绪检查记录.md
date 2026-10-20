@@ -390,6 +390,22 @@ v5.3.1（2026-10-20）：§D.10 第6列 A=2、B=54、C=11、未复核=16，就�
 | U-F23 | 中 | 已修订 | README8.4 | 变更单→owner/ADR→消费者→重生成材料→D复检→关闭回流。 |
 | U-F24 | 中 | 部分修订 | Q39/C8 | 发布许可证产品决策待确认；数据许可未获书面证据，分配角色与截止，不伪称完成。 |
 
+| 继承/core-b:N-03（payload 只有一个 lamport） | 中 | 已覆盖（v5.3.1） | CORE-26 | 纠正旧转交记录：CORE-26负载键5早已逐字段clocks，另有core-b已修订行。 |
+| 继承/core-b:B-F-05 残留（Q33） | — | 转P2 | README §6 Q33 | 等待Q33产品确认后更新SELECT向量，不能自行改变暂行默认。 |
+| 继承/core-b:错误码行内清单（CORE-19/20/21/45） | 低 | 已修订 | CORE-19、20、21 | 本轮按相应H/M组处理，仍须独立复核；不据此提升卡等级。 |
+| 继承/core-c:VC-N06 / C-F-05② | 低 | 已修订 | CORE-36 | 本轮按相应H/M组处理，仍须独立复核；不据此提升卡等级。 |
+| 继承/core-ui:N6 | 中 | 已修订 | 01 CORE-16 formula_items（distractors 元素 schema、reviewed_at 格式与毫秒换算） | 本轮按相应H/M组处理，仍须独立复核；不据此提升卡等级。 |
+| 继承/core-ui:N8（卡内引用 ADR） | 低 | 已修订 | 01 CORE-56 目标引用 ADR-V5-26 | 本轮按相应H/M组处理，仍须独立复核；不据此提升卡等级。 |
+| 继承/core-ui:N7 | 中 | 部分修订 | CORE-35；附录C（lead） | M-MODEL有负责角色/期限，实名及真实许可/模型未交付，保持外部门槛。 |
+| 继承/core-ui/附录D:CORE-55 单卡规模超限 | 中 | 已修订 | CORE-55 f、规模；01 §3 索引 | 本轮按相应H/M组处理，仍须独立复核；不据此提升卡等级。 |
+| 继承/core-ui:WIN-16 会话材料约 120k | 中 | 部分修订 | — | 已入库生成器及无损分段，但总量超8万仍需逐卡登记和全段阅读。 |
+| 继承/core-ui:U-F01 残留（闭包外引用） | 高 | 部分修订 | README §8.1 第3、6项；附录D §D.12 | 已入库生成器及无损分段，但总量超8万仍需逐卡登记和全段阅读。 |
+| 继承/core-ui:N12 | 高 | 部分修订 | README §8.1 第6项；附录D §D.10.1 | 已入库生成器及无损分段，但总量超8万仍需逐卡登记和全段阅读。 |
+
+| 继承/P0 U-F01 | 高 | 部分修订 | CORE-57/README8.1 | 材料生成器已做；总量仍超8万，D列全量分段处理，不声称体量已达标。 |
+| 继承/P0 B-F-05 Q33 | 高 | 转P2 | CORE-19/README Q33 | 按0A.3保留现行默认；待产品确认再改SELECT向量。 |
+| 继承/D10.1 S0整卡 | 系统性 | 待独立复核 | D12 | 本轮串行六范围执行，结论由复核人给出，未通过不授予就绪。 |
+
 ### D.9.1 检查与证据边界
 
 本轮只修订设计文档，没有Rust/Flutter产品代码可运行。`check.mjs`、`xref.mjs`、`mat.mjs`用相同解析器重跑修订前快照和当前文档；未修改基线或原评审。交叉引用是启发式，不能把计数当完整性证明。重复错误码的消费者改列“错误码引用/唯一定义卡/本卡处理”，唯一所有者仍保留标准定义表；op按已有契约逐行列出，未以删引用或修改解析器降低指标。
@@ -412,7 +428,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 
 ## D.10 当前逐卡汇总（2026-10-20，v5.3.1）
 
-本节覆盖83张有效卡，是唯一当前状态；D.4～8保留历史。第3列原等级已逐行摘自 core-a/core-b/core-c/plat-and/plat-win 的“逐卡评级”表，本表即基线内的记录，本地 temp/base 报告只作出处；第5列取 2026-10-20 五份 v5.3 复核报告（core-a、core-b、core-c、plat-win、core-ui）的修订后等级，多份报告评级不同时取较低者，`—`为本轮未被复核；第6列在第5列基础上按 §D.11 的 v5.3.1 修订记录调整：引起 C 的问题已全部修订闭合的升为 B，仍有P1残留的保持 C，该列由修订方给出、未经独立复核，不构成就绪结论；A/B/C保留原含义。修订后评级只表示本轮对P0相关条文的复核，非完整实现认证。`—`表示未做本轮语义复核，不能沿用历史“已修订”作为就绪结论。C卡必须先完成所列P1修订，其他卡开工前也须完成README §8.5整卡检查；暂行Q及外部门槛按README执行。
+本节覆盖96张有效卡，是唯一当前状态；D.4～8保留历史。第3列原等级已逐行摘自 core-a/core-b/core-c/plat-and/plat-win 的“逐卡评级”表，本表即基线内的记录，本地 temp/base 报告只作出处；第5列取 2026-10-20 五份 v5.3 复核报告（core-a、core-b、core-c、plat-win、core-ui）的修订后等级，多份报告评级不同时取较低者，`—`为本轮未被复核；第6列在第5列基础上按 §D.11 的 v5.3.1 修订记录调整：引起 C 的问题已全部修订闭合的升为 B，仍有P1残留的保持 C，该列由修订方给出、未经独立复核，不构成就绪结论；A/B/C保留原含义。修订后评级只表示本轮对P0相关条文的复核，非完整实现认证。`—`表示未做本轮语义复核，不能沿用历史“已修订”作为就绪结论。C卡必须先完成所列P1修订，其他卡开工前也须完成README §8.5整卡检查；暂行Q及外部门槛按README执行。
 
 | 编号 | 阶段 | 评审等级（2026-10-19） | v5.3 修订后 | v5.3 复核（2026-10-20） | v5.3.1 修订后（未独立复核） | 当前状态 | 待定ADR影响（含依赖闭包） | 遗留阻塞/未复核原因 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -561,7 +577,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | core-b:N-17 | 中 | 已修订 | 01 CORE-13 OutboxEntityCodec、enqueue_outbox<C>、验收 [R28] | core-a |
 | core-b:N-11 | 低 | 已修订 | 01 CORE-56 推送者段、验收；CORE-16 | core-a |
 | core-b:B-F-08 低残留（CORE-13 未提派生更新） | 低 | 已修订 | 01 CORE-13 sync_outbox 段 | core-a |
-| core-b:N-03（payload 只有一个 lamport） | 中 | 转P1 / 转 core-b | CORE-26 | core-a |
+| core-b:N-03（payload 只有一个 lamport） | 中 | 转P1 / 转 core-b → v5.3.2：已覆盖（v5.3.1）（见 §D.9） | CORE-26 | core-a |
 | core-b:N-01 | 高 | 已修订 | CORE-32（主）；CORE-40、47、50（消费方）；01 §3 索引、README §8.6 | core-b |
 | core-b:N-02（含 B-F-04②、B-F-13 残留、Casdoor 核实） | 高 | 已修订 | CORE-22、CORE-45；附录A ADR-V5-32、§A.4.4、新 §A.4.6 | core-b |
 | core-b:N-03（core-a 转交；含 B-F-03①） | 中 | 已修订 | CORE-26 | core-b |
@@ -580,8 +596,8 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | core-b:N-16 | 低 | 已修订 | CORE-28 | core-b |
 | core-b:N-17（B-F-03②） | 中 | 已修订（core-a） | CORE-13 | core-b |
 | core-b:B-F-08 残留 | 低 | 已修订 | CORE-20 | core-b |
-| core-b:B-F-05 残留（Q33） | — | 转P1 | README §6 Q33 | core-b |
-| core-b:错误码行内清单（CORE-19/20/21/45） | 低 | 转P1 | CORE-19、20、21 | core-b |
+| core-b:B-F-05 残留（Q33） | — | 转P1 → v5.3.2：转P2（见 §D.9） | README §6 Q33 | core-b |
+| core-b:错误码行内清单（CORE-19/20/21/45） | 低 | 转P1 → v5.3.2：已修订（见 §D.9） | CORE-19、20、21 | core-b |
 | core-b 转交：ADR-V5-34 基础上续改 | 高 | 已修订 | CORE-39、40、49、50 | core-c |
 | core-b/core-c：WIN-16 进 CI、AGENTS、版本同步 | 中 | 已修订 | 同 VC-N04 | core-c |
 
@@ -592,7 +608,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | core-c:CORE-01 目录布局陈旧 | 中 | 已修订 | 01 CORE-01 目录布局 | core-a |
 | core-c:VC-N03 | 中 | 已修订 | 01 CORE-37 依赖（卡、§3、依赖图 C37-->C56）、op 行、字形缓存键 | core-a |
 | core-c:VC-N02 | 高 | 已修订 | CORE-36（主）；CORE-38、39、40、47、48、49、50、51 路由落点；CORE-41 DEP-5 验收；附录A ADR-V5-34；README §5 R18 | core-b |
-| core-c:VC-N06 / C-F-05② | 低 | 部分修订 | CORE-36 | core-b |
+| core-c:VC-N06 / C-F-05② | 低 | 部分修订 → v5.3.2：已修订（见 §D.9） | CORE-36 | core-b |
 | core-c:VC-N01 | 高 | 已修订 | CORE-39、40、49、50（01 代码块） | core-c |
 | core-c:VC-N02 | 高 | 已修订（core-b 已改，本次确认并补充） | CORE-41 规则表 DEP-5 | core-c |
 | core-c:VC-N03 | 中 | 已修订（core-a） | CORE-37 | core-c |
@@ -636,17 +652,17 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | 来源（报告:编号） | 严重度 | 结论 | 落点 | 处理方 |
 | --- | --- | --- | --- | --- |
 | core-ui:N1 | 高 | 已修订 | 01 CORE-01 实现约束/外部前提/验收/目录布局；01 中 7 处“版本 M0 锁定”及 CORE-02（PyYAML）、CORE-03（ffigen）、CORE-06（cargo-fuzz）与 tiny-s… | core-a |
-| core-ui:N6 | 中 | 部分修订 | 01 CORE-16 formula_items（distractors 元素 schema、reviewed_at 格式与毫秒换算） | core-a |
-| core-ui:N8（卡内引用 ADR） | 低 | 部分修订 | 01 CORE-56 目标引用 ADR-V5-26 | core-a |
+| core-ui:N6 | 中 | 部分修订 → v5.3.2：已修订（见 §D.9） | 01 CORE-16 formula_items（distractors 元素 schema、reviewed_at 格式与毫秒换算） | core-a |
+| core-ui:N8（卡内引用 ADR） | 低 | 部分修订 → v5.3.2：已修订（见 §D.9） | 01 CORE-56 目标引用 ADR-V5-26 | core-a |
 | core-ui:N6 | 中 | 已修订 | CORE-19 | core-b |
-| core-ui:N7 | 中 | 部分修订 | CORE-35；附录C（lead） | core-b |
+| core-ui:N7 | 中 | 部分修订 → v5.3.2：部分修订（见 §D.9） | CORE-35；附录C（lead） | core-b |
 | core-ui:N9 安装器 C++ 构建单元不在构建清单 | 低 | 已修订（范围外） | README §8.5a；CORE-41 | core-c |
 | core-ui:CORE-55 DesignGallery 定义 | 中 | 已修订 | CORE-55 j | core-c |
 | core-ui:CORE-55 DesignWarmup 不是完整契约 | 中 | 已修订 | CORE-55 h、j；CORE-36 启动钩子表 | core-c |
-| core-ui/附录D:CORE-55 单卡规模超限 | 中 | 部分修订（转P1观察） | CORE-55 f、规模；01 §3 索引 | core-c |
+| core-ui/附录D:CORE-55 单卡规模超限 | 中 | 部分修订（转P1观察） → v5.3.2：已修订（见 §D.9） | CORE-55 f、规模；01 §3 索引 | core-c |
 | core-ui:N8（WIN-16 未引用 ADR-V5-31） | 低 | 已修订 | WIN-16 接口契约首句、不包含、实现约束 | plat-win |
-| core-ui:WIN-16 会话材料约 120k | 中 | 转P1 | — | plat-win |
-| core-ui:U-F01 残留（闭包外引用） | 高 | 部分修订 | README §8.1 第3、6项；附录D §D.12 | core-ui |
+| core-ui:WIN-16 会话材料约 120k | 中 | 转P1 → v5.3.2：部分修订（见 §D.9） | — | plat-win |
+| core-ui:U-F01 残留（闭包外引用） | 高 | 部分修订 → v5.3.2：部分修订（见 §D.9） | README §8.1 第3、6项；附录D §D.12 | core-ui |
 | core-ui:U-F03 残留（§6.1 空行） | 中 | 已修订（core-a） | README §6.1 | core-ui |
 | core-ui:U-F07 残留（工具链未同步） | 阻断→高 | 已修订（core-a） | CORE-01、AND-01、WIN-01；README §8.3 S0 行；ADR-V5-15 | core-ui |
 | core-ui:U-F09 残留（附录D 就绪口径） | 高 | 已修订 | 附录D §D.1、D.2、D.9～D.12；README §8.5.1 | core-ui |
@@ -663,7 +679,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | core-ui:N9 | 低 | 已修订（core-c） | README §8.5a；CORE-41 CI；AGENTS | core-ui |
 | core-ui:N10 | 低 | 已修订 | 附录A §A.4 状态说明、A.4.2 标题、V5-26～31 状态；README §6.2 | core-ui |
 | core-ui:N11 | 低 | 已修订 | 附录D §D.10 说明 | core-ui |
-| core-ui:N12 | 高 | 转P1（暂行做法已写） | README §8.1 第6项；附录D §D.10.1 | core-ui |
+| core-ui:N12 | 高 | 转P1（暂行做法已写） → v5.3.2：部分修订（见 §D.9） | README §8.1 第6项；附录D §D.10.1 | core-ui |
 
 ### 来源：其他（附录D/跨报告）
 

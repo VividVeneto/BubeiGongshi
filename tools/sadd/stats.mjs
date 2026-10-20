@@ -10,7 +10,7 @@ const text = fs.readFileSync(file, 'utf8');
 const current = text.split('## D.10 ')[1].split('### D.10.1')[0];
 const lines = current.split('\n').filter(l => /^\| (CORE|AND|WIN)-\d+ \|/.test(l));
 if (lines.length !== cards.size) throw new Error('D.10/card count mismatch');
-const header = current.split('\n').find(l => l.startsWith('| 卡号 |'));
+const header = current.split('\n').find(l => l.startsWith('| 编号 |'));
 const columns = header?.split('|').map(c => c.trim()) ?? [];
 const gradeIndex = columns.indexOf('v5.3.2 复核');
 const grades = {};
