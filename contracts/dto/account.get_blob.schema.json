@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountGetBlobSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountGetBlobRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "db_key",
+            "refresh_token"
+          ]
+        }
+      },
+      "required": [
+        "profile_id",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountGetBlobOk",
+      "type": "object",
+      "properties": {
+        "wrapped": {
+          "type": "string",
+          "format": "base64"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "kind": "db_key"
+      },
+      "ok": {}
+    }
+  ]
+}

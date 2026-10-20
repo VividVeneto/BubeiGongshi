@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NotationBindSchema",
+  "$defs": {
+    "request": {
+      "title": "NotationBindRequest",
+      "type": "object",
+      "properties": {
+        "raw": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/RawSymbol"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "ast": {
+          "$ref": "types.schema.json#/$defs/FormulaNode"
+        },
+        "notation_profile_id": {
+          "type": "string"
+        },
+        "user_decls": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/SymbolDecl"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "raw",
+        "ast",
+        "notation_profile_id",
+        "user_decls"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "NotationBindOk",
+      "type": "object",
+      "properties": {
+        "symbols": {
+          "$ref": "types.schema.json#/$defs/SymbolEnv"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Diagnostic"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "symbols",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "raw": [],
+        "ast": {
+          "k": "number",
+          "text": "1"
+        },
+        "notation_profile_id": "cn-default",
+        "user_decls": []
+      },
+      "ok": {
+        "symbols": {
+          "decls": []
+        },
+        "diagnostics": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TypesetLayoutSchema",
+  "$defs": {
+    "request": {
+      "title": "TypesetLayoutRequest",
+      "type": "object",
+      "properties": {
+        "ast": {
+          "$ref": "types.schema.json#/$defs/FormulaNode"
+        },
+        "symbols": {
+          "$ref": "types.schema.json#/$defs/SymbolEnv"
+        },
+        "options": {
+          "$ref": "types.schema.json#/$defs/LayoutOptions"
+        }
+      },
+      "required": [
+        "ast",
+        "symbols",
+        "options"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "TypesetLayoutOk",
+      "$ref": "types.schema.json#/$defs/DisplayList"
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "ast": {
+          "k": "number",
+          "text": "1"
+        },
+        "symbols": {
+          "decls": []
+        },
+        "options": {
+          "font_size_px": 20,
+          "wrap": "scroll",
+          "display_style": true,
+          "highlight": []
+        }
+      },
+      "ok": {
+        "layout_version": 1,
+        "font_ids": [
+          "fixture"
+        ],
+        "nodes": [
+          {
+            "glyph": {
+              "font": 0,
+              "glyph_id": 1,
+              "x": 0,
+              "y": 15,
+              "size": 20
+            }
+          }
+        ],
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 20
+        },
+        "baseline": 15,
+        "node_bounds": [
+          [
+            "",
+            {
+              "x": 0,
+              "y": 0,
+              "w": 10,
+              "h": 20
+            }
+          ]
+        ],
+        "hit_regions": [
+          [
+            "",
+            {
+              "x": 0,
+              "y": 0,
+              "w": 10,
+              "h": 20
+            }
+          ]
+        ],
+        "semantic_text": "一"
+      }
+    }
+  ]
+}

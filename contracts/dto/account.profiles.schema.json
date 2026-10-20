@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountProfilesSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountProfilesRequest",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountProfilesOk",
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Profile"
+          },
+          "minItems": 0,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {},
+      "ok": {
+        "profiles": []
+      }
+    }
+  ]
+}

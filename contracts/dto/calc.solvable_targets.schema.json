@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CalcSolvableTargetsSchema",
+  "$defs": {
+    "request": {
+      "title": "CalcSolvableTargetsRequest",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "notation_profile_id": {
+          "type": "string"
+        },
+        "user_decls": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/SymbolDecl"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "empirical": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "notation_profile_id",
+        "user_decls",
+        "empirical"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "CalcSolvableTargetsOk",
+      "type": "object",
+      "properties": {
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              },
+              "capability": {
+                "$ref": "types.schema.json#/$defs/SolveCapability"
+              }
+            },
+            "required": [
+              "symbol",
+              "capability"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "targets"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "source": "1",
+        "notation_profile_id": "cn-default",
+        "user_decls": [],
+        "empirical": false
+      },
+      "ok": {
+        "targets": []
+      }
+    }
+  ]
+}

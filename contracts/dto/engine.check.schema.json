@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineCheckSchema",
+  "$defs": {
+    "request": {
+      "title": "EngineCheckRequest",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "notation_profile_id": {
+          "type": "string"
+        },
+        "user_decls": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/SymbolDecl"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "empirical": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "notation_profile_id",
+        "user_decls",
+        "empirical"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "EngineCheckOk",
+      "$ref": "types.schema.json#/$defs/CheckResponse"
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "source": "1",
+        "notation_profile_id": "cn-default",
+        "user_decls": [],
+        "empirical": false
+      },
+      "ok": {
+        "ast": {
+          "k": "number",
+          "text": "1"
+        },
+        "source_map": [
+          {
+            "path": "",
+            "start": 0,
+            "end": 1
+          }
+        ],
+        "symbols": {
+          "decls": []
+        },
+        "check_result": {
+          "typed": {
+            "types": [
+              [
+                "",
+                {
+                  "math_kind": "scalar",
+                  "assumptions": []
+                }
+              ]
+            ]
+          },
+          "validation": "verified",
+          "diagnostics": []
+        }
+      }
+    }
+  ]
+}

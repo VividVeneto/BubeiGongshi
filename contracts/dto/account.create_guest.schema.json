@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountCreateGuestSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountCreateGuestRequest",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountCreateGuestOk",
+      "type": "object",
+      "properties": {
+        "profile": {
+          "$ref": "types.schema.json#/$defs/Profile"
+        },
+        "db_key": {
+          "type": "string",
+          "format": "base64",
+          "x-sensitive": true
+        }
+      },
+      "required": [
+        "profile",
+        "db_key"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {},
+      "ok": {
+        "profile": {
+          "profile_id": "00000000-0000-4000-8000-000000000001",
+          "db_path": "/fixture/profile.db",
+          "logged_out": false,
+          "sync_enabled": false,
+          "last_used_ms": 0
+        },
+        "db_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    }
+  ]
+}

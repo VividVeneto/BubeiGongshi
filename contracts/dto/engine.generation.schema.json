@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineGenerationSchema",
+  "$defs": {
+    "request": {
+      "title": "EngineGenerationRequest",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "EngineGenerationOk",
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "pattern": "^(?:0|[1-9][0-9]{0,19})$",
+          "format": "uint64"
+        },
+        "available": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "generation",
+        "available"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {},
+      "ok": {
+        "generation": "0",
+        "available": true
+      }
+    }
+  ]
+}

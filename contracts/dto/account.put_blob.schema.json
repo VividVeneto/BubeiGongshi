@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountPutBlobSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountPutBlobRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "db_key",
+            "refresh_token"
+          ]
+        },
+        "wrapped": {
+          "type": "string",
+          "format": "base64"
+        }
+      },
+      "required": [
+        "profile_id",
+        "kind",
+        "wrapped"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountPutBlobOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "kind": "db_key",
+        "wrapped": "AQ=="
+      },
+      "ok": {}
+    }
+  ]
+}

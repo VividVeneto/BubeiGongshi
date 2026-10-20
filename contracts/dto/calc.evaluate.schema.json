@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CalcEvaluateSchema",
+  "$defs": {
+    "request": {
+      "title": "CalcEvaluateRequest",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "notation_profile_id": {
+          "type": "string"
+        },
+        "user_decls": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/SymbolDecl"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "empirical": {
+          "type": "boolean"
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Assignment"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "target": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "output_unit": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "string",
+              "format": "decimal"
+            },
+            {
+              "type": "string",
+              "format": "decimal"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "given_constants": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/ConstantValue"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "display": {
+          "$ref": "types.schema.json#/$defs/DisplayPrecision"
+        }
+      },
+      "required": [
+        "source",
+        "notation_profile_id",
+        "user_decls",
+        "empirical",
+        "assignments",
+        "target",
+        "given_constants",
+        "display"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "CalcEvaluateOk",
+      "$ref": "types.schema.json#/$defs/CalcResult"
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "source": "x=1",
+        "notation_profile_id": "cn-default",
+        "user_decls": [],
+        "empirical": false,
+        "assignments": [],
+        "target": 0,
+        "given_constants": [],
+        "display": "full"
+      },
+      "ok": {
+        "value": "1",
+        "unit": "1",
+        "sig_figs": 1,
+        "method": "direct",
+        "branches": [],
+        "constants_used": [],
+        "diagnostics": []
+      }
+    }
+  ]
+}

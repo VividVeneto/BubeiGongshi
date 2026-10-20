@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UnitsConvertSchema",
+  "$defs": {
+    "request": {
+      "title": "UnitsConvertRequest",
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "types.schema.json#/$defs/Rational"
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "UnitsConvertOk",
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "types.schema.json#/$defs/Rational"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "value": {
+          "num": "1",
+          "den": "1"
+        },
+        "from": "si:m",
+        "to": "si:m"
+      },
+      "ok": {
+        "value": {
+          "num": "1",
+          "den": "1"
+        }
+      }
+    }
+  ]
+}

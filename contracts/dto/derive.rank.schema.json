@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeriveRankSchema",
+  "$defs": {
+    "request": {
+      "title": "DeriveRankRequest",
+      "type": "object",
+      "properties": {
+        "slot": {
+          "$ref": "types.schema.json#/$defs/SlotRef"
+        },
+        "pool": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Candidate"
+          },
+          "minItems": 0,
+          "maxItems": 200
+        },
+        "include_cross_kind": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "slot",
+        "pool",
+        "include_cross_kind"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "DeriveRankOk",
+      "type": "object",
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "types.schema.json#/$defs/Candidate"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "quantity_kind_exact",
+                  "dimension_unified",
+                  "cross_kind"
+                ]
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "candidates"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "slot": {
+          "revision": "00000000-0000-4000-8000-000000000001",
+          "path": "",
+          "slot_type": {
+            "math_kind": "scalar",
+            "assumptions": []
+          }
+        },
+        "pool": [],
+        "include_cross_kind": false
+      },
+      "ok": {
+        "candidates": []
+      }
+    }
+  ]
+}

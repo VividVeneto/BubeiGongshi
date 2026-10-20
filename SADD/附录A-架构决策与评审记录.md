@@ -302,6 +302,8 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-37 | Windows runner与输入/发布协议 | 平台线程统一派发、可注销窗口委托、FocusManager早期按键入口；签名叶证书指纹白名单与PDB归档（Windows Hello 应用锁部分已由 ADR-V5-38 撤销） | 工作线程直接回复/根Focus优先/仅CN信任均不可作为保证 | 引擎/SDK升级或设备探针失败 | 采纳（修订方决定；外部前提见A.4.8） | CORE-36、WIN-01、WIN-03、WIN-08、WIN-12、WIN-15 |
 | ADR-V5-38 | 本机保护强度 | 不提供应用锁、生物识别/Windows Hello 验证与防截屏；本机只用系统级解锁（Android Keystore 无认证别名 `fml.<profile_id>.db`，Windows DPAPI）。删除 CORE-04 `BiometricPrompt` 端口与 `ScreenSecurity` 接缝、`PLATFORM_AUTH_FAILED`，删除 CORE-23 的 GuestLocked、UnlockTier 与应用锁错误码，登出改由 `profile.logged_out` 记录 | Windows 11 上以 Hello 用户同意验证作应用锁；Android 以生物识别/设备凭据作应用锁；恢复码页防截屏 | 甲方要求增强本机保护，或面向共享设备、机构部署 | 采纳（甲方 2026-10-20 确认，README §6 Q41） | CORE-04、CORE-23、CORE-28、CORE-36、CORE-47、CORE-65、AND-02、AND-06、AND-13、WIN-07、WIN-09、WIN-15 |
 
+| ADR-V5-39 | 显式档案上下文与关闭 | CORE-03信封profile_handle由CORE-65唯一会话注入；按句柄租约排空后关闭；账户密钥从该Store单请求快照加载；不使用隐式活动账户 | 全局current Store导致切换竞态写错库；JSON传AccountKeys扩大泄露面 | 多交互档案并存或句柄协议升级 | 采纳（修订方决定） | CORE-03、CORE-13、CORE-23、CORE-24、CORE-26、CORE-32、CORE-65、CORE-66 |
+
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
 筛选条件：支持 API 或 SMTP 发送事务邮件、有免费额度、可替换。用量估算：每次注册约 1～2 封，找回口令另计。

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeriveRunPlanSchema",
+  "$defs": {
+    "request": {
+      "title": "DeriveRunPlanRequest",
+      "type": "object",
+      "properties": {
+        "plan": {
+          "$ref": "types.schema.json#/$defs/CalculationPlan"
+        },
+        "revisions": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/RevisionSnapshot"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "plan",
+        "revisions"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "DeriveRunPlanOk",
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/CalcResult"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "results"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "plan": {
+          "steps": []
+        },
+        "revisions": []
+      },
+      "ok": {
+        "results": []
+      }
+    }
+  ]
+}

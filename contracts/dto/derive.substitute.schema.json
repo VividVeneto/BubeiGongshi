@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeriveSubstituteSchema",
+  "$defs": {
+    "request": {
+      "title": "DeriveSubstituteRequest",
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "types.schema.json#/$defs/SubstituteRequest"
+        },
+        "ancestry": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "revision": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "depth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 8
+              },
+              "ancestors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "minItems": 0,
+                "maxItems": 4096
+              }
+            },
+            "required": [
+              "revision",
+              "depth",
+              "ancestors"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "request",
+        "ancestry"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "DeriveSubstituteOk",
+      "type": "object",
+      "properties": {
+        "new_ast": {
+          "$ref": "types.schema.json#/$defs/FormulaNode"
+        },
+        "symbols": {
+          "$ref": "types.schema.json#/$defs/SymbolEnv"
+        },
+        "derivation": {
+          "$ref": "types.schema.json#/$defs/Derivation"
+        },
+        "check": {
+          "$ref": "types.schema.json#/$defs/CheckResult"
+        }
+      },
+      "required": [
+        "new_ast",
+        "symbols",
+        "derivation",
+        "check"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "request": {
+          "target": {
+            "revision": {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "item": "00000000-0000-4000-8000-000000000002",
+              "parents": [],
+              "ast_schema": 1,
+              "source_latex": "x=1",
+              "ast": {
+                "k": "relation",
+                "op": "eq",
+                "left": {
+                  "k": "symbol",
+                  "id": 0
+                },
+                "right": {
+                  "k": "number",
+                  "text": "1"
+                }
+              },
+              "symbols": {
+                "decls": [
+                  {
+                    "id": 0,
+                    "glyph": "x",
+                    "role": "variable",
+                    "meaning_key": ""
+                  }
+                ]
+              },
+              "notation_profile_id": "cn-default",
+              "conditions": [],
+              "validation": "verified",
+              "detached": false,
+              "provenance": "user_input",
+              "created_at_ms": 0,
+              "draft": false
+            },
+            "typed": {
+              "types": []
+            }
+          },
+          "slot": "1",
+          "source": {
+            "revision": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "item": "00000000-0000-4000-8000-000000000002",
+              "parents": [],
+              "ast_schema": 1,
+              "source_latex": "x=1",
+              "ast": {
+                "k": "relation",
+                "op": "eq",
+                "left": {
+                  "k": "symbol",
+                  "id": 0
+                },
+                "right": {
+                  "k": "number",
+                  "text": "1"
+                }
+              },
+              "symbols": {
+                "decls": [
+                  {
+                    "id": 0,
+                    "glyph": "x",
+                    "role": "variable",
+                    "meaning_key": ""
+                  }
+                ]
+              },
+              "notation_profile_id": "cn-default",
+              "conditions": [],
+              "validation": "verified",
+              "detached": false,
+              "provenance": "user_input",
+              "created_at_ms": 0,
+              "draft": false
+            },
+            "typed": {
+              "types": []
+            }
+          },
+          "source_output": 0,
+          "var_map": []
+        },
+        "ancestry": [
+          {
+            "revision": "00000000-0000-4000-8000-000000000001",
+            "depth": 0,
+            "ancestors": []
+          },
+          {
+            "revision": "00000000-0000-4000-8000-000000000003",
+            "depth": 0,
+            "ancestors": []
+          }
+        ]
+      },
+      "ok": {
+        "new_ast": {
+          "k": "relation",
+          "op": "eq",
+          "left": {
+            "k": "symbol",
+            "id": 0
+          },
+          "right": {
+            "k": "number",
+            "text": "1"
+          }
+        },
+        "symbols": {
+          "decls": [
+            {
+              "id": 0,
+              "glyph": "x",
+              "role": "variable",
+              "meaning_key": ""
+            }
+          ]
+        },
+        "derivation": {
+          "source_revisions": [
+            "00000000-0000-4000-8000-000000000003"
+          ],
+          "target_slot": "1",
+          "var_map": [],
+          "conditions": [],
+          "depth": 1
+        },
+        "check": {
+          "typed": {
+            "types": [
+              [
+                "",
+                {
+                  "math_kind": "scalar",
+                  "assumptions": []
+                }
+              ]
+            ]
+          },
+          "validation": "verified",
+          "diagnostics": []
+        }
+      }
+    }
+  ]
+}

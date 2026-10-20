@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountSetLocalSettingSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountSetLocalSettingRequest",
+      "type": "object",
+      "properties": {
+        "setting": {
+          "$ref": "types.schema.json#/$defs/LocalSetting"
+        }
+      },
+      "required": [
+        "setting"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountSetLocalSettingOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "setting": {
+          "reminder_time": "20:00"
+        }
+      },
+      "ok": {}
+    }
+  ]
+}

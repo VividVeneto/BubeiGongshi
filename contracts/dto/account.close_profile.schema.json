@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountCloseProfileSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountCloseProfileRequest",
+      "type": "object",
+      "properties": {
+        "lock": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "lock"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountCloseProfileOk",
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "types.schema.json#/$defs/AccountState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "lock": false
+      },
+      "ok": {
+        "state": "uninitialized"
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineParseSchema",
+  "$defs": {
+    "request": {
+      "title": "EngineParseRequest",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "allow_unicode": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "EngineParseOk",
+      "type": "object",
+      "properties": {
+        "ast": {
+          "oneOf": [
+            {
+              "$ref": "types.schema.json#/$defs/FormulaNode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_map": {
+          "$ref": "types.schema.json#/$defs/SourceMap"
+        },
+        "raw_symbols": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/RawSymbol"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Diagnostic"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "ast",
+        "source_map",
+        "raw_symbols",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "source": "1"
+      },
+      "ok": {
+        "ast": {
+          "k": "number",
+          "text": "1"
+        },
+        "source_map": [
+          {
+            "path": "",
+            "start": 0,
+            "end": 1
+          }
+        ],
+        "raw_symbols": [],
+        "diagnostics": []
+      }
+    }
+  ]
+}
