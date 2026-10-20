@@ -440,7 +440,9 @@ keystore.level     {alias}                  → "strong_box" 或 "tee" 或 "soft
 biometric.available                         → bool    androidx.biometric BiometricManager.canAuthenticate(与下述.applock认证同一API分档的authenticators) == SUCCESS；26–29 WEAK|DEVICE_CREDENTIAL，30+ STRONG|DEVICE_CREDENTIAL；不单独猜支持能力
 biometric.auth     {title, subtitle}        → bool    文案由 Dart 按 reasonKey 查 l10n 后传入
 Kotlin 异常映射：KeyPermanentlyInvalidatedException、AEADBadTagException、别名不存在 → PLATFORM_KEY_UNAVAILABLE；
-                 UserNotAuthenticatedException、认证取消或失败 → PLATFORM_AUTH_FAILED；其他 IO 错误 → PLATFORM_IO
+                 UserNotAuthenticatedException、认证取消或失败 → PLATFORM_AUTH_FAILED；
+                 BiometricPrompt 回调 ERROR_HW_UNAVAILABLE、ERROR_HW_NOT_PRESENT、ERROR_NO_BIOMETRICS、ERROR_NO_DEVICE_CREDENTIAL、
+                 ERROR_SECURITY_UPDATE_REQUIRED（认证器当前不可用）→ PLATFORM_UNSUPPORTED（CORE-23 不计入退避）；其他 IO 错误 → PLATFORM_IO
 ```
 
 目录（`root(area)` 的返回值；全部位于 `noBackupFilesDir` 之下，不存在时创建）：
@@ -471,6 +473,7 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profi
 - [R27] 手动：执行 `adb shell bmgr backupnow <package>` 与设备迁移后，新设备上不存在 `database/`、`recognition/`、`drafts/` 内容。
 - [R27] 在支持 StrongBox、仅 TEE、模拟器三类设备上 `securityLevel` 分别返回 `strongBox`、`tee`、`software`。
 - [R25] 开启应用锁后在 API 26/28/29/30/34 逐档验证上述认证器组合；注入或真机触发永久失效时 unwrap 抛 PLATFORM_KEY_UNAVAILABLE；取消认证对话框时抛 `PLATFORM_AUTH_FAILED`；`.db` 别名不受影响。
+- [R25] 单元测试（Fake BiometricPrompt 回调）：`ERROR_HW_UNAVAILABLE`、`ERROR_NO_BIOMETRICS`、`ERROR_NO_DEVICE_CREDENTIAL` 时 `unwrap(".applock")` 抛 `PLATFORM_UNSUPPORTED`；`ERROR_USER_CANCELED` 时抛 `PLATFORM_AUTH_FAILED`。常量名依据 androidx BiometricPrompt 源码（https://raw.githubusercontent.com/androidx/androidx/androidx-main/biometric/biometric/src/main/java/androidx/biometric/BiometricPrompt.java ，2026-10-20 读取），锁定版本以 M0 编译为准。
 - [R27] 篡改 `wrap` 结果中任一字节后 `unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`。
 
 **规模**：约 420 行；`app/lib/platform/android/storage/` 与 `app/android/.../KeystoreBridge.kt`、两个备份规则 XML（同属 `app/` 构建单元）。
