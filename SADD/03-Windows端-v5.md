@@ -80,6 +80,7 @@ graph TD
   W07 --> W01
   W04 --> C04
   W04 --> C50
+  W04 --> W01
   W05 --> C04
   W05 --> C52
   W05 --> W04
@@ -105,6 +106,7 @@ graph TD
   W15 --> C58
   W15 --> C28
   W10 --> C04
+  W10 --> W01
   W09 --> C04
   W09 --> C20
   W09 --> C36
@@ -144,13 +146,13 @@ graph TD
 | WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 380 |
 | WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 300 |
 | WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28 | 360 |
-| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 450 |
+| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50、WIN-01 | 450 |
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
 | WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
 | WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28 | 460 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
-| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04 | 240 |
+| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04、WIN-01 | 240 |
 | WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 250 |
 | WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14 | 430 |
 | WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28 | 340 |
@@ -276,7 +278,7 @@ app/windows/
 - 外部前提：Visual Studio 生成工具（MSVC）、Windows SDK、CMake、Inno Setup 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`；Rust 与 Flutter 以 CORE-01 的 `rust-toolchain.toml`、`app/.flutter-version` 为准。
 
 **验收标准**
-- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 unsupported。
+- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI版本；runtime Unsupported时按CORE-04显示固定未实现提示，不读取不存在快照）；启动日志列出全部 12 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `fmlcore.dll` 后启动，显示“核心版本不匹配，请重新安装”，不崩溃；删除 `fmlcore.dll` 后显示“核心组件加载失败，请重新安装”。
 - [R19] DLL 劫持测试：在当前工作目录与 `%PATH%` 首个目录放置同名 `fmlcore.dll` 后从其他目录启动，Process Monitor 显示只加载了 exe 同目录中的 DLL。
 - [R41] `app/lib/ui/` 中 `Platform.isWindows` 与平台判断零命中（CORE-41 规则）；Windows 专属 Dart 代码只在 `app/lib/platform/windows/`、`main_windows.dart` 与 `ports_windows.dart`。
@@ -565,12 +567,11 @@ abstract interface class BiometricPrompt {
 ```text
 wrap   {alias, secret}  → bytes
        普通别名：0x02 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
-       以 .applock 结尾：KeyCredentialManager 打开或创建凭据 "BubeiGongshi.<alias>"，RequestSignAsync("fml-applock-v1|<alias>")，
-                         k = SHA-256(签名)；输出 0x03 ‖ CryptProtectData(IV(12) ‖ AES-256-GCM(k, secret), entropy 同上)
-unwrap {alias, wrapped} → bytes   版本字节不符、DPAPI 解密失败、GCM 校验失败、凭据不存在 → PLATFORM_KEY_UNAVAILABLE；
+       以.applock结尾：当前一律PLATFORM_UNSUPPORTED；持久化密钥保护方案尚未成立，禁止生成0x03或用签名哈希作恢复密钥
+unwrap {alias, wrapped} → bytes   .applock当前PLATFORM_UNSUPPORTED；普通别名版本字节不符、DPAPI 解密失败、GCM 校验失败、凭据不存在 → PLATFORM_KEY_UNAVAILABLE；
                                    Hello 被取消或验证失败 → PLATFORM_AUTH_FAILED
 delete {alias}          → null    .applock 别名同时删除对应 Hello 凭据
-level  {alias}          → "dpapi_with_hello"（.applock）或 "dpapi"
+level  {alias}          → 普通别名"dpapi"；.applock当前PLATFORM_UNSUPPORTED，未验证能力不声明dpapi_with_hello
 hello.available         → bool    KeyCredentialManager.IsSupportedAsync()
 hello.verify {message}  → bool    IUserConsentVerifierInterop::RequestVerificationForWindowAsync(hwnd, message)，Verified 为 true
 free_bytes              → int     GetDiskFreeSpaceExW(数据根)
@@ -620,7 +621,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 - 包含：`ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController`（不支持）端口实现；`ImageDropSource`（CORE-50 定义）实现与登记；拖入文件夹的一层扫描与确认；HEIC/HEIF 经 WIC 转 JPEG；临时副本管理。
 - 不包含：图片探测、解码与预处理（CORE-30，由 CORE-40 调用）；裁剪与识别界面（CORE-40、CORE-50）；资源包安装（CORE-51 经 `DocumentPicker` 选文件后调用 CORE-15）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-50
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-50、WIN-01
 
 **接口契约**
 
@@ -774,7 +775,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 **验收标准**
 - [R37] 手动：用截图工具复制公式区域，在识别页按 Ctrl+V 进入裁剪预览；从画图复制（仅 CF_DIB）同样可粘贴。
 - [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_FORBIDDEN_COMMAND` 并定位（经 CORE-37 `paste`）。
-- [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，七种格式（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在且内容逐字节等于输入；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
+- [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，九个注册/标准格式名（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在且内容逐字节等于输入；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
 - [R08] 手动矩阵（结果记入附录 D）：在公式详情点“复制公式”后，记事本得到 LaTeX 源码；Word 得到可编辑公式或清晰图片；画图得到图片；浏览器富文本框得到图片；“复制为 → Unicode 文本”在记事本得到 Unicode 文本。
 - [R20] 粘贴与复制后检查 `logs\`，不含剪贴板文本与公式源码。
 - [R01] CORE-04 `ClipboardAdapter` 契约套件在 Windows 上通过；剪贴板为空时 `readImage` 返回 null。
@@ -975,7 +976,7 @@ void installWindowsKeymap(CompositionContext ctx);
 
 ```text
 偏好 keymap.v1（WindowsPrefs，HKCU\Software\BubeiGongshi\Prefs 下的字符串值）：
-  {"v": 1, "bindings": {"fraction": ["ctrl+shift+0x00000000066"], "sqrt": [], "study.pause": ["ctrl+shift+0x00000071"]}}
+  {"v": 1, "bindings": {"fraction": ["ctrl+shift+0x00000000066"], "sqrt": [], "study.pause": ["ctrl+shift+0x00000000071"]}}
   键为 BindableCommand.persistKey；只含与默认不同的命令；值为 0–2 个 KeyChord.encode() 字符串，空数组表示该命令不分配按键；
   未知命令名忽略（向前兼容）；"v" 不为 1 时整体按默认处理
 设置区“快捷键”：
@@ -1008,6 +1009,8 @@ BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppComman
 - [R42.b] 单元测试（键位冲突）：`defaultStudyBindings` 中任一组合键 `isReservedChord` 为 false，且与 `defaultKeymap` 全部组合键无交集；`KeymapPrefs.load` 读入的默认 `KeymapSet` 满足实现约束 ① ②。
 - [R42.b] Widget 测试：设置页“学习”组按 WIN-15 a 表顺序列出 12 个命令与默认按键；“全部恢复默认”后学习键位等于 `defaultStudyBindings`。
 - [R08] 手动：开启微软拼音输入法时录制 Ctrl+Space 被拒绝并提示原因；修改“下标”为 Ctrl+Shift+- 后在编辑器中立即可用，重启应用后仍然有效。
+
+- [R42.d] 将本卡完整keymap JSON示例作为fixture，decode全部成功且encode返回逐字相同的11位hex规范串。
 
 **规模**：约 340 行；`app/lib/platform/windows/keymap/`。
 
@@ -1135,9 +1138,9 @@ b. 分发规则（`WindowsKeyRouter.handle`）
 | --- | --- |
 | 1 | `suspended` 为 true，或事件既不是 `KeyDownEvent` 也不是 `KeyRepeatEvent` → ignored |
 | 2 | 已 `attach` 的内层处理器（WIN-08 `WindowsShellKeys`）先处理，返回 handled 即结束 |
-| 3 | 事件为 `KeyRepeatEvent` → ignored（学习命令不响应按住重复，避免连续提交）；否则 `KeyChord.fromEvent` 后查本地 `StudyKeymap.lookup(KeyChord)`（对象方法，非 FFI op），未命中 → ignored |
-| 4 | 命中命令的组合键不带修饰时：`primaryFocus.context` 自身或 ancestor 是 `EditableText`（含只读时按只读处理）、或最近 EditableText.controller.value.composing 非空且有效 → ignored，按键照常交给输入 |
-| 5 | `FmlCommands.isAvailable(id)` 为 false → ignored（按键继续交给页面）；为 true → `FmlCommands.invoke(id)`，返回 handled |
+| 3 | 文本/IME焦点时库批量分支ignored；否则若库列表scope声明对应CORE-58 library.batch命令且可用，invoke后handled；repeat只允许move/extend，删除/撤销/打开等非方向命令的repeat直接ignored |
+| 4 | 库分支未处理且为KeyRepeatEvent → ignored；否则查StudyKeymap，未命中ignored。学习无修饰命令遇EditableText或有效composing时ignored，不带入文本输入 |
+| 5 | 学习命令FmlCommands.isAvailable(id)为true才invoke并handled，否则ignored；各分支消费后不再交给后续分支或页面 |
 
 c. 窗口尺寸与断点（分档规则见 CORE-55 d，本表只列 Windows 典型窗口）
 
@@ -1206,6 +1209,8 @@ ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，�
 - [R42.f] 手动：Windows 10 1809 与 Windows 11 上切换系统深浅色（外观模式“跟随系统”）及应用内深浅色，标题栏随之切换；开启对比度主题（如“夜空”“沙漠”）后应用改用高对比度令牌、标题栏为系统颜色，关闭后恢复。
 - [R42.c] WIN-13 在基线机型与二合一机型上测量 CORE-01 预算表 a 段所列五行，P95 在 Windows 列预算内。
 
+- [R11][R42.d] Fake库scope按↓/Shift+↓分别只invoke move.down/extend.down一次；文本焦点不调用，方向repeat可调用，Delete repeat不调用；WIN-08内层handled时库/学习均不调用，未声明命令继续焦点链。
+
 **规模**：约 440 行；`app/lib/platform/windows/interaction/`（约 260 行）、`app/windows/runner/interaction_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 120 行）、`app/integration_test/windows/interaction_test.dart`（约 60 行），同属 `app/` 构建单元。
 
 ### WIN-10 网络传输
@@ -1216,7 +1221,7 @@ ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，�
 - 包含：`WindowsHttpTransport`（基于 `dart:io` `HttpClient`）；系统代理读取（通道 `fml/windows/net`）；异常到 CORE-04 错误码的映射；契约套件运行。
 - 不包含：主机白名单、用途与授权检查（CORE-28 `NetworkGuard` 包裹本卡实现）；云识别前后台行为（CORE-34）；资源包下载流程（CORE-51）；更新下载流程（WIN-03）。
 
-**依赖**：CORE-01、CORE-02、CORE-04
+**依赖**：CORE-01、CORE-02、CORE-04、WIN-01
 
 **接口契约**
 
@@ -1432,7 +1437,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 | 测量项 | 预算表行 | 方法 |
 | --- | --- | --- |
 | 冷启动 | 冷启动到首页 | 进程启动到首页首帧（`FML_PERF_MARK` 日志） |
-| 公式解析、量纲校验、单式排版 | 公式解析（≤256 节点）、量纲校验、单式排版 | `core.submit` 计时，CORE-06/09/12 契约向量各至少1000次 |
+| 公式解析、量纲校验、单式排版 | 公式解析（≤256 节点）、量纲校验、单式排版 | 按CORE-67 manifest固定mode计时；解析/校验/排版同步op使用core.call，不改submit；CORE-06/09/12契约向量各至少1000次，报告分别列FFI总耗时与算法耗时 |
 | 公式库搜索 | 公式库搜索首屏（10000 条） | 预置 10000 条公式的库 |
 | 列表滚动 | 列表滚动 | `watchPerformance` 帧时间，100%、125%、150%、175%、200% DPI 各一次 |
 | 手写 | 手写墨迹上屏 | 合成指针事件到帧呈现 |
