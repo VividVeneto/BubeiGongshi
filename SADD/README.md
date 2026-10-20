@@ -272,14 +272,17 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明与前后端编程索引 |
-| [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-78：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
-| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-15（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
-| [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-17（WIN-11 已撤销）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
+| [01 公共核心：core/](core/00-总览.md) | CORE-01～CORE-78（S0 阶段的卡在 S0/）：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
+| [02 Android 端：and/](and/00-总览.md) | AND-01～AND-15（AND-10 已撤销；AND-01 在 S0/）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
+| [03 Windows 端：win/](win/00-总览.md) | WIN-01～WIN-17（WIN-11 已撤销；WIN-01 在 S0/）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
+| [S0/](S0/) | S0 骨架阶段的 15 张卡（CORE、AND、WIN 都在这里） |
 | [附录A-架构决策与评审记录.md](附录A-架构决策与评审记录.md) | 历次评审记录、v4 意见判定表、全部 ADR |
 | [附录B-YOLO识别预研.md](附录B-YOLO识别预研.md) | YOLO 轻量识别预备方案（仅实验分支，不进主线） |
 | [附录C-资源包内容与开源资源调查.md](附录C-资源包内容与开源资源调查.md) | 开源公式库、数据集、模型与字体的调查和许可结论 |
 | [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | 历史修订D.4～8；v5.3的46条P0处理、检查对比D.9；106张卡当前评级/未复核/阻塞与P1接续D.10；v5.3复核与v5.3.1修订记录D.11；整卡语义复核记录D.12；v5.3.2六范围复核/修订与P2接续D.13 |
 | [v5.3.2交付核对](reports/v5.3.2-交付核对.md) | 本轮13组提交/状态、六范围评分、检查前后、全卡材料与逐warning/P2清单；原始结构化证据见同目录v5.3.2-audit.json |
+
+模块卡布局（2026-10-20 起）：每张卡一个文件，命名 `S编号_卡号_分组.md`。S0 阶段的卡统一放在 `S0/`，其余按卡号前缀放在 `core/`、`and/`、`win/`。分组按实际功能，共 8 个：基座、引擎、界面、功能、账户、扩展、平台、发布。`core/`、`and/`、`win/` 的 `00-总览.md` 保留原 01/02/03 中卡片以外的内容（§0～§3 与各章引言），并在卡片原位置写 `<!-- sadd:card 卡号 -->` 标记。正文中的“01/02/03”“所在文档 §2/§3”仍指对应总览与其卡片的合集。阶段或分组变化时文件要改名，所以引用卡片一律写卡号，不写路径。布局由 `node tools/DTOcheck/run.mjs` 的 LAYOUT 检查约束，工具按标记拼回完整文档（`tools/sadd/layout.mjs`）。
 
 ## 8. vibe coding 使用说明
 
@@ -494,7 +497,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-32 | 识别会话状态机与历史 GC | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-recognize/src/session.rs`、`crates/fml-store/src/recognition/`（附属 `app/lib/recognition/history_key.dart`） | S5 |
 | CORE-35 | 本地识别模型后端 | 端侧核心 | Rust crate | `crates/fml-recognize-local/` | S5 |
 | CORE-52 | 公式复制格式与富格式导出 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-export/`（附属 `crates/fml-ffi/src/ops/export.rs`）、`app/lib/export/` | S3 |
-| CORE-61 | 公式草稿仓储 | 端侧核心 | 拆分职责 | `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0038_formula_draft.sql` | S3 |
+| CORE-61 | 公式草稿仓储 | 端侧核心 | 拆分职责 | `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0061_formula_draft.sql` | S3 |
 | CORE-66 | 同步快照与密钥轮换编排 | 端侧核心 | 拆分职责 | `crates/fml-store/src/sync/snapshot.rs`、`crates/fml-store/src/sync/rotation.rs` | S6 |
 | CORE-68 | 同步 Envelope 共享线类型 | 端侧核心 | 同步线类型（server共用） | `crates/fml-sync-proto/` | S6 |
 | CORE-73 | 引擎代数查询与缓存失效通知 | 端侧核心（跨语言附属Dart） | 新增职责 | `crates/fml-ffi/src/ops/generation.rs` | S1 |

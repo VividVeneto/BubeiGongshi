@@ -1,0 +1,61 @@
+### CORE-44 鸿蒙预留与 C 头文件消费者验证
+
+**目标**：在 V1 不发布鸿蒙版本的前提下，保证核心引擎可编译到鸿蒙目标、C 头文件可被非 Dart 消费者调用，并记录端口在鸿蒙上的对应能力，为未来 ArkTS/ArkUI 前端或 Flutter 鸿蒙方案留出接口。
+
+**范围**
+- 包含：鸿蒙目标三元组 `aarch64-unknown-linux-ohos` 的交叉编译冒烟；一个最小 C 消费者程序；端口在鸿蒙上的对应关系表（本卡正文即该表，不另建文档）；CI 作业接入。
+- 不包含：鸿蒙 UI、ArkTS/N-API 绑定、打包与上架（V1 范围外；甲方确认 V1 只保留 C ABI 与编译冒烟，见 README §6 Q6）。
+
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04
+
+**接口契约**
+
+```text
+tools/ohos-smoke/
+  build.sh          参数：--target ohos|host（默认 ohos）
+                    ohos：OHOS_NDK_HOME 指向 OpenHarmony SDK native 目录；用其 clang 作为 linker，
+                          cargo build -p fml-ffi --release --target aarch64-unknown-linux-ohos，产物 libfmlcore.so 存在且导出表含 fml_* 全部符号即成功
+                    host：cargo build -p fml-ffi（debug），再用 clang -fsanitize=address 编译 consumer 并链接 libfmlcore 后运行
+                    退出码：0 成功；1 构建或检查失败；2 环境缺失（如 OHOS_NDK_HOME 未设置）
+  consumer.c        只 #include "fmlcore.h"（contracts/include/），步骤：
+                    ① fml_abi_version() 的 MAJOR 等于 FML_ABI_MAJOR
+                    ② fml_capabilities() 返回的 JSON 含 "engine.check"，随后 fml_free_buffer
+                    ③ fml_call("engine.check", {"v":1,"trace_id":"ohos-smoke","body":{"source":"E = m c^2","notation_profile_id":"cn-default","user_decls":[],"empirical":false}})
+                       返回 0，响应 JSON 中 "ast" 非 null；fml_free_buffer
+                    ④ fml_call("no.such_op", ...) 返回 -2 且 out 为 FmlError JSON（含 "FFI_UNKNOWN_OP"）；fml_free_buffer
+                    ⑤ 每步失败打印步骤号并以 1 退出；全部通过打印 OK 并以 0 退出
+                    JSON 只做子串检查，不引入 JSON 库
+.github/workflows/ci.yml 中的 ohos-smoke 作业（与 CORE-41 共用文件，本卡追加一个 job）
+```
+
+端口在鸿蒙上的对应能力（未来实现时参考；V1 不编码）：
+
+| CORE-04 端口 | 鸿蒙对应能力 | 备注 |
+| --- | --- | --- |
+| `SecureKeyValueStore` | HUKS（通用密钥库） | 包装密钥不出 HUKS |
+| `LocalFileStore` | 应用沙箱目录（`filesDir`/`cacheDir`） | StoreArea 一一对应 |
+| `ImagePicker` | PhotoViewPicker | 只取用户选中项 |
+| `CameraController` | 相机服务 | 需相机权限 |
+| `NotificationScheduler` | 后台代理提醒（reminderAgent） | 系统对提醒数量有上限 |
+| `ClipboardAdapter` | 剪贴板服务（pasteboard） | |
+| `RuntimeInfo` | 设备信息与系统能力查询 | abi 为 arm64 |
+| `AppLifecycle` | UIAbility 生命周期 | 后台与低内存事件 |
+| `HttpTransport` | 网络服务（http） | 仍须经 CORE-28 NetworkGuard |
+| `FileExporter` | DocumentViewPicker 保存模式 | |
+| `DocumentPicker` | DocumentViewPicker 选择模式 | |
+
+- 本卡不登记 op，也不新增错误码；`consumer.c` 只使用 CORE-03 已登记的返回码与错误码。
+
+**实现约束**
+- 核心 crate 不得引入阻止鸿蒙目标编译的依赖；新增 Rust 依赖的 PR 若使 ohos-smoke 作业失败则不得合并（与 CORE-41 的必过检查一同配置）。
+- `fml-ffi` 中与平台相关的代码只允许按 `target_os` 分支，鸿蒙目标走 Linux 分支，不新增鸿蒙专有代码路径。
+- C 消费者在 x86_64 Linux 主机上以 AddressSanitizer 运行一次，验证头文件不依赖 Dart 专有约定；鸿蒙目标只编译不运行（CI 无鸿蒙设备）。
+- 外部前提：Rust 工具链安装 `aarch64-unknown-linux-ohos` 目标（Rust 二级目标）；OpenHarmony SDK native 工具链版本在 M0 随 ADR-V5-15 锁定并缓存到 CI 镜像；SDK 下载需开发者账号时由开发团队在 M0 办理。
+
+**验收标准**
+- [R02] CI 的 ohos-smoke 作业中 `build.sh --target ohos` 成功，`libfmlcore.so` 导出 `fmlcore.h` 声明的全部函数；人为引入一个只支持 Windows 的依赖后作业失败并阻止合并。
+- [R02] `build.sh --target host` 运行 `consumer.c` 五个步骤全部通过并打印 OK，AddressSanitizer 不报告泄漏或越界。
+- [R02] 删除 `OHOS_NDK_HOME` 后 `build.sh` 以退出码 2 结束并提示缺失的环境变量。
+
+**规模**：约 180 行；主包 `tools/ohos-smoke/`（约 160 行），附属：`.github/workflows/ci.yml` 中追加的 ohos-smoke 作业（约 20 行）。
+
