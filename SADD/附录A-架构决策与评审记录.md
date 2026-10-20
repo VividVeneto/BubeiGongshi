@@ -403,3 +403,5 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 | — | （尚无记录） | — | — | — | — |
 
 Windows事实核实补充（2026-10-20，ADR-V5-37）：GetSystemMetrics文档说明SM_MAXIMUMTOUCHES为0时无触控，Slate指标不能单独证明有触屏（https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getsystemmetrics）；WIN-15先检查触点。已读取RequestSignAsync（https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.keycredential.requestsignasync?view=winrt-26100）与IUserConsentVerifierInterop（https://learn.microsoft.com/en-us/windows/win32/api/userconsentverifierinterop/nn-userconsentverifierinterop-iuserconsentverifierinterop）；后者仅验证HWND API，不能推出KeyCredential签名的interop或稳定密钥恢复。WIN-07保留M0阻断并移除签名哈希可恢复密钥假设。
+
+2026-10-20 P1独立复核补证（ADR-V5-36 Android宿主）：[FlutterActivity主干源码](https://raw.githubusercontent.com/flutter/engine/main/shell/platform/android/io/flutter/embedding/android/FlutterActivity.java)、[BiometricPrompt主干源码](https://raw.githubusercontent.com/androidx/androidx/androidx-main/biometric/biometric/src/main/java/androidx/biometric/BiometricPrompt.java)；MainActivity/AndroidChannelModule统一FlutterFragmentActivity。来源仅证明主干API形态，项目锁版AndroidX/Flutter ActivityResult及认证探针仍M0阻断；26–29时效密钥实际认证组合未核实，不降级安全。

@@ -503,7 +503,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-41 | CI 门禁与可维护性度量 | 工程与发布 | 脚本与配置 | `.github/workflows/`、`tools/ci/` | S0 |
 | CORE-42 | 发布流水线、版本矩阵与回滚 | 工程与发布 | 脚本与配置 | `tools/release/` | S7 |
 | CORE-44 | 鸿蒙预留与 C 头文件消费者验证 | 工程与发布 | 脚本与配置 | `tools/ohos-smoke/` | S7 |
-| AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | S7 |
+| AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle.kts`（release 段） | S7 |
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
 | WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |

@@ -121,7 +121,7 @@ graph TD
 | AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64 | 220 |
 | AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
 | AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-28 | 260 |
-| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
+| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle.kts`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
 | AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 490 |
 | AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58 | 380 |
 | AND-14 | 剪贴板与公式多格式复制 | `app/lib/platform/android/clipboard/` | CORE-01、CORE-02、CORE-04、CORE-52、AND-01、AND-02 | 240 |
@@ -138,7 +138,7 @@ CORE-04 §4 的每个端口（共 12 个）在 Android 上由下表的卡实现�
 | `LocalFileStore` | `noBackupFilesDir` 下按 `StoreArea` 分目录 | AND-06 |
 | `BiometricPrompt` | AndroidX Biometric（BIOMETRIC_STRONG 或设备凭据） | AND-06 |
 | `ImagePicker` | Photo Picker、ACTION_PICK、SAF `ACTION_OPEN_DOCUMENT` | AND-03 |
-| `ClipboardAdapter` | ClipboardManager（文本；图片 URI 只读一次）；复制公式写 text/plain、text/html 与 image/png（经 FileProvider） | AND-03 |
+| `ClipboardAdapter` | ClipboardManager（文本；图片 URI 只读一次）；复制公式写 text/plain、text/html 与 image/png（经 FileProvider） | AND-14 |
 | `FileExporter` | SAF `ACTION_CREATE_DOCUMENT` | AND-03 |
 | `DocumentPicker` | SAF `ACTION_OPEN_DOCUMENT`（按扩展名映射 MIME 过滤） | AND-03 |
 | `CameraController` | CameraX | AND-04 |
@@ -196,7 +196,7 @@ PlatformPorts buildAndroidPorts();
 ```text
 app/android/
   settings.gradle.kts、build.gradle.kts、app/build.gradle.kts    Android Gradle 工程（统一 Kotlin DSL，文件后缀 .gradle.kts）
-  app/src/main/kotlin/.../MainActivity.kt            FlutterActivity 子类；本卡构造 AndroidChannelModule 列表，逐个 attach；通道全名必须唯一，不存在“注册前缀”机制
+  app/src/main/kotlin/.../MainActivity.kt            FlutterFragmentActivity 子类；本卡构造 AndroidChannelModule 列表，逐个 attach；通道全名必须唯一，不存在“注册前缀”机制
   toolchain.versions                                 ndk=、cargo-ndk=、gradle=、agp=、kotlin=、camerax=、biometric= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
 Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
   cargo ndk --platform 26 -t arm64-v8a [-t armeabi-v7a] [-t x86_64（仅 debug）] -o app/src/main/jniLibs build -p fml-ffi [--release]
@@ -219,7 +219,7 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 
 ```kotlin
 interface AndroidChannelModule {
-  fun attach(activity: FlutterActivity, engine: FlutterEngine)
+  fun attach(activity: FlutterFragmentActivity, engine: FlutterEngine)
   fun onTrimMemory(level: Int) {}
   fun onNewIntent(intent: Intent) {}
   fun detach() {}
@@ -233,10 +233,11 @@ interface AndroidChannelModule {
 - 原生库按 16 KB 内存页对齐（NDK r28 及以上默认；r27 显式开启 flexible page sizes，Rust 链接始终验证，旧版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
 - Release 构建开启 R8，`proguard-rules.pro` 保留 Flutter 与各 MethodChannel 处理类；`.so` 去除调试符号，符号文件另行归档（AND-11）。
 - 构建可复现：`toolchain.versions` 中的版本即 CI 使用的版本；Rust 构建设置 `--remap-path-prefix` 与固定 `SOURCE_DATE_EPOCH` 为源提交Unix时间戳（git show -s --format=%ct HEAD）。
+- 宿主锁版门槛：FlutterFragmentActivity须同时通过AND-02 ActivityResult注册与AND-06 BiometricPrompt最小编译/认证探针；当前仅官方主干源码核对，不声称项目兼容已实测。
 - 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX、androidx.biometric 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
 
 **验收标准**
-- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI 版本与运行时快照）；启动日志列出全部 12 个端口当前为 unsupported。
+- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页（ABI版本；runtime仍Unsupported时显示固定“运行时信息待AND-05实现”，不调用会抛异常的snapshot；替换为真实端口后才显示快照）；启动日志列出全部 12 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `jniLibs` 中的 `libfmlcore.so` 后安装，应用显示“核心版本不匹配，请重新安装”，不崩溃。
 - [R41] `app/lib/ui/` 中 `Platform.isAndroid` 与平台判断零命中（CI 规则由 CORE-41 执行）；Android 专属 Dart 代码只在 `app/lib/platform/android/`、`main_android.dart` 与 `ports_android.dart`。
 - [R23] 两次干净构建得到的 `libfmlcore.so` 哈希一致；`llvm-readelf -l` 显示所有 LOAD 段对齐为 0x4000。
@@ -294,7 +295,7 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 | `POST_NOTIFICATIONS`（Android 13+） | 用户开启复习提醒时 |
 
 - 错误码：调用方在 `denied/permanentlyDenied` 时由端口抛 `PLATFORM_PERMISSION_DENIED`（CORE-04 登记），本卡不新增错误码。
-- 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器、AND-03 的剪贴板 `FileProvider` 均为 `exported="false"`）。
+- 清单其他固定项：`android:allowBackup="false"`，并以 `android:dataExtractionRules` / `android:fullBackupContent` 指向 AND-06 的规则文件（全部排除）；`android:usesCleartextTraffic="false"`；无导出的 Service、Receiver、Provider（AND-08 的提醒接收器、AND-14 的剪贴板 `FileProvider` 均为 `exported="false"`）。
 - 窗口属性：MainActivity 按 AND-02 接口契约窗口属性表 声明（不声明 `android:screenOrientation`，跟随系统旋转，README §6 Q17；`resizeableActivity="true"`；`configChanges`、`windowSoftInputMode` 与表一致）；AND-04 的 CameraActivity 同样不声明 `screenOrientation`。
 
 b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
@@ -303,6 +304,7 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 | --- | --- | --- |
 | `android:screenOrientation` | 不声明（unspecified） | 跟随系统自动旋转与旋转锁定，手机与平板相同（Q17） |
 | `android:resizeableActivity` | `true` | 分屏、自由窗口、折叠屏 |
+| `android:launchMode` | `singleTop` | AND-08通知点击复用顶部MainActivity并走onNewIntent |
 | `android:configChanges` | `orientation\|keyboardHidden\|keyboard\|screenSize\|smallestScreenSize\|locale\|layoutDirection\|fontScale\|screenLayout\|density\|uiMode` | 与 Flutter 工程模板一致；旋转、尺寸、字号、深色变化由 Flutter 重排，不重建 Activity |
 | `android:windowSoftInputMode` | `adjustResize` | 软键盘高度经 `viewInsets` 交给 Flutter |
 | `android:enableOnBackInvokedCallback` | `true`（声明在 `<application>`，覆盖 Android 13） | 系统预测性返回 |
@@ -317,12 +319,14 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 - 审计脚本输入为 Gradle 生成的 `build/intermediates/merged_manifests/release/AndroidManifest.xml`；CI 在 release 构建后调用（CORE-41 的 `ci.yml` 追加一步）。
 
 **验收标准**
-- [R38] `check_android_manifest.py`：Release 构建的合并清单包含本阶段必需集合且属于上表白名单；S7 完整能力包包含全部启用项；在 `app/build.gradle` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
+- [R38] `check_android_manifest.py`：Release 构建的合并清单包含本阶段必需集合且属于上表白名单；S7 完整能力包包含全部启用项；在 `app/build.gradle.kts` 引入一个带 `READ_EXTERNAL_STORAGE` 的测试依赖后脚本退出 1 并打印该权限。
 - [R42.e] `check_android_manifest.py`：给任一 Activity 加 `android:screenOrientation="portrait"`，或从 MainActivity 的 `configChanges` 中删去 `uiMode`，脚本退出 1 并打印该 Activity 与属性；按 AND-02 接口契约窗口属性表 声明时退出 0。
 - [R38] Widget 测试（假通道）：用户在用途说明中点“暂不”时不调用系统请求；`permanently_denied` 时返回 `permanentlyDenied` 且不再弹系统框。
 - [R31] 手动：拒绝相机权限后，“相册导入”与“文件导入”仍可用并能完成识别。
 - [R04] 手动：拒绝通知权限后学习功能不受影响，提醒设置页显示“提醒未开启”。
 - [R01] 在无 GMS 的国产手机上完成首次启动、游客模式、学习与识别冒烟。
+
+- [R38] 合并清单launchMode=singleTop正例通过；缺失/改standard的夹具审计失败并定位属性。
 
 **规模**：约 245 行；主包 `app/`（`AndroidManifest.xml`、`permissions.dart`、`PermissionsHandler.kt`，约 175 行），附属：`tools/ci/check_android_manifest.py`（约 70 行，含窗口属性审计，供 CORE-41 的 CI 调用）。
 
@@ -433,7 +437,7 @@ keystore.wrap      {alias, secret: bytes}   → bytes   格式：0x01 ‖ IV(12)
 keystore.unwrap    {alias, wrapped: bytes}  → bytes
 keystore.delete    {alias}                  → null
 keystore.level     {alias}                  → "strong_box" 或 "tee" 或 "software"
-biometric.available                         → bool    androidx.biometric BiometricManager.canAuthenticate(BIOMETRIC_STRONG 或 DEVICE_CREDENTIAL) == SUCCESS
+biometric.available                         → bool    androidx.biometric BiometricManager.canAuthenticate(与下述.applock认证同一API分档的authenticators) == SUCCESS；26–29 WEAK|DEVICE_CREDENTIAL，30+ STRONG|DEVICE_CREDENTIAL；不单独猜支持能力
 biometric.auth     {title, subtitle}        → bool    文案由 Dart 按 reasonKey 查 l10n 后传入
 Kotlin 异常映射：KeyPermanentlyInvalidatedException、AEADBadTagException、别名不存在 → PLATFORM_KEY_UNAVAILABLE；
                  UserNotAuthenticatedException、认证取消或失败 → PLATFORM_AUTH_FAILED；其他 IO 错误 → PLATFORM_IO
@@ -518,7 +522,7 @@ MethodChannel "fml/android/import"（ImportBridge.kt）
                API 28+ 另加 image/heic、image/heif；EXTRA_ALLOW_MULTIPLE，超过 max 时只取前 max 个）
                每项：size > 20 MiB → 不复制，tmp_path 缺省（readBytes 抛 PLATFORM_FILE_TOO_LARGE）；
                      HEIC/HEIF → ImageDecoder 解码（目标长边 ≤ 4096）后以 JPEG 质量 92 写出，mime 改为 image/jpeg；
-                     其余原样复制到 cacheDir/tmp-import/<UUID>
+                     其余原样复制到 cacheDir/tmp-import/picker/<UUID>
   createDocument {name, mime}           → content URI 字符串或 null（用户取消）
   writeChunk   {uri, bytes, append}     → null      Dart 按 64 KiB 分块推送；任一块失败抛 PLATFORM_IO 并删除已写文档
   openDocument {mimes}                  → {name, size, uri} 或 null
@@ -533,16 +537,18 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 **实现约束**
 - 不申请存储权限，不调用 `takePersistableUriPermission`；读取一次即复制，不保存源 URI 与原文件路径。
 - Dart/Kotlin 层除 HEIC 转换外不解码图片；HEIC 解码在原生侧降采样输出，不把全尺寸 Bitmap 交给 Dart。
-- `ImportedImage.expiresAt` 为创建后 1 h；到期或CORE-04 定义的批次结束时删除副本；应用启动时清空 `cacheDir/tmp-import/`（在 `AndroidImagePicker` 构造时异步执行）。
+- `ImportedImage.expiresAt` 为创建后 1 h；到期或CORE-04 定义的批次结束时删除副本；应用启动时清空 `cacheDir/tmp-import/picker/`（初始化Future完成清理后才允许首次pick；不在构造时启动悬空异步删除，不触碰camera/clipboard目录）。
 - 只删除本应用创建的副本，绝不删除或修改相册与文件管理器中的原始文件；不向相册写入。
 
 **验收标准**
 - [R38] 手动：分别通过 Photo Picker 与 SAF 选择图片，均返回 `ImportedImage`；全程未出现存储权限请求。
-- [R38] 选择 11 张时只返回 10 个；CORE-04 定义的批次结束后 `cacheDir/tmp-import/` 为空。
+- [R38] 选择 11 张时只返回 10 个；CORE-04 定义的批次结束后 `cacheDir/tmp-import/picker/` 为空。
 - [R31] 选择一张 25 MiB 的图片：`byteLength` 正确，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE`，未产生副本；在 API 28+ 选择 HEIC 照片得到 `image/jpeg`。
 - [R36] 导入并完成识别后，原始相册图片的哈希与修改时间不变。
 - [R27] `saveAs` 经 SAF 保存 50 MiB 流后文件哈希与源一致；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 文件时抛 `PLATFORM_FILE_TYPE_MISMATCH`。
 - [R01] CORE-04 的 `ImagePicker`、`FileExporter`、`DocumentPicker` 契约套件在真机通过（选择器步骤用 UI Automator 驱动）。
+
+- [R38] 相机已有有效批次时初始化picker及连续两次pick，只删除picker旧批次；首次pick必须等待启动清理，返回文件仍可读。
 
 **规模**：约 360 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`（同属 `app/` 构建单元），附属：`tools/ci/check_android_manifest.py` 白名单一行。
 
@@ -581,7 +587,7 @@ final class AndroidCameraController implements CameraController {
 ```text
 MethodChannel "fml/android/camera"（CameraBridge.kt）
   capture → {name, mime: "image/jpeg", size, tmp_path} 或 null
-            启动 CameraActivity（全屏，跟随系统旋转，方向处理见下）；拍照写入 cacheDir/tmp-import/<UUID>.jpg（CameraX ImageCapture，JPEG 质量 95，
+            启动 CameraActivity（全屏，跟随系统旋转，方向处理见下）；拍照写入 cacheDir/tmp-import/camera/<UUID>.jpg（CameraX ImageCapture，JPEG 质量 95，
             写入时去除 GPS 等 EXIF，只保留方向）；用户返回或取消 → null；相机被占用或不存在 → 抛 PLATFORM_UNSUPPORTED
 实时提示（CameraActivity 内，ImageAnalysis 640×480 YUV，后台线程，每秒 ≤ 10 次）：
   清晰度 = Y 平面拉普拉斯方差，< 阈值 → “请对焦或保持稳定”
@@ -603,6 +609,8 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - 错误码：`PLATFORM_PERMISSION_DENIED`、`PLATFORM_UNSUPPORTED`（CORE-04 登记）；本卡不新增错误码。
 
 质量提示复用CORE-30的8位灰度Laplacian初值100（低于提示模糊），不自行定义不同单位；硬件标定由AND-12按100图集完成。capture只允许一个在途请求：先写cacheDir/camera/pending-<uuid>.json（schema=1,relative_path,state=writing|ready,created_ms），照片先临时写、fsync后rename并将state原子置ready；进程重建后下一次capture优先取≤1h的ready结果并弹出恢复预览，用户取消就清理；writing/过期/损坏记录删除自有残留并提示重拍。旧进程MethodResult丢失不补发，重新attach的调用才取得结果。
+
+临时目录仅camera自有；启动先读取pending日志并恢复尚有效ready文件，再按日志清理过期/中断项，不能被picker启动清理删除。初始化与capture串行，完成清理后才创建新文件；不同适配器批次互不失效。
 
 **实现约束**
 - 预览帧不复制到 Dart；提示文案在原生 `strings.xml`（简体中文）。
@@ -831,6 +839,8 @@ selfCheck 项（id → 判定，标题文案在 Dart 侧）：
 
 notify/strings.dart映射：permission标题“通知权限”，detail拒绝时“请在系统设置中允许通知”；scheduled标题“每日提醒”，未开启detail“尚未开启提醒”；battery_optimization标题“电池优化”，detail“系统可能延迟提醒”；autostart标题“自启动设置”，detail“无法自动检测，请在应用详情中检查厂商设置”。通道只提供id/ok/can_fix/detail?，Dart映射为CORE-20必填title，未知id忽略并记日志；autostart按说明信息呈现，不能将不可检测写成确定配置错误。
 
+ReminderCheck稳定ID集合固定为本卡自检表全部项；background_restriction标题“后台运行限制”，detail说明当前后台限制状态，can_fix仅对应应用详情页。文案映射测试枚举全覆盖，未知ID作为协议失败显式显示“未知检查项”，不静默丢弃。
+
 **实现约束**
 - 不使用厂商推送或 FCM，不申请 `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`，不使用 WorkManager 或前台服务；非精确闹钟允许系统推迟（通常数分钟）。
 - 应用多日未打开时，后续每天沿用最近一次 `scheduleDailyReminder` 给出的正文（CORE-20 无法在后台计算到期数）；正文只含数量，不含公式内容；通知只有点击动作，不提供“记得/忘了”快捷评分（评分须来自客观判定，CORE-19）。
@@ -855,7 +865,7 @@ notify/strings.dart映射：permission标题“通知权限”，detail拒绝时
 **目标**：从同一提交产出签名的 AAB（应用商店）与 APK（官网），执行 Android 专属发布检查并归档符号与 mapping。
 
 **范围**
-- 包含：`tools/release/android/` 三个脚本；`app/android/app/build.gradle` 的 release 段（签名配置读取环境变量、R8 与 ProGuard 规则、ABI 过滤）；国内应用市场上架材料清单（`tools/release/android/store_materials.md`）。
+- 包含：`tools/release/android/` 三个脚本；`app/android/app/build.gradle.kts` 的 release 段（签名配置读取环境变量、R8 与 ProGuard 规则、ABI 过滤）；国内应用市场上架材料清单（`tools/release/android/store_materials.md`）。
 - 不包含：版本号写入、哈希汇总、体积门禁、密钥扫描、SBOM（CORE-42 `tools/release/`，本卡只调用）；清单权限检查脚本（AND-02）；真机性能（AND-12）。
 
 **依赖**：CORE-01、CORE-02、CORE-42、AND-01、AND-02
@@ -899,7 +909,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 - [R23] `dist/` 中存在 `fml-<版本>-android-symbols.zip`，其中含 mapping.txt 与 Dart 符号；`collect_artifacts.py` 的清单列出 AAB、APK 与符号包的哈希。
 - [R40] 对本卡产出运行 CORE-42 `scan_secrets.py` 退出 0；缺少签名环境变量时 `build_release.sh` 退出 2 且不产出未签名制品。
 
-**规模**：约 260 行；主包 `tools/release/android/`（约 220 行），附属：`app/android/app/build.gradle` release 段与 `proguard-rules.pro`（约 40 行）。
+**规模**：约 260 行；主包 `tools/release/android/`（约 220 行），附属：`app/android/app/build.gradle.kts` release 段与 `proguard-rules.pro`（约 40 行）。
 
 ### AND-12 性能、能耗与真机矩阵
 
@@ -949,7 +959,7 @@ app/integration_test/android/
 
 按 CORE-41 acceptance_jobs.json 收集本平台所有真机/手动验收；缺设备或依赖未交付记 pending，不能记通过。性能用Release与CORE-01采样，进程内交互可用Profile integration_test；回滚/旋转/杀进程由外部主机驱动。跨端截图对照检查关键元素位置/可见性/语义，主机黄金图不代替平台检查。
 
-主机驱动约定：`python tools/android/host_tests/run.py --serial <adb-id> --apk <path> --case lifecycle|picker|notification|rotation --out <dir>`，0通过/1断言失败/2设备工具缺失；主机用adb安装/启动/kill/旋转/展开通知，并用`adb shell uiautomator dump` + hierarchy XML选择系统控件，Flutter存活阶段读取语义/测试结果JSON。Android SDK platform-tools版本由AND-01锁定，不额外假设integration_test能调用UIAutomator。测试前保存rotation/权限等设置，finally恢复并清理夹具；选择器与通知由主机断言。框架本体是P2后续实现目标，当前只冻结命令/证据契约，未实现不记通过。
+主机驱动约定：`python tools/android/host_tests/run.py --serial <adb-id> --apk <path> --case lifecycle|picker|notification|rotation --out <dir>`，0通过/1断言失败/2设备工具缺失；主机用adb安装/启动/kill/旋转/展开通知，并用`adb shell uiautomator dump` + hierarchy XML选择系统控件，Flutter存活阶段读取语义/测试结果JSON。Android SDK platform-tools版本由AND-01锁定，不额外假设integration_test能调用UIAutomator。测试前保存rotation/权限等设置，finally恢复并清理夹具；选择器与通知由主机断言。框架本体是P2/M-HOST阻断：负责人为Android测试维护者，须先另卡明确tools/android/host_tests/的阶段、规模与实现并通过四类主机自检，之后本卡才允许验收/就绪。当前只冻结命令/证据契约，未实现不得记通过。
 图片100张性能使用正式系统选择器路径与主机已预置MediaStore夹具，或CORE-40控制器层FakeImagePicker做算法诊断；不得将Fake路径称端到端性能，不依赖AND-03不存在的注入。业务草稿/学习恢复等按S7依赖完整实现后执行，S2平台卡只用Fake页面/路由。
 
 **实现约束**
@@ -960,7 +970,7 @@ app/integration_test/android/
 
 **验收标准**
 - [R03] 4 GB 中端机上 `run_matrix.sh` 全部项 P95 达标并生成 `out/report.md`；人为把某预算改小 1 ms 时脚本退出 1 并标出该项。
-- [R31] `import_20_images_test.dart` 在 4 GB 机型上连续导入 20 张 1200 万像素 JPEG（经 AND-03 选择器的测试注入路径）不 OOM，峰值内存增量在 CORE-01 预算内。
+- [R31] `import_20_images_test.dart` 在 4 GB 机型上连续导入 20 张 1200 万像素 JPEG（经M-HOST主机驱动的AND-03正式选择器，两批各10张，禁止虚构测试注入路径）不 OOM，峰值内存增量在 CORE-01 预算内。
 - [R03] `energy_check.sh` 在 30 分钟脚本后退出 0（无长唤醒锁、无后台网络、无前台服务）。
 - [R08][R04] `process_restore_test.dart`：编辑公式草稿与学习会话进行中执行 `adb shell am kill <包名>`（模拟后台回收），重新打开后回到原页面，草稿内容与会话进度保留。
 - [R01] `consistency_test.dart` 输出与 WIN-13 的 Windows 输出逐字节一致（AST JSON、诊断码、NodePath）。
@@ -977,8 +987,8 @@ app/integration_test/android/
 **目标**：让共享界面在 Android 手机与平板上按触摸操作优化：经 CORE-55 接缝注入输入方式、触感与系统动画缩放；系统栏、刘海与软键盘为内容让位；横竖屏跟随系统旋转设置，旋转、分屏与窗口尺寸变化时界面状态不丢（README §6 Q17、Q18）。
 
 **范围**
-- 包含：CORE-55 接缝的 Android 实现（`AndroidInputModalitySource`、`AndroidHaptics`、`AndroidMotionScale`）；跟随 `AppearanceController.resolvedChanges` 的系统栏样式 `AndroidSystemBars`；安装点 `installAndroidInteraction` 及其在 `ports_android.dart` 中的登记行；MainActivity 窗口属性（屏幕方向、`configChanges`、可调整大小、软键盘模式、预测性返回）的唯一定义；启动主题、edge-to-edge 与 displayCutout 模式（`styles.xml`）；Kotlin 侧 `InteractionHandler.kt`（触感、动画缩放、窗口度量）；系统返回、内边距与屏幕方向的行为对照表及其真机验收。
-- 不包含：`DevicePrefStore`（使用 CORE-55 默认实现，见实现约束）；宽度分档、矮高度、密度、组件、动效时长与“减少动效”处理（CORE-55）；返回处理逻辑（CORE-36 路由与各页面 `PopScope`，本卡只给对照表并做真机验收）；生命周期与进程恢复（AND-05）；权限与清单审计脚本（AND-02，按本卡属性表审计）；相机界面的方向处理（AND-04）；软键盘快捷栏与触控笔策略（AND-07）；动态取色（ADR-V5-24 不做）。
+- 包含：CORE-55 接缝的 Android 实现（`AndroidInputModalitySource`、`AndroidHaptics`、`AndroidMotionScale`）；跟随 `AppearanceController.resolvedChanges` 的系统栏样式 `AndroidSystemBars`；安装点 `installAndroidInteraction` 及其在 `ports_android.dart` 中的登记行；引用AND-02唯一的MainActivity窗口属性表（本卡不维护清单属性）；启动主题、edge-to-edge 与 displayCutout 模式（`styles.xml`）；Kotlin 侧 `InteractionHandler.kt`（触感、动画缩放、窗口度量）；系统返回、内边距与屏幕方向的行为对照表及其真机验收。
+- 不包含：`DevicePrefStore`（使用 CORE-55 默认实现，见实现约束）；宽度分档、矮高度、密度、组件、动效时长与“减少动效”处理（CORE-55）；返回处理逻辑（CORE-36 路由与各页面 `PopScope`，本卡只给对照表并做真机验收）；生命周期与进程恢复（AND-05）；权限与清单审计脚本（AND-02，按AND-02唯一属性表审计）；相机界面的方向处理（AND-04）；软键盘快捷栏与触控笔策略（AND-07）；动态取色（ADR-V5-24 不做）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58
 
@@ -1127,7 +1137,7 @@ ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，�
 - [R42.c] 单元测试（假通道）：`animatorScale` 返回 0.5 时 `scale` 为 0.5 并发出一次；事件重复 0.5 不再发出；返回 12 截为 10；通道失败时为 1.0。手动：开发者选项“动画时长缩放”设为关闭后页面转场无动画、各功能正常。
 - [R42.d] Widget 测试：执行 `installAndroidInteraction` 后 `InputModalityScope.of` 为 `touch`、密度最小触控目标为 48；未登记 `DevicePrefStore` 时 `AppearanceController` 使用 `FileDevicePrefStore`。
 - [R42.f] Widget 测试：`resolvedChanges` 发出 dark 时 `SystemChrome` 收到浅色图标样式、发出 light 时收到深色图标样式，相同样式连续发出只调用一次；扫描测试：`app/lib/` 中 `setSystemUIOverlayStyle` 只出现在 `android_system_bars.dart`。
-- [R42.e] 扫描测试：`app/lib/` 与 `app/android/` 中无 `setPreferredOrientations`、`requestedOrientation`；合并清单的 MainActivity 属性等于属性表 b（由 AND-02 `check_android_manifest.py` 检查）。
+- [R42.e] 扫描测试：`app/lib/` 与 `app/android/` 中无 `setPreferredOrientations`、`requestedOrientation`；合并清单的 MainActivity属性等于AND-02属性表b（由 AND-02 `check_android_manifest.py` 检查）。
 - [R42.e] S7由AND-12主机驱动作业（进程内断言脚本app/integration_test/android/interaction_test.dart）：在编辑页输入未保存文本、在公式库列表滚动后，关闭自动旋转并用 `adb shell settings put system user_rotation` 依次切到 1、0，`windowMetrics` 的 `orientation` 随之变化且 `create_count` 不变，路由、文本与滚动偏移不变。
 - [R42.e] 手动（一台手机、一台平板）：自动旋转开启时横竖屏切换均可用且布局按 CORE-55 分档；开启旋转锁定后旋转设备保持当前方向；分屏 1/3、1/2、2/3 与折叠屏展开折叠后当前路由与输入保留；开启“不保留活动”后切到后台再返回，回到原路由。
 - [R42.b] 手动（刘海或挖孔屏手机，手势导航与三键导航各一次）：竖屏与两向横屏下内容与可点击控件不被挖孔、状态栏和导航栏遮挡，系统栏透明且图标明暗与主题一致；软键盘弹出时输入框与主按钮可见；横屏输入法不进入全屏提取界面。
@@ -1172,6 +1182,8 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 ```
 只复用CORE-04 PLATFORM_IO/PLATFORM_FILE_TOO_LARGE，不新增错误码。
 
+图片读取只接受实际解码格式JPEG/PNG/WebP并返回对应image/jpeg、image/png、image/webp；先检查可知长度>20MiB则拒绝，未知长度流式复制到20MiB+1即停止删除副本并抛PLATFORM_FILE_TOO_LARGE；GIF/HEIC/SVG及其他image/*返回PLATFORM_UNSUPPORTED，不只改后缀或MIME冒充支持。Clipboard外部URI必须持临时读取授权；失效返回PLATFORM_IO。
+
 **实现约束**
 - 只在用户粘贴/复制时访问，不后台监听、不写私有MIME、不自动清空剪贴板；系统API33+复制反馈返回true。
 - provider条目由AND-02合并清单主体维护，本卡只追加：androidx.core.content.FileProvider，authority=${applicationId}.clip，exported=false/grantUriPermissions=true；res/xml/clip_paths.xml仅cache-path name=clip path=clip/；白名单追加一行。
@@ -1183,3 +1195,4 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 - [R01] CORE-04 ClipboardAdapter契约套件通过；读取无图片返回null，下一次readImage即结束上一批，已复制到业务staging的文件不被清理。
 
 **规模**：约 240 行；app/lib/platform/android/clipboard/、app/android/.../ClipboardBridge.kt与res/xml/clip_paths.xml（同app构建单元），附属清单与审计白名单追加行。
+
