@@ -3082,30 +3082,61 @@
       "record": "P2-CORE-77",
       "card": "CORE-77",
       "grade": "B",
-      "reviewer": "reviewer-core77",
+      "reviewer": "reviewer-core77-r2",
       "date": "2026-10-20",
-      "materialChars": 197247,
-      "segments": 3,
+      "materialChars": 225619,
+      "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "fail",
+        "b": "pass",
         "c": "pass",
         "d": "fail",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
         "S2": "fail",
         "S3": "fail",
-        "S4": "pending",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01 UnifyError 无溢出通道",
-        "F-02 CORE-08 缺 Rational/DimensionFull 运算与溢出通道",
-        "F-03 DimVar 作用域与跨修订使用矛盾、缺 instantiate"
+        "N-01 跨修订 instantiate 协议错误：仅实例化一侧在无存活 Subst 时重号误合一，映射作用域未定义（CO-13）",
+        "P-01 CORE-09/CORE-11 作者调用方确认缺失（README §8.5.1）"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-78",
+      "card": "CORE-78",
+      "grade": "B",
+      "reviewer": "reviewer-core78-fresh",
+      "date": "2026-10-20",
+      "materialChars": 243316,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 非轮换设备导入新密钥后旧 key_version 批次永不作废，pending_batch 不校验 epoch/key_version，推送永久卡死（CO-15）",
+        "F-02 pending_batch/batched_op_ids 仅收 &Store，无法与 save_batch 同事务查-建-存（CO-15）",
+        "F-03 1 MiB 计量口径与元素字节编码未定义且批次字节不可变（CO-16）",
+        "P-01 CORE-26/CORE-66 作者调用方确认缺失（README §8.5.1）"
       ],
       "consumerConfirmation": null
     }
