@@ -364,11 +364,13 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 
 用户可见行为不变：敏感操作本来就要求 300 s 内交互登录（刷新从不更新 auth_time）；刷新令牌被重放时整族失效，用户需重新登录，这是 OAuth 安全实践的常规结果。
 
-### A.4.7 P1 Android 官方事实依据（2026-10-20 核实）
+### A.4.7 P1 Android 官方事实待核实清单（2026-10-20）
+
+本轮官方Android页面请求超时，无正文证据；以下是核对入口，不构成已核实声明。H4的API分档/页对齐规范仍需M0锁定版本下验证，未验证前不提升AND卡就绪等级。
 
 - [AndroidX PromptInfo](https://developer.android.com/reference/androidx/biometric/BiometricPrompt.PromptInfo.Builder)：28–29 不支持 STRONG 与设备凭据组合；[BiometricPrompt](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt) 的 CryptoObject 约束分 API，不把非加密提示等同密钥认证。
 - [多选契约](https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.PickMultipleVisualMedia)：多选最小2；系统/SAF fallback 的数量行为仍需返回后校验，不信任供应方遵守上限。
-- [AndroidX core 清单源码](https://android.googlesource.com/platform/prebuilts/sdk/+/fa1474c543bdd7eaa690ba935d9ea8249fd12880/current/androidx/manifests/androidx.core_core/AndroidManifest.xml)：自定义动态接收器 signature 权限。
+- AndroidX core 主干清单读取未发现动态接收器权限；不能用主干替代锁定版合并清单。以锁定依赖生成的 merged manifest/依赖AAR为M0证据，若引入该signature权限须保留，未引入则不强加。
 - [16 KB 页支持](https://developer.android.com/guide/practices/page-sizes)：r28 默认对齐，r27 需显式支持；仍检查每个第三方 .so 与 Rust 产物。真机/ROM 及锁定 AndroidX 组合未实测，保留 M0 外部前提，不将官方 API 存在等同交付验证。
 
 ### A.4.8 Windows runner、按键与发布（ADR-V5-37，2026-10-20）

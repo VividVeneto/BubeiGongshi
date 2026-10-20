@@ -726,7 +726,7 @@ void installAndroidEditing(CompositionContext ctx) {
 
 ```dart
 abstract interface class HttpTransport {
-  /// 只允许编译期白名单主机；游客态由 CORE-28 的 NetworkGuard 在调用前拦截。
+  /// 底层只执行传输/TLS/超时；主机白名单与游客授权唯一由 CORE-28 NetworkGuard 在调用前校验，平台不复制策略。
   Future<HttpResult> send(HttpRequestDto req, {CancelToken? cancel});
 }
 ```
