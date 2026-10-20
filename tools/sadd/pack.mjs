@@ -131,7 +131,24 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
     const relative = path.relative(path.dirname(sadd), resolved);
     if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error(`Path outside workspace: ${file}`);
     if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) { missing.push(file); continue; }
-    sections.push(`## 已有文件 ${file}\n\n\`\`\`text\n${fs.readFileSync(resolved, 'utf8')}\n\`\`\``);
+    const content=fs.readFileSync(resolved,'utf8');
+    // A schema is unusable without its referenced definitions. Sets make cycles finite.
+    if(file.startsWith('contracts/') && file.endsWith('.json')) {
+      const document=JSON.parse(content);
+      const visit=value=>{
+        if(!value || typeof value!=='object')return;
+        if(typeof value.$ref==='string' && !value.$ref.startsWith('#')) {
+          const reference=value.$ref.split('#')[0];
+          if(/^[a-z]+:/i.test(reference))throw new Error(`External contract reference: ${reference}`);
+          const dependency=path.posix.normalize(path.posix.join(path.posix.dirname(file.replaceAll('\\','/')),reference));
+          if(!dependency.startsWith('contracts/'))throw new Error(`Contract reference outside contracts: ${dependency}`);
+          paths.add(dependency);
+        }
+        for(const child of Object.values(value))visit(child);
+      };
+      visit(document);
+    }
+    sections.push(`## 已有文件 ${file}\n\n\`\`\`text\n${content}\n\`\`\``);
   }
   const inventory = [...tokens(sections.join('\n'))].filter(t => /^[A-Z][a-z]+[A-Z]/.test(t));
   const definitionPattern = /(?:struct|class|enum|trait|typedef|type)\s+(\w+)/g;

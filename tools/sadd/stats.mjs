@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {load, ROOT} from './pack.mjs';
-import {validateCurrent} from './current.mjs';
+import {validateCurrent,reviewColumn} from './current.mjs';
 
 // Only this bounded generated block changes; historical batches stay intact.
 const sadd = path.join(ROOT, 'SADD');
@@ -13,9 +13,12 @@ const lines = current.split('\n').filter(l => /^\| (CORE|AND|WIN)-\d+ \|/.test(l
 if (lines.length !== cards.size) throw new Error('D.10/card count mismatch');
 const header = current.split('\n').find(l => l.startsWith('| 编号 |'));
 const columns = header?.split('|').map(c => c.trim()) ?? [];
-const errors = validateCurrent(lines, columns, cards);
+const version=columns[reviewColumn(columns)]?.split(' ')[0];
+const reviewFile=path.join(sadd,`reports/${version}-reviews.json`);
+const reviews=fs.existsSync(reviewFile)?JSON.parse(fs.readFileSync(reviewFile,'utf8')):{entries:[]};
+const errors = validateCurrent(lines, columns, cards, reviews);
 if (errors.length) throw new Error(errors.join('\n'));
-const gradeIndex = columns.indexOf('v5.3.2 复核');
+const gradeIndex = reviewColumn(columns);
 const statusIndex = columns.indexOf('当前状态');
 const grades = {};
 let ready = 0;
