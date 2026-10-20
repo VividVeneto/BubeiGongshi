@@ -62,5 +62,5 @@ CORE-36 composition注入ProfileSessionSource：依赖档案的用例在调用�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-65_TEST.md](../Test/core/S2_CORE-65_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；主包 `app/lib/account/`（controller/token_store约240、profile_session约120、测试约100）（含测试与必要的同构建单元接缝）。
+**规模**：约 360 行；主包 `app/lib/account/`（controller/token_store约240、profile_session约120；不含测试约100）（含必要的同构建单元接缝）。
 

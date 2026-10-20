@@ -187,5 +187,5 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-15_TEST.md](../Test/win/S2_WIN-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 440 行；`app/lib/platform/windows/interaction/`（约 260 行）、`app/windows/runner/interaction_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 120 行）、`app/integration_test/windows/interaction_test.dart`（约 60 行），同属 `app/` 构建单元。
+**规模**：约 380 行；`app/lib/platform/windows/interaction/`（约 260 行）、`app/windows/runner/interaction_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 120 行），同属 `app/` 构建单元；不含测试 `app/integration_test/windows/interaction_test.dart`（约 60 行）。
 

@@ -26,4 +26,4 @@ Windows ready/probe在--host-root/<run_id>/，主机仅读取该已解析绝对�
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-17_TEST.md](../Test/win/S2_WIN-17_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100、自测100），附属fixture_app/lib/main.dart（90）、模板构建/CI（40）。
+**规模**：约 360 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100；不含自测约100），附属fixture_app/lib/main.dart（90）、模板构建/CI（40）。

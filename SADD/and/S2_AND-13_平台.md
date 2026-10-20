@@ -155,5 +155,5 @@ nav_mode默认unknown；不读取Settings.Secure的非公开navigation_mode键�
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-13_TEST.md](../Test/and/S2_AND-13_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；`app/lib/platform/android/interaction/`（约 190 行）、`app/android/.../InteractionHandler.kt`（约 90 行）、`app/android/app/src/main/res/values*/styles.xml`（约 50 行；清单属性归 AND-02，不计入本卡）、`app/integration_test/android/interaction_test.dart`（约 50 行），同属 `app/` 构建单元。
+**规模**：约 330 行；`app/lib/platform/android/interaction/`（约 190 行）、`app/android/.../InteractionHandler.kt`（约 90 行）、`app/android/app/src/main/res/values*/styles.xml`（约 50 行；清单属性归 AND-02，不计入本卡），同属 `app/` 构建单元；不含测试 `app/integration_test/android/interaction_test.dart`（约 50 行）。
 

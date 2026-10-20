@@ -32,5 +32,5 @@ engine.generation/wait_generation读取CORE-56 generation_status，exhausted或u
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-73_TEST.md](../Test/core/S1_CORE-73_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 320 行；主包 `crates/fml-ffi/`（原生110与测试80），附属 `app/lib/binding/engine_generation.dart`及测试（130行），向量不计代码。
+**规模**：约 240 行；主包 `crates/fml-ffi/`（原生110；不含测试约80），附属 `app/lib/binding/engine_generation.dart`及测试（130行，其中测试未单列，按上界计），向量不计代码。
 

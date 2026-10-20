@@ -55,5 +55,5 @@ CheckResult DTO 唯一形状为 `{typed?: {types:[[NodePath,TypeExpr],...]}, val
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-09_TEST.md](../Test/core/S1_CORE-09_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 480 行（规则表 150、推断与 check 编排 210、测试 120）；`crates/fml-type/src/{rules.rs,infer.rs}`（crate 骨架与量纲变量/合一归 CORE-77，本卡只追加模块声明）。
+**规模**：约 360 行（规则表 150、推断与 check 编排 210；不含测试约 120 行）；`crates/fml-type/src/{rules.rs,infer.rs}`（crate 骨架与量纲变量/合一归 CORE-77，本卡只追加模块声明）。
 
