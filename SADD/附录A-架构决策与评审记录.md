@@ -303,6 +303,7 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-38 | 本机保护强度 | 不提供应用锁、生物识别/Windows Hello 验证与防截屏；本机只用系统级解锁（Android Keystore 无认证别名 `fml.<profile_id>.db`，Windows DPAPI）。删除 CORE-04 `BiometricPrompt` 端口与 `ScreenSecurity` 接缝、`PLATFORM_AUTH_FAILED`，删除 CORE-23 的 GuestLocked、UnlockTier 与应用锁错误码，登出改由 `profile.logged_out` 记录 | Windows 11 上以 Hello 用户同意验证作应用锁；Android 以生物识别/设备凭据作应用锁；恢复码页防截屏 | 甲方要求增强本机保护，或面向共享设备、机构部署 | 采纳（甲方 2026-10-20 确认，README §6 Q41） | CORE-04、CORE-23、CORE-28、CORE-36、CORE-47、CORE-65、AND-02、AND-06、AND-13、WIN-07、WIN-09、WIN-15 |
 
 | ADR-V5-39 | 显式档案上下文与关闭 | CORE-03信封profile_handle由CORE-65唯一会话注入；按句柄租约排空后关闭；账户密钥从该Store单请求快照加载；不使用隐式活动账户 | 全局current Store导致切换竞态写错库；JSON传AccountKeys扩大泄露面 | 多交互档案并存或句柄协议升级 | 采纳（修订方决定） | CORE-03、CORE-13、CORE-23、CORE-24、CORE-26、CORE-32、CORE-65、CORE-66 |
+| ADR-V5-40 | P2安装时序、证据与测试隔离 | Installer采用FutureOr逐项await后发布，聚合共享文件单写；档案提交后快照失效显式Result，耗尽不回绕；ready必须与D.12/版本1机器记录对应；主机fixture使用独立制品/run_id/boot，不接生产用户数据 | 同步安装忽略Future、共享目录悬空删除与表格字样就绪会隐藏竞态/假通过 | 后续消费协议改变或真实试点暴露问题时 | 采纳（修订方决定；实现/设备前提未闭合） | CORE-04、CORE-14、CORE-36、CORE-37、CORE-52、CORE-56、CORE-59、CORE-70、CORE-71、CORE-73、CORE-75、CORE-76、AND-13、AND-15、WIN-04、WIN-05、WIN-14、WIN-17 |
 
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
 
@@ -380,6 +381,7 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 采用 FocusManager early handler、平台线程结果队列与证书指纹白名单。已读取 Flutter 3.35.7 的 [focus_manager.dart](https://github.com/flutter/flutter/blob/3.35.7/packages/flutter/lib/src/widgets/focus_manager.dart) 和 [hardware_keyboard.dart](https://github.com/flutter/flutter/blob/3.35.7/packages/flutter/lib/src/services/hardware_keyboard.dart)：early handler 在焦点链之前，HardwareKeyboard 广播全部 handler，不短路。锁定 Flutter 版本必须回归此行为。
 
 官方依据：[平台通道线程](https://docs.flutter.dev/platform-integration/platform-channels)、[指针通知](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpointerdevicenotifications)、[MSVC DEBUG](https://learn.microsoft.com/en-us/cpp/build/reference/debug-generate-debug-info?view=msvc-170)。指针/子HWND 和扩展解码的实际设备行为列为 M0 外部前提；不得用 API 文档替代真机结果。签名格式由 WIN-12 所有，WIN-03 只消费生成的 pin 集合。关联 CORE-36/58、WIN-01/03/08/12/15。
+
 
 ## A.5 开发前冻结清单
 

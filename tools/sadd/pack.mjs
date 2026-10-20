@@ -119,10 +119,11 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
     'tools/requirements.txt', 'Cargo.lock', 'app/pubspec.lock',
     'app/android/toolchain.versions', 'app/windows/toolchain.versions'];
   const paths = new Set([...defaults, ...extra]);
+  const files = [];
   // Contracts can be introduced by a dependency, not just the target card.
   for (const key of selected.keys()) {
     const source = key === id ? target.body : cards.get(key).contract;
-    for (const m of source.matchAll(/`((?:contracts\/)[^`\s]+)`/g)) {
+    for (const m of source.matchAll(/\b(contracts\/[A-Za-z0-9_.\/-]+\.(?:json|yaml|yml|h|toml|txt))/g)) {
       if (!/[<>*{}]/.test(m[1])) paths.add(m[1]);
     }
   }
@@ -132,6 +133,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
     if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error(`Path outside workspace: ${file}`);
     if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) { missing.push(file); continue; }
     const content=fs.readFileSync(resolved,'utf8');
+    files.push(file);
     // A schema is unusable without its referenced definitions. Sets make cycles finite.
     if(file.startsWith('contracts/') && file.endsWith('.json')) {
       const document=JSON.parse(content);
@@ -147,6 +149,12 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
         for(const child of Object.values(value))visit(child);
       };
       visit(document);
+      // manifest.schema uses filenames relative to the manifest, unlike JSON $ref.
+      if(file==='contracts/dto/manifest.json') for(const op of document.ops??[]) {
+        if(op.status!=='ready')continue;
+        if(typeof op.schema!=='string' || !/^[A-Za-z0-9_.-]+\.schema\.json$/.test(op.schema))throw new Error('Invalid ready schema path: '+op.op);
+        paths.add('contracts/dto/'+op.schema);
+      }
     }
     sections.push(`## 已有文件 ${file}\n\n\`\`\`text\n${content}\n\`\`\``);
   }
@@ -175,7 +183,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   }
   if (chunk) chunks.push(chunk);
   return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length,
-    closure: [...closure], manifest, missing, warnings, missingFromMaterials,
+    closure: [...closure], manifest, files, missing, warnings, missingFromMaterials,
     undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort(), classifiedReferences, excludedSupplements}};
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

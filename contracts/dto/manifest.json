@@ -1,1 +1,1765 @@
-{"version":1,"ops":[{"op":"account.close_profile","owner":"CORE-23","status":"ready","mode":"submit","scope":"profile","schema":"account.close_profile.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.create_guest","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.create_guest.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":["/ok/db_key"]},{"op":"account.create_registered","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.create_registered.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":["/ok/db_key"]},{"op":"account.get_blob","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.get_blob.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.import_account_key","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.local_setting","owner":"CORE-23","status":"ready","mode":"call","scope":"profile","schema":"account.local_setting.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.open_profile","owner":"CORE-23","status":"ready","mode":"submit","scope":"device","schema":"account.open_profile.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":["/body/db_key"]},{"op":"account.profiles","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.profiles.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.put_blob","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.put_blob.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.rotate_account_key","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.set_local_setting","owner":"CORE-23","status":"ready","mode":"call","scope":"profile","schema":"account.set_local_setting.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.set_logged_out","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.set_logged_out.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.set_sync_enabled","owner":"CORE-23","status":"ready","mode":"call","scope":"profile","schema":"account.set_sync_enabled.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.state","owner":"CORE-23","status":"ready","mode":"call","scope":"device","schema":"account.state.schema.json","error_codes":["AUTH_NO_PROFILE","AUTH_GUEST_EXISTS","AUTH_LOCKED","AUTH_SETTING_INVALID","PLATFORM_KEY_UNAVAILABLE"],"sensitive_paths":[]},{"op":"account.upgrade_abandon","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.upgrade_advance","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.upgrade_begin","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.upgrade_merge","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.upgrade_status","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"account.wrap_with_passphrase","owner":"CORE-24","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-24：schema及mode核对待提交，禁止注册。"},{"op":"backup.commit_restore","owner":"CORE-27","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-27：schema及mode核对待提交，禁止注册。"},{"op":"backup.discard_restore","owner":"CORE-27","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-27：schema及mode核对待提交，禁止注册。"},{"op":"backup.export","owner":"CORE-27","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-27：schema及mode核对待提交，禁止注册。"},{"op":"backup.prepare_restore","owner":"CORE-27","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-27：schema及mode核对待提交，禁止注册。"},{"op":"backup.verify","owner":"CORE-27","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-27：schema及mode核对待提交，禁止注册。"},{"op":"calc.evaluate","owner":"CORE-56","status":"ready","mode":"call","scope":"none","schema":"calc.evaluate.schema.json","error_codes":["ENGINE_DATA_INVALID","ENGINE_DATA_CONFLICT","ENGINE_UNAVAILABLE","NOTATION_UNBOUND"],"sensitive_paths":[]},{"op":"calc.solvable_targets","owner":"CORE-56","status":"ready","mode":"call","scope":"none","schema":"calc.solvable_targets.schema.json","error_codes":["ENGINE_DATA_INVALID","ENGINE_DATA_CONFLICT","ENGINE_UNAVAILABLE","NOTATION_UNBOUND"],"sensitive_paths":[]},{"op":"constants.resolve","owner":"CORE-07","status":"ready","mode":"call","scope":"none","schema":"constants.resolve.schema.json","error_codes":["NOTATION_UNBOUND","NOTATION_CONSTANT_CONFLICT"],"sensitive_paths":[]},{"op":"core.log_init","owner":"CORE-28","status":"ready","mode":"call","scope":"device","schema":"core.log_init.schema.json","error_codes":["NET_HOST_NOT_ALLOWED","PRIVACY_REQUEST_BLOCKED","PRIVACY_CONSENT_MISSING","PRIVACY_DIAGNOSTICS_DISABLED","PRIVACY_REPRO_FAILED"],"sensitive_paths":[]},{"op":"derive.rank","owner":"CORE-11","status":"ready","mode":"call","scope":"none","schema":"derive.rank.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"derive.run_plan","owner":"CORE-11","status":"ready","mode":"call","scope":"none","schema":"derive.run_plan.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"derive.substitute","owner":"CORE-11","status":"ready","mode":"call","scope":"none","schema":"derive.substitute.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"engine.check","owner":"CORE-56","status":"ready","mode":"call","scope":"none","schema":"engine.check.schema.json","error_codes":["ENGINE_DATA_INVALID","ENGINE_DATA_CONFLICT","ENGINE_UNAVAILABLE","NOTATION_UNBOUND"],"sensitive_paths":[]},{"op":"engine.export","owner":"CORE-06","status":"ready","mode":"call","scope":"none","schema":"engine.export.schema.json","error_codes":["PARSE_SYNTAX","PARSE_FORBIDDEN_COMMAND","PARSE_UNSUPPORTED_COMMAND","PARSE_TIMEOUT","PARSE_HOLE_UNFILLED","PARSE_LIMIT_EXCEEDED"],"sensitive_paths":[]},{"op":"engine.generation","owner":"CORE-73","status":"ready","mode":"call","scope":"none","schema":"engine.generation.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"engine.parse","owner":"CORE-06","status":"ready","mode":"call","scope":"none","schema":"engine.parse.schema.json","error_codes":["PARSE_SYNTAX","PARSE_FORBIDDEN_COMMAND","PARSE_UNSUPPORTED_COMMAND","PARSE_TIMEOUT","PARSE_HOLE_UNFILLED","PARSE_LIMIT_EXCEEDED"],"sensitive_paths":[]},{"op":"engine.wait_generation","owner":"CORE-73","status":"ready","mode":"submit","scope":"none","schema":"engine.wait_generation.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"export.formula","owner":"CORE-52","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-52：schema及mode核对待提交，禁止注册。"},{"op":"grade.answer","owner":"CORE-18","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-18：schema及mode核对待提交，禁止注册。"},{"op":"img.fit_for_upload","owner":"CORE-30","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-30：schema及mode核对待提交，禁止注册。"},{"op":"img.prepare","owner":"CORE-30","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-30：schema及mode核对待提交，禁止注册。"},{"op":"img.probe","owner":"CORE-30","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-30：schema及mode核对待提交，禁止注册。"},{"op":"library.create","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.diff","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.draft_delete","owner":"CORE-61","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-61：schema及mode核对待提交，禁止注册。"},{"op":"library.draft_get","owner":"CORE-61","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-61：schema及mode核对待提交，禁止注册。"},{"op":"library.draft_put","owner":"CORE-61","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-61：schema及mode核对待提交，禁止注册。"},{"op":"library.get","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.history","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.import","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.plan_delete","owner":"CORE-48","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-48：schema及mode核对待提交，禁止注册。"},{"op":"library.plan_list","owner":"CORE-48","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-48：schema及mode核对待提交，禁止注册。"},{"op":"library.plan_put","owner":"CORE-48","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-48：schema及mode核对待提交，禁止注册。"},{"op":"library.restore","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.revise","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.search","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.substitution_pool","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.trash","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.untrash","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"library.update_meta","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"notation.bind","owner":"CORE-07","status":"ready","mode":"call","scope":"none","schema":"notation.bind.schema.json","error_codes":["NOTATION_UNBOUND","NOTATION_CONSTANT_CONFLICT"],"sensitive_paths":[]},{"op":"notation.display","owner":"CORE-07","status":"ready","mode":"call","scope":"none","schema":"notation.display.schema.json","error_codes":["NOTATION_UNBOUND","NOTATION_CONSTANT_CONFLICT"],"sensitive_paths":[]},{"op":"notation.profiles","owner":"CORE-07","status":"ready","mode":"call","scope":"none","schema":"notation.profiles.schema.json","error_codes":["NOTATION_UNBOUND","NOTATION_CONSTANT_CONFLICT"],"sensitive_paths":[]},{"op":"pack.check_updates","owner":"CORE-15","status":"pending","mode":null,"scope":"device","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-15：schema及mode核对待提交，禁止注册。"},{"op":"pack.install","owner":"CORE-15","status":"pending","mode":null,"scope":"device","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-15：schema及mode核对待提交，禁止注册。"},{"op":"pack.list","owner":"CORE-15","status":"pending","mode":null,"scope":"device","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-15：schema及mode核对待提交，禁止注册。"},{"op":"pack.recover","owner":"CORE-15","status":"pending","mode":null,"scope":"device","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-15：schema及mode核对待提交，禁止注册。"},{"op":"pack.uninstall","owner":"CORE-15","status":"pending","mode":null,"scope":"device","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-15：schema及mode核对待提交，禁止注册。"},{"op":"recog.adopt","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.backends","owner":"CORE-29","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-29：schema及mode核对待提交，禁止注册。"},{"op":"recog.correct","owner":"CORE-31","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-31：schema及mode核对待提交，禁止注册。"},{"op":"recog.final_check","owner":"CORE-31","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-31：schema及mode核对待提交，禁止注册。"},{"op":"recog.gc","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.history.list","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.key.provide","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.key.rotate_begin","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.key.rotate_commit","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.key.status","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.local.register","owner":"CORE-35","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-35：schema及mode核对待提交，禁止注册。"},{"op":"recog.local.unload_all","owner":"CORE-35","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-35：schema及mode核对待提交，禁止注册。"},{"op":"recog.local.unregister","owner":"CORE-35","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-35：schema及mode核对待提交，禁止注册。"},{"op":"recog.pending_cloud.list","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.pending_cloud.record","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.pin","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.postprocess","owner":"CORE-31","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-31：schema及mode核对待提交，禁止注册。"},{"op":"recog.recover","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.register_remote","owner":"CORE-29","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-29：schema及mode核对待提交，禁止注册。"},{"op":"recog.run","owner":"CORE-29","status":"pending","mode":null,"scope":"none","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-29：schema及mode核对待提交，禁止注册。"},{"op":"recog.session.get","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.session.start","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.session.transition","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.settings.get","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"recog.settings.set","owner":"CORE-32","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-32：schema及mode核对待提交，禁止注册。"},{"op":"srs.due_queue","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.generate","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.optimize","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.record_event","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.reset_card","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.resolve_revision_change","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.rollback_params","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"srs.suspend","owner":"CORE-17","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-17：schema及mode核对待提交，禁止注册。"},{"op":"stats.calibration","owner":"CORE-20","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-20：schema及mode核对待提交，禁止注册。"},{"op":"stats.due_count","owner":"CORE-20","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-20：schema及mode核对待提交，禁止注册。"},{"op":"stats.mastery","owner":"CORE-20","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-20：schema及mode核对待提交，禁止注册。"},{"op":"stats.rebuild_cache","owner":"CORE-20","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-20：schema及mode核对待提交，禁止注册。"},{"op":"stats.report","owner":"CORE-20","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-20：schema及mode核对待提交，禁止注册。"},{"op":"store.close","owner":"CORE-13","status":"ready","mode":"submit","scope":"profile","schema":"store.close.schema.json","error_codes":["STORE_KEY_INVALID","STORE_SCHEMA_TOO_NEW","STORE_MIGRATION_FAILED","STORE_CORRUPT","STORE_DISK_FULL"],"sensitive_paths":[]},{"op":"store.integrity_check","owner":"CORE-13","status":"ready","mode":"submit","scope":"profile","schema":"store.integrity_check.schema.json","error_codes":["STORE_KEY_INVALID","STORE_SCHEMA_TOO_NEW","STORE_MIGRATION_FAILED","STORE_CORRUPT","STORE_DISK_FULL"],"sensitive_paths":[]},{"op":"store.open","owner":"CORE-13","status":"ready","mode":"submit","scope":"device","schema":"store.open.schema.json","error_codes":["STORE_KEY_INVALID","STORE_SCHEMA_TOO_NEW","STORE_MIGRATION_FAILED","STORE_CORRUPT","STORE_DISK_FULL"],"sensitive_paths":["/body/db_key_b64"]},{"op":"study.appeal","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.books.create","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.books.delete","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.books.get","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.books.list","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.books.update","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.plan.get","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.plan.set","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.session.resume","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.session.start","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.session.step","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"study.today","owner":"CORE-19","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-19：schema及mode核对待提交，禁止注册。"},{"op":"sync.ack","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.apply_pull","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.choices","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.cursor","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.on_epoch_changed","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.prepare_push","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.reencrypt","owner":"CORE-66","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-66：schema待补；快照分批协议未定义，mode未核对。"},{"op":"sync.resolve_choice","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"sync.snapshot_apply","owner":"CORE-66","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-66：schema待补；快照分批协议未定义，mode未核对。"},{"op":"sync.snapshot_build","owner":"CORE-66","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-66：schema待补；快照分批协议未定义，mode未核对。"},{"op":"sync.status","owner":"CORE-26","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-26：schema及mode核对待提交，禁止注册。"},{"op":"typeset.glyph_outlines","owner":"CORE-56","status":"ready","mode":"call","scope":"none","schema":"typeset.glyph_outlines.schema.json","error_codes":["ENGINE_DATA_INVALID","ENGINE_DATA_CONFLICT","ENGINE_UNAVAILABLE","NOTATION_UNBOUND"],"sensitive_paths":[]},{"op":"typeset.layout","owner":"CORE-56","status":"ready","mode":"call","scope":"none","schema":"typeset.layout.schema.json","error_codes":["ENGINE_DATA_INVALID","ENGINE_DATA_CONFLICT","ENGINE_UNAVAILABLE","NOTATION_UNBOUND"],"sensitive_paths":[]},{"op":"units.compatible","owner":"CORE-08","status":"ready","mode":"call","scope":"none","schema":"units.compatible.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"units.convert","owner":"CORE-08","status":"ready","mode":"call","scope":"none","schema":"units.convert.schema.json","error_codes":[],"sensitive_paths":[]},{"op":"units.define_user","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"units.delete_user","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"},{"op":"units.list_user","owner":"CORE-14","status":"pending","mode":null,"scope":"profile","schema":null,"error_codes":[],"sensitive_paths":[],"blocked_reason":"CORE-14：schema及mode核对待提交，禁止注册。"}]}
+{
+  "version": 1,
+  "ops": [
+    {
+      "op": "account.close_profile",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "profile",
+      "schema": "account.close_profile.schema.json",
+      "error_codes": [
+        "STORE_BUSY",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.create_guest",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.create_guest.schema.json",
+      "error_codes": [
+        "AUTH_GUEST_EXISTS",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": [
+        "/ok/db_key"
+      ]
+    },
+    {
+      "op": "account.create_registered",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.create_registered.schema.json",
+      "error_codes": [
+        "AUTH_PROFILE_EXISTS",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": [
+        "/ok/db_key"
+      ]
+    },
+    {
+      "op": "account.get_blob",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.get_blob.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.import_account_key",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.local_setting",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "profile",
+      "schema": "account.local_setting.schema.json",
+      "error_codes": [
+        "AUTH_LOCKED",
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.open_profile",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "device",
+      "schema": "account.open_profile.schema.json",
+      "error_codes": [
+        "AUTH_LOCKED",
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL",
+        "STORE_KEY_INVALID",
+        "STORE_MIGRATION_FAILED",
+        "STORE_SCHEMA_TOO_NEW"
+      ],
+      "sensitive_paths": [
+        "/body/db_key"
+      ]
+    },
+    {
+      "op": "account.profiles",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.profiles.schema.json",
+      "error_codes": [
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.put_blob",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.put_blob.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.rotate_account_key",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.set_local_setting",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "profile",
+      "schema": "account.set_local_setting.schema.json",
+      "error_codes": [
+        "AUTH_LOCKED",
+        "AUTH_NO_PROFILE",
+        "AUTH_SETTING_INVALID",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.set_logged_out",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.set_logged_out.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.set_sync_enabled",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "profile",
+      "schema": "account.set_sync_enabled.schema.json",
+      "error_codes": [
+        "AUTH_LOCKED",
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.state",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.state.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.upgrade_abandon",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.upgrade_advance",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.upgrade_begin",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.upgrade_merge",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.upgrade_status",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "account.wrap_with_passphrase",
+      "owner": "CORE-24",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "backup.commit_restore",
+      "owner": "CORE-27",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "backup.discard_restore",
+      "owner": "CORE-27",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "backup.export",
+      "owner": "CORE-27",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "backup.prepare_restore",
+      "owner": "CORE-27",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "backup.verify",
+      "owner": "CORE-27",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "calc.evaluate",
+      "owner": "CORE-56",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "calc.evaluate.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "EVAL_DIV_ZERO",
+        "EVAL_DOMAIN",
+        "EVAL_LIMIT_EXCEEDED",
+        "EVAL_MULTI_BRANCH",
+        "EVAL_NAN_OR_INF",
+        "EVAL_NEEDS_INTERVAL",
+        "EVAL_NOT_COMPUTABLE",
+        "EVAL_NO_CONVERGE",
+        "EVAL_OVERFLOW",
+        "EVAL_TIMEOUT",
+        "NOTATION_AMBIGUOUS",
+        "NOTATION_CONSTANT_CONFLICT",
+        "NOTATION_LOG_BASE",
+        "NOTATION_UNBOUND",
+        "PARSE_FORBIDDEN_COMMAND",
+        "PARSE_HOLE_UNFILLED",
+        "PARSE_LIMIT_EXCEEDED",
+        "PARSE_SYNTAX",
+        "PARSE_TIMEOUT",
+        "PARSE_UNSUPPORTED_COMMAND",
+        "TYPE_AFFINE_MISUSE",
+        "TYPE_CROSS_DIM",
+        "TYPE_DIM_CONFLICT",
+        "TYPE_EMPIRICAL_COEFF",
+        "TYPE_FUNC_ARG_DIMENSIONED",
+        "TYPE_LOG_DIMENSIONED",
+        "TYPE_MATHKIND_MISMATCH",
+        "TYPE_QK_MISMATCH",
+        "TYPE_UNKNOWN_DIM",
+        "UNIT_AFFINE_MISUSE",
+        "UNIT_DIM_SYNTAX",
+        "UNIT_INCOMPATIBLE",
+        "UNIT_OVERFLOW",
+        "UNIT_UNKNOWN"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "calc.solvable_targets",
+      "owner": "CORE-56",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "calc.solvable_targets.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "EVAL_LIMIT_EXCEEDED",
+        "EVAL_NOT_COMPUTABLE",
+        "NOTATION_AMBIGUOUS",
+        "NOTATION_LOG_BASE",
+        "NOTATION_UNBOUND",
+        "PARSE_FORBIDDEN_COMMAND",
+        "PARSE_HOLE_UNFILLED",
+        "PARSE_LIMIT_EXCEEDED",
+        "PARSE_SYNTAX",
+        "PARSE_TIMEOUT",
+        "PARSE_UNSUPPORTED_COMMAND",
+        "TYPE_AFFINE_MISUSE",
+        "TYPE_CROSS_DIM",
+        "TYPE_DIM_CONFLICT",
+        "TYPE_EMPIRICAL_COEFF",
+        "TYPE_FUNC_ARG_DIMENSIONED",
+        "TYPE_LOG_DIMENSIONED",
+        "TYPE_MATHKIND_MISMATCH",
+        "TYPE_QK_MISMATCH",
+        "TYPE_UNKNOWN_DIM",
+        "UNIT_DIM_SYNTAX"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "constants.resolve",
+      "owner": "CORE-07",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "constants.resolve.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "NOTATION_CONSTANT_CONFLICT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "core.log_init",
+      "owner": "CORE-28",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "core.log_init.schema.json",
+      "error_codes": [
+        "PLATFORM_IO"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "derive.rank",
+      "owner": "CORE-11",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "derive.rank.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "derive.run_plan",
+      "owner": "CORE-11",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "derive.run_plan.schema.json",
+      "error_codes": [
+        "DERIVE_CROSS_KIND_UNCONFIRMED",
+        "DERIVE_CYCLE",
+        "DERIVE_DEPTH_EXCEEDED",
+        "DERIVE_NODE_LIMIT",
+        "DERIVE_NOT_VERIFIED",
+        "DERIVE_READ_ONLY",
+        "DERIVE_TYPE_MISMATCH",
+        "ENGINE_UNAVAILABLE",
+        "EVAL_DIV_ZERO",
+        "EVAL_DOMAIN",
+        "EVAL_LIMIT_EXCEEDED",
+        "EVAL_MULTI_BRANCH",
+        "EVAL_NAN_OR_INF",
+        "EVAL_NEEDS_INTERVAL",
+        "EVAL_NOT_COMPUTABLE",
+        "EVAL_NO_CONVERGE",
+        "EVAL_OVERFLOW",
+        "EVAL_TIMEOUT",
+        "NOTATION_CONSTANT_CONFLICT",
+        "TYPE_AFFINE_MISUSE",
+        "TYPE_CROSS_DIM",
+        "TYPE_DIM_CONFLICT",
+        "TYPE_EMPIRICAL_COEFF",
+        "TYPE_FUNC_ARG_DIMENSIONED",
+        "TYPE_LOG_DIMENSIONED",
+        "TYPE_MATHKIND_MISMATCH",
+        "TYPE_QK_MISMATCH",
+        "TYPE_UNKNOWN_DIM",
+        "UNIT_AFFINE_MISUSE",
+        "UNIT_DIM_SYNTAX",
+        "UNIT_INCOMPATIBLE",
+        "UNIT_OVERFLOW",
+        "UNIT_UNKNOWN"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "derive.substitute",
+      "owner": "CORE-11",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "derive.substitute.schema.json",
+      "error_codes": [
+        "AST_JSON_INVALID",
+        "DERIVE_CROSS_KIND_UNCONFIRMED",
+        "DERIVE_CYCLE",
+        "DERIVE_DEPTH_EXCEEDED",
+        "DERIVE_NODE_LIMIT",
+        "DERIVE_NOT_VERIFIED",
+        "DERIVE_READ_ONLY",
+        "DERIVE_TYPE_MISMATCH",
+        "ENGINE_UNAVAILABLE",
+        "PARSE_LIMIT_EXCEEDED",
+        "TYPE_AFFINE_MISUSE",
+        "TYPE_CROSS_DIM",
+        "TYPE_DIM_CONFLICT",
+        "TYPE_EMPIRICAL_COEFF",
+        "TYPE_FUNC_ARG_DIMENSIONED",
+        "TYPE_LOG_DIMENSIONED",
+        "TYPE_MATHKIND_MISMATCH",
+        "TYPE_QK_MISMATCH",
+        "TYPE_UNKNOWN_DIM",
+        "UNIT_DIM_SYNTAX",
+        "UNIT_OVERFLOW"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "engine.check",
+      "owner": "CORE-56",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "engine.check.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "NOTATION_AMBIGUOUS",
+        "NOTATION_LOG_BASE",
+        "NOTATION_UNBOUND",
+        "PARSE_FORBIDDEN_COMMAND",
+        "PARSE_HOLE_UNFILLED",
+        "PARSE_LIMIT_EXCEEDED",
+        "PARSE_SYNTAX",
+        "PARSE_TIMEOUT",
+        "PARSE_UNSUPPORTED_COMMAND",
+        "TYPE_AFFINE_MISUSE",
+        "TYPE_CROSS_DIM",
+        "TYPE_DIM_CONFLICT",
+        "TYPE_EMPIRICAL_COEFF",
+        "TYPE_FUNC_ARG_DIMENSIONED",
+        "TYPE_LOG_DIMENSIONED",
+        "TYPE_MATHKIND_MISMATCH",
+        "TYPE_QK_MISMATCH",
+        "TYPE_UNKNOWN_DIM",
+        "UNIT_DIM_SYNTAX"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "engine.export",
+      "owner": "CORE-06",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "engine.export.schema.json",
+      "error_codes": [
+        "AST_JSON_INVALID",
+        "PARSE_HOLE_UNFILLED",
+        "PARSE_LIMIT_EXCEEDED",
+        "PARSE_UNICODE_NOT_EXPORTABLE"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "engine.generation",
+      "owner": "CORE-73",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "engine.generation.schema.json",
+      "error_codes": [],
+      "sensitive_paths": []
+    },
+    {
+      "op": "engine.parse",
+      "owner": "CORE-06",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "engine.parse.schema.json",
+      "error_codes": [
+        "PARSE_FORBIDDEN_COMMAND",
+        "PARSE_HOLE_UNFILLED",
+        "PARSE_LIMIT_EXCEEDED",
+        "PARSE_SYNTAX",
+        "PARSE_TIMEOUT",
+        "PARSE_UNSUPPORTED_COMMAND"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "engine.wait_generation",
+      "owner": "CORE-73",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "none",
+      "schema": "engine.wait_generation.schema.json",
+      "error_codes": [],
+      "sensitive_paths": []
+    },
+    {
+      "op": "export.formula",
+      "owner": "CORE-52",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-52：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "grade.answer",
+      "owner": "CORE-18",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-18：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "img.fit_for_upload",
+      "owner": "CORE-30",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-30：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "img.prepare",
+      "owner": "CORE-30",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-30：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "img.probe",
+      "owner": "CORE-30",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-30：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.create",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.diff",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.draft_delete",
+      "owner": "CORE-61",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-61：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.draft_get",
+      "owner": "CORE-61",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-61：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.draft_put",
+      "owner": "CORE-61",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-61：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.get",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.history",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.import",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.plan_delete",
+      "owner": "CORE-48",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.plan_list",
+      "owner": "CORE-48",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.plan_put",
+      "owner": "CORE-48",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.restore",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.revise",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.search",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.substitution_pool",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.trash",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.untrash",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "library.update_meta",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "notation.bind",
+      "owner": "CORE-07",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "notation.bind.schema.json",
+      "error_codes": [
+        "AST_JSON_INVALID",
+        "ENGINE_UNAVAILABLE",
+        "NOTATION_AMBIGUOUS",
+        "NOTATION_LOG_BASE",
+        "NOTATION_UNBOUND",
+        "PARSE_LIMIT_EXCEEDED"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "notation.display",
+      "owner": "CORE-07",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "notation.display.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "notation.profiles",
+      "owner": "CORE-07",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "notation.profiles.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "pack.check_updates",
+      "owner": "CORE-15",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "pack.install",
+      "owner": "CORE-15",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "pack.list",
+      "owner": "CORE-15",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "pack.recover",
+      "owner": "CORE-15",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "pack.uninstall",
+      "owner": "CORE-15",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.adopt",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.backends",
+      "owner": "CORE-29",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-29：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.correct",
+      "owner": "CORE-31",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-31：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.final_check",
+      "owner": "CORE-31",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-31：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.gc",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.history.list",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.key.provide",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.key.rotate_begin",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.key.rotate_commit",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.key.status",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.local.register",
+      "owner": "CORE-35",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-35：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.local.unload_all",
+      "owner": "CORE-35",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-35：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.local.unregister",
+      "owner": "CORE-35",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-35：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.pending_cloud.list",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.pending_cloud.record",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.pin",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.postprocess",
+      "owner": "CORE-31",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-31：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.recover",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.register_remote",
+      "owner": "CORE-29",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-29：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.run",
+      "owner": "CORE-29",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-29：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.session.get",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.session.start",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.session.transition",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.settings.get",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "recog.settings.set",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.due_queue",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.generate",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.optimize",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.record_event",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.reset_card",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.resolve_revision_change",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.rollback_params",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "srs.suspend",
+      "owner": "CORE-17",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "stats.calibration",
+      "owner": "CORE-20",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "stats.due_count",
+      "owner": "CORE-20",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "stats.mastery",
+      "owner": "CORE-20",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "stats.rebuild_cache",
+      "owner": "CORE-20",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "stats.report",
+      "owner": "CORE-20",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "store.close",
+      "owner": "CORE-13",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "profile",
+      "schema": "store.close.schema.json",
+      "error_codes": [
+        "STORE_BUSY",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "store.integrity_check",
+      "owner": "CORE-13",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "profile",
+      "schema": "store.integrity_check.schema.json",
+      "error_codes": [
+        "STORE_BUSY",
+        "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "store.open",
+      "owner": "CORE-13",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "device",
+      "schema": "store.open.schema.json",
+      "error_codes": [
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL",
+        "STORE_KEY_INVALID",
+        "STORE_MIGRATION_FAILED",
+        "STORE_SCHEMA_TOO_NEW"
+      ],
+      "sensitive_paths": [
+        "/body/db_key_b64"
+      ]
+    },
+    {
+      "op": "study.appeal",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.books.create",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.books.delete",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.books.get",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.books.list",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.books.update",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.plan.get",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.plan.set",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.session.resume",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.session.start",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.session.step",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "study.today",
+      "owner": "CORE-19",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.ack",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.apply_pull",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.choices",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.cursor",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.on_epoch_changed",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.prepare_push",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.reencrypt",
+      "owner": "CORE-66",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+    },
+    {
+      "op": "sync.resolve_choice",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "sync.snapshot_apply",
+      "owner": "CORE-66",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+    },
+    {
+      "op": "sync.snapshot_build",
+      "owner": "CORE-66",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+    },
+    {
+      "op": "sync.status",
+      "owner": "CORE-26",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-26：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "typeset.glyph_outlines",
+      "owner": "CORE-56",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "typeset.glyph_outlines.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "TYPESET_MISSING_GLYPH",
+        "TYPESET_NO_FONT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "typeset.layout",
+      "owner": "CORE-56",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "typeset.layout.schema.json",
+      "error_codes": [
+        "AST_JSON_INVALID",
+        "ENGINE_UNAVAILABLE",
+        "PARSE_LIMIT_EXCEEDED",
+        "TYPESET_DEPTH_EXCEEDED",
+        "TYPESET_MISSING_GLYPH",
+        "TYPESET_NO_FONT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "units.compatible",
+      "owner": "CORE-08",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "units.compatible.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "units.convert",
+      "owner": "CORE-08",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "units.convert.schema.json",
+      "error_codes": [
+        "ENGINE_UNAVAILABLE",
+        "UNIT_AFFINE_MISUSE",
+        "UNIT_INCOMPATIBLE",
+        "UNIT_OVERFLOW",
+        "UNIT_UNKNOWN"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "units.define_user",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "units.delete_user",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    },
+    {
+      "op": "units.list_user",
+      "owner": "CORE-14",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+    }
+  ]
+}

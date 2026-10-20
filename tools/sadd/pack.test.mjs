@@ -76,3 +76,11 @@ test('downstream classification requires every occurrence and ADR selection pres
     fs.rmSync(root,{recursive:true,force:true});
   }
 });
+
+test('real contract inventory includes bare policy and every ready schema with references',()=>{
+ const manifest=JSON.parse(fs.readFileSync('contracts/dto/manifest.json','utf8'));
+ const dto=pack('CORE-67');
+ for(const op of manifest.ops.filter(x=>x.status==='ready')) assert.ok(dto.report.files.includes('contracts/dto/'+op.schema),op.op);
+ assert.ok(dto.report.files.includes('contracts/dto/types.schema.json'));
+ assert.ok(pack('CORE-75').report.files.includes('contracts/policies/shared-writes.json'));
+});
