@@ -113,7 +113,7 @@ graph TD
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
 | AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 300 |
-| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 245 |
+| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 380 |
 | AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04 | 360 |
 | AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 420 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 250 |
@@ -218,6 +218,9 @@ Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
 
 ```kotlin
 interface AndroidChannelModule {
+  fun registerActivityResults(activity: FlutterFragmentActivity) {}
+  fun onStart() {}
+  fun onStop() {}
   fun attach(activity: FlutterFragmentActivity, engine: FlutterEngine)
   fun onTrimMemory(level: Int) {}
   fun onNewIntent(intent: Intent) {}
@@ -226,6 +229,8 @@ interface AndroidChannelModule {
 ```
 
 各平台卡在自身目录实现模块，`AndroidModules.kt` 只追加工厂一行；MainActivity 统一 configureFlutterEngine/生命周期/Intent 转发，销毁按逆序 detach；ActivityResult 注册在 STARTED 之前。AndroidManifest.xml 由 AND-02 唯一维护，新增能力提交声明片段与白名单差异，不由多卡同时改主体；ports_android.dart 每卡只替换自己的端口字段。
+
+AndroidChannelModule生命周期补充：唯一MainActivity在onCreate中构造无engine的模块列表，先逐个registerActivityResults(this)，再super.onCreate；configureFlutterEngine取得engine后逐个attach。注册只在前一个钩子中执行，固定键fml.<模块>.<动作>，attach禁止再次注册；所有注册均在STARTED之前。MainActivity转发onStart/onStop；onDestroy先逆序detach再super，模块取消异步工作、注销事件/回调，未完成MethodChannel请求以PLATFORM_IO结束一次。旋转配置处理不重建；系统实际重建时新Activity重建模块并重注册，禁止旧实例持有新Activity。该时序须以锁定FlutterFragmentActivity/AndroidX的M0编译启动探针证明；未通过保留阻断，不自行延后注册。进程死亡不承诺旧Future续接。
 
 **实现约束**
 - 绑定方式只用 C ABI + `dart:ffi`（ffigen 生成），不使用 flutter_rust_bridge（附录 A ADR-V5-02）。
@@ -325,7 +330,9 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 
 - [R38] 合并清单launchMode=singleTop正例通过；缺失/改standard的夹具审计失败并定位属性。
 
-**规模**：约 245 行；主包 `app/`（`AndroidManifest.xml`、`permissions.dart`、`PermissionsHandler.kt`，约 175 行），附属：`tools/ci/check_android_manifest.py`（约 70 行，含窗口属性审计，供 CORE-41 的 CI 调用）。
+- [R38] 审计fixtures逐一验证：删除本阶段必需INTERNET→失败；新增READ_MEDIA_IMAGES→失败；多个库合并同一正常权限→集合去重通过；signature自定义permission缺uses或反向缺声明、protectionLevel非signature→失败；CAMERA/POST_NOTIFICATIONS被maxSdkVersion截断到低于目标支持区间→失败；未引入可选AndroidX动态权限时不强加，成对引入时通过。报告包含manifest行、来源、期望/实际，不能只比较权限数量。
+
+**规模**：约 380 行；主包 `app/`（清单/permissions/handler约175），附属 `tools/ci/check_android_manifest.py`（解析/规则110、正反fixtures测试95）；窗口属性同表唯一。
 
 ### AND-05 生命周期、进程恢复与运行时信息
 
@@ -419,6 +426,7 @@ abstract interface class SecureKeyValueStore {
 abstract interface class LocalFileStore {
   Future<Directory> root(StoreArea area);
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
+  /// dir须在本应用私有根目录内（解析符号链接后的真实路径）；越界抛ArgumentError，不创建/修改目标。
   Future<void> excludeFromSystemBackup(Directory dir);
 }
 ```
@@ -447,6 +455,8 @@ Kotlin 异常映射：KeyPermanentlyInvalidatedException、AEADBadTagException�
 | logs | `noBackupFilesDir/logs/` | 本地脱敏日志（CORE-28） |
 
 Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：只有 `fml.<profile_id>.db`（无需认证，不调用 setUserAuthenticationRequired）；其他密钥由 CORE-21 在已解包密钥之下派生或包装，不建别名。
+
+securityLevel==software仅报告能力，不在Kotlin或端口弹界面；CORE-65账户控制器经共享账户/CORE-47安全页展示“本机密钥保护能力较弱”及原因。平台包装仍不持久化明文，提示不可被误读为应用锁。
 
 **实现约束**
 - 创建密钥：API 28+ 先请求 StrongBox（`setIsStrongBoxBacked(true)`），`StrongBoxUnavailableException` 时降级为普通 Keystore；`keystore.level` 由 `KeyInfo` 判定（API 31+ 用 `securityLevel`，更早用 `isInsideSecureHardware`），如实返回 `software`。
@@ -521,6 +531,8 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_IO`、`PLATFORM_FILE_TOO_LARGE`、`PLATFORM_FILE_TYPE_MISMATCH`；本卡不新增错误码。
 
+Photo Picker数量分支在返回结果后统一截断至maxCount并去重；即使SAF不遵守EXTRA_ALLOW_MULTIPLE或返回超限也不复制多余URI。maxCount=1不得构造PickMultipleVisualMedia，系统可用性检测失败走SAF；AndroidX版本及ActivityResult探针仍M0外部前提。
+
 **实现约束**
 - 不申请存储权限，不调用 `takePersistableUriPermission`；读取一次即复制，不保存源 URI 与原文件路径。
 - Dart/Kotlin 层除 HEIC 转换外不解码图片；HEIC 解码在原生侧降采样输出，不把全尺寸 Bitmap 交给 Dart。
@@ -536,6 +548,8 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 - [R01] CORE-04 的 `ImagePicker`、`FileExporter`、`DocumentPicker` 契约套件在真机通过（选择器步骤用 UI Automator 驱动）。
 
 - [R38] 相机已有有效批次时初始化picker及连续两次pick，只删除picker旧批次；首次pick必须等待启动清理，返回文件仍可读。
+
+- [R38] 主机/假ActivityResult分别以max=1、2、10验证单选/多选分支；SAF返回11张仅复制前10张，取消返回[]。真机选择器由AND-15框架（下游说明，非契约）在S7集中执行。
 
 **规模**：约 360 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`（同属 `app/` 构建单元），附属：`tools/ci/check_android_manifest.py` 白名单一行。
 
@@ -632,14 +646,14 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 实现的接缝（逐字摘录，定义见 CORE-37、CORE-40）：
 
 ```dart
-abstract interface class EditorPlatformBindings {
-  KeyEventResult handleKey(FormulaEditorController c, KeyEvent e);
-  Widget? accessoryBar(BuildContext context, FormulaEditorController c);
+abstract interface class EditorPlatformBindings {   // 平台卡经 PlatformPorts.platformInstallers 登记；未登记时用 DefaultEditorBindings
+  KeyEventResult handleKey(FormulaEditorController c, KeyEvent e);        // 结构化模式下公式区持有焦点时调用
+  Widget? accessoryBar(BuildContext context, FormulaEditorController c);  // 显示在公式区与符号面板之间；null 表示无
 }
-abstract interface class InkInputPolicy {
-  bool accept(PointerDownEvent e, {required bool stylusSeen});
-  double? pressureOf(PointerEvent e);
-  bool isEraser(PointerEvent e);
+abstract interface class InkInputPolicy {          // 平台卡经 PlatformPorts.platformInstallers 登记（AND-07、WIN-08）
+  bool accept(PointerDownEvent e, {required bool stylusSeen});   // false = 整笔丢弃（防手掌误触）；stylusSeen = 本画布清空后出现过触控笔
+  double? pressureOf(PointerEvent e);                            // 0..1；null = 不记录压力
+  bool isEraser(PointerEvent e);                                 // true = 该笔为擦除（触及的笔画整笔删除）
 }
 ```
 
@@ -741,9 +755,11 @@ send(req, cancel) 步骤：
 
 Dart HttpClient不受Android network_security_config自动注入，测试CA只能通过非发布构造器注入SecurityContext；构造器增加SecurityContext? testContext，若kReleaseMode且非空则在运行时抛StateError（不能用会被剥离的assert）；默认系统根、badCertificateCallback始终禁用，测试上下文只存在测试入口。
 
+User-Agent使用FML/<AppVersion> Android；AppVersion唯一取发布构建--dart-define=FML_APP_VERSION，与CORE-42 bump_version输出相同，debug未提供时仅用0.0.0-dev；不取服务器值/运行时猜版本。假HTTP契约覆盖同主机302和跨主机307均无第二请求。
+
 **实现约束**
 - 证书只用 `dart:io` 默认信任库（系统 CA，不含用户安装的证书）；不设置 `badCertificateCallback`，不做证书固定（V1）。
-- 非 2xx 状态码不抛异常，原样返回 `HttpResult`（调用方按 CORE-02 解析）；不自动重试、不跟随跨主机重定向（`followRedirects = false`）。
+- 非 2xx 状态码不抛异常，原样返回 `HttpResult`（调用方按 CORE-02 解析）；不自动重试、一律不跟随重定向，含同主机；3xx原样返回（`followRedirects = false`）。
 - 不记录请求体、响应体与请求头值；`AppLog` 只记录用途、状态码、耗时与 trace id（CORE-28 日志规则）。
 - 后台不保持连接、不使用前台服务或 WorkManager；应用退到后台时进行中的请求由调用方决定是否取消。
 - 外部前提：不引入 HTTP 插件或 OkHttp；Kotlin 侧只有代理查询一个方法。
@@ -783,7 +799,7 @@ abstract interface class NotificationScheduler {
 }
 abstract interface class ReminderSelfCheck {
   Future<List<ReminderCheckItem>> run();
-  Future<void> openFix(String id);
+  Future<void> openFix(String id);   // 打开对应系统设置页；返回后界面重新 run()
 }
 ```
 
@@ -805,7 +821,7 @@ MethodChannel "fml/android/reminder"（ReminderBridge.kt）
                                           以 AlarmManager.setAndAllowWhileIdle(RTC_WAKEUP) 安排下一次该时刻（已过则明天）
   cancel                         → null   取消闹钟并清空存储
   consumeLaunchTap               → bool   本次启动是否由提醒通知打开（读取后清除）
-  selfCheck                      → [{id, ok, can_fix, detail?}]
+  selfCheck                      → [{id, state:"ok"|"warn"|"unknown", can_fix, detail?}]
   openFix {id}                   → null
 EventChannel "fml/android/reminder/taps"  应用运行中点击通知时发送一次
 ReminderReceiver：
@@ -815,18 +831,20 @@ ReminderReceiver：
 taps()：订阅时先调用 consumeLaunchTap，为 true 则先发一次；之后转发 EventChannel 事件
 selfCheck 项（id → 判定，标题文案在 Dart 侧）：
   permission              NotificationManagerCompat.areNotificationsEnabled()           can_fix：打开应用通知设置
-  scheduled               存储中有提醒且下一次闹钟已安排（未开启提醒时 ok = true）        can_fix = false
+  scheduled               存储中有提醒且下一次闹钟已安排（未开启提醒时 state = ok）        can_fix = false
   battery_optimization    PowerManager.isIgnoringBatteryOptimizations()                can_fix：ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
   background_restriction  API 28+ ActivityManager.isBackgroundRestricted() 为 false     can_fix：应用详情页
-  autostart               无法检测，恒 ok = false 且 detail 说明“部分手机需允许自启动”     can_fix：RomSettings 表中的厂商页面
+  autostart               无法检测，恒 state = unknown 且 detail 说明“部分手机需允许自启动”     can_fix：RomSettings 表中的厂商页面
   RomSettings：不内置未经核实的OEM私有ComponentName。所有厂商统一ACTION_APPLICATION_DETAILS_SETTINGS(package:本应用)，异常时ACTION_SETTINGS；只有锁定ROM实测并记D后才允许将候选列入版本化资源表，resolveActivity成功才尝试，失败继续公共兜底。
 ```
 
 - 错误码：`PLATFORM_PERMISSION_DENIED`（`scheduleDailyReminder` 时通知被关闭，CORE-04 登记）；本卡不新增错误码。
 
-notify/strings.dart映射：permission标题“通知权限”，detail拒绝时“请在系统设置中允许通知”；scheduled标题“每日提醒”，未开启detail“尚未开启提醒”；battery_optimization标题“电池优化”，detail“系统可能延迟提醒”；autostart标题“自启动设置”，detail“无法自动检测，请在应用详情中检查厂商设置”。通道只提供id/ok/can_fix/detail?，Dart映射为CORE-20必填title，未知id忽略并记日志；autostart按说明信息呈现，不能将不可检测写成确定配置错误。
+notify/strings.dart映射：permission标题“通知权限”，detail拒绝时“请在系统设置中允许通知”；scheduled标题“每日提醒”，未开启detail“尚未开启提醒”；battery_optimization标题“电池优化”，detail“系统可能延迟提醒”；autostart标题“自启动设置”，detail“无法自动检测，请在应用详情中检查厂商设置”。通道只提供id/state/can_fix/detail?，Dart映射为CORE-20必填title，未知id显示未知检查项并记日志；autostart按说明信息呈现，不能将不可检测写成确定配置错误。
 
 ReminderCheck稳定ID集合固定为本卡自检表全部项；background_restriction标题“后台运行限制”，detail说明当前后台限制状态，can_fix仅对应应用详情页。文案映射测试枚举全覆盖，未知ID作为协议失败显式显示“未知检查项”，不静默丢弃。
+
+selfCheck可确定布尔判定true→state=ok、false→warn；仅autostart与不支持的系统探测返回unknown。对unknown不读取OEM私有设置键，不把未检测状态计为错误。
 
 **实现约束**
 - 不使用厂商推送或 FCM，不申请 `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`，不使用 WorkManager 或前台服务；非精确闹钟允许系统推迟（通常数分钟）。
@@ -840,6 +858,8 @@ ReminderCheck稳定ID集合固定为本卡自检表全部项；background_restri
 - [R04][R04.i] 自检：在关闭通知、开启电池优化的设备上 `permission` 与 `battery_optimization` 为未通过，“去设置”分别打开对应系统页；无 GMS 的国产 ROM（至少两家）上“自启动”跳转到厂商页面或应用详情页。
 - [R26] 提醒全流程无网络请求（抓包为空）；通知正文审计只含数量。
 - [R01] CORE-04 `NotificationScheduler` 契约套件在真机通过（`taps()` 项以 UI Automator 点击通知驱动）。
+
+- [R04] 假通道autostart返回unknown时自检页问题数不增加、显示中性说明；permission拒绝返回warn并提供系统设置。
 
 **规模**：约 380 行；`app/lib/platform/android/notify/` 与 `app/android/.../` 下的 ReminderBridge、ReminderReceiver、RomSettings 三个 Kotlin 文件（同属 `app/` 构建单元）。
 
@@ -884,6 +904,8 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 
 - 错误码：本卡不产生运行时错误码。
 
+未裁剪Rust符号唯一来源为target/<Rust-target>/release/libfmlcore.so（cargoNdkBuild完成、strip前），复制到dist/symbols/<AppVersion>/<abi>/libfmlcore.so并附BLAKE3/build-id。Android合并库检查路径为app/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/<abi>/libfmlcore.so（Flutter构建目录重定向以实际Gradle任务输出为准），该处只核对打包来源，不能假设合并库仍保留全部符号；符号归档不得从stripped_native_libs回拷。
+
 **实现约束**
 - 签名密钥只来自 CI 受保护环境变量，脚本把 .jks 解码到临时目录并在退出时删除；仓库中不得出现 keystore 文件与口令（`.gitignore` 含 `*.jks`、`key.properties`）。Google Play 使用 Play App Signing 时，本密钥为上传密钥。
 - AAB 与 APK 必须由同一次 `build_release.sh`、同一提交、同一 `--dart-define` 产出。
@@ -894,7 +916,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 - [R01] 在 CI 发布作业中 `build_release.sh` → `check_artifacts.py` → `archive_symbols.sh` 全部退出 0；用 bundletool 从 AAB 生成的设备 APK 与官网 APK 在同一真机上运行 AND-01 冒烟（显示 ABI 版本）结果一致。
 - [R01] 用另一证书签名的 APK 放入 dist 时 `check_artifacts.py` 退出 1 并指出证书不符；去掉 16 KB 对齐的 .so 时退出 1。
 - [R23] `dist/` 中存在 `fml-<版本>-android-symbols.zip`，其中含 mapping.txt 与 Dart 符号；`collect_artifacts.py` 的清单列出 AAB、APK 与符号包的哈希。
-- [R40] 对本卡产出运行 CORE-42 `scan_secrets.py` 退出 0；缺少签名环境变量时 `build_release.sh` 退出 2 且不产出未签名制品。
+- [R26][R20] 对本卡产出运行 CORE-42 `scan_secrets.py` 退出 0；缺少签名环境变量时 `build_release.sh` 退出 2 且不产出未签名制品。
 
 **规模**：约 260 行；主包 `tools/release/android/`（约 220 行），附属：`app/android/app/build.gradle.kts` release 段与 `proguard-rules.pro`（约 40 行）。
 
@@ -984,11 +1006,11 @@ app/integration_test/android/
 实现的接缝（逐字摘录，定义见 CORE-55 §接口契约）：
 
 ```dart
-abstract interface class InputModalitySource {
+abstract interface class InputModalitySource {       // 平台登记（AND-13：touch；WIN-15：pointer，平板模式或触摸时 touch）；未登记时 initial = touch
   InputModality get initial; Stream<InputModality> get changes;
 }
-abstract interface class UiFeedbackSink { void emit(UiFeedbackKind kind); }
-abstract interface class MotionScaleSource { double get scale; Stream<double> get changes; }
+abstract interface class UiFeedbackSink { void emit(UiFeedbackKind kind); }   // 可选（AND-13 触感）；未登记为空操作；共享界面统一经 FmlFeedback.emit(context, kind) 调用，pref.haptics 为 false 时不转发
+abstract interface class MotionScaleSource { double get scale; Stream<double> get changes; }   // 可选（AND-13 系统动画时长缩放），取值 0～10
 // 只读使用：AppearanceController 的 pref（AppearancePref.haptics）、resolved、resolvedChanges（ResolvedAppearance.brightness）
 ```
 
@@ -1032,7 +1054,7 @@ MethodChannel "fml/android/interaction"（InteractionHandler.kt，挂在 MainAct
         window.decorView.performHapticFeedback(下表常量)，不带 FLAG_IGNORE_GLOBAL_SETTING；不用 Vibrator，不申请 VIBRATE
   animatorScale → double（Settings.Global.ANIMATOR_DURATION_SCALE；读取失败为 1.0）
   windowMetrics → {smallest_width_dp, orientation: "portrait" | "landscape", in_multi_window: bool,
-                   cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button", create_count: int /* 转发 AND-05 lifecycle.createCount */}
+                   cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button" | "unknown", create_count: int /* 转发 AND-05 lifecycle.createCount */}
                    只供集成测试与诊断使用，界面布局不读（布局只按 MediaQuery，CORE-55）
 EventChannel  "fml/android/interaction/events"
   ContentObserver 监听 ANIMATOR_DURATION_SCALE → {"animatorScale": double}
@@ -1103,6 +1125,8 @@ f. 屏幕方向与窗口变化
 LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
 
+nav_mode默认unknown；不读取Settings.Secure的非公开navigation_mode键，不从insets高度猜导航模式。仅未来通过锁定SDK公开接口并有设备证据才填写gesture/three_button，变更先修此契约。unknown不阻碍按真实insets布局；M0分别手势/三键设备验证安全区。
+
 **实现约束**
 - 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。
 - 状态保持有两条路径：属性表中 `configChanges` 列出的变化不重建 Activity，Flutter 引擎与各页 `State`（输入、选区、滚动位置）原样保留，只按新尺寸重排；其余配置变化、开发者选项“不保留活动”与后台回收导致的重建，走 AND-05 的 Flutter 状态恢复回到原路由。两条路径都不额外持久化界面状态。
@@ -1127,7 +1151,7 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 - [R42.e] 手动（一台手机、一台平板）：自动旋转开启时横竖屏切换均可用且布局按 CORE-55 分档；开启旋转锁定后旋转设备保持当前方向；分屏 1/3、1/2、2/3 与折叠屏展开折叠后当前路由与输入保留；开启“不保留活动”后切到后台再返回，回到原路由。
 - [R42.b] 手动（刘海或挖孔屏手机，手势导航与三键导航各一次）：竖屏与两向横屏下内容与可点击控件不被挖孔、状态栏和导航栏遮挡，系统栏透明且图标明暗与主题一致；软键盘弹出时输入框与主按钮可见；横屏输入法不进入全屏提取界面。
 - [R42.b] 手动（Android 13+ 手势返回一台、Android 8 返回键一台）：按对照表 e 逐行操作，系统返回结果与表一致且每行都有可见等价按钮；“学习”根页返回时显示回到桌面的预测性动画。
-- [R42.c] AND-12 在真机矩阵上测量 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，P95 在预算内。
+- [R42.c] 集成验收（S7由AND-12统一执行，不计本卡S2完成条件）：AND-12 在真机矩阵上测量 CORE-01 预算表“点击到可见反馈（按压态出现）”“旋转与窗口尺寸变化（到新布局首帧）”“主题切换（预设或外观模式，到新主题首帧）”，P95 在预算内。
 
 **规模**：约 380 行；`app/lib/platform/android/interaction/`（约 190 行）、`app/android/.../InteractionHandler.kt`（约 90 行）、`app/android/app/src/main/res/values*/styles.xml`（约 50 行；清单属性归 AND-02，不计入本卡）、`app/integration_test/android/interaction_test.dart`（约 50 行），同属 `app/` 构建单元。
 
