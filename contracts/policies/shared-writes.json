@@ -369,6 +369,42 @@
     },
     {
       "kind": "error",
+      "key": "STUDY_CARD_NOT_FOUND",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_REVISION_NOT_VERIFIED",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_RETENTION_OUT_OF_RANGE",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_OPTIMIZE_TOO_SOON",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_INSUFFICIENT_REVIEWS",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_CARD_PENDING_CHOICE",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "CRYPTO_DECRYPT_FAILED",
       "owner": "CORE-21",
       "point": "contracts/errors/registry.yaml"
@@ -657,6 +693,12 @@
     },
     {
       "kind": "error",
+      "key": "SYNC_NOT_AVAILABLE",
+      "owner": "CORE-36",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "BACKUP_CORRUPT",
       "owner": "CORE-27",
       "point": "contracts/errors/registry.yaml"
@@ -911,6 +953,54 @@
       "kind": "error",
       "key": "CLOUD_PREVIEW_STALE",
       "owner": "CORE-34",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_BUDGET_BREAKER",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_CONSENT_INVALID",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_HASH_MISMATCH",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_IDEMPOTENCY_CONFLICT",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_IMAGE_TOO_LARGE",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_JOB_NOT_FOUND",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_NOT_ELIGIBLE",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_QUOTA_EXCEEDED",
+      "owner": "CORE-33",
       "point": "contracts/errors/registry.yaml"
     },
     {
