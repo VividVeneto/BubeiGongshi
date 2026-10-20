@@ -159,7 +159,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const result = pack(id, {sadd: opt('--sadd'), extra});
   const out = path.resolve(opt('--out') ?? `build/sadd/${id}`); fs.mkdirSync(out, {recursive:true});
   fs.writeFileSync(path.join(out, 'material.md'), result.text);
-  fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify(result.report, null, 2));
+  fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify({...result.report, node: process.version}, null, 2));
   result.chunks.forEach((text,i) => fs.writeFileSync(path.join(out, `part-${i+1}.md`), text));
   console.log(JSON.stringify({id, chars: result.report.chars, segments: result.chunks.length, warnings:result.report.warnings}));
 }
