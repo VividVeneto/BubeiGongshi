@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Report, ROOT, FILES, loadCards, scaleLine, scaleNumber, printReport, argOf} from './lib.mjs';
+import {readDocs, folderFor} from '../sadd/layout.mjs';
 
 const LIMIT = 500;
 const STAGES = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'];
@@ -48,7 +49,9 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
   const r = new Report('cards');
   let cards;
   try { cards = loadCards(sadd); } catch (e) { r.error('CARD-00', `读取模块卡失败: ${e.message}`); return r; }
-  const texts = Object.fromEntries(FILES.map(f => [f, fs.readFileSync(path.join(sadd, f), 'utf8')]));
+  const docs = readDocs(sadd);
+  const texts = docs.texts;
+  for (const x of docs.issues) r.error(x.id, x.msg);
   const readmePath = path.join(sadd, 'README.md');
   const readme = fs.existsSync(readmePath) ? fs.readFileSync(readmePath, 'utf8') : '';
 
@@ -140,6 +143,13 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
     }
   }
   for (const id of cards.keys()) if (!stageOf.has(id)) r.error('STAGE-02', `${id}: 未出现在任何实施阶段`);
+  // 拆分布局：文件名中的 S 编号与所在文件夹必须与实施阶段表一致
+  for (const [id, f] of docs.cardFiles) {
+    const stage = stageOf.get(id); if (!stage) continue;
+    if (f.stage !== stage) r.error('LAYOUT-02', `${f.rel}: 文件名阶段 ${f.stage} 与实施阶段表 ${stage} 不一致`);
+    const want = folderFor(id, stage);
+    if (f.folder !== want) r.error('LAYOUT-03', `${f.rel}: 应放在 ${want}/`);
+  }
   const rank = s => STAGES.indexOf(s);
   for (const [id, c] of cards) for (const d of c.deps) {
     const a = stageOf.get(id), b = stageOf.get(d);
@@ -181,6 +191,7 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
     if (distinct.size !== 1) r.error('VER-01', `版本号不一致：${[...vers].map(([k, v]) => `${k}=${v}`).join('；')}`);
   }
   r.stats = {cards: cards.size, indexRows: index.size, edges: [...edges.values()].reduce((s, x) => s + x.size, 0), stages: stageOf.size};
+  if (docs.layout === 'split') r.stats.cardFiles = docs.cardFiles.size;
   return r;
 }
 
