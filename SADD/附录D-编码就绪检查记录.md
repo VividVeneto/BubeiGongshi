@@ -622,9 +622,10 @@ v5.3.1旧接续是历史输入，其H1～H7/M组落点见D.9；不再声称Andro
 - H6：仓储op的档案handle与账户持有/关闭、敏感密钥加载、业务DTO/schema/manifest仍未全闭合（PA04/08、PB01/03/04）；pending不能开工，不允许私造全局账户上下文。
 - 缓存：Dart generation查询/通知未定义，结果/字形缓存暂禁用（PA12）；CORE-06 budget/boundIndex等低级遗留转P2。
 - CORE-41门禁族范围/逐文件估算不可信，实施前拆卡或复核可复用实现（PC09）；独立复核未通过，不用430行估算授予S0许可。
-- 平台：Android锁版ActivityResult/认证/权限合并/导入能力探针、Windows Hello持久化保护均未实测；Hello .applock返回PLATFORM_UNSUPPORTED，不以UserConsent或签名哈希替代保护。Android主机驱动M-HOST须另卡明确规模并实现，AND-12在此前受阻（PAN05）。
+- 平台：Android锁版ActivityResult/认证/权限合并/导入能力探针、Windows Hello验证门在Windows 11上的窗口归属与前台显示均未实测；P1补修（D.13.2）已把Windows应用锁定为Hello用户同意验证门（DbKey仍只受DPAPI保护，Windows 10不提供，README §6 Q41待确认），密钥级Hello保护未采用。WDA_EXCLUDEFROMCAPTURE的系统版本要求待核实。Android主机驱动M-HOST须另卡明确规模并实现，AND-12在此前受阻（PAN05）。
 - 材料：保守打包和无损分段已入库，但总量未缩到8万以内。D.13逐卡登记超量；每条warning在持久化审计台账保留，未关闭本地缺定义/依赖/Q关联不能当合法引用。
-- 真实内容/模型、数据及发布许可、供应商/证书/托管/设备矩阵均有外部门槛，M-CONTENT/M-MODEL不能用工具夹具替代。Q32～40保持待确认；Q33确认后另改选卡向量。
+- 真实内容/模型、数据及发布许可、供应商/证书/托管/设备矩阵均有外部门槛，M-CONTENT/M-MODEL不能用工具夹具替代。Q32～41保持待确认；Q33确认后另改选卡向量。
+- P1补修后仍待处理：CORE-33规模已到约500行另加运维脚本，P2评估拆卡；`reports/v5.3.2-交付核对.md`与`v5.3.2-audit.json`为v5.3.2标版时的快照，未随补修重新生成（其中NOTATION_*仍列为未定义），P2最终复评时重新生成；补修中CORE-23、CORE-47、CORE-62、AND-06、AND-14、WIN-07新增的验收尚未进入独立复核以外的整卡复核（D.12）。
 
 ## D.11 v5.3 复核与 v5.3.1 修订记录（2026-10-20）
 
@@ -881,3 +882,15 @@ v5.3.1旧接续是历史输入，其H1～H7/M组落点见D.9；不再声称Andro
 | CORE-56 | 88587 | 2 | 无损分段，全部读完，同一编码会话；warnings按台账转P2 |
 | AND-09 | 84890 | 2 | 无损分段，全部读完，同一编码会话；warnings按台账转P2 |
 | CORE-42 | 80874 | 2 | 无损分段，全部读完，同一编码会话；warnings按台账转P2 |
+
+### D.13.2 P1 补修（2026-10-20）
+
+P1 交付后的审核发现：WIN-07 已把 `.applock` 改为一律不支持，但卡内目标、验收与 CORE-23 仍按 Windows Hello 应用锁书写，且没有登记产品取舍；lead 按六范围复核所做的一轮修复没有再复核，抽查到 Clock、CORE-37 旧归属、S0 卡数等残留；21 个提交的自查说明是同一段模板。本次补修按以下顺序进行：
+
+1. 提交 `b8ee93d`：WIN-07 改为 Windows 11 上的 Hello 用户同意验证门（`.applock` 包装为 0x04 ‖ DPAPI，验证由 Dart `WindowsKeyStore` 在解包前执行），Windows 10 不提供应用锁；依据为 Microsoft 文档（`RequestVerificationForWindowAsync` 最低 build 22000，`RequestVerificationAsync` 仅 UWP）。新增 README §6 Q41（待确认），修订 ADR-V5-37；CORE-23、CORE-65、CORE-47（新增应用锁开关）同步；清理 Clock、粘贴归属、S0 卡数等残留；CORE-57 写明 `tools/sadd/` 是先行入库的文档工具、不作就绪证据。
+2. 只读复核 `temp/verify-p1/recheck.md`（复核人 recheck-p1，未参与修订）：49 条 lead 修复中闭合 26、部分闭合 20、修复引入新问题 3，另有新问题 RC-01～19。
+3. 提交 `61d94d1`：处理 RC-01～19 与文档层面的部分闭合项（stats op 的 now_ms、NOTATION_* 错误表、FFI_BUSY 与 dispose 验收、gen_dto 注解关键字与 pending 规则、Dart 量纲 DTO、缓存键含 generation、CORE-62 新码 `AUTH_UPLOAD_RECONFIRM_REQUIRED`、recog.* 请求体、识别预算熔断落表、提醒写入唯一入口、CORE-04 `unwrap` 增加不可用路径并三处逐字同步、两端 setScreenSecure 方法清单、AND-01 冒烟、相机目录、卡序与阶段表去重等）。
+4. 只读复核 `temp/verify-p1/recheck-2.md`（同一复核人，只看 `61d94d1`）：42 条中闭合 38、部分闭合 4，新问题 RC2-01～05（中 2、低 3）。
+5. 本提交：RecognitionFlow 与 CandidateVm 改为显式 `notationProfileId`/`userDecls`，CORE-31 列 fml-ffi 附属适配；AND-06 把认证器不可用类回调映射为 `PLATFORM_UNSUPPORTED` 并补验收（常量名依据 androidx 源码）；识别提交前检查熔断标记，解除熔断改为 CORE-33 运维 SQL 脚本；CORE-37 旧归属最后两处；CORE-34 透传行移入引用表，消费表表头统一。这一步没有再做第三轮复核，结论以本节为准。
+
+本次补修不改变 §D.10 任何卡的独立等级，就绪数仍为 0；S0 九张卡仍需按 README §8.5.1 复核。修订期间另有会话在同一分支提交了 P2 的 L-A～L-C（`c765274`、`7bf12ad`、`5d015fe`），补修以当时的文件为基础，没有覆盖这些提交。
