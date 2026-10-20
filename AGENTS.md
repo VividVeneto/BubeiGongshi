@@ -12,7 +12,7 @@
 - `SADD/README.md` §8.6 前后端编程索引：全部模块卡按前端（Flutter/Dart：共享界面、平台层）、端侧核心（Rust）、后端（server/）、工程与发布（tools/、.github/、installer/独立C++启动器）分组，列出代码目录、阶段与工具链；开会话前先查本卡属于哪一类。
 - 模块卡每卡一个文件，命名 `S编号_卡号_分组.md`（分组：基座、引擎、界面、功能、账户、扩展、平台、发布）：`SADD/S0/` 放全部 S0 阶段卡；`SADD/core/` 放其余 CORE 卡（公共契约只在 CORE 卡定义）；`SADD/and/`、`SADD/win/` 放其余 AND、WIN 卡。三个文件夹的 `00-总览.md` 是原 01/02/03 中卡片以外的部分（依赖图、§2 实施阶段、§3 模块索引）。按卡号查找文件（如 `ls SADD/*/*_CORE-05_*`），引用卡片写卡号不写路径；布局说明见 `SADD/README.md` §7。
 - 测试方案（各卡“验收标准”全文）放在 `SADD/Test/`，文件夹结构同上，命名 `S编号_卡号_TEST.md`（如 `SADD/Test/core/S1_CORE-05_TEST.md`）；卡片的“验收标准”字段只留引用行。编码时按该文件逐条写自动化测试；改卡片功能时同一提交同步改测试方案，卡片改名时测试文件同步改名（DTOcheck LAYOUT-06/07 检查）。
-- 文档工具项（`tools/sadd/layout.mjs`、`split.mjs`、`split-tests.mjs` 与 `tools/DTOcheck/`）不属于正式代码：不归任何模块卡、不计规模、不进产品构建，改动用 `chore(sadd)` 提交，清单见 `SADD/README.md` §7.1。
+- 文档工具项（`tools/sadd/layout.mjs`、`split.mjs`、`split-tests.mjs`、`cardiff.mjs` 与 `tools/DTOcheck/`）不属于正式代码：不归任何模块卡、不计规模、不进产品构建，改动用 `chore(sadd)` 提交，清单见 `SADD/README.md` §7.1。
 - `SADD/附录A-架构决策与评审记录.md`：ADR；`SADD/附录D-编码就绪检查记录.md`：逐卡就绪结论与遗留问题。
 
 ## 每次会话的材料（README §8.1）
@@ -20,7 +20,8 @@
 1. 先运行 `node tools/sadd/pack.mjs <卡号> --file <将修改的已有实现>`（可重复 --file），读目标卡全文、完整直接依赖契约与 CORE-01/02；间接依赖只收录定义了所需符号的块（按符号传递收集，只提及不定义的说明块不收录，见 report.json 的 mentionOnly），contracts/ 与附录 A 只收录相关部分（README §8.1 第5项）。
 2. 附正文引用的相关契约、本卡 [Rxx] 的 README §5 行、§6 影响本卡/正文引用的 Q 行、ADR 全行与补充章节。
 3. 附 contracts/ 现有文件、锁定版本与已有实现；未创建文件明确标出。以 report.json 记录字符数、保留来源与 warning。
-4. 超过 80000 字符按无损 part-N.md 分段全部读完，在附录D登记总量/分段及处理方式，不静默省略。需要新的符号或文件时重生成；工具 warning 不能替代语义复核。
+4. 复核先运行 `node tools/sadd/cardiff.mjs <卡号>`（对比基线 0773cd3 的旧三份文档，已按引用拼回 Test/ 验收标准，忽略章节标题、卡片标记与仅规模口径差异；`--all` 列出全部变化卡）。
+5. 超过 80000 字符按无损 part-N.md 分段全部读完，在附录D登记总量/分段及处理方式，不静默省略。需要新的符号或文件时重生成；工具 warning 不能替代语义复核。
 
 只实现本卡“范围/包含”中的内容，遵守“实现约束”；不修改依赖模块的接口，确需修改时停止并留下 README §8.4 契约变更单，由所有者修订、同步消费者、重生成材料并在D复检后继续。
 

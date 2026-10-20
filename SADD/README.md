@@ -294,6 +294,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | 布局读写 | `tools/sadd/layout.mjs` | 读取拆分布局：按 00-总览.md 的卡片标记与 Test/ 的测试方案引用拼回完整文档，产生 LAYOUT 检查项 | pack（CORE-57）、stats/audit（CORE-76）、reservations（CORE-75）、DTOcheck |
 | 拆分迁移 | `tools/sadd/split.mjs` | 一次性：三份文档拆为每卡一个文件（2026-10-20 已执行） | 仅迁移时使用 |
 | 测试方案剥离 | `tools/sadd/split-tests.mjs` | 一次性：各卡“验收标准”剥离到 Test/（2026-10-21 已执行） | 仅迁移时使用 |
+| 卡片差异 | `tools/sadd/cardiff.mjs`（含 `cardiff.test.mjs`） | 把基线提交（默认 v5.3.3 的 0773cd3）里的旧三份文档按卡与当前“卡片文件＋测试方案”拼回后的文本逐卡比较；忽略章节标题/引言/卡片标记、验收标准搬到 Test/ 的搬迁与仅“规模”行的差异（单列“仅规模口径”）；单卡输出 unified diff，`--all` 列内容变化/仅规模口径/新增卡，基线不存在退出 2。与 CO-21 同口径：不归任何模块卡、不计规模 | 整卡复核（先运行 `node tools/sadd/cardiff.mjs <卡号>`） |
 | 文档一致性检查 | `tools/DTOcheck/`（含其测试） | 卡↔索引↔依赖图↔阶段、DTO manifest/schema/示例、错误码登记、布局检查 | 改文档或 contracts/ 时运行 |
 
 ## 8. vibe coding 使用说明
