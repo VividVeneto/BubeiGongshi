@@ -3077,6 +3077,37 @@
         "P-N01；4warnings；UIA/锁版/交互桌面"
       ],
       "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-77",
+      "card": "CORE-77",
+      "grade": "B",
+      "reviewer": "reviewer-core77",
+      "date": "2026-10-20",
+      "materialChars": 197247,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 UnifyError 无溢出通道",
+        "F-02 CORE-08 缺 Rational/DimensionFull 运算与溢出通道",
+        "F-03 DimVar 作用域与跨修订使用矛盾、缺 instantiate"
+      ],
+      "consumerConfirmation": null
     }
   ]
 }

@@ -283,7 +283,7 @@
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-27：mode=submit（取消仅在提交事务前）已由CORE-27定义，开工前补schema与向量后转ready，禁止注册。"
     },
     {
       "op": "backup.discard_restore",
@@ -548,7 +548,8 @@
         "TYPE_MATHKIND_MISMATCH",
         "TYPE_QK_MISMATCH",
         "TYPE_UNKNOWN_DIM",
-        "UNIT_DIM_SYNTAX"
+        "UNIT_DIM_SYNTAX",
+        "UNIT_OVERFLOW"
       ],
       "sensitive_paths": []
     },
@@ -1623,7 +1624,7 @@
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+      "blocked_reason": "CORE-66：schema待补；mode=submit与暂存目录分片协议已由CORE-66定义（ADR-V5-45），开工前补schema与向量后转ready。"
     },
     {
       "op": "sync.resolve_choice",
@@ -1645,7 +1646,7 @@
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+      "blocked_reason": "CORE-66：schema待补；mode=submit与暂存目录分片协议已由CORE-66定义（ADR-V5-45），开工前补schema与向量后转ready。"
     },
     {
       "op": "sync.snapshot_build",
@@ -1656,7 +1657,7 @@
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-66：schema待补；快照分批协议未定义，mode未核对。"
+      "blocked_reason": "CORE-66：schema待补；mode=submit与暂存目录分片协议已由CORE-66定义（ADR-V5-45），开工前补schema与向量后转ready。"
     },
     {
       "op": "sync.status",
