@@ -1,6 +1,6 @@
-# SADD：不背公式 App 软件架构设计文档 v5.3.1
+# SADD：不背公式 App 软件架构设计文档 v5.3.2
 
-> 版本：v5.3.1　修订日期：2026-10-20　适用分支：`main`
+> 版本：v5.3.2　修订日期：2026-10-20　适用分支：`main`
 > 本目录是现行架构基线。v5 以 v2.1 为基础，吸收 v4 评审意见，并按“小模块 vibe coding”重构为模块卡。v3、v4 是归档版本（标签 `archive/sadd-v3`、`archive/sadd-v4.0`），不是现行基线。
 
 ## 1. 总览
@@ -130,7 +130,8 @@
 | v5.2 | 2026-10-19 | 新增界面设计方案——CORE-55 界面设计系统与主题、AND-13 Android 触摸交互与横竖屏适配、WIN-15 Windows 桌面交互与窗口适配，联动修订各界面卡与平台卡；登记新需求 R42（R42.a–R42.f）；确认 Q17–Q30（Q21–Q30 按暂行默认确认）；新增 ADR-V5-24、ADR-V5-25；新增 §8.6 前后端编程索引；模块卡共 81 张；依赖规则由“只指向编号更小的卡”改为“无环且依赖卡的阶段不晚于本卡” | Git 历史；逐卡结论见附录 D §D.7 |
 | v5.2.1 | 2026-10-19 | 历史基线：补充 Windows 外接数位板支持——WIN-08 写明只支持 Windows Ink（不接入 WinTab）、统一笔侧键规则（书写区内按住为擦除、书写区外点按为右键菜单）、新增笔设备检测与设置区“笔与数位板”开启提示，WIN-15 同步右键菜单与输入方式说明，WIN-13 测试矩阵加外接数位板；新增并确认 Q31；模块卡数不变（81 张）；01、02 内容未改，版本号随文档集统一为 v5.2.1；附录 A 未改 | 本目录；逐卡结论见附录 D §D.8 |
 | v5.3 | 2026-10-19 | 历史基线：处理46条P0（11阻断、35高）：45已修订、1已覆盖；落实D1～D6，补S1数据/共享格式/持久化与算法输入/Dart分层/Windows启动恢复；新增CORE-56（S1）、由WIN-03拆出WIN-16（S7），CORE-28前移S2；83张有效卡（56/12/15），本轮无撤销；Q32～Q34待确认、正文暂行默认；逐卡语义状态保留P1遗留，不以机械0项等同就绪；仅本地main分组提交，不推送、不打标签 | 附录A §A.4；附录D §D.9～10 |
-| **v5.3.1** | **2026-10-20** | **现行基线（本地基线，未推送）**：处理 v5.3 五份复核报告（core-a、core-b、core-c、plat-win、core-ui）的新问题与“部分解决”残留——工具链锁定与 ADR-V5-15 同步、S1/S2 契约与同步时钟、Casdoor 令牌族（ADR-V5-32）、整库回退设备身份（ADR-V5-33）、界面依赖视图（ADR-V5-34）、WIN-16 启动恢复补全（Q36）；本文补整卡语义复核流程（§8.5.1）、提示词模板（§8.2）与超量材料暂行裁剪（§8.1），附录 A 模块卡列改完整卡号，附录 C 指定 M-MODEL 负责人（Q37）；新增 Q35～Q37（暂行默认）；83 张有效卡不变 | 附录A §A.4；附录D §D.9～12 |
+| **v5.3.1** | **2026-10-20** | **历史本地基线**：处理 v5.3 五份复核报告（core-a、core-b、core-c、plat-win、core-ui）的新问题与“部分解决”残留——工具链锁定与 ADR-V5-15 同步、S1/S2 契约与同步时钟、Casdoor 令牌族（ADR-V5-32）、整库回退设备身份（ADR-V5-33）、界面依赖视图（ADR-V5-34）、WIN-16 启动恢复补全（Q36）；本文补整卡语义复核流程（§8.5.1）、提示词模板（§8.2）与超量材料暂行裁剪（§8.1），附录 A 模块卡列改完整卡号，附录 C 指定 M-MODEL 负责人（Q37）；新增 Q35～Q37（暂行默认）；83 张有效卡不变 | 附录A §A.4；附录D §D.9～12 |
+| **v5.3.2** | **2026-10-20** | **现行本地基线，未推送/未打标签**：处理P1的123条意见（高15/中108）、H1～H7与继承；13任务组、六范围独立复核及一轮修复；新增CORE-57～68与AND-14，96有效卡；Q38～40、ADR35～37；独立评级A2/B55/C39、就绪0，S0不通过和P2阻断如实保留 | 附录D §D.9～13及持久化审计报告 |
 
 v5 的主要变化：
 
@@ -244,7 +245,7 @@ v5 的主要变化：
 
 ### 6.1 待确认事项
 
-v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 已于 2026-10-19 按暂行默认值确认，移入上表；Q31 为 2026-10-19 补充 Windows 外接数位板时新增，同日按暂行默认确认并移入上表；v5.3 新增待确认事项 Q32 起、v5.3.1 新增 Q35～Q37 列入下表。日后新发现的同类事项编号续排，列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
+v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 已于 2026-10-19 按暂行默认值确认，移入上表；Q31 为 2026-10-19 补充 Windows 外接数位板时新增，同日按暂行默认确认并移入上表；v5.3 新增待确认事项 Q32 起、v5.3.1新增Q35～37、v5.3.2新增Q38～40列入下表。日后新发现的同类事项编号续排，列入下表；甲方确认前，模块卡正文按“暂行默认值”撰写，并在相关位置标注“见 README §6 Qx（待确认）”；确认后按 §2.2 记录，移入上方已确认表并同步修订对应模块卡。
 
 | 编号 | 事项 | 暂行默认值（正文采用） | 待选方案 | 影响模块卡 |
 | --- | --- | --- | --- | --- |
@@ -260,7 +261,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 
 ## 6.2 M0 工程定案
 
-本轮已采纳 ADR-V5-12、14、15、17、19、20、25（甲方确认 D1～D6，见附录 A §A.4.4）。ADR-V5-26～34 是修订方在需求与上述决策范围内的技术决策（状态列注明“修订方决定”，V5-32 待甲方追认）。V5-13 运行时、V5-16 云识别供应商、V5-18 托管仍待定；编码可用 Fake，真实交付的门槛按 §8.3 执行。
+本轮已采纳 ADR-V5-12、14、15、17、19、20、25（甲方确认 D1～D6，见附录 A §A.4.4）。ADR-V5-26～37 是修订方在需求与上述决策范围内的技术决策（状态列注明“修订方决定”，V5-32 待甲方追认）。V5-13 运行时、V5-16 云识别供应商、V5-18 托管仍待定；编码可用 Fake，真实交付的门槛按 §8.3 执行。
 
 ## 7. 文档地图
 
@@ -273,7 +274,8 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | [附录A-架构决策与评审记录.md](附录A-架构决策与评审记录.md) | 历次评审记录、v4 意见判定表、全部 ADR |
 | [附录B-YOLO识别预研.md](附录B-YOLO识别预研.md) | YOLO 轻量识别预备方案（仅实验分支，不进主线） |
 | [附录C-资源包内容与开源资源调查.md](附录C-资源包内容与开源资源调查.md) | 开源公式库、数据集、模型与字体的调查和许可结论 |
-| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | 历史修订D.4～8；v5.3的46条P0处理、检查对比D.9；96张卡当前评级/未复核/阻塞与P1接续D.10；v5.3复核与v5.3.1修订记录D.11；整卡语义复核记录D.12 |
+| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | 历史修订D.4～8；v5.3的46条P0处理、检查对比D.9；96张卡当前评级/未复核/阻塞与P1接续D.10；v5.3复核与v5.3.1修订记录D.11；整卡语义复核记录D.12；v5.3.2六范围复核/修订与P2接续D.13 |
+| [v5.3.2交付核对](reports/v5.3.2-交付核对.md) | 本轮13组提交/状态、六范围评分、检查前后、全卡材料与逐warning/P2清单；原始结构化证据见同目录v5.3.2-audit.json |
 
 ## 8. vibe coding 使用说明
 
@@ -393,10 +395,10 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-28 | 隐私守卫、日志与复现包 | 前端（跨前后端：前端 + 端侧核心） | 用例与组装 | `app/lib/privacy/`（附属 `crates/fml-error/src/log.rs`） | S2 |
 | CORE-34 | 云识别客户端与授权回执 | 前端 | 用例与组装 | `app/lib/recognition/cloud/` | S5 |
 | CORE-36 | 应用壳、组装层、账户入口与导航 | 前端 | 用例与组装、共享界面 | `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart` | S2 |
-| CORE-37 | 公式渲染组件与编辑器 | 前端 | 共享界面 | `app/lib/editor/`、`app/lib/ui/editor/` | S2 |
-| CORE-38 | 公式库界面 | 前端 | 共享界面 | `app/lib/library/`、`app/lib/ui/library/` | S3 |
+| CORE-37 | 公式渲染组件与编辑器 | 前端 | 共享界面 | `app/lib/editor/editor_worker.dart`、`app/lib/ui/editor/{formula_view,math_text}.dart`、`app/lib/render/` | S2 |
+| CORE-38 | 公式库界面 | 前端 | 共享界面 | `app/lib/library/`、`app/lib/ui/library/`（不含import/、units/） | S3 |
 | CORE-39 | 学习会话界面 | 前端 | 共享界面 | `app/lib/study/`、`app/lib/ui/study/` | S4 |
-| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 前端 | 共享界面 | `app/lib/recognition/`、`app/lib/ui/recognition/` | S5 |
+| CORE-40 | 识别流程编排、手写画布与图片预处理界面 | 前端 | 共享界面 | `app/lib/recognition/flow/`、`app/lib/recognition/{answer_input,install}.dart`、`app/lib/ui/recognition/crop/` | S5 |
 | CORE-46 | 同步与升级协调器 | 前端 | 用例与组装 | `app/lib/sync/` | S6 |
 | CORE-47 | 设置页与账户安全界面 | 前端 | 共享界面 | `app/lib/settings/`、`app/lib/ui/settings/` | S6 |
 | CORE-48 | 计算器、代入与计算链界面 | 前端（跨前后端：前端 + 端侧核心） | 共享界面 | `app/lib/calc/`、`app/lib/ui/calc/`（附属 `crates/fml-store/src/library/plan.rs`） | S3 |
@@ -429,7 +431,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-13 | 性能与环境矩阵 | 前端 | 测试 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | S7 |
 | WIN-14 | 快捷键自定义 | 前端 | 平台层 | `app/lib/platform/windows/keymap/` | S5 |
 | WIN-15 | Windows 桌面交互与窗口适配 | 前端 | 平台层、测试 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | S2 |
-| CORE-58 | 设计组件、命令与外观入口 | 前端 | 拆分职责 | `app/lib/ui/design/components/`、`app/lib/design/commands.dart` | S2 |
+| CORE-58 | 设计组件、命令与外观入口 | 前端 | 拆分职责 | `app/lib/ui/design/components/`、`app/lib/ui/design/warmup.dart`、`app/lib/design/{commands,routes}.dart` | S2 |
 | CORE-59 | 公式编辑控制器与输入组件 | 前端 | 拆分职责 | `app/lib/editor/`、`app/lib/ui/editor/`（controller、templates、palette、declaration、formula_editor、copy） | S2 |
 | CORE-60 | 公式导入与用户单位管理界面 | 前端 | 拆分职责 | `app/lib/library/import/`、`app/lib/library/units/`、`app/lib/ui/library/import/`、`app/lib/ui/library/units/` | S3 |
 | CORE-62 | 客户端 API 与令牌刷新适配 | 前端 | 拆分职责 | `app/lib/net/` | S2 |
@@ -463,7 +465,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-19 | 学习会话与组学习循环 | 端侧核心 | Rust crate | `crates/fml-study/`、`crates/fml-store/src/study/sessions.rs` | S4 |
 | CORE-20 | 学习统计、掌握度与本地提醒 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-study/src/stats/`、`app/lib/study/reminder_service.dart` | S4 |
 | CORE-21 | 密钥体系与加密原语 | 端侧核心 | Rust crate | `crates/fml-crypto/` | S2 |
-| CORE-23 | 账户状态、登录边界与本机解锁 | 端侧核心 | Rust crate | `crates/fml-store/src/account/` | S2 |
+| CORE-23 | 账户状态、登录边界与本机解锁 | 端侧核心 | Rust crate | `crates/fml-store/src/account/`、`crates/fml-store/migrations/registry/` | S2 |
 | CORE-24 | 游客转注册与游客并入 | 端侧核心 | Rust crate | `crates/fml-store/src/sync/upgrade.rs`（附属 `crates/fml-store/migrations/0024_upgrade.sql`） | S6 |
 | CORE-26 | 同步引擎（加密、合并与隔离） | 端侧核心 | Rust crate | `crates/fml-store/src/sync/`（纯合并规则 `crates/fml-sync/`） | S6 |
 | CORE-27 | 备份导出与恢复 | 端侧核心 | Rust crate | `crates/fml-store/src/backup/` | S6 |
@@ -484,7 +486,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 | 编号 | 名称 | 主类 | 子类 | 代码目录 | 阶段 |
 | --- | --- | --- | --- | --- | --- |
-| CORE-22 | 服务端骨架与身份认证 | 后端 | 服务端 | `server/src/{main.rs, config.rs, auth/, devices/, meta/}` | S2 |
+| CORE-22 | 服务端骨架与身份认证 | 后端 | 服务端 | `server/src/{main.rs,config.rs,auth/,devices/,meta/}`、`server/migrations/0022_auth.sql` | S2 |
 | CORE-25 | 服务端同步存储与账户删除 | 后端 | 服务端 | `server/src/sync/`、`server/src/account/` | S6 |
 | CORE-33 | 服务端云识别网关与 worker | 后端 | 服务端 | `server/src/recognition/` | S5 |
 | CORE-43 | 服务端部署、资源分发与监控 | 后端 | 服务端 | `server/deploy/`、`server/src/ops/` | S7 |
