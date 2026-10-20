@@ -297,11 +297,8 @@ ADR 字段：背景、方案、结论、被否方案的代价、重新评估条�
 | ADR-V5-32 | Casdoor 能力差异的补齐方式 | 刷新只经 CORE-22 令牌代理（Casdoor 对授权码令牌刷新要求 client_secret，仅服务端持有）；重放检测与整族吊销由业务库 auth_refresh_family/auth_refresh_used（只存 HMAC）实现；不依赖 sid；auth_time 只取授权码换得的令牌，刷新所得令牌缺 auth_time 时敏感接口按超时处理并 prompt=login 重登；TokenFormat 固定 JWT-Custom 且不含个人信息 | 等待上游补齐：上线无期；改用 Keycloak：见 §A.4.4 代价；代理不存状态：无法吊销整族 | Casdoor 原生提供刷新令牌族吊销与刷新保留 auth_time，或更换身份服务时 | 采纳（修订方决定，待甲方追认；依据见 §A.4.6） | CORE-22、CORE-23、CORE-25、CORE-43 |
 | ADR-V5-33 | 整库回退后的设备身份 | 本地库被整体恢复（WIN-16 回滚、备份恢复）后，同步客户端在拉到本设备 device_seq 大于本地的 envelope 或推送遇本设备 op_id CONFLICT 时，于同一合并事务中更换 device_id（device_seq 归零、lamport 取已见最大值）；字段时钟 (counter, device_id) 完全相同而值不同时取字段规范 JSON 的 BLAKE3 较大者 | 启动器提交前禁网：首帧后钩子无法保证；回滚时清空同步状态重新全量：丢失回滚后本机写入且流量大 | 引入服务端设备登记或改变时钟格式时 | 采纳（修订方决定） | CORE-13、CORE-26；WIN-16、CORE-27 |
 | ADR-V5-34 | 界面依赖视图与路由位置 | AppDeps 只在 composition 与 app/lib/<feature>/ 使用；路由函数放各特性目录 routes.dart，由 app/lib/composition/routes.dart 聚合；ui/ 只接收 UiDeps、VM、DTO 与回调，CORE-41 DEP-5 扫描 | 继续把 AppDeps 传入页面：CoreBinding/PlatformPorts 渗入 ui；每页单独注入：组装样板过多 | 引入新的状态管理框架时 | 采纳（修订方决定） | CORE-36、CORE-38、CORE-39、CORE-40、CORE-41、CORE-46、CORE-47、CORE-48、CORE-49、CORE-50、CORE-51 |
-
 | ADR-V5-35 | P1 职责拆分 | 保留原编号，新增 CORE-57～CORE-68及AND-14，材料工具、组件/编辑、库工具/草稿、API/账户页/控制器、墨迹、同步快照各单一构建职责；旧消费者同步依赖与阶段，fml-store 持 I/O、fml-sync 保持纯规则 | 顶格单卡跨多个子系统会迫使编码会话再改契约 | 实现估算超500行先继续拆卡 | 采纳（修订方决定） | CORE-22、CORE-23、CORE-26、CORE-36、CORE-37、CORE-38、CORE-40、CORE-55、CORE-57、CORE-58、CORE-59、CORE-60、CORE-61、CORE-62、CORE-63、CORE-64、CORE-65、CORE-66、CORE-67、CORE-68、AND-14 |
-
 | ADR-V5-36 | Android API 分档与导入所有权 | 认证器按 API 分档、权限白名单按来源卡启用；CORE-04 明确导入批次时限；MainActivity 模块化、S0 正式 Unsupported 桩；官方依据见 §A.4.7 | 省略 API 条件会在旧系统抛错；发布引用 test Fake 无法构建 | AndroidX 或 SDK 升级，M0 探针不通过 | 采纳（修订方决定） | CORE-04、AND-01、AND-02、AND-03、AND-05、AND-06、AND-08、AND-12 |
-
 | ADR-V5-37 | Windows runner与输入/发布协议 | 平台线程统一派发、可注销窗口委托、FocusManager早期按键入口；签名叶证书指纹白名单与PDB归档；Windows Hello密钥机制未核实保持M0阻断 | 工作线程直接回复/根Focus优先/仅CN信任均不可作为保证 | 引擎/SDK升级或设备探针失败 | 采纳（修订方决定；外部前提见A.4.8） | CORE-36、WIN-01、WIN-03、WIN-07、WIN-08、WIN-12、WIN-15 |
 
 ### A.4.3 邮件发信供应商筛选（2026-10-18）
