@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineExportSchema",
+  "$defs": {
+    "request": {
+      "title": "EngineExportRequest",
+      "type": "object",
+      "properties": {
+        "revision_ast": {
+          "$ref": "types.schema.json#/$defs/FormulaNode"
+        },
+        "symbols": {
+          "$ref": "types.schema.json#/$defs/SymbolEnv"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "latex",
+            "unicode"
+          ]
+        }
+      },
+      "required": [
+        "revision_ast",
+        "symbols",
+        "format"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "EngineExportOk",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "revision_ast": {
+          "k": "number",
+          "text": "1"
+        },
+        "symbols": {
+          "decls": []
+        },
+        "format": "latex"
+      },
+      "ok": {
+        "text": "1"
+      }
+    }
+  ]
+}

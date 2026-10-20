@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountSetLoggedOutSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountSetLoggedOutRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "logged_out": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "profile_id",
+        "logged_out"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountSetLoggedOutOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "logged_out": false
+      },
+      "ok": {}
+    }
+  ]
+}

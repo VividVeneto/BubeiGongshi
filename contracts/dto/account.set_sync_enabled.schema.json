@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountSetSyncEnabledSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountSetSyncEnabledRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "profile_id",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountSetSyncEnabledOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "enabled": false
+      },
+      "ok": {}
+    }
+  ]
+}

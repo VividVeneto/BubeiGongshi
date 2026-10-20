@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UnitsCompatibleSchema",
+  "$defs": {
+    "request": {
+      "title": "UnitsCompatibleRequest",
+      "type": "object",
+      "properties": {
+        "dimension": {
+          "$ref": "types.schema.json#/$defs/DimensionFull"
+        }
+      },
+      "required": [
+        "dimension"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "UnitsCompatibleOk",
+      "type": "object",
+      "properties": {
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/Unit"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "units"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "dimension": {
+          "base": {
+            "exps": [
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              },
+              {
+                "num": "0",
+                "den": "1"
+              }
+            ]
+          },
+          "pseudo": []
+        }
+      },
+      "ok": {
+        "units": []
+      }
+    }
+  ]
+}

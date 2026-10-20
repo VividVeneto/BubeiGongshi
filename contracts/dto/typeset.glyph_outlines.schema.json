@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TypesetGlyphOutlinesSchema",
+  "$defs": {
+    "request": {
+      "title": "TypesetGlyphOutlinesRequest",
+      "type": "object",
+      "properties": {
+        "font_id": {
+          "type": "string"
+        },
+        "glyph_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "font_id",
+        "glyph_ids"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "TypesetGlyphOutlinesOk",
+      "type": "object",
+      "properties": {
+        "units_per_em": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "outlines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "glyph_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "segs": {
+                "type": "array",
+                "items": {
+                  "$ref": "types.schema.json#/$defs/PathSeg"
+                },
+                "minItems": 0,
+                "maxItems": 4096
+              }
+            },
+            "required": [
+              "glyph_id",
+              "segs"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "units_per_em",
+        "outlines"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "font_id": "fixture",
+        "glyph_ids": [
+          1
+        ]
+      },
+      "ok": {
+        "units_per_em": 1000,
+        "outlines": [
+          {
+            "glyph_id": 1,
+            "segs": [
+              {
+                "move_to": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "line_to": [
+                  1,
+                  1
+                ]
+              },
+              "close"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

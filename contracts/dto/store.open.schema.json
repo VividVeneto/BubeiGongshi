@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StoreOpenSchema",
+  "$defs": {
+    "request": {
+      "title": "StoreOpenRequest",
+      "type": "object",
+      "properties": {
+        "config": {
+          "$ref": "types.schema.json#/$defs/StoreConfig"
+        },
+        "db_key_b64": {
+          "type": "string",
+          "format": "base64",
+          "x-sensitive": true
+        }
+      },
+      "required": [
+        "config",
+        "db_key_b64"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "StoreOpenOk",
+      "type": "object",
+      "properties": {
+        "handle": {
+          "type": "string",
+          "pattern": "^(?:0|[1-9][0-9]{0,19})$",
+          "format": "uint64"
+        },
+        "schema_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      },
+      "required": [
+        "handle",
+        "schema_version"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "config": {
+          "db_path": "/fixture/profile.db",
+          "backup_dir": "/fixture/backup",
+          "read_pool": 2
+        },
+        "db_key_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      "ok": {
+        "handle": "281474976710657",
+        "schema_version": 13
+      }
+    }
+  ]
+}

@@ -36,7 +36,8 @@ export function blocks(text) {
   if (current.length) out.push(current.join('\n'));
   return out.filter(x => x.trim());
 }
-const tokens = text => new Set(text.match(/\b(?:[A-Z][a-z]+(?:[A-Z][A-Za-z0-9]*)+|[A-Z]+(?:_[A-Z0-9]+)+|[a-z_]+\.[a-z_]+(?:\.[a-z_]+)*|[a-z]+(?:_[a-z]+)+)\b/g) ?? []);
+// Lower-case field names (id, profile_id, etc.) are not definition identities.
+const tokens = text => new Set(text.match(/\b(?:[A-Z][a-z]+(?:[A-Z][A-Za-z0-9]*)+|[A-Z]+(?:_[A-Z0-9]+)+|[a-z_]+\.[a-z_]+(?:\.[a-z_]+)*)\b/g) ?? []);
 const refs = text => [...new Set(text.match(/\b(?:CORE|AND|WIN)-\d+\b/g) ?? [])];
 export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   const cards = load(sadd); const target = cards.get(id);
@@ -70,11 +71,16 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
       for (const t of tokens(b.text)) need.add(t);
     }
   }
-  const warnings = [];
+  const warnings = []; const classifiedReferences = [];
   // Explicit references outside the closure are read-only context, never compilation permission.
   for (const key of refs(target.body)) if (key !== id && !closure.has(key)) {
     const c = cards.get(key);
     if (!c) { warnings.push(`Missing referenced card ${key}`); continue; }
+    const occurrences = target.body.split('\n').filter(line => refs(line).includes(key));
+    if (occurrences.every(line => /下游说明，非契约|只读样本/.test(line))) {
+      classifiedReferences.push({card:key, kind:'downstream-explanation', evidence:occurrences});
+      continue;
+    }
     selected.set(key, blocks(c.contract));
     warnings.push(`Outside dependency closure: ${key}; classify as downstream explanation or add dependency`);
   }
@@ -101,9 +107,13 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   const adrIds = new Set(target.body.match(/ADR-(?:V5-)?\d+/g) ?? []);
   const adrRows = adr.split('\n').filter(line => /^\| ADR-/.test(line) &&
     (adrIds.has(line.split('|')[1].trim()) || refs(line.split('|').at(-2) ?? '').includes(id)));
-  // Supplementary ADR chapters are retained whole; these provide source evidence and caveats.
-  const adrExtra = [...adr.matchAll(/^### A\.4\.[3-9][^\n]*\n[\s\S]*?(?=^### |^## |$(?![\s\S]))/gm)].map(m=>m[0]);
-  sections.push(`## 架构决策（补充章节保守保留）\n\n${adrRows.join('\n')}\n\n${adrExtra.join('\n')}`);
+  // Keep entire relevant supplements, including source evidence; report excluded titles.
+  const relevantAdrs = new Set([...adrIds, ...adrRows.flatMap(row => row.match(/ADR-(?:V5-)?\d+/g) ?? [])]);
+  const supplements = [...adr.matchAll(/^### A\.4\.\d+[^\n]*\n[\s\S]*?(?=^### |^## |$(?![\s\S]))/gm)].map(m=>m[0]);
+  const applies = text => refs(text).includes(id) || [...relevantAdrs].some(a => new RegExp(`\\b${a}\\b`).test(text));
+  const adrExtra = supplements.filter(applies);
+  const excludedSupplements = supplements.filter(s => !applies(s)).map(s=>s.split('\n')[0]);
+  sections.push(`## 架构决策（相关补充章节全文）\n\n${adrRows.join('\n')}\n\n${adrExtra.join('\n')}`);
   const missing = [];
   const defaults = ['rust-toolchain.toml', 'app/.flutter-version', 'tools/toolchain.versions',
     'tools/requirements.txt', 'Cargo.lock', 'app/pubspec.lock',
@@ -149,7 +159,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   if (chunk) chunks.push(chunk);
   return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length,
     closure: [...closure], manifest, missing, warnings, missingFromMaterials,
-    undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort()}};
+    undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort(), classifiedReferences, excludedSupplements}};
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const id = process.argv[2];
@@ -162,4 +172,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify({...result.report, node: process.version}, null, 2));
   result.chunks.forEach((text,i) => fs.writeFileSync(path.join(out, `part-${i+1}.md`), text));
   console.log(JSON.stringify({id, chars: result.report.chars, segments: result.chunks.length, warnings:result.report.warnings}));
+  if (process.argv.includes('--check-budget') && result.report.overLimit) process.exitCode = 1;
 }

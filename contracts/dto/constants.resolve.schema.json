@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConstantsResolveSchema",
+  "$defs": {
+    "request": {
+      "title": "ConstantsResolveRequest",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "given": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/ConstantValue"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        },
+        "textbook_set_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "given",
+        "textbook_set_id"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "ConstantsResolveOk",
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "types.schema.json#/$defs/ConstantValue"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "key": "fixture.none",
+        "given": [],
+        "textbook_set_id": "textbook"
+      },
+      "ok": {}
+    }
+  ]
+}

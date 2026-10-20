@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountOpenProfileSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountOpenProfileRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "db_key": {
+          "type": "string",
+          "format": "base64",
+          "x-sensitive": true
+        }
+      },
+      "required": [
+        "profile_id",
+        "db_key"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountOpenProfileOk",
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "types.schema.json#/$defs/AccountState"
+        },
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "handle": {
+          "type": "string",
+          "pattern": "^(?:0|[1-9][0-9]{0,19})$",
+          "format": "uint64"
+        }
+      },
+      "required": [
+        "state",
+        "profile_id",
+        "handle"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "db_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      "ok": {
+        "state": "guest_unlocked",
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "handle": "281474976710657"
+      }
+    }
+  ]
+}

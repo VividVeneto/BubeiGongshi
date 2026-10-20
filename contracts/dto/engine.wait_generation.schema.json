@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineWaitGenerationSchema",
+  "$defs": {
+    "request": {
+      "title": "EngineWaitGenerationRequest",
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "string",
+          "pattern": "^(?:0|[1-9][0-9]{0,19})$",
+          "format": "uint64"
+        },
+        "wait_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "after",
+        "wait_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "EngineWaitGenerationOk",
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "pattern": "^(?:0|[1-9][0-9]{0,19})$",
+          "format": "uint64"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "changed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "generation",
+        "available",
+        "changed"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "after": "0",
+        "wait_ms": 1
+      },
+      "ok": {
+        "generation": "0",
+        "available": true,
+        "changed": false
+      }
+    }
+  ]
+}

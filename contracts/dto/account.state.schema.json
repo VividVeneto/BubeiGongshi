@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountStateSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountStateRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountStateOk",
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "types.schema.json#/$defs/AccountState"
+        },
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {},
+      "ok": {
+        "state": "uninitialized"
+      }
+    }
+  ]
+}

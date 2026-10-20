@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NotationProfilesSchema",
+  "$defs": {
+    "request": {
+      "title": "NotationProfilesRequest",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "NotationProfilesOk",
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "types.schema.json#/$defs/NotationProfile"
+          },
+          "minItems": 0,
+          "maxItems": 4096
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {},
+      "ok": {
+        "profiles": [
+          {
+            "id": "cn-default",
+            "aliases": [],
+            "defaults": []
+          }
+        ]
+      }
+    }
+  ]
+}

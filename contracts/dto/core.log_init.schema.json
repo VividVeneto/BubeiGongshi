@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoreLogInitSchema",
+  "$defs": {
+    "request": {
+      "title": "CoreLogInitRequest",
+      "type": "object",
+      "properties": {
+        "dir": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "dir",
+        "level"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "CoreLogInitOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "dir": "/fixture/logs",
+        "level": "info"
+      },
+      "ok": {}
+    }
+  ]
+}

@@ -50,3 +50,29 @@ test('platform locks, dependency contracts and uncollected local definitions are
     fs.rmSync(root,{recursive:true,force:true});
   }
 });
+
+test('downstream classification requires every occurrence and ADR selection preserves evidence', () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'sadd-pack-'));
+  const sadd=path.join(root,'SADD'); fs.mkdirSync(sadd);
+  try {
+    const card=(id,text)=>`### ${id} fixture\n\n**依赖**：\n\n**接口契约**\n\n${text}\n\n**实现约束**\nfixture\n`;
+    const file=path.join(sadd,'01-公共核心-v5.md');
+    const source=card('CORE-01','root')+card('CORE-02','errors')+card('CORE-50','class DownstreamOnly {}');
+    fs.writeFileSync(file,source+card('CORE-57','CORE-50（下游说明，非契约）；ADR-V5-39'));
+    for(const f of ['02-Android端-v5.md','03-Windows端-v5.md','README.md'])fs.writeFileSync(path.join(sadd,f),'');
+    fs.writeFileSync(path.join(sadd,'附录A-架构决策与评审记录.md'),
+      '### A.4.10 ADR-V5-39\n\nrelevant-source-evidence\n\n### A.4.11 unrelated\n\nunrelated-source-evidence\n');
+    const result=pack('CORE-57',{sadd});
+    assert.equal(result.report.classifiedReferences.length,1);
+    assert.ok(!result.text.includes('class DownstreamOnly {}'));
+    assert.ok(result.text.includes('relevant-source-evidence'));
+    assert.ok(!result.text.includes('unrelated-source-evidence'));
+    assert.deepEqual(result.report.excludedSupplements,['### A.4.11 unrelated']);
+    fs.writeFileSync(file,source+card('CORE-57','CORE-50（下游说明，非契约）\n\nCORE-50 required without classification'));
+    assert.ok(pack('CORE-57',{sadd}).text.includes('class DownstreamOnly {}'));
+  } finally {
+    assert.equal(path.dirname(path.resolve(root)),path.resolve(os.tmpdir()));
+    assert.ok(path.basename(root).startsWith('sadd-pack-'));
+    fs.rmSync(root,{recursive:true,force:true});
+  }
+});

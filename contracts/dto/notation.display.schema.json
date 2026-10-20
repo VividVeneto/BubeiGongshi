@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NotationDisplaySchema",
+  "$defs": {
+    "request": {
+      "title": "NotationDisplayRequest",
+      "type": "object",
+      "properties": {
+        "decl": {
+          "$ref": "types.schema.json#/$defs/SymbolDecl"
+        },
+        "notation_profile_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decl",
+        "notation_profile_id"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "NotationDisplayOk",
+      "type": "object",
+      "properties": {
+        "glyph": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "glyph"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "decl": {
+          "id": 0,
+          "glyph": "x",
+          "role": "variable",
+          "meaning_key": ""
+        },
+        "notation_profile_id": "cn-default"
+      },
+      "ok": {
+        "glyph": "x"
+      }
+    }
+  ]
+}
