@@ -439,6 +439,17 @@ v5.3.1（2026-10-20）：§D.10 第6列 A=2、B=54、C=11、未复核=16，就�
 | 复核/PC-N08 | 中 | 已修订 | CORE-37/64 | 固定Linux黄金图，Fake交互不计性能，真机归平台预算 |
 | 复核/PC-N09 | 高 | 转P2 | CORE-41 | 实施前按门禁族拆卡/补复用估算，S0不通过，禁止凭行数开工 |
 
+| 复核/PAN-N01 | 高 | 部分修订 | AND-01/02/06 | 统一FlutterFragmentActivity及模块参数；主干官方证据不替代锁版M0编译/认证探针 |
+| 复核/PAN-N02 | 高 | 已修订 | AND-01 | S0冒烟runtime显示固定未实现提示；不调用Unsupported抛异常 |
+| 复核/PAN-N03 | 高 | 已修订 | AND-03/04 | picker与camera隔离目录；清理等待完成；相机先恢复pending再GC |
+| 复核/PAN-N04 | 中 | 已修订 | AND-02 | 新增launchMode及审计向量 |
+| 复核/PAN-N05 | 高 | 转P2 | AND-12 | M-HOST外部门槛；框架另卡/规模待定前AND12不得就绪，移除虚构Instrumentation注入 |
+| 复核/PAN-N06 | 中 | 已修订 | AND-08 | 补稳定ID标题/detail与未知ID失败测试 |
+| 复核/PAN-N07 | 中 | 已修订 | AND-13 | 仅引用AND02唯一表，范围/规模/验收同步 |
+| 复核/PAN-N08 | 中 | 已修订 | AND-02/07/11/14 | FileProvider/clipboard归14，所有.gradle改.kts |
+| 复核/PAN-N09 | 中 | 已修订 | AND-14 | 复制前20MiB，限JPEG/PNG/WebP，其余拒绝、不谎标mime |
+| 复核/PAN-N10 | 中 | 部分修订 | AND-06 | available复用相同API分档；26–29及CryptoObject锁版ROM矩阵仍M0阻断 |
+
 ### D.9.1 检查与证据边界
 
 本轮只修订设计文档，没有Rust/Flutter产品代码可运行。`check.mjs`、`xref.mjs`、`mat.mjs`用相同解析器重跑修订前快照和当前文档；未修改基线或原评审。交叉引用是启发式，不能把计数当完整性证明。重复错误码的消费者改列“错误码引用/唯一定义卡/本卡处理”，唯一所有者仍保留标准定义表；op按已有契约逐行列出，未以删引用或修改解析器降低指标。
