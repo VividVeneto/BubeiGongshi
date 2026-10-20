@@ -1,6 +1,6 @@
-# 03 Windows 端 v5.3.2
+# 03 Windows 端 v5.3.3
 
-> 版本：v5.3.2 ｜ 修订日期：2026-10-20 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
+> 版本：v5.3.3 ｜ 修订日期：2026-10-20 ｜ 适用范围：Windows 10 1809（build 17763）及以上 x64 桌面，Windows 11 为主测环境（甲方确认，见 README §6 Q5）。
 > 关联文档：[README](README.md)（需求基线与追踪总表）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[附录 A 架构决策与评审记录](附录A-架构决策与评审记录.md)。
 > 契约归属：本文只定义 Windows 专属模块。公共契约（端口接口、FFI、DTO、错误码、表结构、服务端 API）只在 01 中定义；本文引用时写“CORE-xx §章节”，并内联实现时要调用的关键签名，不重新定义。
 
@@ -175,7 +175,7 @@ graph TD
 | WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28、WIN-17 | 340 |
 | WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28、WIN-17 | 440 |
 | WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07、WIN-17 | 500 |
-| WIN-17 | Windows主机集成测试基础设施 | `tools/windows/host_tests/` | CORE-01、CORE-02、CORE-04、WIN-01 | 430 |
+| WIN-17 | Windows主机集成测试基础设施 | `tools/windows/host_tests/` | CORE-01、CORE-02、CORE-04、WIN-01 | 460 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
@@ -287,6 +287,8 @@ app/windows/
 
 本表只约束平台安装点相对顺序；CORE-36总编排仍为transportInstallers→featureInstallers→platformInstallers。WIN-10为端口构造替换，无安装点。
 
+产品约束追踪：见README §6 Q5；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
+
 **实现约束**
 - 绑定方式只用 C ABI + `dart:ffi`（ADR-V5-02）；只按绝对路径加载 `fmlcore.dll`，不经当前工作目录、PATH 或用户目录搜索。
 - `fmlcore.dll` 静态链接 C 运行时（`+crt-static`），不依赖另行安装的 VC++ 运行库；Flutter 自带的 `msvcp140.dll` 等按 Flutter 模板随包分发。
@@ -295,7 +297,7 @@ app/windows/
 - 外部前提：Visual Studio 生成工具（MSVC）、Windows SDK、CMake、Inno Setup 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`；Rust 与 Flutter 以 CORE-01 的 `rust-toolchain.toml`、`app/.flutter-version` 为准。
 
 **验收标准**
-- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI版本；runtime Unsupported时按CORE-04显示固定未实现提示，不读取不存在快照）；启动日志列出全部 12 个端口当前为 unsupported。
+- [R01] 在 Windows 10 1809 与 Windows 11 上运行 Release 构建，S0 阶段显示 CORE-04 冒烟页（ABI版本；runtime Unsupported时按CORE-04显示固定未实现提示，不读取不存在快照）；启动日志列出全部 11 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `fmlcore.dll` 后启动，显示“核心版本不匹配，请重新安装”，不崩溃；删除 `fmlcore.dll` 后显示“核心组件加载失败，请重新安装”。
 - [R19] DLL 劫持测试：在当前工作目录与 `%PATH%` 首个目录放置同名 `fmlcore.dll` 后从其他目录启动，Process Monitor 显示只加载了 exe 同目录中的 DLL。
 - [R41] `app/lib/ui/` 中 `Platform.isWindows` 与平台判断零命中（CORE-41 规则）；Windows 专属 Dart 代码只在 `app/lib/platform/windows/`、`main_windows.dart` 与 `ports_windows.dart`。
@@ -356,6 +358,8 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 官方行为依据：Inno 的 AppMutex 与 Setup Exit Codes（见附录 A ADR-V5-31）。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q1、Q5；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 不写 `C:\Program Files` 与 HKLM，不请求管理员权限；安装器与卸载器都不访问网络。
@@ -444,6 +448,8 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_UPDATE_SIG_INVALID`、`PLATFORM_UPDATE_HASH_MISMATCH`、`PLATFORM_UPDATE_DISK_FULL`、`PLATFORM_UPDATE_ROLLED_BACK`、`PLATFORM_IO` 与 CORE-04 的 `NET_*`；本卡不新增错误码。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q36；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 不在应用运行时替换已加载文件：新版本装入新目录，切换由启动器在下次启动完成；不静默强制重启。
@@ -568,12 +574,14 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 实现的端口（CORE-04，逐字摘录）：
 
 ```dart
+/// 平台密钥保护：只包装/解包核心生成的密钥，不向 UI 暴露原始密钥。
 abstract interface class SecureKeyValueStore {
   Future<Uint8List> wrap(String alias, Uint8List secret);     // 返回包装后的密文；alias 匹配 ^[a-z0-9_.-]{1,64}$
   Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；包装与解包都不要求用户认证
   Future<void> delete(String alias);                          // 别名不存在时静默成功
   Future<KeySecurityLevel> securityLevel(String alias);
 }
+/// 应用私有目录；返回的目录都位于应用私有根目录之内，不存在时自动创建。
 abstract interface class LocalFileStore {
   Future<Directory> root(StoreArea area);
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
@@ -642,6 +650,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 实现的端口与接缝（逐字摘录，定义见 CORE-04、CORE-50；`ImportedImage`、`PickedDocument` 见 CORE-04）：
 
 ```dart
+/// 图片来源：系统选择器、文件管理器、拖拽、剪贴板、扫描。
 abstract interface class ImagePicker {
   Future<List<ImportedImage>> pick({required int maxCount});  // maxCount 1–10，越界抛 ArgumentError；用户取消返回空列表
 }
@@ -651,6 +660,7 @@ abstract interface class CameraController {
 abstract interface class FileExporter {
   Future<bool> saveAs(String suggestedName, Stream<List<int>> bytes); // 由用户选择保存位置；用户取消返回 false
 }
+/// 非图片文件选择（备份恢复 CORE-27、公式批量导入 CORE-14）：由系统选择器选取后复制到 StoreArea.staging。
 abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
@@ -667,7 +677,7 @@ final class WindowsDocumentPicker implements DocumentPicker { WindowsDocumentPic
 final class WindowsFileExporter implements FileExporter { const WindowsFileExporter(); }
 final class WindowsCamera implements CameraController { const WindowsCamera(); }   // capture() 恒抛 FmlException(PLATFORM_UNSUPPORTED)
 final class WindowsImageDrop implements ImageDropSource { WindowsImageDrop(this.files); final LocalFileStore files; }
-void installWindowsImport(CompositionContext ctx);   // 登记 ImageDropSource；追加到 ports_windows.dart 的 platformInstallers
+void installWindowsImport(CompositionContext ctx);   // 登记 ImageDropSource；追加到 ports_windows.dart 的 platformInstallers（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 // files 为 WIN-07 的 WindowsFileStore 实例，在 ports_windows.dart 中注入
 ```
 
@@ -686,7 +696,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
   Dart 收到的调用：dropped {paths: [string]}                    WM_DROPFILES（DragAcceptFiles(hwnd, TRUE)）→ DragQueryFileW 全部路径
 
 规则：
-  ImagePicker.pick：openImages → 逐个 copyImage(dest_dir = root(staging)\tmp-import, max_bytes = 20 MiB)；无 path 的项其 readBytes 抛 PLATFORM_FILE_TOO_LARGE
+  ImagePicker.pick：openImages → 逐个 copyImage(dest_dir = root(staging)\tmp-import\picker\<batch_id>, max_bytes = 20 MiB)；无 path 的项其 readBytes 抛 PLATFORM_FILE_TOO_LARGE
   DocumentPicker.pick：openDocument → 扩展名（小写）不在 extensions → PLATFORM_FILE_TYPE_MISMATCH；size > maxBytes → PLATFORM_FILE_TOO_LARGE；
                        否则 copyDocument 到 root(staging)\<UUID>.<ext>
   FileExporter.saveAs：saveDocument → null 返回 false；否则写入 <path>.fmlpart（64 KiB 分块，Dart 侧 IOSink），完成后改名覆盖目标；失败删除 .fmlpart，抛 PLATFORM_IO
@@ -699,10 +709,12 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
 
+picker与drop分别拥有staging/tmp-import/picker/<batch_id>/和drop/<batch_id>/，batch_id为每次操作新UUID；同一适配器后续操作只按CORE-04结束自己的上批，不使clipboard等其他批次失效。平台工厂在发布端口前await picker/drop/clipboard各自init，重入请求等待同一Future；启动恢复只清理已确认上次进程的批次，当前活动集合中的目录永不删除。到期/批次结束关闭本批句柄后删除本批目录；错误保留待下次启动，不递归清空共用根。
+
 **实现约束**
 - 读取一次即复制；不保存原文件路径（含识别历史），不删除、不修改、不加锁用户原文件；复制失败时删除已写部分。
 - Dart 层除 HEIC 转换外不解码图片；HEIC 转换在原生工作线程降采样输出，主线程只等待通道结果。
-- `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束删除副本；`WindowsImagePicker` 构造时异步清空 `staging\tmp-import\`。删除前确保本卡打开的句柄已关闭；删除失败的副本留待下次启动清空。
+- `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束删除副本；WindowsImagePicker首次请求前await唯一初始化Future，只清理上次进程遗留的picker/drop批次目录；构造器不启动悬空异步删除，不触碰clipboard目录。删除前确保本卡打开的句柄已关闭；删除失败的副本留待下次启动清空。
 - 拖放只在识别页订阅期间生效（CORE-50）；其他页面拖入时 `drops` 无订阅者，事件被丢弃且不复制文件。
 - 外部前提：HEIC/HEIF的WIC编解码能力取决于系统、HEIF图像扩展与可能需要的HEVC视频扩展（含授权）；1809/11组合须M0实测。任一解码步骤失败提示“当前系统无法解码，请检查HEIF/HEVC扩展或转换为JPEG”，不保证安装某一扩展必然成功。
 
@@ -710,9 +722,11 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 - [R37] 手动：经文件对话框选择 1 张与 10 张图片均进入裁剪页；选择 12 张时只导入前 10 张。
 - [R37] 拖入 3 张图片与 1 个 txt：识别页进入裁剪，提示跳过 1 个非图片文件；拖入含 200 张图片的文件夹先显示数量与大小确认框，取消后无副本产生。
 - [R31] 拖入 25 MiB 图片：不复制，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE` 并提示；导入 1200 万像素 JPEG 期间界面无超过 100 ms 的帧卡顿（DevTools 时间线）。
-- [R36] 导入并完成识别后 `staging\tmp-import\` 为空，原文件哈希与修改时间不变；`WindowsCamera.capture()` 抛 `PLATFORM_UNSUPPORTED`。
+- [R36] 导入并完成识别后 本次picker/drop批次目录为空，其他适配器仍有效，原文件哈希与修改时间不变；`WindowsCamera.capture()` 抛 `PLATFORM_UNSUPPORTED`。
 - [R27] 经保存对话框导出 50 MiB 备份：默认位于“文档”，文件哈希与源一致；取消返回 false 且无 `.fmlpart` 残留；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 抛 `PLATFORM_FILE_TYPE_MISMATCH`。
 - [R01] CORE-04 的 `ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController` 契约套件（对话框步骤以 显式FML_TEST_BUILD构建中的FML_TEST_DIALOG_RESULT编译期define注入预设路径；默认入口为空；正式发布CI拒绝FML_TEST_*，非测试构建发现非空define在运行时抛StateError）在 Windows 10 与 11 上通过。
+
+- [R19][R36] 交错启动picker清理与clipboard.readImage：初始化完成后首个pick才复制；活动clipboard批次在picker/drop构造、选择、结束及到期清理后仍可读；结束A只删A目录，原文件哈希/mtime不变。
 
 **规模**：约 450 行；`app/lib/platform/windows/picker/` 与 `app/windows/runner/file_dialog.cpp`（同属 `app/` 构建单元）。
 
@@ -748,7 +762,7 @@ final class WindowsClipboard implements ClipboardAdapter { WindowsClipboard(this
 final class WindowsFormulaClipboard implements FormulaClipboardWriter { const WindowsFormulaClipboard(); }   // write 恒返回 false（由应用显示“已复制”）
 void installWindowsClipboard(CompositionContext ctx) =>
     ctx.features.register<FormulaClipboardWriter>(const WindowsFormulaClipboard());
-// 追加到 ports_windows.dart 的 platformInstallers
+// 追加到 ports_windows.dart 的 platformInstallers（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
 ```text
@@ -766,7 +780,7 @@ MethodChannel "fml/windows/clipboard"（app/windows/runner/clipboard_channel.cpp
                            latex  → 注册格式 "text/x-latex"（UTF-8）
                          → CloseClipboard；任一步失败 → 抛 PLATFORM_IO
 WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('text/plain')；
-                  readImage 的 dest_dir = root(staging)\tmp-import（与 WIN-04 共用清理规则），返回的 ImportedImage 有效期 1 h
+                  readImage 的 dest_dir = root(staging)\tmp-import\clipboard\<batch_id>（仅清理本适配器批次，初始化完成后接请求），返回的 ImportedImage 有效期 1 h
 ```
 
 - 粘贴目标的选用（由目标程序决定，本卡只保证格式齐全）：
@@ -794,10 +808,12 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 **验收标准**
 - [R37] 手动：用截图工具复制公式区域，在识别页按 Ctrl+V 进入裁剪预览；从画图复制（仅 CF_DIB）同样可粘贴。
 - [R10] 粘贴含 `\input` 的 LaTeX 文本到编辑器，显示 `PARSE_FORBIDDEN_COMMAND` 并定位（经 CORE-59 编辑控制器的粘贴处理）。
-- [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，九个注册/标准格式名（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在且内容逐字节等于输入；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
+- [R08] 集成测试：以 CORE-52 夹具负载调用 `setFormula` 后用 `EnumClipboardFormats` 读回，九个注册/标准格式名（三种 MathML 名、HTML Format、image/svg+xml、PNG、CF_DIB、CF_UNICODETEXT、text/x-latex）全部存在；PNG等于原png字节；三种MathML、SVG和LaTeX去格式终止符后按UTF-8解码等于对应输入；CF_UNICODETEXT以UTF-16LE解码并去末尾NUL后等于text；CF_HTML按UTF-8字节偏移取片段等于html；CF_DIB检查32位头/尺寸与白底合成后的像素黄金文件，不要求等于PNG字节；CF_HTML 头中的偏移指向的片段等于 `html`；“复制为图片”负载只有 PNG、CF_DIB 与 SVG，无 CF_UNICODETEXT。
 - [R08] 手动矩阵（结果记入附录 D）：在公式详情点“复制公式”后，记事本得到 LaTeX 源码；Word 得到可编辑公式或清晰图片；画图得到图片；浏览器富文本框得到图片；“复制为 → Unicode 文本”在记事本得到 Unicode 文本。
 - [R20] 粘贴与复制后检查 `logs\`，不含剪贴板文本与公式源码。
 - [R01] CORE-04 `ClipboardAdapter` 契约套件在 Windows 上通过；剪贴板为空时 `readImage` 返回 null。
+
+- [R08][R19] 使用含中文、非BMP符号、半透明像素的固定负载，分别断言UTF-8/UTF-16往返、CF_HTML字节偏移和DIB白底合成像素；未知格式不写，输入缺text时不产生CF_UNICODETEXT。
 
 **规模**：约 320 行；`app/lib/platform/windows/clipboard/` 与 `app/windows/runner/clipboard_channel.cpp`（同属 `app/` 构建单元）。
 
@@ -820,7 +836,7 @@ abstract interface class EditorPlatformBindings {   // 平台卡经 PlatformPort
   KeyEventResult handleKey(FormulaEditorController c, KeyEvent e);        // 结构化模式下公式区持有焦点时调用
   Widget? accessoryBar(BuildContext context, FormulaEditorController c);  // 显示在公式区与符号面板之间；null 表示无
 }
-abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型后登记者覆盖），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
+abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型重复登记抛StateError），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
   KeyEventResult handle(KeyEvent event, AppNavigator nav); }
 abstract interface class InkInputPolicy {          // 平台卡经 PlatformPorts.platformInstallers 登记（AND-07、WIN-08）
   bool accept(PointerDownEvent e, {required bool stylusSeen});   // false = 整笔丢弃（防手掌误触）；stylusSeen = 本画布清空后出现过触控笔
@@ -866,7 +882,7 @@ final class WindowsPenStatus {                      // 通道 fml/windows/pen �
 }
 void installWindowsEditing(CompositionContext ctx);
 // 登记 KeymapHolder、WindowsEditorBindings、WindowsInkPolicy、WindowsPenStatus；向 SettingsSections 加入 order 65 的“笔与数位板”区；WindowsShellKeys 经 ctx.features.require<WindowsKeyRouter>().attach 挂入，
-// 不作为 ShellKeyHandler 登记；追加到 ports_windows.dart 的 platformInstallers（在 installWindowsInteraction 之后）
+// 不作为 ShellKeyHandler 登记；追加到 ports_windows.dart 的 platformInstallers（在 installWindowsInteraction 之后）（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
 默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-59）：
@@ -924,6 +940,8 @@ WindowsInkPolicy：
 笔消息子类化使用 WIN-01 runner 协议；在 viewHwnd 处理 WM_TABLET_QUERYSYSTEMGESTURESTATUS，销毁时 RemoveProp/RemoveWindowSubclass。Windows 10 1809、数位板驱动组合为外部前提（M0 实测并记录 D），不可从 API 存在推定设备行为。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q21；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 分发：两个处理器都先以 `KeyChord.fromEvent` 取组合键，再查 `holder.value`（键位修改即时生效，不需重启）。`WindowsShellKeys` 只查 `global` 范围，由 WIN-15 `WindowsKeyRouter` 先行调用（学习命令在其后查找，见 WIN-15 b）；`WindowsEditorBindings` 只查 `editor` 范围，未命中再交给 `DefaultEditorBindings`。`WindowsKeyRouter`（WIN-15，全应用唯一的 `ShellKeyHandler`）先于页面收到按键（CORE-36），WIN-14 保证同一组合键不会同时分配给两个命令（含 WIN-15 学习命令）。
@@ -988,11 +1006,11 @@ final class KeymapEditorVm extends ChangeNotifier {
   AssignResult tryAssign(BindableCommand c, KeyChord chord, {int slot = 0});  // slot 0 或 1；Assigned 时立即生效并保存
   Future<void> replace(BindableCommand c, KeyChord chord, {int slot = 0});    // 用户确认“替换”后：从原命令移除该键再分配
   Future<void> clear(BindableCommand c, int slot);
-  Future<void> resetCommand(BindableCommand c);
+  Future<AssignResult> resetCommand(BindableCommand c); // 预检全部默认键；冲突不修改，返回首个Conflict
   Future<void> resetAll();                          // 需界面二次确认
 }
 void installWindowsKeymap(CompositionContext ctx);
-// 登记 order 12 启动钩子：KeymapPrefs.load → KeymapHolder.value 与 StudyKeymapHolder.value；向 SettingsSections 加入 order 60 的“快捷键”区；追加到 platformInstallers（在 installWindowsEditing 之后）
+// 登记 order 12 启动钩子：KeymapPrefs.load → KeymapHolder.value 与 StudyKeymapHolder.value；向 SettingsSections 加入 order 60 的“快捷键”区；追加到 platformInstallers（在 installWindowsEditing 之后）（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
 ```text
@@ -1014,6 +1032,10 @@ BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppComman
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
 
+产品约束追踪：见README §6 Q28、Q29；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
+
+单项恢复默认是原子的预检+提交：按默认组合键声明顺序，在App/Study全部其他命令查占用；发现冲突返回Conflict(other)，不修改holder与偏好，界面显示现有冲突文案，并提示先更改/清除占用键，不能静默覆盖。全部空闲才恢复，返回Assigned并保存；保存失败沿用约束③的内存生效与提示。resetAll按现有二次确认整体恢复已验证无冲突的两组默认，不复用单项逐个恢复。
+
 **实现约束**
 - ① 一个组合键在全部命令中只能出现一次（不分范围，含“学习”组）：全局命令先于页面收到按键，若与编辑器命令同键，编辑器命令永远不会触发。
 - ② 拒绝的组合键：`isReservedChord` 为 true（显示“系统或输入法使用该组合键”）；不含 Ctrl 或 Alt 且不是 F2～F12（显示“需要包含 Ctrl 或 Alt”）；Shift+字符（显示“会与正常输入冲突”）。例外：`unmodifiedAllowed` 为 true 的学习命令（WIN-15）另允许不带修饰的字母 A～Z 与数字 0～9（仍先查 `isReservedChord`），因 WIN-15 在焦点位于文本框时不分发这类按键。
@@ -1034,6 +1056,8 @@ BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppComman
 - [R08] 手动：开启微软拼音输入法时录制 Ctrl+Space 被拒绝并提示原因；修改“下标”为 Ctrl+Shift+- 后在编辑器中立即可用，重启应用后仍然有效。
 
 - [R42.d] 将本卡完整keymap JSON示例作为fixture，decode全部成功且encode返回逐字相同的11位hex规范串。
+
+- [R08][R42.b] 根号经replace占用分式默认键后resetCommand(fraction)返回Conflict(sqrt)，两组与偏好均不变；清除占用后恢复成功。App/Study跨组同样预检，保存失败内存仍保持无冲突并提示，resetAll不因单项预检留半成品。
 
 **规模**：约 340 行；`app/lib/platform/windows/keymap/`。
 
@@ -1060,7 +1084,7 @@ abstract interface class DevicePrefStore {           // 设备级偏好：不进
   Future<String?> read(String key); Future<void> write(String key, String value);   // key 匹配 ^[a-z0-9_.]{1,64}$
 }
 abstract interface class ShortcutLabelSource { String? labelOf(String commandId); Listenable get changes; }   // 可选（WIN-15 登记，键位变化时通知）；未登记时 ShortcutHint 不显示
-abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型后登记者覆盖），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
+abstract interface class ShellKeyHandler {                           // 可选；AppShell 用 FocusManager.addEarlyKeyEventHandler 先交给它，返回 ignored 再走焦点链；AppShell 只取一个（同类型重复登记抛StateError），平台若有多组按键规则须自行合并为一个处理器（Windows 为 WIN-15 WindowsKeyRouter）
   KeyEventResult handle(KeyEvent event, AppNavigator nav); }
 // 只读使用：AppearanceController.resolved / resolvedChanges（ResolvedAppearance.brightness、colors）；
 //           FmlCommands.invoke / isAvailable（CORE-55）；WindowsPrefs.get / set（WIN-06）
@@ -1091,7 +1115,7 @@ final class WindowsKeyRouter implements ShellKeyHandler {
   WindowsKeyRouter(this.study);
   final StudyKeymapHolder study;
   bool suspended = false;                           // 为 true 时一律返回 ignored（WIN-14 录制组合键期间使用）
-  void attach(ShellKeyHandler inner);               // WIN-08 挂入 WindowsShellKeys；至多一个，重复调用以后者为准
+  void attach(ShellKeyHandler inner);               // WIN-08 挂入 WindowsShellKeys；至多一个，重复attach抛StateError
 }
 final class WindowsShortcutLabels implements ShortcutLabelSource {
   WindowsShortcutLabels(this.study);                // labelOf：study.* → 该命令首个组合键的 label，无键位为 null；其他 ID → null
@@ -1120,7 +1144,7 @@ void installWindowsInteraction(CompositionContext ctx);
 // 登记 StudyKeymapHolder、WindowsKeyRouter（作为 ShellKeyHandler 与自身类型各登记一次）、WindowsShortcutLabels、
 // InputModalitySource、MotionScaleSource、DevicePrefStore（WindowsDevicePrefStore，WindowsPrefs 用 ctx.features.require 取得）；
 // 调用 minSize、创建 WindowsTitleBar 并 attach、两个 source 的 start（均不 await）；不登记 UiFeedbackSink
-// ports_windows.dart：向 platformInstallers 追加 installWindowsInteraction，位于 installWindowsShell（WIN-06）之后、installWindowsEditing（WIN-08）之前
+// ports_windows.dart：向 platformInstallers 追加 installWindowsInteraction，位于 installWindowsShell（WIN-06）之后、installWindowsEditing（WIN-08）之前（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
 ```text
@@ -1209,6 +1233,8 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 主题变化时在平台UI线程设置DWM属性后，调用SetWindowPos(topHwnd,null,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED)请求边框重算，并RedrawWindow(...,RDW_FRAME|RDW_INVALIDATE)请求非客户区重绘；不激活/移动窗口。对属性不支持/设置失败记warning并使用系统默认标题栏，不将调用成功当视觉实测通过。Windows 10 1809/11、高对比度切换仍由WIN-13在M0/S7实测。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q41；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
@@ -1336,8 +1362,8 @@ abstract interface class NotificationScheduler {
   Future<void> cancelAll();
   Stream<void> taps();                                        // 用户点击提醒通知；应用由通知冷启动时，首个订阅者也收到这一次
 }
-abstract interface class TrayPresence {
-  bool get iconReady;
+abstract interface class TrayPresence {          // WIN-09 登记；未登记时关闭即退出
+  bool get iconReady;                            // 托盘图标已创建成功
   Future<void> hideToTray();
   Future<void> destroy();                        // 幂等，停止定时并移除托盘图标
 }
@@ -1353,7 +1379,7 @@ final class WindowsNotificationScheduler implements NotificationScheduler {
 final class WindowsTray implements TrayPresence { WindowsTray(this.nav, this.shell); final AppNavigator nav; final WindowsShell shell; }
 void installWindowsTray(CompositionContext ctx);
 // 登记 TrayPresence；向 SettingsSections 加入 order 75 的“提醒与托盘”区；firstFrameHooks order 10：创建托盘图标，成功后置 iconReady（--minimized 时窗口自始未显示，失败由 WIN-06 order 15 兜底显示）；不经顺序启动钩子，不等待档案打开；
-// 追加到 ports_windows.dart 的 platformInstallers（须位于 installWindowsShell 之后）
+// 追加到 ports_windows.dart 的 platformInstallers（须位于 installWindowsShell 之后）（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
 ```text
@@ -1380,6 +1406,8 @@ taps()：notifyClick 时发送一次；同时 show 主窗口（WIN-06 通道 sho
 Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平台线程delegate收到时重新NIM_ADD并NIM_SETVERSION，成功才置iconReady；失败置false并显示主窗口（含--minimized）。退出先取消重建标志/委托再NIM_DELETE，不能退出后重添。图标重建不补发提醒；WIN-06只经TrayPresence.destroy统一销毁，原生窗口最终清理也须幂等兜底。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q15、Q41；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 不安装服务、计划任务或常驻后台进程；应用完全退出时不保证提醒（在设置区说明）。
@@ -1442,6 +1470,8 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 证书轮换：先发布含旧/新双指纹、仍由旧证书签名的桥接版本，再以新证书发布；未安装桥接版的客户端引导手动安装。不从网络清单扩展信任；CN 不作为身份依据。供应方二进制绝不重签（ADR-V5-37）。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q39；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。
@@ -1512,6 +1542,8 @@ tools/perf/windows/
 按 CORE-41 acceptance_jobs.json 收集本平台所有真机/手动验收；缺设备或依赖未交付记 pending，不能记通过。性能用Release与CORE-01采样，进程内交互可用Profile integration_test；回滚/旋转/杀进程由外部主机驱动。跨端截图对照检查关键元素位置/可见性/语义，主机黄金图不代替平台检查。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
+产品约束追踪：见README §6 Q5、Q31；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
 **实现约束**
 - integration_test 用 Profile：flutter drive -d windows --profile --driver=test_driver/integration_test.dart --target=integration_test/windows/perf_test.dart（consistency/soft_render 同理，驱动使用 integrationDriver 写出结果）；不依赖 Release 的 VM service。Release 由外部进程脚本采集启动/版本/签名/内存及 FML_PERF_MARK 时间日志，界面操作按 checklist 执行；不开放远程测试端口。UI项至少20次，冷启动/核心/图片优先遵守CORE-01的30/1000/100样本口径，报告 P50 与 P95；不达标项须修复，或在附录 A 记录豁免（含原因、影响与复测计划）。
@@ -1627,6 +1659,12 @@ pywinauto使用backend=uia，按automation_id/control_type/name定位；Win32窗
 result.json固定{version:1,case_id,owner,status:pass|fail|pending,device:{os_build,session,dpi},app_sha256,steps:[{name,status,elapsed_ms}],reason?,artifacts:[relative_path]}。保存UIA树、窗口截图、日志与状态JSON。取消/超时结束本次子进程并finally恢复本次修改的窗口/DPI测试设置和测试注册表根；不改变真实用户档案，失败证据保留，清理失败单列。
 CI windows-host-fixture在有交互桌面的专用Windows runner运行，锁屏/Session0/无桌面/工具缺失退出3并归档pending；无交互的普通CI只验收schema/命令/fixture注册，不能冒称UIA通过。S7由WIN-13汇总，发布门禁不接受pending（下游说明，非契约）。
 
+自包含制品：tools/windows/host_tests/build_fixture.py用锁定Flutter生成fixture_app/标准windows模板，项目名host_fixture，入口lib/main.dart，flutter build windows --debug --target lib/main.dart，产物build/windows/x64/runner/Debug/host_fixture.exe连同data/flutter DLL目录整体保留；fixture-artifact.json={version:1,exe,sha256,target:"host-fixture"}。run.py增加--artifact参数并验证--exe绝对路径/哈希及target，拒绝生产exe当fixture；不依赖产品启动器或晚期业务。main(List<String> args)只接受--host-run=<UUID>、--host-case=<注册case>、--host-root=<本次out/fixture绝对目录>，模板runner原样传参。构建脚本记录模板生成清单与工具版本；生产app目标不含此main和参数处理。
+
+fixture握手version=1，JSON UTF-8无BOM、未知键拒绝，run_id为主机新UUID小写连字符，case_id来自cases.json，boot为本run持久化的0起启动次数。ready.json={version,run_id,case_id,boot,pid,state:"ready"}在首帧后原子改名写入；probe.json={version,run_id,case_id,boot,phase,assertions:[{id,pass:bool}],state:{}}仅含合成状态，phase为before/after/done。主机按run/case/boot精确核对，拒绝旧run/重复倒退boot、缺字段/超时或不匹配pid；fixture probe不是最终pass，最终result.json由主机结合外部操作与probe断言生成。每次run独占根，重启沿用run根且boot加1，新run不复用旧ready/probe，取消保留失败证据。
+
+Windows ready/probe在--host-root/<run_id>/，主机仅读取该已解析绝对根下文件，原子改名完成前不读；传输为本机文件而非UIA控件文字。启动使用argv，case/run校验不通过退出2；专用runner有交互桌面才执行UIA，窗口PID必须等于ready.pid，重启需旧PID已退出且boot递增；其他同名进程和旧run文件不得满足握手。Release业务验收只收其独立登记的外部日志/trace，不把debug fixture证据替代生产Release性能。
+
 **实现约束**
 - 外部前提：Python与pywinauto/comtypes精确版本由WIN-01锁入app/windows/toolchain.versions及平台requirements；M0验证UIA与锁定Flutter的可访问性树。甲方提供1809/11交互桌面、双DPI及笔设备，缺失仍pending。
 - 主包tools/windows/host_tests/，参数数组启动；路径校验后仅清理专用fixture根，不碰其他进程与用户目录。
@@ -1635,4 +1673,6 @@ CI windows-host-fixture在有交互桌面的专用Windows runner运行，锁屏/
 - [R19][R37] window/restart/dialog/tray fixture四场景输出pass和完整证据；错误automation_id/超时失败，Session0/锁屏输出pending/3，未知case退出2。
 - [R19] 终止目标fixture后主机重启验证状态；同名其他进程不受影响；取消保留日志并恢复测试偏好。
 
-**规模**：约 430 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100、自测100），附属app/integration_test/host_fixture_windows/（70）、CI（30）。
+- [R19] 构建fixture后由artifact定位exe/校验哈希，启动/重启boot握手成功；旧run/错误case/PID/截断JSON拒绝；生产目标无fixture参数，未知exe或缺artifact退出2。
+
+**规模**：约 460 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100、自测100），附属fixture_app/lib/main.dart（90）、模板构建/CI（40）。

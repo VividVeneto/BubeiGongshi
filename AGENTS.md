@@ -79,10 +79,11 @@ C++ / CMake（installer/windows/launcher/，WIN-16 启动器，仅 Windows）
 ```text
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
 cargo deny check
-cargo llvm-cov --workspace --lcov --output-path build/coverage/lcov.info
+cargo llvm-cov --workspace --all-targets --lcov --output-path build/coverage/core.lcov
+python tools/ci/maint_report.py --root . --out build/maint.md --lcov build/coverage/core.lcov --core-sources build/coverage/core-sources.json
 python tools/ci/run_all.py
-node --test tools/sadd/pack.test.mjs tools/sadd/current.test.mjs
+node --test tools/sadd/pack.test.mjs tools/sadd/current.test.mjs tools/sadd/reservations.test.mjs
 node tools/sadd/stats.mjs --check
 ```
 
-PowerShell 对第一条用 `$env:RUSTDOCFLAGS='-D warnings'` 后运行 cargo doc。覆盖率阈值与延迟目标按 CORE-41/71，不能以命令退出 0 代替阈值检查。Flutter SDK 唯一来源是 `app/.flutter-version`，Dart 随该 SDK；NDK/AGP/MSVC/CMake 等分别读平台 `toolchain.versions`，不重复指定 Flutter 版本。锁文件尚未创建时，按 CORE-01 开工规则建立并回填 ADR-V5-15，不能临时猜版本。
+PowerShell 对第一条用 `$env:RUSTDOCFLAGS='-D warnings'` 后运行 cargo doc。core-sources.json由CORE-41按CORE-71的tracked领域源码集合协议生成；覆盖率阈值与延迟目标按 CORE-41/71，不能以命令退出 0 代替阈值检查。Flutter SDK 唯一来源是 `app/.flutter-version`，Dart 随该 SDK；NDK/AGP/MSVC/CMake 等分别读平台 `toolchain.versions`，不重复指定 Flutter 版本。锁文件尚未创建时，按 CORE-01 开工规则建立并回填 ADR-V5-15，不能临时猜版本。

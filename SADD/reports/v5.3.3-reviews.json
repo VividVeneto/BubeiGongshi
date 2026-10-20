@@ -1,0 +1,3082 @@
+{
+  "version": 1,
+  "baseline": "2c04125",
+  "reviewDate": "2026-10-20",
+  "note": "Independent pre-repair findings; lead repair evidence in D.14 does not upgrade grades. materialChars/segments are review input, not final material audit.",
+  "entries": [
+    {
+      "record": "P2-CORE-01",
+      "card": "CORE-01",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 86554,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I01；首卡验收依赖后卡，锁版与材料超量。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-02",
+      "card": "CORE-02",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 60605,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "E-N03；机器错误集合、消费确认、完整材料。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-03",
+      "card": "CORE-03",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 101772,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "E-N01～04；handle改善，FFI规模与机器契约待闭合。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-04",
+      "card": "CORE-04",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 133394,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I13；同步Installer与异步editor不一致。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-05",
+      "card": "CORE-05",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 116148,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-N01/02/04；正文、黄金向量、schema不一致。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-06",
+      "card": "CORE-06",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 89315,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "export漏码；schema/消费确认及规模待证。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-07",
+      "card": "CORE-07",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 79929,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "notation漏码；完整材料和消费确认未完成。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-08",
+      "card": "CORE-08",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 98093,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "units错误为空；AST机器修正与确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-09",
+      "card": "CORE-09",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 111733,
+      "segments": 2,
+      "checks": {
+        "a": "fail",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I02；500+150行未拆卡。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-10",
+      "card": "CORE-10",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 103131,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "500行估算、AST/FFI机器契约需复核。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-11",
+      "card": "CORE-11",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 103194,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I03；排序输入不足，derive错误为空。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-12",
+      "card": "CORE-12",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 105328,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "AST schema、字体/工具外部门槛。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-13",
+      "card": "CORE-13",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 187505,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "STORE_BUSY镜像遗漏，消费确认待完成。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-14",
+      "card": "CORE-14",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 171918,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I04；标签错误条件和后阶段批次表述。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-15",
+      "card": "CORE-15",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 171497,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pending",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "fail",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I05；tough真实适配未闭合。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-16",
+      "card": "CORE-16",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 176161,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "真实内容/审校/许可、15适配与规模。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-17",
+      "card": "CORE-17",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 173472,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I06；review_event唯一键冲突。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-18",
+      "card": "CORE-18",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 111943,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "类型/数值边界、判分语料、500行与确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-19",
+      "card": "CORE-19",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 182846,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "继承17事务问题，Q33待确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-20",
+      "card": "CORE-20",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 186884,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "17事件前提、真实试点和材料。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-21",
+      "card": "CORE-21",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 114877,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I07；随机输入与失败返回不闭合。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-22",
+      "card": "CORE-22",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 100823,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "Casdoor锁版、真实账号与规模。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-23",
+      "card": "CORE-23",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 187652,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "E-N04/错误镜像及消费确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-24",
+      "card": "CORE-24",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 168998,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-N06；撤销锁后仍保留解锁入口。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-25",
+      "card": "CORE-25",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 114016,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "26密文重发一致性与DB锁版。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-26",
+      "card": "CORE-26",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 243292,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I08；密文持久字段与收敛规则缺口。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-27",
+      "card": "CORE-27",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 204615,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I09；调用模式、引用闭包、格式不唯一。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-28",
+      "card": "CORE-28",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 130137,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "完整依赖闭包及消费确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-29",
+      "card": "CORE-29",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 107553,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "识别后端前提与材料。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-30",
+      "card": "CORE-30",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 65784,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "图像标定/Q、消费确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-31",
+      "card": "CORE-31",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 113143,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I10；内部纯函数输入/评分边界。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-32",
+      "card": "CORE-32",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 182359,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I11；包装删除与DDL冲突、归属/规模。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-33",
+      "card": "CORE-33",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 106647,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "运维已拆；供应商/预算fixture及规模。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-34",
+      "card": "CORE-34",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 181972,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I12；NS_FML_CLOUD未冻结。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-35",
+      "card": "CORE-35",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 153547,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "真实模型/运行时/许可/真机。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-36",
+      "card": "CORE-36",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 308845,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-N05/E-I13；单写、异步安装和重复注册。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-37",
+      "card": "CORE-37",
+      "grade": "C",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 158641,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-I13；Worker未被等待，AST机器契约。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-38",
+      "card": "CORE-38",
+      "grade": "B",
+      "reviewer": "/root/p2_core_early",
+      "date": "2026-10-20",
+      "materialChars": 228178,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "ProfileSessionSource切换失效、单写和消费确认。"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-39",
+      "card": "CORE-39",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 273864,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；L-I09"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-40",
+      "card": "CORE-40",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 281558,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pending",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；L-I07/09"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-41",
+      "card": "CORE-41",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 89438,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N05/06；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-42",
+      "card": "CORE-42",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 123058,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；真实发布/回滚未执行"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-43",
+      "card": "CORE-43",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 126129,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；真实托管/账号/轮换"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-44",
+      "card": "CORE-44",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 84549,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；锁版SDK/C消费者"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-45",
+      "card": "CORE-45",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 87164,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；供应商/域名"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-46",
+      "card": "CORE-46",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 240396,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；66分批协议"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-47",
+      "card": "CORE-47",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 231320,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；完整消费确认"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-48",
+      "card": "CORE-48",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 207414,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；计划DTO/同步"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-49",
+      "card": "CORE-49",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 256786,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；L-N04"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-50",
+      "card": "CORE-50",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 294230,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；识别DTO/平台接缝"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-51",
+      "card": "CORE-51",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 217526,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；包schema/tough"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-52",
+      "card": "CORE-52",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 179825,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N02；L-I08/09；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-53",
+      "card": "CORE-53",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 171756,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "L-I06/08/09；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-54",
+      "card": "CORE-54",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 218782,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "L-I08/09；M/L/H"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-55",
+      "card": "CORE-55",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 177133,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-I05；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-56",
+      "card": "CORE-56",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 125289,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N01；schema；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-57",
+      "card": "CORE-57",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 46647,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pending",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "L-N07；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-58",
+      "card": "CORE-58",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 183910,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-I05；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-59",
+      "card": "CORE-59",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 171190,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N02；L-I06/09；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-60",
+      "card": "CORE-60",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 190532,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；L-N04"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-61",
+      "card": "CORE-61",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 138647,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；草稿schema"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-62",
+      "card": "CORE-62",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 90237,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；完整消费者确认"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-63",
+      "card": "CORE-63",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 174904,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；L-N04"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-64",
+      "card": "CORE-64",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 165993,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L/H；平台输入/真机"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-65",
+      "card": "CORE-65",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 162898,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；生命周期确认"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-66",
+      "card": "CORE-66",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 205728,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "快照分批协议缺失；H/M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-67",
+      "card": "CORE-67",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 65195,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "E-N机器契约；L-N07"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-68",
+      "card": "CORE-68",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 91124,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；Envelope消费者"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-69",
+      "card": "CORE-69",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 57449,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；词法子集/消费者"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-70",
+      "card": "CORE-70",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 45885,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N05；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-71",
+      "card": "CORE-71",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 51685,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N06；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-72",
+      "card": "CORE-72",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 70898,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；DDL/运维账号"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-73",
+      "card": "CORE-73",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 84568,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "L-N01；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-74",
+      "card": "CORE-74",
+      "grade": "B",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 52288,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "M/L；ABI头/注册表/标签"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-75",
+      "card": "CORE-75",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 10567,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N04/07；L-I09"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-76",
+      "card": "CORE-76",
+      "grade": "C",
+      "reviewer": "/root/p2_core_late",
+      "date": "2026-10-20",
+      "materialChars": 11724,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "L-N03；M/L"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-01",
+      "card": "AND-01",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 110580,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；宿主锁版探针"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-02",
+      "card": "AND-02",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 109362,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；权限合并"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-03",
+      "card": "AND-03",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 96292,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I01；ActivityResult/选择器"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-04",
+      "card": "AND-04",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 99434,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；CameraX/设备"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-05",
+      "card": "AND-05",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 212878,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；生命周期恢复"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-06",
+      "card": "AND-06",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 141071,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I01；TEE/备份迁移"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-07",
+      "card": "AND-07",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 293425,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I05/06；笔设备"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-08",
+      "card": "AND-08",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 180481,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；通知/OEM/重启"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-09",
+      "card": "AND-09",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 143484,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-11",
+      "card": "AND-11",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 110124,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；签名/市场/工具链"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-12",
+      "card": "AND-12",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 322836,
+      "segments": 5,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；真机/模型"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-13",
+      "card": "AND-13",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 232151,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N03；输入法/系统栏"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-14",
+      "card": "AND-14",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 159905,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N05；URI接收方；P-I06"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-15",
+      "card": "AND-15",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 66293,
+      "segments": 1,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "P-N01；3warnings；UIAutomator"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-01",
+      "card": "WIN-01",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 155137,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N04；工具链/runner"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-02",
+      "card": "WIN-02",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 205252,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；Inno/AppId/签名"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-03",
+      "card": "WIN-03",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 222341,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I05；P-N01；恢复联测"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-04",
+      "card": "WIN-04",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 293787,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N02；P-I01；HEIF/HEVC；帧预算"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-05",
+      "card": "WIN-05",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 297469,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N02/07；Office/剪贴板"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-06",
+      "card": "WIN-06",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 220551,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I05；单实例/双DPI/退出"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-07",
+      "card": "WIN-07",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 213698,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I01；DPAPI/ACL跨用户"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-08",
+      "card": "WIN-08",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 325009,
+      "segments": 5,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I05/06；笔/输入法"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-09",
+      "card": "WIN-09",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 241671,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "fail",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I01；Explorer/托盘/自启"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-10",
+      "card": "WIN-10",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 100658,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；静态代理"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-12",
+      "card": "WIN-12",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 217187,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；证书/PE/制品"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-13",
+      "card": "WIN-13",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 372863,
+      "segments": 5,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N01；跨端/设备/模型"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-14",
+      "card": "WIN-14",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 311388,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-N06；P-I05；真实IME"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-15",
+      "card": "WIN-15",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 234463,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；P-I05；UIA/标题栏/笔/双DPI"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-16",
+      "card": "WIN-16",
+      "grade": "B",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 205210,
+      "segments": 3,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "M；500行规模待证；P-N01；恢复"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-17",
+      "card": "WIN-17",
+      "grade": "C",
+      "reviewer": "/root/p2_platform",
+      "date": "2026-10-20",
+      "materialChars": 73787,
+      "segments": 1,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "P-N01；4warnings；UIA/锁版/交互桌面"
+      ],
+      "consumerConfirmation": null
+    }
+  ]
+}

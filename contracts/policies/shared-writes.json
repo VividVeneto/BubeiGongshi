@@ -986,60 +986,6 @@
       "point": "single-writer"
     },
     {
-      "kind": "route",
-      "key": "/study",
-      "owner": "CORE-39",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/library",
-      "owner": "CORE-38",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/recognize",
-      "owner": "CORE-50",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/settings",
-      "owner": "CORE-47",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/settings/appearance",
-      "owner": "CORE-58",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/calc",
-      "owner": "CORE-48",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/packs",
-      "owner": "CORE-51",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/stats",
-      "owner": "CORE-49",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
-      "kind": "route",
-      "key": "/account",
-      "owner": "CORE-63",
-      "point": "app/lib/composition/routes.dart"
-    },
-    {
       "kind": "startup",
       "key": "10",
       "owner": "CORE-51",
@@ -1296,6 +1242,378 @@
       "key": "installWindowsTray",
       "owner": "WIN-09",
       "point": "own feature install.dart"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_UNKNOWN",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_INCOMPATIBLE",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_AFFINE_MISUSE",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_CYCLE",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_INVALID_OFFSET",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_OVERFLOW",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_DIM_SYNTAX",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_IN_USE",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "UNIT_DUPLICATE",
+      "owner": "CORE-08",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_DIM_CONFLICT",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_LOG_DIMENSIONED",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_FUNC_ARG_DIMENSIONED",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_MATHKIND_MISMATCH",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_CROSS_DIM",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_QK_MISMATCH",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_UNKNOWN_DIM",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_EMPIRICAL_COEFF",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPE_AFFINE_MISUSE",
+      "owner": "CORE-09",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_DIV_ZERO",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_DOMAIN",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_NAN_OR_INF",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_OVERFLOW",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_NO_CONVERGE",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_NEEDS_INTERVAL",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_NOT_COMPUTABLE",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_LIMIT_EXCEEDED",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_TIMEOUT",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EVAL_MULTI_BRANCH",
+      "owner": "CORE-10",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_NOT_VERIFIED",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_TYPE_MISMATCH",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_CROSS_KIND_UNCONFIRMED",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_DEPTH_EXCEEDED",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_CYCLE",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_NODE_LIMIT",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "DERIVE_READ_ONLY",
+      "owner": "CORE-11",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPESET_MISSING_GLYPH",
+      "owner": "CORE-12",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPESET_DEPTH_EXCEEDED",
+      "owner": "CORE-12",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "TYPESET_NO_FONT",
+      "owner": "CORE-12",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "installer",
+      "key": "installEditor",
+      "owner": "CORE-37",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installLatexCompletion",
+      "owner": "CORE-53",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installLibraryBatch",
+      "owner": "CORE-54",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installOnExit",
+      "owner": "WIN-03",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installPrivacy",
+      "owner": "CORE-28",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installCloud",
+      "owner": "CORE-34",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installReminders",
+      "owner": "CORE-20",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installSync",
+      "owner": "CORE-46",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/",
+      "owner": "CORE-63",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/account",
+      "owner": "CORE-63",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/privacy",
+      "owner": "CORE-63",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library",
+      "owner": "CORE-38",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library/import",
+      "owner": "CORE-60",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library/units",
+      "owner": "CORE-60",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study",
+      "owner": "CORE-39",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/stats",
+      "owner": "CORE-49",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/reminder",
+      "owner": "CORE-49",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/books/new",
+      "owner": "CORE-49",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/books/:bookId/edit",
+      "owner": "CORE-49",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/recognize",
+      "owner": "CORE-50",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/settings",
+      "owner": "CORE-47",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/settings/appearance",
+      "owner": "CORE-58",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/calc",
+      "owner": "CORE-48",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/packs",
+      "owner": "CORE-51",
+      "point": "app/lib/composition/routes.dart"
     }
   ]
 }

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "namespace_rule": "UUIDv5(NAMESPACE_URL, UTF-8(\"urn:fml:cloud\"))",
+  "namespace": "34e375f4-78d4-552b-b9f8-cc782a1fd8ac",
+  "vectors": [
+    {
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "image_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "name_utf8": "00000000-0000-4000-8000-000000000001:0000000000000000000000000000000000000000000000000000000000000000",
+      "idempotency_key": "499326ac-25c7-544e-8f12-eda5de138447"
+    },
+    {
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "image_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name_utf8": "00000000-0000-4000-8000-000000000001:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "idempotency_key": "7f6b21ec-68d8-5f1c-a92d-dc2c872bc7ad"
+    },
+    {
+      "session_id": "00000000-0000-4000-8000-000000000002",
+      "image_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "name_utf8": "00000000-0000-4000-8000-000000000002:0000000000000000000000000000000000000000000000000000000000000000",
+      "idempotency_key": "4be2eaa0-b63a-5e38-a155-dde9cd89b5c2"
+    }
+  ]
+}

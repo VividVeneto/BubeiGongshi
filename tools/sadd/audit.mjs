@@ -21,8 +21,8 @@ for(const row of rows){
 }
 const version=columns[gradeColumn]?.split(' ')[0];
 const reviewFile=path.join(sadd,`reports/${version}-reviews.json`);
-const reviews=fs.existsSync(reviewFile)?JSON.parse(fs.readFileSync(reviewFile,'utf8')):{entries:[]};
-const errors=validateCurrent(rows, columns, cards,reviews); const warnings=[]; const materials=[];
+const reviews=fs.existsSync(reviewFile)?JSON.parse(fs.readFileSync(reviewFile,'utf8')):{version:1,entries:[]};
+const errors=validateCurrent(rows, columns, cards,reviews,appendix); const warnings=[]; const materials=[];
 const generated=appendix.match(/<!-- sadd-current-stats:start -->[\s\S]*?<!-- sadd-current-stats:end -->/)?.[0]??'';
 if(!generated.includes(`总计${cards.size}卡；`) || !generated.includes(`就绪=${stats.ready}。`) || Object.entries(stats.grades).some(([k,v])=>!generated.includes(`${k}=${v}`))) errors.push('SADD-12: generated current statistics drift; run stats.mjs');
 if(rows.length!==cards.size)errors.push(`SADD-12: current rows ${rows.length} != cards ${cards.size}`);
