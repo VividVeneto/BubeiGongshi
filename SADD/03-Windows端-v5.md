@@ -597,6 +597,7 @@ abstract interface class FileExporter {
 }
 abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
+  // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
 }
 abstract interface class ImageDropSource { Stream<DroppedImages> drops(); }
 ```
@@ -1177,6 +1178,7 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 
 ```dart
 abstract interface class HttpTransport {
+  /// 只允许编译期白名单主机；游客态由 CORE-28 的 NetworkGuard 在调用前拦截。
   Future<HttpResult> send(HttpRequestDto req, {CancelToken? cancel});
 }
 ```
@@ -1240,10 +1242,10 @@ send(req, cancel) 步骤与 AND-09 相同：
 
 ```dart
 abstract interface class NotificationScheduler {
-  Future<bool> requestPermission();
-  Future<void> scheduleDailyReminder(LocalTime time, String body);
+  Future<bool> requestPermission();                           // 已授权或无需授权返回 true
+  Future<void> scheduleDailyReminder(LocalTime time, String body); // 只保留一个每日提醒，重复调用替换；body 只含待复习数量
   Future<void> cancelAll();
-  Stream<void> taps();
+  Stream<void> taps();                                        // 用户点击提醒通知；应用由通知冷启动时，首个订阅者也收到这一次
 }
 abstract interface class TrayPresence {
   bool get iconReady;
