@@ -84,6 +84,8 @@ python tools/ci/maint_report.py --root . --out build/maint.md --lcov build/cover
 python tools/ci/run_all.py
 node --test tools/sadd/pack.test.mjs tools/sadd/current.test.mjs tools/sadd/reservations.test.mjs
 node tools/sadd/stats.mjs --check
+node tools/DTOcheck/run.mjs          # SADD/契约一致性（卡↔索引↔依赖图、DTO manifest/schema/示例、错误码登记）；改文档或 contracts/ 时必跑，无需工具链
+node --test tools/DTOcheck/*.test.mjs
 ```
 
 PowerShell 对第一条用 `$env:RUSTDOCFLAGS='-D warnings'` 后运行 cargo doc。core-sources.json由CORE-41按CORE-71的tracked领域源码集合协议生成；覆盖率阈值与延迟目标按 CORE-41/71，不能以命令退出 0 代替阈值检查。Flutter SDK 唯一来源是 `app/.flutter-version`，Dart 随该 SDK；NDK/AGP/MSVC/CMake 等分别读平台 `toolchain.versions`，不重复指定 Flutter 版本。锁文件尚未创建时，按 CORE-01 开工规则建立并回填 ADR-V5-15，不能临时猜版本。

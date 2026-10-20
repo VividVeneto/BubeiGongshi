@@ -313,7 +313,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 规则：只实现本卡“范围/包含”，遵守“实现约束”；不修改依赖模块的接口。确需修改接口，或材料中找不到要用的符号时，停止依赖该变更的实现，并产出§8.4契约变更单：目标卡/符号、旧新签名、理由、影响消费者、兼容与迁移风险、所需验收；只继续与该变更独立的工作。所有者修订并同步消费者、重生成材料、D复检后继续，不自行改依赖接口。
 完成后：
 1. 为“验收标准”每一条写自动化测试，测试名或注释标注对应 [Rxx]；无法自动化的手动步骤写成 checklist 放在 PR 描述中；
-2. 按主类运行检查（命令见 AGENTS.md）：Rust 运行 cargo fmt --all --check、cargo clippy --workspace --all-targets -- -D warnings、cargo test --workspace；Dart 运行 dart format --set-exit-if-changed .、flutter analyze、flutter test；WIN-16 运行 cmake 构建与 ctest；另运行文档告警、cargo deny与llvm-cov（AGENTS全量检查）；CORE-41 合入后最后运行 python tools/ci/run_all.py；尚无脚本/锁文件的记录未执行及阻断，不能记通过；
+2. 按主类运行检查（命令见 AGENTS.md）：Rust 运行 cargo fmt --all --check、cargo clippy --workspace --all-targets -- -D warnings、cargo test --workspace；Dart 运行 dart format --set-exit-if-changed .、flutter analyze、flutter test；WIN-16 运行 cmake 构建与 ctest；另运行文档告警、cargo deny与llvm-cov（AGENTS全量检查）；修改 SADD 或 contracts/ 时另运行 node tools/DTOcheck/run.mjs（卡↔索引↔依赖图↔阶段、DTO manifest/schema/示例、错误码登记一致性；CORE-70 的 structure.mjs 与 CORE-67 的 gen_dto.py 交付后并入）；CORE-41 合入后最后运行 python tools/ci/run_all.py；尚无脚本/锁文件的记录未执行及阻断，不能记通过；
 3. 新增错误码先写入 contracts/errors/registry.yaml 再生成代码；新增第三方依赖写入 Cargo.lock / pubspec.lock，工具链版本只读锁定文件（ADR-V5-15）；
 4. 提交信息用 <type>(<模块编号小写>): <摘要>，如 feat(core-05): 定义公式 AST 节点；契约破坏性变更在正文写 BREAKING CHANGE: 并引用 ADR；一个提交只涉及一张卡，特性分支不超过3天；
 5. 作者自查后把验收证据和手动checklist交给非作者复核，按§8.5.1登记D.12，再更新D.10；机械0项不自动就绪。

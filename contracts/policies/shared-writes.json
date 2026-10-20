@@ -519,6 +519,12 @@
     },
     {
       "kind": "error",
+      "key": "AUTH_UPLOAD_RECONFIRM_REQUIRED",
+      "owner": "CORE-62",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "SYNC_UPGRADE_IN_PROGRESS",
       "owner": "CORE-24",
       "point": "contracts/errors/registry.yaml"
@@ -622,13 +628,31 @@
     {
       "kind": "error",
       "key": "SYNC_BATCH_UNKNOWN",
-      "owner": "CORE-26",
+      "owner": "CORE-78",
       "point": "contracts/errors/registry.yaml"
     },
     {
       "kind": "error",
       "key": "SYNC_CHOICE_INVALID",
       "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_BATCH_INVALID",
+      "owner": "CORE-78",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_PATH_INVALID",
+      "owner": "CORE-66",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_SNAPSHOT_CORRUPT",
+      "owner": "CORE-66",
       "point": "contracts/errors/registry.yaml"
     },
     {
@@ -670,6 +694,12 @@
     {
       "kind": "error",
       "key": "BACKUP_PROTECTION_UNAVAILABLE",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_SCOPE_INVALID",
       "owner": "CORE-27",
       "point": "contracts/errors/registry.yaml"
     },
@@ -941,6 +971,12 @@
       "kind": "error",
       "key": "LIB_BATCH_CANCELLED",
       "owner": "CORE-54",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_TAGS_LIMIT",
+      "owner": "CORE-14",
       "point": "contracts/errors/registry.yaml"
     },
     {
