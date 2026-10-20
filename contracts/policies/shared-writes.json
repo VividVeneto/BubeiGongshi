@@ -1,0 +1,1301 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "kind": "error",
+      "key": "PLATFORM_UNSUPPORTED",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_PERMISSION_DENIED",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_KEY_UNAVAILABLE",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_IO",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_FILE_TOO_LARGE",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_FILE_TYPE_MISMATCH",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_CANCELLED",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_UPDATE_SIG_INVALID",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_UPDATE_HASH_MISMATCH",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_UPDATE_DISK_FULL",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PLATFORM_UPDATE_ROLLED_BACK",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NET_OFFLINE",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NET_TLS",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NET_TIMEOUT",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NET_HOST_NOT_ALLOWED",
+      "owner": "CORE-04",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "ENGINE_DATA_INVALID",
+      "owner": "CORE-56",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "ENGINE_DATA_CONFLICT",
+      "owner": "CORE-56",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "ENGINE_UNAVAILABLE",
+      "owner": "CORE-56",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AST_JSON_INVALID",
+      "owner": "CORE-05",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_LIMIT_EXCEEDED",
+      "owner": "CORE-05",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_SYNTAX",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_UNSUPPORTED_COMMAND",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_FORBIDDEN_COMMAND",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_TIMEOUT",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_UNICODE_NOT_EXPORTABLE",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PARSE_HOLE_UNFILLED",
+      "owner": "CORE-06",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NOTATION_AMBIGUOUS",
+      "owner": "CORE-07",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NOTATION_LOG_BASE",
+      "owner": "CORE-07",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NOTATION_UNBOUND",
+      "owner": "CORE-07",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "NOTATION_CONSTANT_CONFLICT",
+      "owner": "CORE-07",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_KEY_INVALID",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_SCHEMA_TOO_NEW",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_MIGRATION_FAILED",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_CORRUPT",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_DISK_FULL",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STORE_BUSY",
+      "owner": "CORE-13",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_NOT_FOUND",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_READ_ONLY",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_NOT_VERIFIED",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_IMPORT_ROW_INVALID",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_IMPORT_TOO_LARGE",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_TRASHED",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_META_INVALID",
+      "owner": "CORE-14",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_SIG_INVALID",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_KEY_UNKNOWN",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_HASH_MISMATCH",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_DOWNGRADE",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_EPOCH_ROLLBACK",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_INCOMPATIBLE",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_DEP_MISSING",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_LIMIT_EXCEEDED",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_UNSAFE_PATH",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_FORBIDDEN_ENTRY",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_METADATA_EXPIRED",
+      "owner": "CORE-15",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_SESSION_EXPIRED",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_K_OUT_OF_RANGE",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_PLAN_INVALID",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_NO_CARDS",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_BOOK_READ_ONLY",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_INPUT_INVALID",
+      "owner": "CORE-19",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_STATS_RANGE_INVALID",
+      "owner": "CORE-20",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_DECRYPT_FAILED",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_KEY_VERSION_UNKNOWN",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_RECOVERY_CODE_FORMAT",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_PASSPHRASE_WEAK",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_KDF_MEMORY",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_PARAM_INVALID",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CRYPTO_RNG_FAILED",
+      "owner": "CORE-21",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_INVALID_CREDENTIALS",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_TOKEN_EXPIRED",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_REFRESH_REVOKED",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_REAUTH_REQUIRED",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_RECENT_LOGIN_REQUIRED",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_EMAIL_TAKEN",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_PASSWORD_WEAK",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_RATE_LIMITED",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SERVER_CLIENT_TOO_OLD",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SERVER_UNAVAILABLE",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_EMAIL_CODE_INVALID",
+      "owner": "CORE-45",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_EMAIL_CODE_EXPIRED",
+      "owner": "CORE-45",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_EMAIL_SEND_FAILED",
+      "owner": "CORE-45",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_NO_PROFILE",
+      "owner": "CORE-23",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_GUEST_EXISTS",
+      "owner": "CORE-23",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_PROFILE_EXISTS",
+      "owner": "CORE-23",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_LOCKED",
+      "owner": "CORE-23",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "AUTH_SETTING_INVALID",
+      "owner": "CORE-23",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_UPGRADE_IN_PROGRESS",
+      "owner": "CORE-24",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_UPGRADE_STEP_INVALID",
+      "owner": "CORE-24",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_UPGRADE_KEY_FAILED",
+      "owner": "CORE-24",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_UPGRADE_NOT_ABANDONABLE",
+      "owner": "CORE-24",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_MERGE_CONFLICT",
+      "owner": "CORE-24",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_PAYLOAD_TOO_LARGE",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_HASH_MISMATCH",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_KEY_VERSION_REJECTED",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_EPOCH_STALE",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_QUOTA_EXCEEDED",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_CURSOR_INVALID",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_SNAPSHOT_INCOMPLETE",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_DECRYPT_FAILED",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_AAD_MISMATCH",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_QUARANTINED",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_KEY_MISSING",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_DISABLED",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_BATCH_UNKNOWN",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_CHOICE_INVALID",
+      "owner": "CORE-26",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_CORRUPT",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_WRONG_SECRET",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_SCHEMA_TOO_NEW",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_REPLACE_BLOCKED_BY_SYNC",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_DISK_FULL",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_TOKEN_UNKNOWN",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "BACKUP_PROTECTION_UNAVAILABLE",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PRIVACY_REQUEST_BLOCKED",
+      "owner": "CORE-28",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PRIVACY_CONSENT_MISSING",
+      "owner": "CORE-28",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PRIVACY_DIAGNOSTICS_DISABLED",
+      "owner": "CORE-28",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PRIVACY_REPRO_FAILED",
+      "owner": "CORE-28",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_BACKEND_UNAVAILABLE",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_BACKEND_NOT_ALLOWED",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_BACKEND_REMOTE",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_INPUT_INVALID",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_CANCELLED",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_NO_CANDIDATE",
+      "owner": "CORE-29",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_FORMAT_UNSUPPORTED",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_TOO_LARGE",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_TOO_MANY_PIXELS",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_CORRUPT",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_CROP_INVALID",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_UPLOAD_TOO_LARGE",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_PATH_INVALID",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "IMG_CANCELLED",
+      "owner": "CORE-30",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_OUTPUT_TOO_LARGE",
+      "owner": "CORE-31",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_OUTPUT_REJECTED",
+      "owner": "CORE-31",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_ALL_CANDIDATES_INVALID",
+      "owner": "CORE-31",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_SPAN_INVALID",
+      "owner": "CORE-31",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_SESSION_NOT_FOUND",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_ACTIVE_TASK_EXISTS",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_TRANSITION_INVALID",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_KEEP_LAST_OUT_OF_RANGE",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_QUOTA_EXCEEDED",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_IMAGE_LOST",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_HISTORY_KEY_UNAVAILABLE",
+      "owner": "CORE-32",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_PROVIDER_TIMEOUT",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_PROVIDER_ERROR",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_OUTPUT_REJECTED",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_UNKNOWN_OUTCOME",
+      "owner": "CORE-33",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_TOKEN_EXPIRED",
+      "owner": "CORE-34",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CLOUD_PREVIEW_STALE",
+      "owner": "CORE-34",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_MODEL_NOT_INSTALLED",
+      "owner": "CORE-35",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_MODEL_INCOMPATIBLE",
+      "owner": "CORE-35",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_MODEL_OOM",
+      "owner": "CORE-35",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "RECOG_MODEL_TIMEOUT",
+      "owner": "CORE-35",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_STORAGE_LOW",
+      "owner": "CORE-51",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "PACK_DOWNLOAD_INCOMPLETE",
+      "owner": "CORE-51",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EXPORT_NOT_RENDERABLE",
+      "owner": "CORE-52",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "EXPORT_TOO_LARGE",
+      "owner": "CORE-52",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_BATCH_TOO_LARGE",
+      "owner": "CORE-54",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "LIB_BATCH_CANCELLED",
+      "owner": "CORE-54",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "file",
+      "key": "app/lib/composition/installers.dart",
+      "owner": "CORE-36",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/lib/composition/routes.dart",
+      "owner": "CORE-36",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/lib/composition/ports_android.dart",
+      "owner": "AND-01",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/lib/composition/ports_windows.dart",
+      "owner": "WIN-01",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/android/AndroidModules.kt",
+      "owner": "AND-01",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/android/app/src/main/AndroidManifest.xml",
+      "owner": "AND-02",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": "app/windows/runner/flutter_window.cpp",
+      "owner": "WIN-01",
+      "point": "single-writer"
+    },
+    {
+      "kind": "route",
+      "key": "/study",
+      "owner": "CORE-39",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library",
+      "owner": "CORE-38",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/recognize",
+      "owner": "CORE-50",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/settings",
+      "owner": "CORE-47",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/settings/appearance",
+      "owner": "CORE-58",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/calc",
+      "owner": "CORE-48",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/packs",
+      "owner": "CORE-51",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/stats",
+      "owner": "CORE-49",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/account",
+      "owner": "CORE-63",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "startup",
+      "key": "10",
+      "owner": "CORE-51",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "12",
+      "owner": "WIN-14",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "15",
+      "owner": "CORE-51",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "20",
+      "owner": "CORE-65",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "30",
+      "owner": "CORE-46",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "40",
+      "owner": "CORE-40",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "50",
+      "owner": "CORE-40",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "55",
+      "owner": "CORE-50",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "60",
+      "owner": "CORE-34",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "70",
+      "owner": "CORE-46",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "80",
+      "owner": "CORE-20",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "85",
+      "owner": "WIN-03",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "startup",
+      "key": "90",
+      "owner": "CORE-58",
+      "point": "FeatureRegistry.startupHooks"
+    },
+    {
+      "kind": "firstFrame",
+      "key": "10",
+      "owner": "WIN-09",
+      "point": "FeatureRegistry.firstFrameHooks"
+    },
+    {
+      "kind": "firstFrame",
+      "key": "15",
+      "owner": "WIN-06",
+      "point": "FeatureRegistry.firstFrameHooks"
+    },
+    {
+      "kind": "firstFrame",
+      "key": "20",
+      "owner": "WIN-03",
+      "point": "FeatureRegistry.firstFrameHooks"
+    },
+    {
+      "kind": "settings",
+      "key": "60",
+      "owner": "WIN-14",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "settings",
+      "key": "65",
+      "owner": "WIN-08",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "settings",
+      "key": "70",
+      "owner": "WIN-07",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "settings",
+      "key": "75",
+      "owner": "WIN-09",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "settings",
+      "key": "80",
+      "owner": "WIN-06",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "settings",
+      "key": "90",
+      "owner": "WIN-03",
+      "point": "SettingsSections"
+    },
+    {
+      "kind": "shortcut",
+      "key": "app/default-and-reserved",
+      "owner": "WIN-08",
+      "point": "defaultKeymap/isReservedChord"
+    },
+    {
+      "kind": "shortcut",
+      "key": "study/default",
+      "owner": "WIN-15",
+      "point": "defaultStudyBindings"
+    },
+    {
+      "kind": "shortcut",
+      "key": "study/command-ids",
+      "owner": "CORE-58",
+      "point": "app/lib/design/commands.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installStudy",
+      "owner": "CORE-39",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installRecognition",
+      "owner": "CORE-40",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installStorageGuard",
+      "owner": "CORE-50",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installPacks",
+      "owner": "CORE-51",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installFormulaCopy",
+      "owner": "CORE-52",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installDesign",
+      "owner": "CORE-55",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installAndroidEditing",
+      "owner": "AND-07",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installAndroidReminders",
+      "owner": "AND-08",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installAndroidInteraction",
+      "owner": "AND-13",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installAndroidClipboard",
+      "owner": "AND-14",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsUpdater",
+      "owner": "WIN-03",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsShell",
+      "owner": "WIN-06",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsImport",
+      "owner": "WIN-04",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsClipboard",
+      "owner": "WIN-05",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsEditing",
+      "owner": "WIN-08",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsKeymap",
+      "owner": "WIN-14",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsInteraction",
+      "owner": "WIN-15",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installWindowsTray",
+      "owner": "WIN-09",
+      "point": "own feature install.dart"
+    }
+  ]
+}
