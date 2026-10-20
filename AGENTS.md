@@ -64,3 +64,25 @@ C++ / CMake（installer/windows/launcher/，WIN-16 启动器，仅 Windows）
 ```
 
 为验收标准中的每一条写出自动化测试；无法自动化的手动步骤写成 checklist 放在 PR 描述中。工具链版本见 `rust-toolchain.toml`、`app/.flutter-version` 与各 `toolchain.versions`（ADR-V5-15）。
+
+## 会话流程与提交前全量检查
+
+1. 查 README §8.6 主类，确认 D.10 当前等级与 D.12 整卡复核：仅 A/B 且复核通过的卡开编码会话；C 或未通过先修文档。按 §8.1 生成材料，使用 §8.2 模板；未创建文件、全部 warning 与超量不能当通过。
+2. 按卡实现并逐条对照验收。材料缺符号或需改依赖接口时，按 §8.4 留契约变更单（目标卡/符号、旧新签名、理由、消费者、迁移风险、验收），由所有者修订、同步消费者、重生成材料并在 D 复检后继续。
+3. 运行本主类检查与下面全量检查；未实现的脚本或缺工具链记录未执行/阻断，禁止报告通过。CORE-41 交付后 `python tools/ci/run_all.py` 为最终聚合入口，manual/content/pending 不能作为自动通过。
+4. 将手动 checklist、证据、外部前提与未通过项写入 PR 描述；按本文件提交格式提交。一卡一提交，特性分支不超过 3 天，main 始终可构建。SADD 专项修订按其任务书分组提交，不能把该例外推广到业务编码。
+
+领域 crate 使用 `#![forbid(unsafe_code)]`；仅 `fml-ffi`、`fml-imgproc`、`fml-recognize-local` 允许受审计 unsafe，每块按 CORE-74 要求写非空 `// SAFETY:`。Rust 公共项 `#![deny(missing_docs)]`，Dart 启用 `public_member_api_docs`；各 crate/特性 README、示例与错误条件按 CORE-01。
+
+提交前（所涉工具链均锁版后）还须运行：
+
+```text
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+cargo deny check
+cargo llvm-cov --workspace --lcov --output-path build/coverage/lcov.info
+python tools/ci/run_all.py
+node --test tools/sadd/pack.test.mjs tools/sadd/current.test.mjs
+node tools/sadd/stats.mjs --check
+```
+
+PowerShell 对第一条用 `$env:RUSTDOCFLAGS='-D warnings'` 后运行 cargo doc。覆盖率阈值与延迟目标按 CORE-41/71，不能以命令退出 0 代替阈值检查。Flutter SDK 唯一来源是 `app/.flutter-version`，Dart 随该 SDK；NDK/AGP/MSVC/CMake 等分别读平台 `toolchain.versions`，不重复指定 Flutter 版本。锁文件尚未创建时，按 CORE-01 开工规则建立并回填 ADR-V5-15，不能临时猜版本。
