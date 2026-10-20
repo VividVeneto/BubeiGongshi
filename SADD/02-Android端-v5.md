@@ -24,6 +24,7 @@ graph TD
   C03["CORE-03 C ABI 与 Dart 绑定"]
   C04["CORE-04 平台端口契约"]
   A02["AND-02 权限与清单"]
+  A15["AND-15 Android主机集成测试基础设施"]
   A05["AND-05 生命周期、进程恢复与运行时信息"]
   C36["CORE-36 应用壳、组装层、账户入口与导航"]
   A06["AND-06 本地存储与 Keystore"]
@@ -52,30 +53,39 @@ graph TD
   A01 --> C04
   A02 --> C04
   A02 --> A01
+  A02 --> A15
   A05 --> C04
   A05 --> C36
   A05 --> A01
   A05 --> A02
+  A05 --> A15
   A06 --> C04
   A06 --> C13
   A06 --> C21
   A06 --> A01
+  A06 --> A15
   A03 --> C04
+  A03 --> A15
   A04 --> C04
   A04 --> A02
+  A04 --> A15
   A07 --> C04
   A07 --> C37
   A07 --> C40
   A07 --> C59
   A07 --> C64
+  A07 --> A15
   A09 --> C04
   A09 --> C28
+  A09 --> A15
   A08 --> C04
   A08 --> C20
   A08 --> A02
+  A08 --> A15
   A11 --> C42
   A11 --> A01
   A11 --> A02
+  A11 --> A15
   A12 --> A03
   A12 --> A04
   A12 --> A07
@@ -83,6 +93,7 @@ graph TD
   A12 --> A09
   A12 --> A11
   A12 --> A13
+  A12 --> A15
   A13 --> C04
   A13 --> C36
   A13 --> C55
@@ -90,10 +101,14 @@ graph TD
   A13 --> A02
   A13 --> A05
   A13 --> C58
+  A13 --> A15
   A14 --> C04
   A14 --> C52
   A14 --> A01
   A14 --> A02
+  A14 --> A15
+  A15 --> C04
+  A15 --> A01
 ```
 
 ## 2. 建议实施顺序
@@ -103,7 +118,7 @@ graph TD
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
 | S0 骨架 | AND-01 | 空壳应用在真机启动，经 C ABI 显示 `fml_abi_version` |
-| S2 本地库与账户入口 | AND-02、AND-05、AND-06、AND-09、AND-13 | 清单权限最小化；加密库落盘、平台密钥包装可用；进程被杀后恢复到原页面；注册与登录走真实网络传输；手机与平板横竖屏跟随系统旋转，旋转与分屏不丢状态，触感、系统栏与动画缩放跟随设置 |
+| S2 本地库与账户入口 | AND-02、AND-05、AND-06、AND-09、AND-13、AND-15 | 清单权限最小化；加密库落盘、平台密钥包装可用；进程被杀后恢复到原页面；注册与登录走真实网络传输；手机与平板横竖屏跟随系统旋转，旋转与分屏不丢状态，触感、系统栏与动画缩放跟随设置 |
 | S4 内容与学习 | AND-08 | 每日复习提醒与提醒自检可用 |
 | S5 识别与云识别 | AND-03、AND-04、AND-07 | 相册/文件/相机导入、手写与编辑器适配（云识别与资源包下载由 CORE-34、CORE-51 经 AND-09 传输完成） |
 | S7 发布 | AND-11、AND-12 | AAB 与 APK 签名发布；真机性能与能耗矩阵达标 |
@@ -113,18 +128,19 @@ graph TD
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
 | AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 300 |
-| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 380 |
-| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04 | 360 |
-| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 420 |
-| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 250 |
-| AND-06 | 本地存储与 Keystore | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
-| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64 | 220 |
-| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
-| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-28 | 260 |
-| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle.kts`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
-| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 490 |
-| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58 | 380 |
-| AND-14 | 剪贴板与公式多格式复制 | `app/lib/platform/android/clipboard/` | CORE-01、CORE-02、CORE-04、CORE-52、AND-01、AND-02 | 240 |
+| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01、AND-15 | 380 |
+| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04、AND-15 | 360 |
+| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02、AND-15 | 420 |
+| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02、AND-15 | 250 |
+| AND-06 | 本地存储与 Keystore | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01、AND-15 | 420 |
+| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64、AND-15 | 220 |
+| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02、AND-15 | 380 |
+| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-28、AND-15 | 260 |
+| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle.kts`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02、AND-15 | 260 |
+| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13、AND-15 | 490 |
+| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58、AND-15 | 380 |
+| AND-14 | 剪贴板与公式多格式复制 | `app/lib/platform/android/clipboard/` | CORE-01、CORE-02、CORE-04、CORE-52、AND-01、AND-02、AND-15 | 240 |
+| AND-15 | Android主机集成测试基础设施 | `tools/android/host_tests/` | CORE-01、CORE-02、CORE-04、AND-01 | 440 |
 
 > AND-10（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载与管理并入 CORE-51，存储紧张时的识别历史清理并入 CORE-50（两端共用同一 Dart 实现）。编号不复用；理由见附录 D。
 
@@ -256,7 +272,7 @@ AndroidChannelModule生命周期补充：唯一MainActivity在onCreate中构造�
 - 包含：`AndroidManifest.xml` 声明；运行时权限请求封装（Dart 接口 + Kotlin 通道）；拒绝与“不再询问”后的引导；合并清单审计脚本（含 AND-13 窗口属性的审计）；备份规则文件的引用（规则内容由 AND-06 定义）。
 - 不包含：各功能对权限的具体使用（AND-04 相机、AND-08 通知）；MainActivity 窗口属性的取值（AND-02 接口契约窗口属性表，本卡只写入清单并审计）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、AND-01
+**依赖**：CORE-01、CORE-02、CORE-04、AND-01、AND-15
 
 **接口契约**
 
@@ -313,6 +329,8 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 | 不声明 | `<layout>` 最小宽高、`maxAspectRatio`、`supportsPictureInPicture` | 不限制窗口尺寸与宽高比 |
 
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
 - 每次请求前先显示用途说明；拒绝后不反复弹窗，只在用户再次主动使用该功能时提示并提供“去设置”。
@@ -342,7 +360,7 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 - 包含：`AppLifecycle` 与 `RuntimeInfo` 端口实现；`onTrimMemory` 映射为 `lowMemory`；Activity 重建与 Flutter 状态恢复的平台配置；配置变化（旋转、平板、折叠屏、分屏、深色、字号）时不重建 Activity 的生命周期衔接（清单属性见 AND-02 接口契约窗口属性表）。
 - 不包含：收到事件后的业务反应（CORE-46 在 `resumed` 时同步、CORE-40 在 `paused/lowMemory` 时卸载模型、CORE-37 草稿去抖、CORE-19 学习游标）；路由恢复的共享配置（CORE-36 `restorationScopeId`）；双栏布局（共享界面卡）；系统栏、edge-to-edge、启动主题与跟随系统字号、深色、动画缩放的界面处理（AND-13）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02、AND-15
 
 **接口契约**
 
@@ -384,6 +402,8 @@ AndroidManifest 中 MainActivity 的 configChanges、resizeableActivity、window
 
 API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依靠正常paused和显式lowMemory。adb强发仅验证映射，不代表系统真实分发；UI_HIDDEN只由生命周期paused表达，不额外lowMemory。10秒去重按事件等级；fake测试10/15/20/40/60/80逐一断言。杀进程/旋转由AND-12主机驱动，进程内测试只检查存活期间状态。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 不使用常驻服务和前台服务；后台不做周期性网络轮询。
 - `lowMemory` 只发事件，不在平台层释放任何东西；各模块自行监听释放缓存，不得丢弃未保存草稿。
@@ -410,7 +430,7 @@ API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依
 - 包含：`LocalFileStore`、`SecureKeyValueStore` 端口实现；各 `StoreArea` 的根目录；备份与迁移排除规则文件；安全等级探测；Kotlin 侧 `KeystoreBridge.kt`。
 - 不包含：数据库本身（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机（CORE-23）；不提供生物识别与应用锁（README §6 Q41）；档案子目录的创建（共享层在各根目录下建 `<profile_id>/`）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01、AND-15
 
 **接口契约**
 
@@ -458,6 +478,8 @@ Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：只有 `fml
 
 securityLevel==software仅报告能力，不在Kotlin或端口弹界面；CORE-65账户控制器经共享账户/CORE-47安全页展示“本机密钥保护能力较弱”及原因。平台包装仍不持久化明文，提示不可被误读为应用锁。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 创建密钥：API 28+ 先请求 StrongBox（`setIsStrongBoxBacked(true)`），`StrongBoxUnavailableException` 时降级为普通 Keystore；`keystore.level` 由 `KeyInfo` 判定（API 31+ 用 `securityLevel`，更早用 `isInsideSecureHardware`），如实返回 `software`。
 - 备份：清单 `android:allowBackup="false"`，并提供 `data_extraction_rules.xml`（Android 12+：cloud-backup 与 device-transfer 均排除全部域）与 `full_backup_content.xml`（排除全部域）；`excludeFromSystemBackup` 对上述根目录内的路径为空操作，对根目录之外的路径抛 `ArgumentError`。
@@ -484,7 +506,7 @@ securityLevel==software仅报告能力，不在Kotlin或端口弹界面；CORE-6
 - 包含：`ImagePicker`、`DocumentPicker`、`FileExporter`端口实现；Photo Picker / SAF 选择；HEIC/HEIF 转 JPEG；临时副本管理；Kotlin 侧 `ImportBridge.kt`。
 - 不包含：图片探测、解码与预处理（CORE-30，由 CORE-40 调用）；裁剪与识别界面（CORE-40）；私有目录的位置（经注入的 CORE-04 `LocalFileStore` 接口取得，实现在 AND-06）；复制格式内容的生成（CORE-52）。
 
-**依赖**：CORE-01、CORE-02、CORE-04
+**依赖**：CORE-01、CORE-02、CORE-04、AND-15
 
 **接口契约**
 
@@ -533,6 +555,8 @@ DocumentPicker：按 MIME 打开；选中文件扩展名不在 extensions 中 �
 
 Photo Picker数量分支在返回结果后统一截断至maxCount并去重；即使SAF不遵守EXTRA_ALLOW_MULTIPLE或返回超限也不复制多余URI。maxCount=1不得构造PickMultipleVisualMedia，系统可用性检测失败走SAF；AndroidX版本及ActivityResult探针仍M0外部前提。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 不申请存储权限，不调用 `takePersistableUriPermission`；读取一次即复制，不保存源 URI 与原文件路径。
 - Dart/Kotlin 层除 HEIC 转换外不解码图片；HEIC 解码在原生侧降采样输出，不把全尺寸 Bitmap 交给 Dart。
@@ -561,7 +585,7 @@ Photo Picker数量分支在返回结果后统一截断至maxCount并去重；即
 - 包含：`CameraController` 端口实现；原生全屏取景 Activity（CameraX `PreviewView`，提示叠加层用原生视图绘制）；实时质量提示（清晰度、曝光、倾斜）；拍摄与写入临时目录；后台与中断时释放。
 - 不包含：拍后预处理（CORE-30）；裁剪与识别界面（CORE-40）；权限对话框（AND-02 `PermissionService`）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、AND-02
+**依赖**：CORE-01、CORE-02、CORE-04、AND-02、AND-15
 
 **接口契约**
 
@@ -613,6 +637,8 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 
 临时目录仅camera自有；启动先读取pending日志并恢复尚有效ready文件，再按日志清理过期/中断项，不能被picker启动清理删除。初始化与capture串行，完成清理后才创建新文件；不同适配器批次互不失效。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 预览帧不复制到 Dart；提示文案在原生 `strings.xml`（简体中文）。
 - 照片不写相册、不写 MediaStore；临时副本的过期与清理规则同 AND-03（`ImportedImage` 1 h）。
@@ -639,7 +665,7 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 - 包含：`AndroidInkPolicy`（实现 CORE-64 `InkInputPolicy`）；`AndroidEditorBindings`（实现 CORE-59 `EditorPlatformBindings`，含软键盘快捷栏）；安装点 `installAndroidEditing` 及其在 `ports_android.dart` 中的登记行。
 - 不包含：画布、笔画模型与撤销（CORE-40）；编辑器逻辑、模板与符号面板（CORE-37）；笔迹渲染为识别图（CORE-29 `render_ink`）；原生 `MotionEvent` 采集（不做，笔迹点来自 Flutter 指针事件）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64、AND-15
 
 **接口契约**
 
@@ -692,6 +718,8 @@ void installAndroidEditing(CompositionContext ctx) {
 
 - 错误码：无（只实现策略与界面接缝）。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 只读 Flutter `PointerEvent` 字段（`kind`、`pressure`、`pressureMin/Max`、`radiusMajor`、`buttons`），不新增 MethodChannel，不写 Kotlin。
 - 手掌判定阈值 `palmRadiusPx` 为常量默认值，AND-12 真机矩阵标定后可调整；V1 不提供“仅触控笔”开关（出现触控笔后自动忽略手指，清空画布后恢复）。
@@ -717,7 +745,7 @@ void installAndroidEditing(CompositionContext ctx) {
 - 包含：`AndroidHttpTransport`（基于 `dart:io` `HttpClient`）；系统代理读取（通道 `fml/android/net`）；异常到 CORE-04 错误码的映射；契约套件真机运行。
 - 不包含：主机白名单、用途与授权检查（CORE-28 `NetworkGuard` 包裹本卡实现）；云识别前后台行为（CORE-34）；资源包下载流程（CORE-51）；服务端（CORE-22、CORE-33、CORE-43）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-28、AND-15
 
 **接口契约**
 
@@ -757,6 +785,8 @@ Dart HttpClient不受Android network_security_config自动注入，测试CA只�
 
 User-Agent使用FML/<AppVersion> Android；AppVersion唯一取发布构建--dart-define=FML_APP_VERSION，与CORE-42 bump_version输出相同，debug未提供时仅用0.0.0-dev；不取服务器值/运行时猜版本。假HTTP契约覆盖同主机302和跨主机307均无第二请求。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 证书只用 `dart:io` 默认信任库（系统 CA，不含用户安装的证书）；不设置 `badCertificateCallback`，不做证书固定（V1）。
 - 非 2xx 状态码不抛异常，原样返回 `HttpResult`（调用方按 CORE-02 解析）；不自动重试、一律不跟随重定向，含同主机；3xx原样返回（`followRedirects = false`）。
@@ -784,7 +814,7 @@ User-Agent使用FML/<AppVersion> Android；AppVersion唯一取发布构建--dart
 - 包含：`NotificationScheduler` 端口实现（AlarmManager 非精确闹钟、通知渠道、点击回调、开机与时区变化后重排）；`ReminderSelfCheck` 实现（CORE-20 定义）与按厂商的设置跳转表；Kotlin 侧 `ReminderBridge.kt`、`ReminderReceiver.kt`、`RomSettings.kt`。
 - 不包含：提醒时刻与正文的生成、重排时机（CORE-20 `ReminderService`）；提醒设置页与自检页界面（CORE-49）；通知权限对话框（AND-02 `PermissionService`）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-20、AND-02
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-20、AND-02、AND-15
 
 **接口契约**
 
@@ -846,6 +876,8 @@ ReminderCheck稳定ID集合固定为本卡自检表全部项；background_restri
 
 selfCheck可确定布尔判定true→state=ok、false→warn；仅autostart与不支持的系统探测返回unknown。对unknown不读取OEM私有设置键，不把未检测状态计为错误。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 不使用厂商推送或 FCM，不申请 `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`，不使用 WorkManager 或前台服务；非精确闹钟允许系统推迟（通常数分钟）。
 - 应用多日未打开时，后续每天沿用最近一次 `scheduleDailyReminder` 给出的正文（CORE-20 无法在后台计算到期数）；正文只含数量，不含公式内容；通知只有点击动作，不提供“记得/忘了”快捷评分（评分须来自客观判定，CORE-19）。
@@ -875,7 +907,7 @@ selfCheck可确定布尔判定true→state=ok、false→warn；仅autostart与�
 - 包含：`tools/release/android/` 三个脚本；`app/android/app/build.gradle.kts` 的 release 段（签名配置读取环境变量、R8 与 ProGuard 规则、ABI 过滤）；国内应用市场上架材料清单（`tools/release/android/store_materials.md`）。
 - 不包含：版本号写入、哈希汇总、体积门禁、密钥扫描、SBOM（CORE-42 `tools/release/`，本卡只调用）；清单权限检查脚本（AND-02）；真机性能（AND-12）。
 
-**依赖**：CORE-01、CORE-02、CORE-42、AND-01、AND-02
+**依赖**：CORE-01、CORE-02、CORE-42、AND-01、AND-02、AND-15
 
 **接口契约**
 
@@ -906,6 +938,8 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 
 未裁剪Rust符号唯一来源为target/<Rust-target>/release/libfmlcore.so（cargoNdkBuild完成、strip前），复制到dist/symbols/<AppVersion>/<abi>/libfmlcore.so并附BLAKE3/build-id。Android合并库检查路径为app/build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/<abi>/libfmlcore.so（Flutter构建目录重定向以实际Gradle任务输出为准），该处只核对打包来源，不能假设合并库仍保留全部符号；符号归档不得从stripped_native_libs回拷。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 签名密钥只来自 CI 受保护环境变量，脚本把 .jks 解码到临时目录并在退出时删除；仓库中不得出现 keystore 文件与口令（`.gitignore` 含 `*.jks`、`key.properties`）。Google Play 使用 Play App Signing 时，本密钥为上传密钥。
 - AAB 与 APK 必须由同一次 `build_release.sh`、同一提交、同一 `--dart-define` 产出。
@@ -928,7 +962,7 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 - 包含：`app/integration_test/android/` 测量用集成测试；`tools/perf/android/` 矩阵运行与报告汇总脚本；真机矩阵定义（含手机与平板的横竖屏）；CORE-01 界面流畅性 5 行预算的测量；进程被杀后的草稿与会话恢复联测；跨端一致性抽查。
 - 不包含：各卡的功能正确性测试（各卡完成）；预算数值本身（CORE-01 预算表，本卡只引用）；修复不达标项（由对应卡修复）。
 
-**依赖**：CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13
+**依赖**：CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13、AND-15
 
 **接口契约**
 
@@ -968,8 +1002,10 @@ app/integration_test/android/
 
 按 CORE-41 acceptance_jobs.json 收集本平台所有真机/手动验收；缺设备或依赖未交付记 pending，不能记通过。性能用Release与CORE-01采样，进程内交互可用Profile integration_test；回滚/旋转/杀进程由外部主机驱动。跨端截图对照检查关键元素位置/可见性/语义，主机黄金图不代替平台检查。
 
-主机驱动约定：`python tools/android/host_tests/run.py --serial <adb-id> --apk <path> --case lifecycle|picker|notification|rotation --out <dir>`，0通过/1断言失败/2设备工具缺失；主机用adb安装/启动/kill/旋转/展开通知，并用`adb shell uiautomator dump` + hierarchy XML选择系统控件，Flutter存活阶段读取语义/测试结果JSON。Android SDK platform-tools版本由AND-01锁定，不额外假设integration_test能调用UIAutomator。测试前保存rotation/权限等设置，finally恢复并清理夹具；选择器与通知由主机断言。框架本体是P2/M-HOST阻断：负责人为Android测试维护者，须先另卡明确tools/android/host_tests/的阶段、规模与实现并通过四类主机自检，之后本卡才允许验收/就绪。当前只冻结命令/证据契约，未实现不得记通过。
+主机驱动约定：`python tools/android/host_tests/run.py --serial <adb-id> --apk <path> --case lifecycle|picker|notification|rotation --out <dir>`，0通过/1断言失败/2设备工具缺失；主机用adb安装/启动/kill/旋转/展开通知，并用`adb shell uiautomator dump` + hierarchy XML选择系统控件，Flutter存活阶段读取语义/测试结果JSON。Android SDK platform-tools版本由AND-01锁定，不额外假设integration_test能调用UIAutomator。测试前保存rotation/权限等设置，finally恢复并清理夹具；选择器与通知由主机断言。框架本体唯一归AND-15（S2），本卡S7只注册完整业务场景与矩阵；AND-15未通过框架自检前本卡保持M-HOST阻断，不重复实现驱动。
 图片100张性能使用正式系统选择器路径与主机已预置MediaStore夹具，或CORE-40控制器层FakeImagePicker做算法诊断；不得将Fake路径称端到端性能，不依赖AND-03不存在的注入。业务草稿/学习恢复等按S7依赖完整实现后执行，S2平台卡只用Fake页面/路由。
+
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
 
 **实现约束**
 - 最终性能证据只用 Release，冷启动至少30次、核心操作至少1000次、图片至少100张，其他项及预热/设备条件完整引用 CORE-01 测量口径；Profile 仅定位问题，报告注明，不混合样本。
@@ -999,7 +1035,7 @@ app/integration_test/android/
 - 包含：CORE-55 接缝的 Android 实现（`AndroidInputModalitySource`、`AndroidHaptics`、`AndroidMotionScale`）；跟随 `AppearanceController.resolvedChanges` 的系统栏样式 `AndroidSystemBars`；安装点 `installAndroidInteraction` 及其在 `ports_android.dart` 中的登记行；引用AND-02唯一的MainActivity窗口属性表（本卡不维护清单属性）；启动主题、edge-to-edge 与 displayCutout 模式（`styles.xml`）；Kotlin 侧 `InteractionHandler.kt`（触感、动画缩放、窗口度量）；系统返回、内边距与屏幕方向的行为对照表及其真机验收。
 - 不包含：`DevicePrefStore`（使用 CORE-55 默认实现，见实现约束）；宽度分档、矮高度、密度、组件、动效时长与“减少动效”处理（CORE-55）；返回处理逻辑（CORE-36 路由与各页面 `PopScope`，本卡只给对照表并做真机验收）；生命周期与进程恢复（AND-05）；权限与清单审计脚本（AND-02，按AND-02唯一属性表审计）；相机界面的方向处理（AND-04）；软键盘快捷栏与触控笔策略（AND-07）；动态取色（ADR-V5-24 不做）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05、CORE-58、AND-15
 
 **接口契约**
 
@@ -1127,6 +1163,8 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 
 nav_mode默认unknown；不读取Settings.Secure的非公开navigation_mode键，不从insets高度猜导航模式。仅未来通过锁定SDK公开接口并有设备证据才填写gesture/three_button，变更先修此契约。unknown不阻碍按真实insets布局；M0分别手势/三键设备验证安全区。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。
 - 状态保持有两条路径：属性表中 `configChanges` 列出的变化不重建 Activity，Flutter 引擎与各页 `State`（输入、选区、滚动位置）原样保留，只按新尺寸重排；其余配置变化、开发者选项“不保留活动”与后台回收导致的重建，走 AND-05 的 Flutter 状态恢复回到原路由。两条路径都不额外持久化界面状态。
@@ -1163,7 +1201,7 @@ nav_mode默认unknown；不读取Settings.Secure的非公开navigation_mode键�
 - 包含：ClipboardAdapter、FormulaClipboardWriter、ClipboardBridge.kt、FileProvider与临时clip目录。
 - 不包含：公式格式生成（CORE-52）、图片/文档选择与文件导出（AND-03，下游说明，非契约）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-52、AND-01、AND-02
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-52、AND-01、AND-02、AND-15
 
 **接口契约**
 ```dart
@@ -1193,6 +1231,8 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 
 图片读取只接受实际解码格式JPEG/PNG/WebP并返回对应image/jpeg、image/png、image/webp；先检查可知长度>20MiB则拒绝，未知长度流式复制到20MiB+1即停止删除副本并抛PLATFORM_FILE_TOO_LARGE；GIF/HEIC/SVG及其他image/*返回PLATFORM_UNSUPPORTED，不只改后缀或MIME冒充支持。Clipboard外部URI必须持临时读取授权；失效返回PLATFORM_IO。
 
+本卡需要主机的验收使用AND-15的run.py/cases.json/result.json协议；本阶段功能只注册本卡fixture场景，完整业务与真机性能由AND-12（下游说明，非契约）在S7汇总。工具/设备未到标pending，不把主机能力写入Flutter进程。
+
 **实现约束**
 - 只在用户粘贴/复制时访问，不后台监听、不写私有MIME、不自动清空剪贴板；系统API33+复制反馈返回true。
 - provider条目由AND-02合并清单主体维护，本卡只追加：androidx.core.content.FileProvider，authority=${applicationId}.clip，exported=false/grantUriPermissions=true；res/xml/clip_paths.xml仅cache-path name=clip path=clip/；白名单追加一行。
@@ -1206,3 +1246,28 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 
 **规模**：约 240 行；app/lib/platform/android/clipboard/、app/android/.../ClipboardBridge.kt与res/xml/clip_paths.xml（同app构建单元），附属清单与审计白名单追加行。
 
+### AND-15 Android主机集成测试基础设施
+
+**目标**：让外部主机驱动进程死亡、旋转、内存回收、系统选择器与通知验收，提供可复用证据协议。
+
+**范围**
+- 包含：Python adb驱动、UiAutomator hierarchy选择、场景协议、自包含fixture APK与框架自测。
+- 不包含：AND-12的S7性能预算和业务恢复场景；不在测试框架实现公式/学习逻辑。
+
+**依赖**：CORE-01、CORE-02、CORE-04、AND-01
+
+**接口契约**
+python tools/android/host_tests/run.py --serial <adb-id> --apk <file> --case <id> --out <dir> [--timeout-seconds 120]；退出0通过/1断言失败/2输入或工具错误/3环境或场景pending。case从cases.json注册：{version:1,cases:[{id,owner,stage,driver,fixture,timeout_seconds}]}；id为lifecycle/picker/notification/rotation/trim_memory及业务卡前缀追加项，唯一；框架不依赖晚期业务卡才能自测。
+主机步骤：adb get-state校验目标唯一→安装指定APK→am start指定fixture入口→等待ready JSON→操作→收集证据。kill使用am kill并先退后台，force-stop单独场景记录差异，不以force-stop模拟系统回收；旋转保存accelerometer_rotation/user_rotation，trim用am send-trim-memory；选择器/系统通知用adb shell uiautomator dump导出XML，以resource-id/text/可访问描述定位，缺控件失败，禁止固定像素点击。Flutter存活阶段integration_test或fixture只写结果JSON，主机杀死后由主机重启/断言，不要求被杀进程继续测试。
+out/result.json固定{version:1,case_id,owner,status:pass|fail|pending,device:{serial,api,build},app_sha256,steps:[{name,status,elapsed_ms}],reason?,artifacts:[relative_path]}；日志、hierarchy XML、截图、重启前后JSON均归本次out，不采集真实用户数据。每步受总超时控制；Ctrl+C/超时结束子进程，finally恢复旋转/权限等已改设置、移除测试夹具；失败证据保留，清理失败单列，不掩盖原失败。设备缺失/锁屏/测试APK不匹配标pending退出3，发布CI将3视为失败。
+CI android-host-fixture作业使用锁定platform-tools与专用模拟器跑fixture四类自检；真机/OEM/性能由AND-12在S7汇总，未装业务场景登记pending。CORE-70 acceptance_jobs将S2框架自测和S7业务验收分开，外部设备未到不伪称通过（下游说明，非契约）。
+
+**实现约束**
+- 外部前提：Python/SDK读CORE-01及AND-01锁文件；甲方提供OEM/无GMS/平板真机。锁定Flutter语义树、UiAutomator可见性须M0探针；不可见时使用明确的fixture结果文件，不猜坐标。
+- 主包tools/android/host_tests/，附属fixture仅假端口/无个人数据；所有命令用参数数组，不拼shell输入。
+
+**验收标准**
+- [R19][R38] fixture执行lifecycle/picker/notification/rotation均产出pass与必需证据；每场景故意错误控件/超时/取消得到fail，设备缺失得到pending/3。
+- [R19] 杀死fixture后主机仍存活并验证重启状态；trim/旋转后恢复原设置，两个并行serial输出不混写；未知case退出2。
+
+**规模**：约 440 行；主包tools/android/host_tests/（驱动120、场景/证据110、自测100），附属app/integration_test/host_fixture/（80）、CI作业（30）。

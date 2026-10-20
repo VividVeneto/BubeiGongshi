@@ -15,7 +15,7 @@
 4. **识别可插拔**：墨迹与照片走同一识别契约；首版交付云端 LLM 识别（仅注册用户、逐次授权）；本地轻量模型是可下载资源包；YOLO 只在实验分支预研。
 5. **资源与程序剥离**：内容、字体、模型都是签名资源包；安装包内置CORE-56的最小引擎数据与bootstrap-pack，其余按需下载。
 6. **识别历史可回收**：保留最近 0–100 次识别，默认 5 次，两阶段垃圾回收。
-7. **按模块卡实施**：96 张模块卡（公共核心 68、Android 13、Windows 15；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），通过README §8.5与附录D §D.10就绪复核后按卡交给AI编码助手完成。
+7. **按模块卡实施**：104 张模块卡（公共核心 74、Android 14、Windows 16；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），通过README §8.5与附录D §D.10就绪复核后按卡交给AI编码助手完成。
 
 ## 2. 需求基线与文档效力
 
@@ -175,7 +175,7 @@ v5 的主要变化：
 | R16 | 量纲匹配时可把公式代入到别的公式中同量纲的部分 | 原文 | V1 | 槽位候选排序、代入条件检查、推导关系 | 自动 | CORE-11、CORE-14、CORE-48 |
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | 自动 | CORE-11、CORE-48 |
 | R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | 自动 | CORE-01、CORE-04、CORE-56、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、CORE-67、CORE-69、CORE-70、CORE-71、CORE-73、CORE-74、AND-01、WIN-01 |
-| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-37、CORE-47、CORE-52、CORE-41、CORE-43、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、WIN-01、WIN-03、WIN-08、WIN-14 |
+| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-37、CORE-47、CORE-52、CORE-41、CORE-43、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、AND-15、WIN-01、WIN-03、WIN-08、WIN-14、WIN-17 |
 | R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-41、CORE-57、CORE-69、CORE-70、CORE-71、AND-11、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | 自动＋内容（M-CONTENT） | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | 自动 | CORE-01、CORE-29 |
@@ -193,8 +193,8 @@ v5 的主要变化：
 | R34 | 保留范围用户可设 0 到 100 次 | 原文 | V1 | `keep_last` 0–100 | 自动 | CORE-32、CORE-47 |
 | R35 | 默认保留最近 5 次 | 原文 | V1 | `keep_last` 默认 5 | 自动 | CORE-32 |
 | R36 | 保留内容为上传的图片和识别结果 | 原文 | V1 | 确认图、上传图、候选与校正结果加密保存 | 自动 | CORE-32、AND-03、WIN-04 |
-| R37 | 桌面端可用文件管理器选择照片 | 原文 | V1 | IFileOpenDialog、拖拽、剪贴板 | 自动＋真机（AND-12/WIN-13） | CORE-50、WIN-04、WIN-05 |
-| R38 | 安卓端可用文件管理器选择照片 | 原文 | V1 | SAF `ACTION_OPEN_DOCUMENT` + Photo Picker | 自动＋真机（AND-12/WIN-13） | AND-02、AND-03 |
+| R37 | 桌面端可用文件管理器选择照片 | 原文 | V1 | IFileOpenDialog、拖拽、剪贴板 | 自动＋真机（AND-12/WIN-13） | CORE-50、WIN-04、WIN-05、WIN-17 |
+| R38 | 安卓端可用文件管理器选择照片 | 原文 | V1 | SAF `ACTION_OPEN_DOCUMENT` + Photo Picker | 自动＋真机（AND-12/WIN-13） | AND-02、AND-03、AND-15 |
 | R39 | 高中数学、高中物理内容属于现有需求 | 甲方确认 2026-10-10 | 阶段 | 两个高中内容包，教育阶段与范围标签 | 自动＋内容（M-CONTENT） | CORE-16、CORE-51 |
 | R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | 自动 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-50、CORE-42、CORE-43、CORE-62、CORE-72、AND-09、WIN-10、WIN-12 |
 | R41 | Android 与 Windows 规范独立说明 | 甲方确认 2026-10-10 | V1 | 02、03 两份平台文档各自含构建、输入、存储、云识别、GC 与验收 | 自动＋真机（AND-12/WIN-13） | CORE-04、AND-01、AND-12、WIN-01、WIN-13 |
@@ -270,13 +270,13 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明与前后端编程索引 |
-| [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-68：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
-| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-14（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
-| [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-16（WIN-11 已撤销）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
+| [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-74：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
+| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-15（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
+| [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-17（WIN-11 已撤销）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
 | [附录A-架构决策与评审记录.md](附录A-架构决策与评审记录.md) | 历次评审记录、v4 意见判定表、全部 ADR |
 | [附录B-YOLO识别预研.md](附录B-YOLO识别预研.md) | YOLO 轻量识别预备方案（仅实验分支，不进主线） |
 | [附录C-资源包内容与开源资源调查.md](附录C-资源包内容与开源资源调查.md) | 开源公式库、数据集、模型与字体的调查和许可结论 |
-| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | 历史修订D.4～8；v5.3的46条P0处理、检查对比D.9；96张卡当前评级/未复核/阻塞与P1接续D.10；v5.3复核与v5.3.1修订记录D.11；整卡语义复核记录D.12；v5.3.2六范围复核/修订与P2接续D.13 |
+| [附录D-编码就绪检查记录.md](附录D-编码就绪检查记录.md) | 历史修订D.4～8；v5.3的46条P0处理、检查对比D.9；104张卡当前评级/未复核/阻塞与P1接续D.10；v5.3复核与v5.3.1修订记录D.11；整卡语义复核记录D.12；v5.3.2六范围复核/修订与P2接续D.13 |
 | [v5.3.2交付核对](reports/v5.3.2-交付核对.md) | 本轮13组提交/状态、六范围评分、检查前后、全卡材料与逐warning/P2清单；原始结构化证据见同目录v5.3.2-audit.json |
 
 ## 8. vibe coding 使用说明
@@ -382,7 +382,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 96 张卡——前端 48 张，端侧核心 31 张，后端 5 张，工程与发布 12 张；其中含附属改动的跨语言卡 6 张（CORE-03、CORE-20、CORE-28、CORE-48、CORE-52、CORE-54）。
+- 统计：共 104 张卡——前端 48 张，端侧核心 32 张，后端 5 张，工程与发布 19 张。跨语言附属与行数以卡片规模为准。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 主类只决定工具链与代码位置；所有会话均按§8.1收集目标全文和被依赖的契约。消费方片段可作为额外只读资料，不要求凭反向依赖猜测接口。
 
@@ -442,7 +442,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-64 | 墨迹控制器与手写画布 | 前端 | 拆分职责 | `app/lib/recognition/ink/`、`app/lib/ui/recognition/ink/` | S5 |
 | AND-14 | 剪贴板与公式多格式复制 | 前端 | Android剪贴板与多格式复制 | `app/lib/platform/android/clipboard/` | S3 |
 
-#### 端侧核心（31 张）
+#### 端侧核心（32 张）
 
 - 范围：`crates/` 下的 Rust 代码，编译为 `fmlcore` 动态库，经 C ABI（CORE-03）由前端调用。
 - 检查命令：`cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`。
@@ -480,6 +480,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-61 | 公式草稿仓储 | 端侧核心 | 拆分职责 | `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0038_formula_draft.sql` | S3 |
 | CORE-66 | 同步快照与密钥轮换编排 | 端侧核心 | 拆分职责 | `crates/fml-store/src/sync/snapshot.rs`、`crates/fml-store/src/sync/rotation.rs` | S6 |
 | CORE-68 | 同步 Envelope 共享线类型 | 端侧核心 | 同步线类型（server共用） | `crates/fml-sync-proto/` | S6 |
+| CORE-73 | 引擎代数查询与缓存失效通知 | 端侧核心（跨语言附属Dart） | 新增职责 | `crates/fml-ffi/src/ops/generation.rs` | S1 |
 
 #### 后端（5 张）
 
@@ -494,7 +495,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-43 | 服务端部署、资源分发与监控 | 后端 | 服务端 | `server/deploy/`、`server/src/ops/` | S7 |
 | CORE-45 | 邮箱验证码与发信 | 后端 | 服务端 | `server/src/email/` | S2 |
 
-#### 工程与发布（12 张）
+#### 工程与发布（19 张）
 
 - 范围：仓库根约定、`contracts/`、`tools/`、`.github/`、`installer/` 与发布脚本。
 - 检查命令：`python tools/ci/run_all.py`（依次运行全部 CI 检查脚本，CORE-41）；涉及 Rust 或 Dart 的部分同时运行对应命令。
@@ -517,5 +518,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-70 | SADD结构与验收索引门禁 | 工程与发布 | 新增职责 | `tools/sadd/structure.mjs` | S0 |
 | CORE-71 | 可维护性度量与阈值报告 | 工程与发布 | 新增职责 | `tools/ci/maint_report.py` | S0 |
 | CORE-72 | 云识别运维与熔断解除 | 工程与发布 | 新增职责 | `server/ops/` | S5 |
-| CORE-73 | 引擎代数查询与缓存失效通知 | 工程与发布 | 新增职责 | `crates/fml-ffi/src/ops/generation.rs` | S1 |
 | CORE-74 | unsafe、ABI与错误注册表门禁 | 工程与发布 | 新增职责 | `tools/ci/{check_unsafe,check_abi,check_errors}.py` | S0 |
+| AND-15 | Android主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/android/host_tests/` | S2 |
+| WIN-17 | Windows主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/windows/host_tests/` | S2 |
+

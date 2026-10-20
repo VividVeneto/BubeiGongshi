@@ -29,6 +29,7 @@ graph TD
   W02["WIN-02 安装器与卸载"]
   C42["CORE-42 发布流水线、版本矩阵与回滚"]
   W16["WIN-16 启动器与更新恢复"]
+  W17["WIN-17 Windows主机集成测试基础设施"]
   W03["WIN-03 自更新客户端"]
   C23["CORE-23 账户状态、登录边界与本机解锁"]
   C36["CORE-36 应用壳、组装层、账户入口与导航"]
@@ -62,6 +63,7 @@ graph TD
   W02 --> C42
   W02 --> W01
   W02 --> W16
+  W02 --> W17
   W03 --> C04
   W03 --> C23
   W03 --> C36
@@ -70,20 +72,25 @@ graph TD
   W03 --> W16
   W03 --> C65
   W03 --> C28
+  W03 --> W17
   W06 --> C04
   W06 --> C36
   W06 --> W01
+  W06 --> W17
   W07 --> C04
   W07 --> C13
   W07 --> C21
   W07 --> C36
   W07 --> W01
+  W07 --> W17
   W04 --> C04
   W04 --> C50
   W04 --> W01
+  W04 --> W17
   W05 --> C04
   W05 --> C52
   W05 --> W04
+  W05 --> W17
   W08 --> C04
   W08 --> C36
   W08 --> C37
@@ -92,12 +99,14 @@ graph TD
   W08 --> C59
   W08 --> C64
   W08 --> C28
+  W08 --> W17
   W14 --> C04
   W14 --> C36
   W14 --> W06
   W14 --> W08
   W14 --> W15
   W14 --> C28
+  W14 --> W17
   W15 --> C04
   W15 --> C36
   W15 --> C55
@@ -105,15 +114,19 @@ graph TD
   W15 --> W06
   W15 --> C58
   W15 --> C28
+  W15 --> W17
   W10 --> C04
   W10 --> W01
+  W10 --> W17
   W09 --> C04
   W09 --> C20
   W09 --> C36
   W09 --> W06
+  W09 --> W17
   W12 --> C42
   W12 --> W02
   W12 --> W03
+  W12 --> W17
   W13 --> W04
   W13 --> W05
   W13 --> W08
@@ -122,9 +135,13 @@ graph TD
   W13 --> W12
   W13 --> W15
   W13 --> W14
+  W13 --> W17
   W16 --> W01
   W16 --> W06
   W16 --> W07
+  W16 --> W17
+  W17 --> C04
+  W17 --> W01
 ```
 
 ## 2. 建议实施顺序
@@ -134,7 +151,7 @@ graph TD
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
 | S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本；运行时快照端口未实现时显示固定的“未实现”提示） |
-| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 包装可用；HTTPS 传输契约套件通过 |
+| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15、WIN-17 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 包装可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
 | S5 识别与云识别 | WIN-04、WIN-05、WIN-08、WIN-14 | 文件、拖放、剪贴板导入；多格式复制；快捷键（含自定义）与笔输入 |
 | S7 发布 | WIN-16、WIN-02、WIN-03、WIN-12、WIN-13 | 签名安装器、卸载、自更新与回滚演练；环境矩阵达标 |
@@ -144,20 +161,21 @@ graph TD
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
 | WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 380 |
-| WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 300 |
-| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28 | 360 |
-| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50、WIN-01 | 450 |
-| WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
-| WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
-| WIN-07 | 本地存储与 DPAPI | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
-| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28 | 460 |
-| WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
-| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04、WIN-01 | 240 |
-| WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 250 |
-| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14 | 430 |
-| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28 | 340 |
-| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28 | 440 |
-| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 500 |
+| WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16、WIN-17 | 300 |
+| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28、WIN-17 | 360 |
+| WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50、WIN-01、WIN-17 | 450 |
+| WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04、WIN-17 | 320 |
+| WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01、WIN-17 | 420 |
+| WIN-07 | 本地存储与 DPAPI | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01、WIN-17 | 450 |
+| WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28、WIN-17 | 460 |
+| WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06、WIN-17 | 380 |
+| WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04、WIN-01、WIN-17 | 240 |
+| WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03、WIN-17 | 250 |
+| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14、WIN-17 | 430 |
+| WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28、WIN-17 | 340 |
+| WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28、WIN-17 | 440 |
+| WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07、WIN-17 | 500 |
+| WIN-17 | Windows主机集成测试基础设施 | `tools/windows/host_tests/` | CORE-01、CORE-02、CORE-04、WIN-01 | 430 |
 
 > WIN-11（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载、续传与管理并入 CORE-51，存储空间检查与历史清理并入 CORE-50 与 CORE-32，两端共用同一 Dart 实现；编号不复用，理由见附录 D。
 
@@ -293,7 +311,7 @@ app/windows/
 - 包含：`installer/windows/bubeigongshi.iss` 安装脚本（ADR-V5-12 选定 Inno Setup 6）；程序文件放置与经 WIN-16 `--register-install` 的版本登记；开始菜单快捷方式与 AppUserModelId；更新模式参数 `/UPDATE=1`；安装前空间检查与降级拦截；卸载选项与清理；简体中文界面文本。
 - 不包含：启动器（WIN-16）与更新下载（WIN-03）；代码签名与构建脚本（WIN-12 调用 ISCC 并签名）；数据库迁移（CORE-13）。
 
-**依赖**：CORE-01、CORE-02、CORE-42、WIN-01、WIN-16
+**依赖**：CORE-01、CORE-02、CORE-42、WIN-01、WIN-16、WIN-17
 
 **接口契约**
 
@@ -337,6 +355,8 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 安装器不直接写 current/pending/journal 等控制文件（Inno Pascal 无法满足 WIN-16 的原子写与 journal 检查）；全部经 WIN-16 命令完成，失败保留旧 current。安装成功后不自动启动应用；更新失败的提示与 update-failed.txt 由 WIN-16 负责。
 - 官方行为依据：Inno 的 AppMutex 与 Setup Exit Codes（见附录 A ADR-V5-31）。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 不写 `C:\Program Files` 与 HKLM，不请求管理员权限；安装器与卸载器都不访问网络。
 - 安装包不含供应商 API Key、测试密钥与调试符号；体积门禁由 WIN-12 `check_artifacts.py` 按 CORE-01 预算表“安装包”行执行。
@@ -366,7 +386,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 包含：Dart 侧 `WindowsUpdater`（清单获取、下载与续传、哈希与 Authenticode 校验、退出时安装、健康确认与档案打开确认）；设置页“检查更新”区；更新清单格式。
 - 不包含：独立启动器、验证与回滚状态机（WIN-16）；安装脚本（WIN-02）；托管与 CDN（CORE-43 提供 `/windows/update.json`）；资源包更新（CORE-51）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28、WIN-17
 
 **接口契约**
 
@@ -423,6 +443,8 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_UPDATE_SIG_INVALID`、`PLATFORM_UPDATE_HASH_MISMATCH`、`PLATFORM_UPDATE_DISK_FULL`、`PLATFORM_UPDATE_ROLLED_BACK`、`PLATFORM_IO` 与 CORE-04 的 `NET_*`；本卡不新增错误码。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 不在应用运行时替换已加载文件：新版本装入新目录，切换由启动器在下次启动完成；不静默强制重启。
 - 清单完整性依靠 HTTPS 与安装包 Authenticode 签名（实际签名证书指纹在编译期白名单内）；不另设清单签名私钥。
@@ -448,7 +470,7 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 - 包含：`AppLifecycle`、`RuntimeInfo` 端口实现；窗口位置与最大化状态记忆及离屏纠正；单实例；关闭与退出流程；低内存通知；`WindowsPrefs`（HKCU 偏好）；`TrayPresence` 接缝；设置页“窗口”区。
 - 不包含：托盘图标与菜单（WIN-09，经 `TrayPresence` 接入）；快捷键（WIN-08）；布局断点、深色模式、高对比度与字体缩放（CORE-55 共享界面按 `MediaQuery` 处理）；最小窗口、标题栏深浅色、输入方式与设备偏好接缝（WIN-15）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-01
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-01、WIN-17
 
 **接口契约**
 
@@ -513,6 +535,8 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 
 窗口设置区order80的唯一控件：关闭行为单选`window.close_action`（exit默认/tray；无iconReady时按exit并说明托盘尚未可用）；“记住窗口位置”开关`window.remember_position`（字符串true默认/false）。false时启动使用默认居中1280×800且不读写Placement；true时Placement的WINDOWPLACEMENT同时保存正常位置/最大化状态，按离屏规则纠正。损坏或未知偏好回退默认。WIN-09只链接此关闭行为控件，不另造第二份；自启仍归WIN-09。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - runner 窗口类名改为 `BubeiGongshiMainWindow`；清单 PerMonitorV2 由 WIN-01 设置；DPI 变化由 Flutter 重新布局，公式按 DisplayList 重新绘制，不缩放位图。
 - 单实例保证同一数据库只有一个写者进程（CORE-13 单写者）。
@@ -537,7 +561,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 - 包含：`LocalFileStore`、`SecureKeyValueStore` 端口实现；各 `StoreArea` 根目录与私有 ACL；设置页“安全说明”区。
 - 不包含：数据库（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机（CORE-23）；不提供 Windows Hello、应用锁与防截屏（README §6 Q41）；档案子目录（共享层在各根目录下建 `<profile_id>/`）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01、WIN-17
 
 **接口契约**
 
@@ -582,6 +606,8 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_IO`；本卡不新增错误码。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 首次创建 `%LOCALAPPDATA%\BubeiGongshi\` 时设置受保护 DACL（`SetNamedSecurityInfoW` + `PROTECTED_DACL_SECURITY_INFORMATION`）：只授予当前用户与 SYSTEM 完全控制，不继承父目录权限。
 - 数据只写 `%LOCALAPPDATA%`（不漫游）；不写安装目录、桌面、下载与公共文档目录；`excludeFromSystemBackup` 对数据根内路径为空操作，对根外路径抛 `ArgumentError`。
@@ -609,7 +635,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 - 包含：`ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController`（不支持）端口实现；`ImageDropSource`（CORE-50 定义）实现与登记；拖入文件夹的一层扫描与确认；HEIC/HEIF 经 WIC 转 JPEG；临时副本管理。
 - 不包含：图片探测、解码与预处理（CORE-30，由 CORE-40 调用）；裁剪与识别界面（CORE-40、CORE-50）；资源包安装（CORE-51 经 `DocumentPicker` 选文件后调用 CORE-15）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-50、WIN-01
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-50、WIN-01、WIN-17
 
 **接口契约**
 
@@ -671,6 +697,8 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_UNSUPPORTED`、`PLATFORM_IO`、`PLATFORM_FILE_TOO_LARGE`、`PLATFORM_FILE_TYPE_MISMATCH`；本卡不新增错误码。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 读取一次即复制；不保存原文件路径（含识别历史），不删除、不修改、不加锁用户原文件；复制失败时删除已写部分。
 - Dart 层除 HEIC 转换外不解码图片；HEIC 转换在原生工作线程降采样输出，主线程只等待通道结果。
@@ -696,7 +724,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 - 包含：`ClipboardAdapter` 端口实现（文本经 Flutter `Clipboard`，图片经原生通道）；`WindowsFormulaClipboard`（实现 CORE-52 `FormulaClipboardWriter`）与登记；CF_HTML 包装。
 - 不包含：各格式内容的生成（CORE-52）；复制按钮与“复制为”菜单（CORE-59）；粘贴文本的解析与安全预算（CORE-59 粘贴 → CORE-06）；粘贴图片后的裁剪（CORE-40/50）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-52、WIN-04
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-52、WIN-04、WIN-17
 
 **接口契约**
 
@@ -753,6 +781,8 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_IO`、`PLATFORM_FILE_TOO_LARGE`；本卡不新增错误码。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 只在用户按 Ctrl+V / Ctrl+C 或点击“粘贴”“复制公式”时访问剪贴板；不注册剪贴板监听（`AddClipboardFormatListener`），不读取剪贴板历史。
 - 一次复制在同一次 `OpenClipboard` 内写完全部格式，先写信息量大的格式（顺序见上）；不使用延迟渲染（`SetClipboardData(fmt, NULL)`），应用退出后内容仍可粘贴。
@@ -779,7 +809,7 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 - 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-59 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-64 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
 - 不包含：编辑器逻辑、撤销与模板（CORE-59）；画布与笔画模型（CORE-64）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28、WIN-17
 
 **接口契约**
 
@@ -893,6 +923,8 @@ WindowsInkPolicy：
 
 笔消息子类化使用 WIN-01 runner 协议；在 viewHwnd 处理 WM_TABLET_QUERYSYSTEMGESTURESTATUS，销毁时 RemoveProp/RemoveWindowSubclass。Windows 10 1809、数位板驱动组合为外部前提（M0 实测并记录 D），不可从 API 存在推定设备行为。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 分发：两个处理器都先以 `KeyChord.fromEvent` 取组合键，再查 `holder.value`（键位修改即时生效，不需重启）。`WindowsShellKeys` 只查 `global` 范围，由 WIN-15 `WindowsKeyRouter` 先行调用（学习命令在其后查找，见 WIN-15 b）；`WindowsEditorBindings` 只查 `editor` 范围，未命中再交给 `DefaultEditorBindings`。`WindowsKeyRouter`（WIN-15，全应用唯一的 `ShellKeyHandler`）先于页面收到按键（CORE-36），WIN-14 保证同一组合键不会同时分配给两个命令（含 WIN-15 学习命令）。
 - `defaultKeymap` 是默认键位的唯一来源；WIN-14 的设置区、帮助列表与“恢复默认”都由它与 `KeymapHolder` 渲染，不另行维护表格。
@@ -924,7 +956,7 @@ WindowsInkPolicy：
 - 包含：`KeymapPrefs`（键位的读取与保存，含学习命令）；把 WIN-15 `StudyCommand` 并入可自定义列表“学习”组；`KeymapEditorVm`（分配、冲突、清除与恢复默认）；设置区“快捷键”（order 60）与录制对话框；启动时加载自定义键位；安装点 `installWindowsKeymap`。
 - 不包含：按键分发、默认键位表与保留键规则（WIN-08；学习命令的分发、默认键位与命令 ID 见 WIN-15）；键位方案的导入导出、多套预设方案与跨设备同步（V1 不做）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键（固定，经 WIN-08 表中“保留（固定）”行只读列出）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28、WIN-17
 
 **接口契约**
 
@@ -980,6 +1012,8 @@ void installWindowsKeymap(CompositionContext ctx);
 
 BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppCommand(x)==AppCommand(x)，StudyKeyCommand(x)==StudyKeyCommand(x)，跨子类型不等；持久化键仅使用声明的唯一ID，不以显示标题比较。KeyChord严格复用WIN-15规范格式，不接受短位宽旧示例。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - ① 一个组合键在全部命令中只能出现一次（不分范围，含“学习”组）：全局命令先于页面收到按键，若与编辑器命令同键，编辑器命令永远不会触发。
 - ② 拒绝的组合键：`isReservedChord` 为 true（显示“系统或输入法使用该组合键”）；不含 Ctrl 或 Alt 且不是 F2～F12（显示“需要包含 Ctrl 或 Alt”）；Shift+字符（显示“会与正常输入冲突”）。例外：`unmodifiedAllowed` 为 true 的学习命令（WIN-15）另允许不带修饰的字母 A～Z 与数字 0～9（仍先查 `isReservedChord`），因 WIN-15 在焦点位于文本框时不分发这类按键。
@@ -1011,7 +1045,7 @@ BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppComman
 - 包含：CORE-55 接缝的 Windows 实现（`WindowsInputModalitySource`、`WindowsMotionScale`、`WindowsDevicePrefStore`、`WindowsShortcutLabels`）；全应用唯一的 `ShellKeyHandler` 实现 `WindowsKeyRouter`；组合键模型 `KeyChord`（自 WIN-08 移入）；学习流程键盘命令表 `StudyCommand`、默认键位 `defaultStudyBindings` 与持有者 `StudyKeymapHolder`；跟随 `AppearanceController.resolvedChanges` 的标题栏 `WindowsTitleBar`；最小窗口尺寸；原生 `interaction_channel.cpp`（顶层窗口消息委托）；安装点 `installWindowsInteraction` 及其在 `ports_windows.dart` 中的登记行；焦点、悬停、右键菜单、滚轮与触摸板滚动的 Windows 行为对照表及其真机验收。
 - 不包含：宽度分档、矮高度、密度、组件、焦点环样式、悬停提示时长、动效与“减少动效”、高对比度令牌（CORE-55 §接口契约，本卡不重定义）；学习各状态的命令声明与动作（CORE-39 动作绑定与 CORE-58 `FmlCommandScope`）；窗口位置恢复、PerMonitorV2 与 DPI 重绘、单实例（WIN-06）；编辑器与全局快捷键、保留键规则（WIN-08）；快捷键设置界面与 `keymap.v1` 持久化（WIN-14）；`UiFeedbackSink`（Windows 不登记，桌面无触感，外观页“触感反馈”开关因此不显示）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28、WIN-17
 
 **接口契约**
 
@@ -1174,6 +1208,8 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 
 主题变化时在平台UI线程设置DWM属性后，调用SetWindowPos(topHwnd,null,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED)请求边框重算，并RedrawWindow(...,RDW_FRAME|RDW_INVALIDATE)请求非客户区重绘；不激活/移动窗口。对属性不支持/设置失败记warning并使用系统默认标题栏，不将调用成功当视觉实测通过。Windows 10 1809/11、高对比度切换仍由WIN-13在M0/S7实测。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
 - `defaultStudyBindings` 是学习键位默认值的唯一来源；WIN-14 设置区、`ShortcutHint` 文本与“恢复默认”都由它与 `StudyKeymapHolder` 渲染。
@@ -1217,7 +1253,7 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 - 包含：`WindowsHttpTransport`（基于 `dart:io` `HttpClient`）；系统代理读取（通道 `fml/windows/net`）；异常到 CORE-04 错误码的映射；契约套件运行。
 - 不包含：主机白名单、用途与授权检查（CORE-28 `NetworkGuard` 包裹本卡实现）；云识别前后台行为（CORE-34）；资源包下载流程（CORE-51）；更新下载流程（WIN-03）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、WIN-01
+**依赖**：CORE-01、CORE-02、CORE-04、WIN-01、WIN-17
 
 **接口契约**
 
@@ -1258,6 +1294,8 @@ send(req, cancel) 步骤（调用前由CORE-28完成HTTPS/主机/Cookie/用途�
 
 构造器订阅传入的AppLifecycle，在构造和resumed后刷新代理；dispose取消订阅并关闭HttpClient（本卡实现显式dispose方法，组装层生命周期清理调用）。testContext仅供非发布测试构造；kReleaseMode且非空运行时抛StateError，不用assert，不设置badCertificateCallback。生产使用默认信任库。与AND-09共同遵守CORE-04的续传验证协议；平台不引用对方卡作会话材料。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 证书只用 `dart:io` 默认信任库；不设置 `badCertificateCallback`，不做证书固定（V1）。
 - 非 2xx 不抛异常、不自动重试、`followRedirects = false`；不记录请求体、响应体与请求头值。
@@ -1285,7 +1323,7 @@ send(req, cancel) 步骤（调用前由CORE-28完成HTTPS/主机/Cookie/用途�
 - 包含：`NotificationScheduler` 端口实现（应用内定时）；托盘图标、菜单与通知（`Shell_NotifyIconW`）；任务栏闪烁；`TrayPresence`（WIN-06 定义）实现与登记；开机自启（HKCU Run）；设置页“提醒与托盘”区。
 - 不包含：提醒时刻、正文与重排时机（CORE-20）；提醒设置页（CORE-49）；通知点击后的导航（CORE-36 订阅 `taps()`）；窗口隐藏与退出流程（WIN-06）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06、WIN-17
 
 **接口契约**
 
@@ -1341,6 +1379,8 @@ taps()：notifyClick 时发送一次；同时 show 主窗口（WIN-06 通道 sho
 
 Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平台线程delegate收到时重新NIM_ADD并NIM_SETVERSION，成功才置iconReady；失败置false并显示主窗口（含--minimized）。退出先取消重建标志/委托再NIM_DELETE，不能退出后重添。图标重建不补发提醒；WIN-06只经TrayPresence.destroy统一销毁，原生窗口最终清理也须幂等兜底。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 不安装服务、计划任务或常驻后台进程；应用完全退出时不保证提醒（在设置区说明）。
 - 提醒正文只含待复习数量（CORE-20 给出），不含公式内容；提醒全流程不发网络请求。
@@ -1371,7 +1411,7 @@ Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平�
 - 包含：`tools/release/windows/` 下的构建编排、签名、签名验证、制品检查、更新清单生成与 PDB 归档脚本；Windows 发布检查清单项。
 - 不包含：版本号写入、哈希汇总与 SBOM（CORE-42）；安装脚本（WIN-02）；启动器源码（WIN-16）；更新清单的托管（CORE-43）；MSIX（ADR-V5-12 不采用）。
 
-**依赖**：CORE-01、CORE-02、CORE-42、WIN-02、WIN-03
+**依赖**：CORE-01、CORE-02、CORE-42、WIN-02、WIN-03、WIN-17
 
 **接口契约**
 
@@ -1401,6 +1441,8 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 
 证书轮换：先发布含旧/新双指纹、仍由旧证书签名的桥接版本，再以新证书发布；未安装桥接版的客户端引导手动安装。不从网络清单扩展信任；CN 不作为身份依据。供应方二进制绝不重签（ADR-V5-37）。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 签名私钥只在硬件令牌或云签名服务中，不进入仓库、普通 CI 变量与构建日志；时间戳服务必须使用 RFC 3161。
 - 代码签名不保证立即获得 SmartScreen 信誉；发布说明不承诺 EV 证书一定消除拦截。
@@ -1424,7 +1466,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 - 包含：`app/integration_test/windows/` 下的性能集成测试与一致性测试；`tools/perf/windows/` 下的矩阵运行、汇总与能耗检查脚本；环境矩阵与报告模板。
 - 不包含：功能正确性测试（各卡自带）；Android 测量（AND-12）。
 
-**依赖**：CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14
+**依赖**：CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14、WIN-17
 
 **接口契约**
 
@@ -1469,6 +1511,8 @@ tools/perf/windows/
 
 按 CORE-41 acceptance_jobs.json 收集本平台所有真机/手动验收；缺设备或依赖未交付记 pending，不能记通过。性能用Release与CORE-01采样，进程内交互可用Profile integration_test；回滚/旋转/杀进程由外部主机驱动。跨端截图对照检查关键元素位置/可见性/语义，主机黄金图不代替平台检查。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - integration_test 用 Profile：flutter drive -d windows --profile --driver=test_driver/integration_test.dart --target=integration_test/windows/perf_test.dart（consistency/soft_render 同理，驱动使用 integrationDriver 写出结果）；不依赖 Release 的 VM service。Release 由外部进程脚本采集启动/版本/签名/内存及 FML_PERF_MARK 时间日志，界面操作按 checklist 执行；不开放远程测试端口。UI项至少20次，冷启动/核心/图片优先遵守CORE-01的30/1000/100样本口径，报告 P50 与 P95；不达标项须修复，或在附录 A 记录豁免（含原因、影响与复测计划）。
 - 预算值不复制到脚本或测试中；测试只输出测量值，判定由 `summarize.py` 读取 CORE-01 完成。
@@ -1501,7 +1545,7 @@ S7业务恢复联测：学习页作答落库后从窗口/托盘退出，重启�
 - 包含：固定路径 BubeiGongshi.exe、CMake/CTest、installRoot 文件布局与控制文件格式（本卡为唯一权威）、原子状态文件与持久化 journal、单启动器互斥、进程等待与命名管道确认、安装登记命令、数据库快照与恢复、故障注入夹具。
 - 不包含：下载/签名校验（WIN-03）；安装脚本（WIN-02）；业务迁移算法（CORE-13，下游说明，非契约）；SecureKV 迁移；整库恢复后的设备身份更换（同步客户端按 ADR-V5-33 处理）。
 
-**依赖**：CORE-01、CORE-02、WIN-01、WIN-06、WIN-07
+**依赖**：CORE-01、CORE-02、WIN-01、WIN-06、WIN-07、WIN-17
 
 **接口契约**
 
@@ -1550,6 +1594,8 @@ installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动�
 - rename/替换遇共享冲突重试 5 次、间隔 200 ms；耗尽保留 app-C、journal、备份和失败库，不在未恢复或部分迁移的库上启动 C。恢复失败或 journal 损坏显示独立原生救援对话框（重试、打开日志/数据目录、退出）；旧程序只有恢复并核验成功才能启动。程序不删除唯一有效备份。
 - 错误复用 CORE-04 的 PLATFORM_IO / PLATFORM_UPDATE_ROLLED_BACK，不记录内容/密钥；CLI 失败退出码 1，转发为 10，成功为 0。本卡不新增公共错误码。
 
+本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-13汇总（下游说明，非契约）。
+
 **实现约束**
 - 持久化顺序按上述表，文件/进程/管道调用封装可注入；所有等待在启动器进程执行。无常驻服务、无网络访问。
 - 备份/回滚只允许写文档指定目录，路径正规化拒绝重解析点逃逸；写者退出之前禁止复制与恢复。备份保留到 opened 后的 committed → idle 清理或恢复核验完成；committed 期间保留 app-<C>。
@@ -1565,3 +1611,28 @@ installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动�
 
 **规模**：约 500 行；`installer/windows/launcher/`（独立 C++/CMake 构建单元；状态机约 310 行，文件/进程/管道适配约 110 行，CTest 故障夹具约 80 行；超过预算先再拆卡）。
 
+### WIN-17 Windows主机集成测试基础设施
+
+**目标**：在Flutter进程之外驱动Windows系统界面、进程重启与窗口集成验收。
+
+**范围**
+- 包含：Python pywinauto UIA后端驱动、进程/窗口控制、证据收集与自包含fixture。
+- 不包含：WIN-13性能判定、WIN-16更新恢复算法或晚期业务功能实现。
+
+**依赖**：CORE-01、CORE-02、CORE-04、WIN-01
+
+**接口契约**
+python tools/windows/host_tests/run.py --exe <absolute-path> --case <id> --out <dir> [--timeout-seconds 120]；0通过/1断言失败/2工具或参数错误/3环境或场景pending。cases.json固定version=1、每项{id,owner,stage,driver,fixture,timeout_seconds}，ID唯一；框架先实现window/restart/dialog/tray自测，业务卡单独登记场景，不反向依赖晚期卡。
+pywinauto使用backend=uia，按automation_id/control_type/name定位；Win32窗口/进程控制仅针对本次启动PID及已验证子PID，禁止按模糊进程名杀其他实例。等待窗口/JSON握手有总超时，保存PID句柄后终止并等待真正退出；主机保持存活并重启fixture，断言恢复结果。Profile允许integration_test内部脚本，Release只用外部UIA/日志采样；UIA不可见时显式pending并记录M0探针，不用固定坐标充通过。测试入口编译期隔离，正式Release不能暴露fixture指令。
+result.json固定{version:1,case_id,owner,status:pass|fail|pending,device:{os_build,session,dpi},app_sha256,steps:[{name,status,elapsed_ms}],reason?,artifacts:[relative_path]}。保存UIA树、窗口截图、日志与状态JSON。取消/超时结束本次子进程并finally恢复本次修改的窗口/DPI测试设置和测试注册表根；不改变真实用户档案，失败证据保留，清理失败单列。
+CI windows-host-fixture在有交互桌面的专用Windows runner运行，锁屏/Session0/无桌面/工具缺失退出3并归档pending；无交互的普通CI只验收schema/命令/fixture注册，不能冒称UIA通过。S7由WIN-13汇总，发布门禁不接受pending（下游说明，非契约）。
+
+**实现约束**
+- 外部前提：Python与pywinauto/comtypes精确版本由WIN-01锁入app/windows/toolchain.versions及平台requirements；M0验证UIA与锁定Flutter的可访问性树。甲方提供1809/11交互桌面、双DPI及笔设备，缺失仍pending。
+- 主包tools/windows/host_tests/，参数数组启动；路径校验后仅清理专用fixture根，不碰其他进程与用户目录。
+
+**验收标准**
+- [R19][R37] window/restart/dialog/tray fixture四场景输出pass和完整证据；错误automation_id/超时失败，Session0/锁屏输出pending/3，未知case退出2。
+- [R19] 终止目标fixture后主机重启验证状态；同名其他进程不受影响；取消保留日志并恢复测试偏好。
+
+**规模**：约 430 行；主包tools/windows/host_tests/（UIA/进程130、场景/证据100、自测100），附属app/integration_test/host_fixture_windows/（70）、CI（30）。
