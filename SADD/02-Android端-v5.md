@@ -1104,7 +1104,9 @@ f. 屏幕方向与窗口变化
 
 本卡登记CORE-04 ScreenSecurity接缝，使用模块在Activity UI线程设置/清除FLAG_SECURE，按请求回传成功状态；应用级引用计数由注入控制器统一维护，恢复重建窗口时重放当前值。
 
-LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：箭头/Home/End/PageUp/PageDown→move，Shift组合→extend，Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
+LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
+
+ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，不另定义字段；本卡契约套件测试开启/关闭、失败、两页嵌套最后释放与窗口重建重放。
 
 **实现约束**
 - 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。
