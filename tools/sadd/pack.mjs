@@ -1,13 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {FILES, readDocs} from './layout.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-export const FILES = ['01-公共核心-v5.md', '02-Android端-v5.md', '03-Windows端-v5.md'];
+export {FILES};
 export function load(sadd = path.join(ROOT, 'SADD')) {
   const cards = new Map();
-  for (const file of FILES) {
-    const text = fs.readFileSync(path.join(sadd, file), 'utf8');
+  const {texts, cardFiles} = readDocs(sadd);
+  for (const doc of FILES) {
+    const text = texts[doc];
     const matches = [...text.matchAll(/^### ((?:CORE|AND|WIN)-\d+) (.+)$/gm)];
     for (let i = 0; i < matches.length; i++) {
       const m = matches[i];
@@ -19,7 +21,9 @@ export function load(sadd = path.join(ROOT, 'SADD')) {
         else if (prefix) deps.push(`${prefix}-${d[3]}`);
       }
       const contract = body.split('**接口契约**')[1]?.split('**实现约束**')[0] ?? '';
-      cards.set(m[1], {id: m[1], file, line: text.slice(0, m.index).split('\n').length,
+      // 拆分布局下 file/line 指向卡片文件本身；doc 始终是卡片所属的原文档。
+      const own = cardFiles.get(m[1]);
+      cards.set(m[1], {id: m[1], doc, file: own?.rel ?? doc, line: own ? 1 : text.slice(0, m.index).split('\n').length,
         body, contract, deps: [...new Set(deps)]});
     }
   }
