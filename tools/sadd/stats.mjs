@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {load, ROOT} from './pack.mjs';
+import {validateCurrent} from './current.mjs';
 
 // Only this bounded generated block changes; historical batches stay intact.
 const sadd = path.join(ROOT, 'SADD');
@@ -12,14 +13,17 @@ const lines = current.split('\n').filter(l => /^\| (CORE|AND|WIN)-\d+ \|/.test(l
 if (lines.length !== cards.size) throw new Error('D.10/card count mismatch');
 const header = current.split('\n').find(l => l.startsWith('| 编号 |'));
 const columns = header?.split('|').map(c => c.trim()) ?? [];
+const errors = validateCurrent(lines, columns, cards);
+if (errors.length) throw new Error(errors.join('\n'));
 const gradeIndex = columns.indexOf('v5.3.2 复核');
+const statusIndex = columns.indexOf('当前状态');
 const grades = {};
 let ready = 0;
 for (const line of lines) {
   const cells = line.split('|').map(c => c.trim());
   const grade = gradeIndex < 0 ? '未独立复核' : cells[gradeIndex];
   grades[grade] = (grades[grade] ?? 0) + 1;
-  if (cells.some(c => /^就绪（/.test(c))) ready++;
+  if (statusIndex >= 0 && /^就绪（/.test(cells[statusIndex])) ready++;
 }
 const body = ['<!-- sadd-current-stats:start -->',
   '由 `node tools/sadd/stats.mjs` 从现行卡与D.10生成；不代表实现或真机验收通过。',

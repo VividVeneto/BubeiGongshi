@@ -106,9 +106,16 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   sections.push(`## 架构决策（补充章节保守保留）\n\n${adrRows.join('\n')}\n\n${adrExtra.join('\n')}`);
   const missing = [];
   const defaults = ['rust-toolchain.toml', 'app/.flutter-version', 'tools/toolchain.versions',
-    'tools/requirements.txt', 'Cargo.lock', 'app/pubspec.lock'];
+    'tools/requirements.txt', 'Cargo.lock', 'app/pubspec.lock',
+    'app/android/toolchain.versions', 'app/windows/toolchain.versions'];
   const paths = new Set([...defaults, ...extra]);
-  for (const m of target.body.matchAll(/`((?:contracts\/)[^`\s]+)`/g)) if (!/[<>*{}]/.test(m[1])) paths.add(m[1]);
+  // Contracts can be introduced by a dependency, not just the target card.
+  for (const key of selected.keys()) {
+    const source = key === id ? target.body : cards.get(key).contract;
+    for (const m of source.matchAll(/`((?:contracts\/)[^`\s]+)`/g)) {
+      if (!/[<>*{}]/.test(m[1])) paths.add(m[1]);
+    }
+  }
   for (const file of paths) {
     const resolved = path.resolve(path.dirname(sadd), file);
     const relative = path.relative(path.dirname(sadd), resolved);
@@ -117,9 +124,17 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
     sections.push(`## 已有文件 ${file}\n\n\`\`\`text\n${fs.readFileSync(resolved, 'utf8')}\n\`\`\``);
   }
   const inventory = [...tokens(sections.join('\n'))].filter(t => /^[A-Z][a-z]+[A-Z]/.test(t));
-  const definitions = [...cards.values()].flatMap(c => [...c.contract.matchAll(/(?:struct|class|enum|trait|typedef|type)\s+(\w+)/g)].map(m=>m[1]));
-  const known = new Set(definitions);
-  const undefinedIdentifiers = inventory.filter(t => !known.has(t));
+  const definitionPattern = /(?:struct|class|enum|trait|typedef|type)\s+(\w+)/g;
+  const known = new Set([...sections.join('\n').matchAll(definitionPattern)].map(m=>m[1]));
+  const repositoryDefinitions = new Map();
+  for (const c of cards.values()) for (const m of c.contract.matchAll(definitionPattern)) {
+    const sources = repositoryDefinitions.get(m[1]) ?? [];
+    sources.push({card:c.id,file:c.file,line:c.line}); repositoryDefinitions.set(m[1],sources);
+  }
+  const missingFromMaterials = [...new Set(inventory)].filter(t => !known.has(t) && repositoryDefinitions.has(t))
+    .map(symbol => ({symbol,sources:repositoryDefinitions.get(symbol)}));
+  if (missingFromMaterials.length) warnings.push('Local definitions absent from material; see missingFromMaterials; resolve dependency or selection before coding');
+  const undefinedIdentifiers = inventory.filter(t => !known.has(t) && !repositoryDefinitions.has(t));
   if (undefinedIdentifiers.length) warnings.push('SDK/third-party or undefined identifiers require review; see undefinedIdentifiers');
   const header = `# ${id} 会话材料\n\n生成时间：${new Date().toISOString()}；字符按 Unicode code point 计数。\n`+
     `完整材料由下列分段共同组成，分段不是独立编码会话；全部读完后才能实现。\n\n未创建文件：${missing.join('、') || '无'}。\n`;
@@ -133,7 +148,8 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   }
   if (chunk) chunks.push(chunk);
   return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length,
-    closure: [...closure], manifest, missing, warnings, undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort()}};
+    closure: [...closure], manifest, missing, warnings, missingFromMaterials,
+    undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort()}};
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const id = process.argv[2];
