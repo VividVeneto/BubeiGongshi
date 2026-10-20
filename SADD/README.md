@@ -145,7 +145,7 @@ v5 的主要变化：
 
 | 编号 | 需求 | 来源 | V1 状态 | 设计要点 | 验收所在模块卡 |
 | --- | --- | --- | --- | --- | --- |
-| R01 | Windows 与 Android 双平台 | 原文 | V1 | Flutter 共享 UI + Rust 核心 + 两端独立工程 | CORE-03、CORE-04、CORE-12、CORE-15、CORE-37、AND-01、AND-02、AND-05、AND-03、AND-09、AND-08、AND-11、AND-12、WIN-01、WIN-02、WIN-06、WIN-04、WIN-05、WIN-10、WIN-12、WIN-13 |
+| R01 | Windows 与 Android 双平台 | 原文 | V1 | Flutter 共享 UI + Rust 核心 + 两端独立工程 | CORE-03、CORE-04、CORE-12、CORE-15、CORE-37、AND-01、AND-02、AND-05、AND-03、AND-09、AND-08、AND-11、AND-12、AND-14、WIN-01、WIN-02、WIN-06、WIN-04、WIN-05、WIN-10、WIN-12、WIN-13 |
 | R02 | 预留鸿蒙接口 | 原文 | 预留 | C ABI 头文件冻结 + OpenHarmony 目标编译冒烟；不做鸿蒙 UI | CORE-03、CORE-44 |
 | R03 | 轻量化、性能开销低 | 原文 | V1 | 可选包不进安装包；核心本地执行；全局预算表与门禁 | CORE-06、CORE-09、CORE-12、CORE-17、CORE-18、CORE-30、CORE-35、CORE-36、CORE-37、CORE-52、CORE-53、CORE-42、CORE-64、AND-05、AND-04、AND-12、WIN-02、WIN-09、WIN-12、WIN-13 |
 | R04 | 以不背单词为原型强化背诵（只需功能近似，见 R04.a–R04.j） | 原文 + 澄清 2026-10-18 | V1 | 书与计划、分组学习、客观判定、组后默写、FSRS 排程、统计与提醒 | CORE-14、CORE-16、CORE-17、CORE-18、CORE-19、CORE-20、CORE-31、CORE-36、CORE-39、CORE-40、CORE-49、CORE-54、CORE-60、AND-02、AND-08、AND-12、WIN-06、WIN-09 |
@@ -162,7 +162,7 @@ v5 的主要变化：
 | R05 | 大学公共课内容：高等数学（同济课本范围到考研数学全部范围）、大学物理；高中内容见 R39 | 原文 | 阶段 | 四类课程内容包，scope 清单与覆盖率门禁 | CORE-16 |
 | R06 | 识别手写公式 | 原文 | V1 | 识别契约 + 墨迹画布 + 统一后处理 + 人工校正；Windows 支持屏上笔与开启 Windows Ink 的外接数位板（§6 Q31） | CORE-29、CORE-31、CORE-35、CORE-39、CORE-40、CORE-50、AND-07、WIN-08、WIN-13 |
 | R07 | 预留接入轻量化识别模型或 LLM 识别（云端 LLM 首版交付见 R40） | 原文 | V1 | 可插拔后端注册表；本地模型可选包；云端网关 | CORE-29、CORE-31、CORE-33、CORE-35 |
-| R08 | 公式编辑器 | 原文 | V1 | 结构化 + LaTeX 双模式、符号面板、模板、错误定位、多格式复制 | CORE-12、CORE-38、CORE-52、CORE-53、CORE-59、CORE-61、AND-05、AND-03、AND-07、AND-12、WIN-05、WIN-08、WIN-14 |
+| R08 | 公式编辑器 | 原文 | V1 | 结构化 + LaTeX 双模式、符号面板、模板、错误定位、多格式复制 | CORE-12、CORE-38、CORE-52、CORE-53、CORE-59、CORE-61、AND-05、AND-07、AND-12、AND-14、WIN-05、WIN-08、WIN-14 |
 | R09 | ISO 标准字符正常输入 | 原文 | V1 | Unicode 存储、ISO 80000-2 符号能力表（可输入/可渲染/可计算三级） | CORE-56、CORE-06、CORE-07、CORE-59 |
 | R10 | 可输入 LaTeX 公式 | 原文 | V1 | LaTeX 子集白名单解析器、语义往返导出 | CORE-05、CORE-06、CORE-12、CORE-52、CORE-53、CORE-59、WIN-05 |
 | R11 | 公式库：查看已录入公式 | 原文 | V1 | 公式条目与不可变修订、检索、历史与恢复 | CORE-05、CORE-14、CORE-38、CORE-54 |
@@ -196,7 +196,7 @@ v5 的主要变化：
 | R39 | 高中数学、高中物理内容属于现有需求 | 甲方确认 2026-10-10 | 阶段 | 两个高中内容包，教育阶段与范围标签 | CORE-16、CORE-51 |
 | R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-50、CORE-42、CORE-43、AND-09、AND-11、WIN-10、WIN-12 |
 | R41 | Android 与 Windows 规范独立说明 | 甲方确认 2026-10-10 | V1 | 02、03 两份平台文档各自含构建、输入、存储、云识别、GC 与验收 | CORE-04、AND-01、AND-12、WIN-01、WIN-13 |
-| R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | CORE-36、CORE-39、CORE-58、CORE-38、CORE-47、CORE-48、CORE-55、CORE-63、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13、CORE-54、WIN-14、CORE-49、CORE-59、CORE-64 |
+| R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-55、CORE-58、CORE-63、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13、CORE-54、WIN-14、CORE-49、CORE-59、CORE-64 |
 | R42.a | 以不背单词为灵感、简洁高效：只借鉴交互模式与信息组织（一屏一事、主操作醒目、首页即今日任务、反馈即时克制），视觉识别原创 | 甲方新增 2026-10-19 | V1 | CORE-55 设计原则；ADR-V5-24 | CORE-36、CORE-39、CORE-58 |
 | R42.b | 人体工程学：触控目标、拇指区、键盘可达、焦点可见，不出现别扭操作 | 甲方新增 2026-10-19 | V1 | CORE-55 组件尺寸与密度；AND-13 触摸；WIN-15 键盘与学习命令 | CORE-38、CORE-39、CORE-47、CORE-48、CORE-54、CORE-58、CORE-63、AND-07、AND-13、WIN-14、WIN-15 |
 | R42.c | 界面操作流畅不卡顿 | 甲方新增 2026-10-19 | V1 | CORE-55 流畅性规范；CORE-01 界面性能预算 5 行（ADR-V5-25） | CORE-39、CORE-55、CORE-58、AND-12、AND-13、WIN-15、WIN-13 |
@@ -267,7 +267,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | --- | --- |
 | [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明与前后端编程索引 |
 | [01-公共核心-v5.md](01-公共核心-v5.md) | CORE-01～CORE-57：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
-| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-13（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
+| [02-Android端-v5.md](02-Android端-v5.md) | AND-01～AND-14（AND-10 已撤销）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
 | [03-Windows端-v5.md](03-Windows端-v5.md) | WIN-01～WIN-16（WIN-11 已撤销）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
 | [附录A-架构决策与评审记录.md](附录A-架构决策与评审记录.md) | 历次评审记录、v4 意见判定表、全部 ADR |
 | [附录B-YOLO识别预研.md](附录B-YOLO识别预研.md) | YOLO 轻量识别预备方案（仅实验分支，不进主线） |
@@ -366,11 +366,11 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 95 张卡——前端 47 张，端侧核心 31 张，后端 5 张，工程与发布 12 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
+- 统计：共 96 张卡——前端 48 张，端侧核心 31 张，后端 5 张，工程与发布 12 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 前端会话只需要端侧核心与后端卡的 **接口契约**（op 名、DTO、错误码、服务端 API），不需要其实现约束与验收标准；端侧核心与后端会话同理，只需要前端卡中调用方的契约。§8.1 的材料清单不变。
 
-#### 前端（47 张）
+#### 前端（48 张）
 
 - 范围：`app/` 下的 Flutter/Dart 代码：共享界面（`app/lib/ui/`）、用例与组装（`app/lib/` 其余目录）、平台层（`app/lib/platform/android|windows/`、`app/android/`、`app/windows/` 原生工程）、测试（`app/test/`、`app/integration_test/`）。
 - 检查命令：在 `app/` 下运行 `dart format --set-exit-if-changed .`、`flutter analyze`、`flutter test`；平台层另以 `flutter build apk` / `flutter build windows` 编译原生部分（Kotlin/Gradle、C++/CMake），集成测试按卡内说明在真机或 Windows 上运行。
@@ -424,6 +424,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-65 | 账户客户端控制器与安全令牌存取 | 前端 | 拆分职责 | `app/lib/account/` | S2 |
 | CORE-63 | 账户入口、注册登录与隐私页面 | 前端 | 拆分职责 | `app/lib/account/pages/`、`app/lib/ui/account/` | S2 |
 | CORE-64 | 墨迹控制器与手写画布 | 前端 | 拆分职责 | `app/lib/recognition/ink/`、`app/lib/ui/recognition/ink/` | S5 |
+| AND-14 | 剪贴板与公式多格式复制 | 前端 | Android剪贴板与多格式复制 | `app/lib/platform/android/clipboard/` | S3 |
 
 #### 端侧核心（31 张）
 
