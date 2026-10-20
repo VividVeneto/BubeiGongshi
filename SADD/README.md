@@ -147,8 +147,8 @@ v5 的主要变化：
 | --- | --- | --- | --- | --- | --- |
 | R01 | Windows 与 Android 双平台 | 原文 | V1 | Flutter 共享 UI + Rust 核心 + 两端独立工程 | CORE-03、CORE-04、CORE-12、CORE-15、CORE-37、AND-01、AND-02、AND-05、AND-03、AND-09、AND-08、AND-11、AND-12、WIN-01、WIN-02、WIN-06、WIN-04、WIN-05、WIN-10、WIN-12、WIN-13 |
 | R02 | 预留鸿蒙接口 | 原文 | 预留 | C ABI 头文件冻结 + OpenHarmony 目标编译冒烟；不做鸿蒙 UI | CORE-03、CORE-44 |
-| R03 | 轻量化、性能开销低 | 原文 | V1 | 可选包不进安装包；核心本地执行；全局预算表与门禁 | CORE-06、CORE-09、CORE-12、CORE-17、CORE-18、CORE-30、CORE-35、CORE-36、CORE-37、CORE-40、CORE-52、CORE-53、CORE-42、AND-05、AND-04、AND-12、WIN-02、WIN-09、WIN-12、WIN-13 |
-| R04 | 以不背单词为原型强化背诵（只需功能近似，见 R04.a–R04.j） | 原文 + 澄清 2026-10-18 | V1 | 书与计划、分组学习、客观判定、组后默写、FSRS 排程、统计与提醒 | CORE-14、CORE-16、CORE-17、CORE-18、CORE-19、CORE-20、CORE-31、CORE-36、CORE-38、CORE-39、CORE-40、CORE-49、CORE-54、AND-02、AND-08、AND-12、WIN-06、WIN-09 |
+| R03 | 轻量化、性能开销低 | 原文 | V1 | 可选包不进安装包；核心本地执行；全局预算表与门禁 | CORE-06、CORE-09、CORE-12、CORE-17、CORE-18、CORE-30、CORE-35、CORE-36、CORE-37、CORE-52、CORE-53、CORE-42、CORE-64、AND-05、AND-04、AND-12、WIN-02、WIN-09、WIN-12、WIN-13 |
+| R04 | 以不背单词为原型强化背诵（只需功能近似，见 R04.a–R04.j） | 原文 + 澄清 2026-10-18 | V1 | 书与计划、分组学习、客观判定、组后默写、FSRS 排程、统计与提醒 | CORE-14、CORE-16、CORE-17、CORE-18、CORE-19、CORE-20、CORE-31、CORE-36、CORE-39、CORE-40、CORE-49、CORE-54、CORE-60、AND-02、AND-08、AND-12、WIN-06、WIN-09 |
 | R04.a | 书与计划：按教材章节、考试大纲（数一/数二/数三）、大学物理基本要求或自建公式书组织；每日新学与复习目标、考试日期 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-19、CORE-39 |
 | R04.b | 分组学习：一组若干公式（默认 10），组内多轮 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-19 |
 | R04.c | 客观辨识：看名称或情境选公式、看公式选名称；干扰项取自易错变体并经人工审校 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-16、CORE-18、CORE-19 |
@@ -158,18 +158,18 @@ v5 的主要变化：
 | R04.g | 关联记忆：派生树（一般式 → 特例 → 推论）与易混公式组辨析 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-16、CORE-39 |
 | R04.h | 复习排程与改判：FSRS，复习优先于新学；客观结果自动映射评分，“记错了”申诉改判留痕 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-17、CORE-19、CORE-39 |
 | R04.i | 统计与坚持：日/周/月学习量与时长、章节完成率、掌握度、复习积压、连续天数、本地提醒（不做组队打卡） | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-20、CORE-49、AND-08 |
-| R04.j | 自建与导入：自建公式书，LaTeX/CSV 批量导入并给出校验报告 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-14、CORE-19、CORE-38、CORE-49 |
+| R04.j | 自建与导入：自建公式书，LaTeX/CSV 批量导入并给出校验报告 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-14、CORE-19、CORE-49、CORE-60 |
 | R05 | 大学公共课内容：高等数学（同济课本范围到考研数学全部范围）、大学物理；高中内容见 R39 | 原文 | 阶段 | 四类课程内容包，scope 清单与覆盖率门禁 | CORE-16 |
 | R06 | 识别手写公式 | 原文 | V1 | 识别契约 + 墨迹画布 + 统一后处理 + 人工校正；Windows 支持屏上笔与开启 Windows Ink 的外接数位板（§6 Q31） | CORE-29、CORE-31、CORE-35、CORE-39、CORE-40、CORE-50、AND-07、WIN-08、WIN-13 |
 | R07 | 预留接入轻量化识别模型或 LLM 识别（云端 LLM 首版交付见 R40） | 原文 | V1 | 可插拔后端注册表；本地模型可选包；云端网关 | CORE-29、CORE-31、CORE-33、CORE-35 |
-| R08 | 公式编辑器 | 原文 | V1 | 结构化 + LaTeX 双模式、符号面板、模板、错误定位、多格式复制 | CORE-12、CORE-37、CORE-38、CORE-52、CORE-53、AND-05、AND-03、AND-07、AND-12、WIN-05、WIN-08、WIN-14 |
-| R09 | ISO 标准字符正常输入 | 原文 | V1 | Unicode 存储、ISO 80000-2 符号能力表（可输入/可渲染/可计算三级） | CORE-56、CORE-06、CORE-07、CORE-37 |
-| R10 | 可输入 LaTeX 公式 | 原文 | V1 | LaTeX 子集白名单解析器、语义往返导出 | CORE-05、CORE-06、CORE-12、CORE-37、CORE-52、CORE-53、WIN-05 |
+| R08 | 公式编辑器 | 原文 | V1 | 结构化 + LaTeX 双模式、符号面板、模板、错误定位、多格式复制 | CORE-12、CORE-38、CORE-52、CORE-53、CORE-59、CORE-61、AND-05、AND-03、AND-07、AND-12、WIN-05、WIN-08、WIN-14 |
+| R09 | ISO 标准字符正常输入 | 原文 | V1 | Unicode 存储、ISO 80000-2 符号能力表（可输入/可渲染/可计算三级） | CORE-56、CORE-06、CORE-07、CORE-59 |
+| R10 | 可输入 LaTeX 公式 | 原文 | V1 | LaTeX 子集白名单解析器、语义往返导出 | CORE-05、CORE-06、CORE-12、CORE-52、CORE-53、CORE-59、WIN-05 |
 | R11 | 公式库：查看已录入公式 | 原文 | V1 | 公式条目与不可变修订、检索、历史与恢复 | CORE-05、CORE-14、CORE-38、CORE-54 |
 | R12 | 查看公式时输入变量充当计算器 | 原文 | V1 | 求值、反解、数值求根、单位换算、计算链 | CORE-56、CORE-07、CORE-10、CORE-11、CORE-48 |
 | R13 | 每个公式严格匹配量纲 | 原文 | V1 | Dimension + QuantityKind + MathKind，量纲多态 | CORE-56、CORE-07、CORE-08、CORE-09、CORE-31 |
-| R14 | 录入时可调整量纲 | 原文 | V1 | 符号量纲声明编辑、即时校验、待重校标记 | CORE-08、CORE-09、CORE-14、CORE-37 |
-| R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | CORE-08、CORE-14、CORE-38 |
+| R14 | 录入时可调整量纲 | 原文 | V1 | 符号量纲声明编辑、即时校验、待重校标记 | CORE-08、CORE-09、CORE-14、CORE-59 |
+| R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | CORE-08、CORE-14、CORE-60 |
 | R16 | 量纲匹配时可把公式代入到别的公式中同量纲的部分 | 原文 | V1 | 槽位候选排序、代入条件检查、推导关系 | CORE-11、CORE-14、CORE-48 |
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | CORE-11、CORE-48 |
 | R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、AND-01、WIN-01 |
@@ -178,11 +178,11 @@ v5 的主要变化：
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | CORE-01、CORE-29 |
 | R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | CORE-01、CORE-22、CORE-41、CORE-42、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-13、WIN-16 |
-| R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | CORE-22、CORE-45、CORE-23、CORE-46、CORE-36 |
-| R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | CORE-23、CORE-24、CORE-46、CORE-27、CORE-36、CORE-47、AND-06、WIN-07 |
+| R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | CORE-22、CORE-45、CORE-23、CORE-46、CORE-62、CORE-65、CORE-63 |
+| R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | CORE-23、CORE-24、CORE-46、CORE-27、CORE-47、CORE-65、CORE-63、AND-06、WIN-07 |
 | R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-50、CORE-51、CORE-41、AND-09、AND-08、WIN-03、WIN-10、WIN-09 |
-| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、AND-05、AND-06、AND-03、WIN-02、WIN-03、WIN-06、WIN-07、WIN-04、WIN-09、WIN-16 |
-| R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-36、CORE-47、CORE-43 |
+| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、AND-05、AND-06、AND-03、WIN-02、WIN-03、WIN-06、WIN-07、WIN-04、WIN-09、WIN-16 |
+| R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-36、CORE-47、CORE-43、CORE-66 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | CORE-15、CORE-35、CORE-51 |
 | R30 | 端侧只需加载通用资源包 | 原文 | V1 | 两端共用 Rust 加载器、同一包格式与包 ID | CORE-15、CORE-16、CORE-51、CORE-43、AND-09、WIN-10 |
 | R31 | 识别照片中的手写公式 | 原文 | V1 | 相册/文件/相机/剪贴板导入 → 预处理 → 识别 | CORE-30、CORE-34、CORE-40、AND-02、AND-03、AND-04、AND-12、WIN-04 |
@@ -196,13 +196,13 @@ v5 的主要变化：
 | R39 | 高中数学、高中物理内容属于现有需求 | 甲方确认 2026-10-10 | 阶段 | 两个高中内容包，教育阶段与范围标签 | CORE-16、CORE-51 |
 | R40 | 使用云端 API 的 LLM 识别属于现有需求，首版交付 | 甲方确认 2026-10-10 | V1 | 服务端网关 + 注册用户逐次授权 + 幂等与费用控制 | CORE-28、CORE-30、CORE-32、CORE-33、CORE-34、CORE-40、CORE-50、CORE-42、CORE-43、AND-09、AND-11、WIN-10、WIN-12 |
 | R41 | Android 与 Windows 规范独立说明 | 甲方确认 2026-10-10 | V1 | 02、03 两份平台文档各自含构建、输入、存储、云识别、GC 与验收 | CORE-04、AND-01、AND-12、WIN-01、WIN-13 |
-| R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | CORE-36、CORE-39、CORE-55、CORE-38、CORE-47、CORE-48、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13、CORE-54、WIN-14、CORE-37、CORE-40、CORE-49 |
-| R42.a | 以不背单词为灵感、简洁高效：只借鉴交互模式与信息组织（一屏一事、主操作醒目、首页即今日任务、反馈即时克制），视觉识别原创 | 甲方新增 2026-10-19 | V1 | CORE-55 设计原则；ADR-V5-24 | CORE-36、CORE-39、CORE-55 |
-| R42.b | 人体工程学：触控目标、拇指区、键盘可达、焦点可见，不出现别扭操作 | 甲方新增 2026-10-19 | V1 | CORE-55 组件尺寸与密度；AND-13 触摸；WIN-15 键盘与学习命令 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-54、CORE-55、AND-07、AND-13、WIN-14、WIN-15 |
-| R42.c | 界面操作流畅不卡顿 | 甲方新增 2026-10-19 | V1 | CORE-55 流畅性规范；CORE-01 界面性能预算 5 行（ADR-V5-25） | CORE-39、CORE-55、AND-12、AND-13、WIN-15、WIN-13 |
-| R42.d | Windows 与 Android 风格统一，分别为桌面与触摸操作优化 | 甲方新增 2026-10-19 | V1 | 同一设计系统，按窗口尺寸与输入方式（触摸、指针、触控笔）适配，不按平台分支 | CORE-37、CORE-40、CORE-55、AND-13、WIN-15 |
-| R42.e | Android 手机与平板都支持横屏和竖屏，跟随系统旋转设置；平板判定为屏幕最短边 ≥ 600 dp | 甲方新增 2026-10-19 | V1 | CORE-55 宽度分档与矮高度布局；AND-13 方向与配置变化；旋转不丢状态 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-55、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13 |
-| R42.f | 可选主题色：两端都有，4～6 套预设（定为 5 套），外观模式浅色、深色、跟随系统，按设备保存 | 甲方新增 2026-10-19 | V1 | CORE-55 预设主题与 appearance.v1；CORE-47 外观设置页 | CORE-47、CORE-49、CORE-55、AND-13、WIN-15、WIN-13 |
+| R42 | 界面设计方案：以不背单词为灵感、简洁高效，符合人体工程学，流畅不卡顿，双端风格统一并分别为桌面与触摸优化（见 R42.a–R42.f） | 甲方新增 2026-10-19 | V1 | CORE-55 设计系统（原则、令牌、5 套预设主题色、断点与矮高度、输入方式与密度、组件、关键页面、流畅性、无障碍）；AND-13、WIN-15 平台适配 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-55、CORE-58、CORE-63、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13、CORE-54、WIN-14、CORE-49、CORE-59、CORE-64 |
+| R42.a | 以不背单词为灵感、简洁高效：只借鉴交互模式与信息组织（一屏一事、主操作醒目、首页即今日任务、反馈即时克制），视觉识别原创 | 甲方新增 2026-10-19 | V1 | CORE-55 设计原则；ADR-V5-24 | CORE-36、CORE-39、CORE-58 |
+| R42.b | 人体工程学：触控目标、拇指区、键盘可达、焦点可见，不出现别扭操作 | 甲方新增 2026-10-19 | V1 | CORE-55 组件尺寸与密度；AND-13 触摸；WIN-15 键盘与学习命令 | CORE-38、CORE-39、CORE-47、CORE-48、CORE-54、CORE-58、CORE-63、AND-07、AND-13、WIN-14、WIN-15 |
+| R42.c | 界面操作流畅不卡顿 | 甲方新增 2026-10-19 | V1 | CORE-55 流畅性规范；CORE-01 界面性能预算 5 行（ADR-V5-25） | CORE-39、CORE-55、CORE-58、AND-12、AND-13、WIN-15、WIN-13 |
+| R42.d | Windows 与 Android 风格统一，分别为桌面与触摸操作优化 | 甲方新增 2026-10-19 | V1 | 同一设计系统，按窗口尺寸与输入方式（触摸、指针、触控笔）适配，不按平台分支 | CORE-55、CORE-58、CORE-59、CORE-64、AND-13、WIN-15 |
+| R42.e | Android 手机与平板都支持横屏和竖屏，跟随系统旋转设置；平板判定为屏幕最短边 ≥ 600 dp | 甲方新增 2026-10-19 | V1 | CORE-55 宽度分档与矮高度布局；AND-13 方向与配置变化；旋转不丢状态 | CORE-36、CORE-38、CORE-39、CORE-47、CORE-48、CORE-55、CORE-58、CORE-63、AND-02、AND-05、AND-04、AND-07、AND-12、AND-13、WIN-15、WIN-13 |
+| R42.f | 可选主题色：两端都有，4～6 套预设（定为 5 套），外观模式浅色、深色、跟随系统，按设备保存 | 甲方新增 2026-10-19 | V1 | CORE-55 预设主题与 appearance.v1；CORE-47 外观设置页 | CORE-47、CORE-49、CORE-55、CORE-58、AND-13、WIN-15、WIN-13 |
 
 ## 6. 已确认与待确认事项
 
@@ -364,11 +364,11 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 84 张卡——前端 40 张，端侧核心 28 张，后端 5 张，工程与发布 11 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
+- 统计：共 93 张卡——前端 47 张，端侧核心 30 张，后端 5 张，工程与发布 11 张；其中“跨前后端” 9 张（CORE-03、CORE-20、CORE-22、CORE-23、CORE-28、CORE-38、CORE-48、CORE-52、CORE-54）。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 前端会话只需要端侧核心与后端卡的 **接口契约**（op 名、DTO、错误码、服务端 API），不需要其实现约束与验收标准；端侧核心与后端会话同理，只需要前端卡中调用方的契约。§8.1 的材料清单不变。
 
-#### 前端（40 张）
+#### 前端（47 张）
 
 - 范围：`app/` 下的 Flutter/Dart 代码：共享界面（`app/lib/ui/`）、用例与组装（`app/lib/` 其余目录）、平台层（`app/lib/platform/android|windows/`、`app/android/`、`app/windows/` 原生工程）、测试（`app/test/`、`app/integration_test/`）。
 - 检查命令：在 `app/` 下运行 `dart format --set-exit-if-changed .`、`flutter analyze`、`flutter test`；平台层另以 `flutter build apk` / `flutter build windows` 编译原生部分（Kotlin/Gradle、C++/CMake），集成测试按卡内说明在真机或 Windows 上运行。
@@ -415,8 +415,15 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-13 | 性能与环境矩阵 | 前端 | 测试 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | S7 |
 | WIN-14 | 快捷键自定义 | 前端 | 平台层 | `app/lib/platform/windows/keymap/` | S5 |
 | WIN-15 | Windows 桌面交互与窗口适配 | 前端 | 平台层、测试 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | S2 |
+| CORE-58 | 设计组件、命令与外观入口 | 前端 | 拆分职责 | `app/lib/ui/design/components/`、`app/lib/design/commands.dart` | S2 |
+| CORE-59 | 公式编辑控制器与输入组件 | 前端 | 拆分职责 | `app/lib/editor/`、`app/lib/ui/editor/`（controller、templates、palette、declaration、formula_editor、copy） | S2 |
+| CORE-60 | 公式导入与用户单位管理界面 | 前端 | 拆分职责 | `app/lib/library/import/`、`app/lib/library/units/`、`app/lib/ui/library/import/`、`app/lib/ui/library/units/` | S3 |
+| CORE-62 | 客户端 API 与令牌刷新适配 | 前端 | 拆分职责 | `app/lib/net/` | S2 |
+| CORE-65 | 账户客户端控制器与安全令牌存取 | 前端 | 拆分职责 | `app/lib/account/` | S2 |
+| CORE-63 | 账户入口、注册登录与隐私页面 | 前端 | 拆分职责 | `app/lib/account/pages/`、`app/lib/ui/account/` | S2 |
+| CORE-64 | 墨迹控制器与手写画布 | 前端 | 拆分职责 | `app/lib/recognition/ink/`、`app/lib/ui/recognition/ink/` | S5 |
 
-#### 端侧核心（28 张）
+#### 端侧核心（30 张）
 
 - 范围：`crates/` 下的 Rust 代码，编译为 `fmlcore` 动态库，经 C ABI（CORE-03）由前端调用。
 - 检查命令：`cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`。
@@ -451,6 +458,8 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-32 | 识别会话状态机与历史 GC | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-recognize/src/session.rs`、`crates/fml-store/src/recognition/`（附属 `app/lib/recognition/history_key.dart`） | S5 |
 | CORE-35 | 本地识别模型后端 | 端侧核心 | Rust crate | `crates/fml-recognize-local/` | S5 |
 | CORE-52 | 公式复制格式与富格式导出 | 端侧核心（跨前后端：端侧核心 + 前端） | Rust crate | `crates/fml-export/`（附属 `crates/fml-ffi/src/ops/export.rs`）、`app/lib/export/` | S3 |
+| CORE-61 | 公式草稿仓储 | 端侧核心 | 拆分职责 | `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0038_formula_draft.sql` | S3 |
+| CORE-66 | 同步快照与密钥轮换编排 | 端侧核心 | 拆分职责 | `crates/fml-store/src/sync/snapshot.rs`、`crates/fml-store/src/sync/rotation.rs` | S6 |
 
 #### 后端（5 张）
 
