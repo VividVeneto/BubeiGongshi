@@ -726,19 +726,16 @@ abstract interface class HttpTransport {
 ```dart
 // app/lib/platform/android/net/android_http.dart
 final class AndroidHttpTransport implements HttpTransport {
-  AndroidHttpTransport({SecurityContext? testContext});   // 内部持有一个 HttpClient：connectionTimeout 5 s，idleTimeout 15 s，autoUncompress true，userAgent 'FML/<版本> Android'
+  AndroidHttpTransport({SecurityContext? testContext});   // 内部持有一个 HttpClient：connectionTimeout 5 s，idleTimeout 15 s，autoUncompress false（仅identity），userAgent 'FML/<版本> Android'
 }
 ```
 
 ```text
 send(req, cancel) 步骤：
-  1 req.url.scheme != 'https' 或 headers 含 cookie（不区分大小写）→ 抛 NET_HOST_NOT_ALLOWED
-  2 rangeStart != null 而 saveTo == null → ArgumentError
-  3 打开请求；saveTo 非空且 rangeStart > 0 时加 Range: bytes=<rangeStart>-
-  4 写入 body；读取响应：
-      saveTo == null → 收集到内存（上限 16 MiB，超出中止并抛 PLATFORM_IO）
-      saveTo != null → 206 追加写入；200 截断后从头写入；其他状态码不写文件，body 读入内存返回
-  5 总时限 req.timeout 覆盖 3–4；cancel 每 64 KiB 及等待期间检查，取消时中止连接（HttpClientRequest.abort）并抛 FfiCancelled
+  1 HTTPS/主机/Cookie/用途由CORE-28调用前校验，本层不复制策略
+  2 rangeStart与saveTo、现有文件长度、Accept-Encoding/Content-Range、纠错重发、超时与取消严格实现CORE-04统一续传协议
+  3 saveTo为空收集响应至内存，上限16 MiB；非空按CORE-04流式写入，其他状态body同上限返回
+  4 cancel在等待和每64 KiB检查，abort后抛FfiCancelled；req.timeout覆盖全过程
 异常映射：SocketException、HttpException（连接被重置）→ NET_OFFLINE；HandshakeException、TlsException → NET_TLS；
           TimeoutException → NET_TIMEOUT；FileSystemException → PLATFORM_IO
 系统代理：构造时与网络变化后经 MethodChannel "fml/android/net" 的 proxy → {host, port} 或 null（ConnectivityManager.getDefaultProxy），
@@ -759,7 +756,7 @@ Dart HttpClient不受Android network_security_config自动注入，测试CA只�
 **验收标准**
 - [R01] CORE-04 `HttpTransport` 契约套件在真机上对本实现通过（测试服务器由 `integration_test/android/http_server.dart` 在主机启动，证书为测试 CA，测试构建临时信任）。
 - [R30] 续传：服务器发送一半后断开 → 抛 `NET_OFFLINE`，`saveTo` 保留已收字节；以 `rangeStart` 重发收到 206 后文件哈希与源一致；服务器忽略 Range 返回 200 时文件被截断重写且哈希一致。
-- [R26] `http://` URL 与带 `Cookie` 头的请求抛 `NET_HOST_NOT_ALLOWED`，测试服务器未收到请求；自签名证书服务器返回 `NET_TLS`。
+- [R26] 经CORE-28包装后http/Cookie在守卫被拒且底层未收到请求；自签名证书服务器返回 `NET_TLS`。
 - [R40] 服务器延迟 40 s 响应、`timeout` 30 s 时抛 `NET_TIMEOUT`；请求进行中调用 `cancel()` 后 1 s 内抛 `FfiCancelled` 且服务器观察到连接关闭。
 
 **规模**：约 260 行；`app/lib/platform/android/net/` 与 `app/android/.../NetBridge.kt`（同属 `app/` 构建单元）。

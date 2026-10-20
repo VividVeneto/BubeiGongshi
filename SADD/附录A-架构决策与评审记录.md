@@ -399,3 +399,5 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 | 日期 | 项目 | 版本 | 环境与样本 | 结果 | 结论与后续动作 |
 | --- | --- | --- | --- | --- | --- |
 | — | （尚无记录） | — | — | — | — |
+
+Windows事实核实补充（2026-10-20，ADR-V5-37）：GetSystemMetrics文档说明SM_MAXIMUMTOUCHES为0时无触控，Slate指标不能单独证明有触屏（https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getsystemmetrics）；WIN-15先检查触点。已读取RequestSignAsync（https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.keycredential.requestsignasync?view=winrt-26100）与IUserConsentVerifierInterop（https://learn.microsoft.com/en-us/windows/win32/api/userconsentverifierinterop/nn-userconsentverifierinterop-iuserconsentverifierinterop）；后者仅验证HWND API，不能推出KeyCredential签名的interop或稳定密钥恢复。WIN-07保留M0阻断并移除签名哈希可恢复密钥假设。
