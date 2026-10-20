@@ -176,13 +176,13 @@ v5 的主要变化：
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | 自动 | CORE-11、CORE-48 |
 | R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | 自动 | CORE-01、CORE-04、CORE-56、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-57、CORE-67、CORE-69、CORE-70、CORE-71、CORE-73、CORE-74、CORE-75、AND-01、WIN-01 |
 | R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-56、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-21、CORE-27、CORE-28、CORE-29、CORE-36、CORE-37、CORE-47、CORE-52、CORE-41、CORE-43、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、AND-15、WIN-01、WIN-03、WIN-08、WIN-14、WIN-17 |
-| R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-41、CORE-57、CORE-69、CORE-70、CORE-71、AND-11、WIN-05 |
+| R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-52、CORE-57、CORE-69、CORE-70、CORE-71、AND-11、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | 自动＋内容（M-CONTENT） | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | 自动 | CORE-01、CORE-29 |
-| R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | 自动 | CORE-01、CORE-22、CORE-41、CORE-42、CORE-74、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-13、WIN-16 |
+| R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | 自动 | CORE-01、CORE-22、CORE-42、CORE-74、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-13、WIN-16 |
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | 自动 | CORE-22、CORE-45、CORE-23、CORE-46、CORE-62、CORE-63、CORE-65 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | 自动 | CORE-23、CORE-24、CORE-46、CORE-27、CORE-47、CORE-63、CORE-65 |
-| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-50、CORE-51、CORE-41、CORE-62、CORE-69、AND-09、AND-08、AND-11、WIN-03、WIN-10、WIN-09 |
+| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-50、CORE-51、CORE-62、CORE-69、AND-09、AND-08、AND-11、WIN-03、WIN-10、WIN-09 |
 | R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-04、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、AND-05、AND-06、AND-03、WIN-02、WIN-03、WIN-06、WIN-07、WIN-04、WIN-09、WIN-16 |
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-46、CORE-27、CORE-36、CORE-47、CORE-43、CORE-66、CORE-68 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | 自动＋模型（M-MODEL） | CORE-15、CORE-35、CORE-51 |
@@ -308,12 +308,13 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
   材料3 正文引用但闭包外的段落（标“下游说明，非契约”的不是编译依赖）
   材料4 本卡 [Rxx] 的 README §5 行、§6 Q 行、引用的 ADR 行及补充章节
   材料5 将修改的 contracts/ 文件、版本锁定文件与已有实现（未创建的已标明）
-规则：只实现本卡“范围/包含”，遵守“实现约束”；不修改依赖模块的接口。确需修改接口，或材料中找不到要用的符号时，停止并说明需要改哪张卡、缺哪个符号。
+规则：只实现本卡“范围/包含”，遵守“实现约束”；不修改依赖模块的接口。确需修改接口，或材料中找不到要用的符号时，停止依赖该变更的实现，并产出§8.4契约变更单：目标卡/符号、旧新签名、理由、影响消费者、兼容与迁移风险、所需验收；只继续与该变更独立的工作。所有者修订并同步消费者、重生成材料、D复检后继续，不自行改依赖接口。
 完成后：
 1. 为“验收标准”每一条写自动化测试，测试名或注释标注对应 [Rxx]；无法自动化的手动步骤写成 checklist 放在 PR 描述中；
-2. 按主类运行检查（命令见 AGENTS.md）：Rust 运行 cargo fmt --all --check、cargo clippy --workspace --all-targets -- -D warnings、cargo test --workspace；Dart 运行 dart format --set-exit-if-changed .、flutter analyze、flutter test；WIN-16 运行 cmake 构建与 ctest；CORE-41 合入后最后运行 python tools/ci/run_all.py；
+2. 按主类运行检查（命令见 AGENTS.md）：Rust 运行 cargo fmt --all --check、cargo clippy --workspace --all-targets -- -D warnings、cargo test --workspace；Dart 运行 dart format --set-exit-if-changed .、flutter analyze、flutter test；WIN-16 运行 cmake 构建与 ctest；另运行文档告警、cargo deny与llvm-cov（AGENTS全量检查）；CORE-41 合入后最后运行 python tools/ci/run_all.py；尚无脚本/锁文件的记录未执行及阻断，不能记通过；
 3. 新增错误码先写入 contracts/errors/registry.yaml 再生成代码；新增第三方依赖写入 Cargo.lock / pubspec.lock，工具链版本只读锁定文件（ADR-V5-15）；
-4. 提交信息用 <type>(<模块编号小写>): <摘要>，如 feat(core-05): 定义公式 AST 节点；契约破坏性变更在正文写 BREAKING CHANGE: 并引用 ADR；一个提交只涉及一张卡。
+4. 提交信息用 <type>(<模块编号小写>): <摘要>，如 feat(core-05): 定义公式 AST 节点；契约破坏性变更在正文写 BREAKING CHANGE: 并引用 ADR；一个提交只涉及一张卡，特性分支不超过3天；
+5. 作者自查后把验收证据和手动checklist交给非作者复核，按§8.5.1登记D.12，再更新D.10；机械0项不自动就绪。
 <材料1>
 <材料2>
 <材料3>
@@ -337,11 +338,11 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | S6 | V5-14 | V5-18 可本地容器，真实同步服务上线前定案 |
 | S7 | V5-12、V5-25 | V5-18 在正式服务部署前采纳；模型发布另过 M-MODEL |
 
-S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步；每张卡在自己的会话开始前须在附录 D §D.12 有整卡语义复核通过记录（§8.5.1），不要求 S0 九张卡同时通过：
+S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步；每张卡在自己的会话开始前须在附录 D §D.12 有整卡语义复核通过记录（§8.5.1），不要求 S0 全部卡同时通过：
 
 1. CORE-01（仓库目录、工程约定、工具链锁定文件、全局性能预算）。
 2. CORE-02（错误码注册表与生成器）。
-3. CORE-67（DTO生成自包含fixture）→CORE-03（C ABI/Dart绑定）→CORE-04与CORE-41（二者依赖03，不能与03无前置并行）；CORE-57材料工具在01/02后可独立进行。
+3. CORE-67（DTO生成自包含fixture）→CORE-03（C ABI/Dart绑定）→CORE-04；CORE-69在01/02后交付，CORE-70/71依赖69，CORE-74在03/69后交付，CORE-75在01/02后交付；CORE-41在57/69/70/71/74/75后聚合，不能跳过其S0依赖；CORE-57材料工具在01/02后可独立进行。
 4. AND-01、WIN-01（两端工程与入口；可并行）。完成后两端空壳应用都能启动并显示 ABI 版本，即 S0 出口。
 
 试点计划（PR4；尚未执行，不能把本次文档修订算真实编码会话）：
@@ -388,7 +389,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 - 清单：逐项判断 a～g，再判断语义项——S1 目标与范围不超出需求、不漏 [Rxx]；S2 契约中每个类型、函数、op、表、错误码在本卡或依赖闭包内有唯一定义，单位、编码与调用方向一致；S3 每条验收能由本卡代码独立自动化（不能的已标为手动 checklist）并引用 CORE-01 预算行名；S4 规模估算与构建单元可信（不可信先拆卡）；S5 引用的待定 ADR、待确认 Q 已写暂行默认与 Fake 路线；S6 按 §8.1 收集的材料字符数，超过 80000 时是否已按第 6 项裁剪并留记录。
 - 记录：附录 D §D.12 每次复核一行（卡、复核人、日期、材料字符数/是否裁剪、a～g 与 S1～S6 结论、发现与处理、结论）；通过后把 §D.10 该卡“当前状态”改为“就绪（D.12 第 n 行）”。
 - 流程：作者自查 → 复核人按清单逐项检查 → 有阻断或高问题时结论为“不通过”，作者修订后重新复核 → 通过后更新 §D.10。已就绪卡依赖的契约此后被修改时，引用了被改符号的下游卡回到“待复核”，只需复核受影响的条目。
-- S0 路径：S0 的九张卡（CORE-01、CORE-02、CORE-67、CORE-03、CORE-04、CORE-41、CORE-57、AND-01、WIN-01）按 §8.3 的顺序逐张复核；复核未通过的卡不开工，后续卡顺延。
+- S0 路径：S0 的十四张卡（CORE-01、CORE-02、CORE-67、CORE-03、CORE-04、CORE-41、CORE-57、CORE-69、CORE-70、CORE-71、CORE-74、CORE-75、AND-01、WIN-01）按 §8.3 的顺序逐张复核；复核未通过的卡不开工，后续卡顺延。
 
 ### 8.6 前后端编程索引
 
