@@ -1,7 +1,7 @@
 # 附录 D：编码就绪检查记录 v5.3.3
 
 > 版本：v5.3.3 ｜ 检查日期：2026-10-20 ｜ 效力：说明性；历史批次见D.4～8，v5.3 P0处理/证据见D.9，当前106卡就绪状态见D.10，v5.3复核与v5.3.1修订见D.11，整卡语义复核见D.12，v5.3.3独立复核/修订及P2见D.13；规范性要求以README与01～03模块卡为准。
-> 关联文档：[README](README.md)（§8.5 就绪定义、§6 已确认与待确认事项）、[01 公共核心](01-公共核心-v5.md)、[02 Android 端](02-Android端-v5.md)、[03 Windows 端](03-Windows端-v5.md)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～40）。
+> 关联文档：[README](README.md)（§8.5 就绪定义、§6 已确认与待确认事项）、[01 公共核心](core/00-总览.md)、[02 Android 端](and/00-总览.md)、[03 Windows 端](win/00-总览.md)、[S0 卡片](S0/)、[附录 A](附录A-架构决策与评审记录.md)（ADR-V5-12～40）。
 
 ## D.1 检查方法
 
@@ -22,7 +22,7 @@
 | AND | 14 | AND-10 |
 | WIN | 16 | WIN-11 |
 
-总计108卡；当前独立复核等级：C=37、B=70、—=1；就绪=0。
+总计108卡；当前独立复核等级：C=37、B=71；就绪=0。
 <!-- sadd-current-stats:end -->
 
 v5.3.1（2026-10-20）：§D.10 第6列 A=2、B=54、C=11、未复核=16，就绪=0（尚无 §D.12 复核通过记录）。以下为 v5.3 历史统计：原评审逐行统计 A=4、B=47、C=30（81卡）；core-a尾注自报B10/C8与其逐卡表B11/C7不一致，本表按逐卡行计数。本轮修订后P0复核 B=37、C=23（其中3张保持原C、P0未涉及），其余未复核=23；新卡无原评审等级。未完成83卡整卡语义复核，不宣称全部就绪；实现/真机证据另在编码与交付阶段提供。
@@ -642,19 +642,19 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 
 | 编号 | 阶段 | 评审等级（2026-10-19） | v5.3 修订后 | v5.3 复核（2026-10-20） | v5.3.1 修订后（未独立复核） | v5.3.2 复核 | v5.3.3 复核 | 当前状态 | 待定ADR影响（含依赖闭包） | 遗留阻塞/未复核原因 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CORE-01 | S0 | B | B | B | B | C | C | 未就绪（D.12 P2-CORE-01；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I01；首卡验收依赖后卡，锁版与材料超量。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
-| CORE-02 | S0 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-02；pending） | —（仍须开工锁版本/平台探针） | 独立发现：E-N03；机器错误集合、消费确认、完整材料。；lead修复见D.14，未重新提级。 |
+| CORE-01 | S0 | B | B | B | B | C | C | 未就绪（D.12 P2-CORE-01；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I01；首卡验收依赖后卡，锁版与材料超量。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 CO-14附带：补Cargo workspace成员规则与fml-sync-proto目录（N-11）；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
+| CORE-02 | S0 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-02；pending） | —（仍须开工锁版本/平台探针） | 独立发现：E-N03；机器错误集合、消费确认、完整材料。；lead修复见D.14，未重新提级。 CO-14：补TraceId/Severity/Diagnostic/FmlError derive与serde、ErrorCode生成方法、FmlError::new/with_trace构造、示例改“L T^-1”；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-03 | S0 | B | — | B | B | C | B | 未就绪（D.12 P2-CORE-03；pending） | —（仍须开工锁版本/平台探针） | 独立发现：E-N01～04；handle改善，FFI规模与机器契约待闭合。；lead修复见D.14，未重新提级。 |
 | CORE-04 | S0 | B | B | B | B | C | C | 未就绪（D.12 P2-CORE-04；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I13；同步Installer与异步editor不一致。；lead修复见D.14，未重新提级。 |
-| CORE-05 | S1 | C | B | B | B | B | C | 未就绪（D.12 P2-CORE-05；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-N01/02/04；正文、黄金向量、schema不一致。；lead修复见D.14，未重新提级。 |
+| CORE-05 | S1 | C | B | B | B | B | C | 未就绪（D.12 P2-CORE-05；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-N01/02/04；正文、黄金向量、schema不一致。；lead修复见D.14，未重新提级。 CO-14：MathKind补derive与serde外部标签约定；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-06 | S1 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-06；pending） | —（仍须开工锁版本/平台探针） | 独立发现：export漏码；schema/消费确认及规模待证。；lead修复见D.14，未重新提级。 |
 | CORE-07 | S1 | C | C | B | B | C | B | 未就绪（D.12 P2-CORE-07；pending） | —（仍须开工锁版本/平台探针） | 独立发现：notation漏码；完整材料和消费确认未完成。；lead修复见D.14，未重新提级。 |
-| CORE-08 | S1 | C | B | B | B | B | B | 未就绪（D.12 P2-CORE-08；pending） | —（仍须开工锁版本/平台探针） | 独立发现：units错误为空；AST机器修正与确认。；lead修复见D.14，未重新提级。 |
-| CORE-09 | S1 | B | B | B | B | C | C | 未就绪（D.12 P2-CORE-09；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I02；500+150行未拆卡。；lead修复见D.14，未重新提级。T1后续（D.14.5）：已拆出CORE-77，规模改约480行，须重新整卡复核。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
+| CORE-08 | S1 | C | B | B | B | B | B | 未就绪（D.12 P2-CORE-08；pending） | —（仍须开工锁版本/平台探针） | 独立发现：units错误为空；AST机器修正与确认。；lead修复见D.14，未重新提级。 CO-14：PseudoDim补derive与serde；补checked运算与规范形单测；规模500；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
+| CORE-09 | S1 | B | B | B | B | C | C | 未就绪（D.12 P2-CORE-09；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I02；500+150行未拆卡。；lead修复见D.14，未重新提级。T1后续（D.14.5）：已拆出CORE-77，规模改约480行，须重新整卡复核。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 CO-13：TypedAst输出前resolve（⑥）、fresh上界（⑦）及typed规范形验收；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-10 | S1 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-10；pending） | —（仍须开工锁版本/平台探针） | 独立发现：500行估算、AST/FFI机器契约需复核。；lead修复见D.14，未重新提级。 |
-| CORE-11 | S1 | B | — | B | B | C | C | 未就绪（D.12 P2-CORE-11；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I03；排序输入不足，derive错误为空。；lead修复见D.14，未重新提级。 |
+| CORE-11 | S1 | B | — | B | B | C | C | 未就绪（D.12 P2-CORE-11；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I03；排序输入不足，derive错误为空。；lead修复见D.14，未重新提级。 CO-13：DERIVE_TYPE_MISMATCH与rank按CORE-77跨来源协议两侧实例化，rank的Overflow候选省略并补验收；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-12 | S1 | B | B | C | B | C | B | 未就绪（D.12 P2-CORE-12；pending） | —（仍须开工锁版本/平台探针） | 独立发现：AST schema、字体/工具外部门槛。；lead修复见D.14，未重新提级。 |
-| CORE-13 | S2 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-13；pending） | —（仍须开工锁版本/平台探针） | 独立发现：STORE_BUSY镜像遗漏，消费确认待完成。；lead修复见D.14，未重新提级。 |
+| CORE-13 | S2 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-13；pending） | —（仍须开工锁版本/平台探针） | 独立发现：STORE_BUSY镜像遗漏，消费确认待完成。；lead修复见D.14，未重新提级。 CO-17：push_batch归属改CORE-78；迁移待执行判定与乱序补执行规则及验收；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-14 | S3 | C | B | B | B | C | C | 未就绪（D.12 P2-CORE-14；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I04；标签错误条件和后阶段批次表述。；lead修复见D.14，未重新提级。 |
 | CORE-15 | S4 | C | C | C | B | C | C | 未就绪（D.12 P2-CORE-15；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I05；tough真实适配未闭合。；lead修复见D.14，未重新提级。 |
 | CORE-16 | S4 | C | C | C | B | C | B | 未就绪（D.12 P2-CORE-16；pending） | —（仍须开工锁版本/平台探针） | 独立发现：真实内容/审校/许可、15适配与规模。；lead修复见D.14，未重新提级。 |
@@ -667,7 +667,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | CORE-23 | S2 | C | C | C | C | C | B | 未就绪（D.12 P2-CORE-23；pending） | —（仍须开工锁版本/平台探针） | 独立发现：E-N04/错误镜像及消费确认。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
 | CORE-24 | S6 | C | C | C | C | C | C | 未就绪（D.12 P2-CORE-24；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-N06；撤销锁后仍保留解锁入口。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
 | CORE-25 | S6 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-25；pending） | V5-18：正式托管受阻 | 独立发现：26密文重发一致性与DB锁版。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
-| CORE-26 | S6 | C | C | C | B | C | C | 未就绪（D.12 P2-CORE-26；fail） | V5-18：正式托管受阻 | 独立发现：E-I08；密文持久字段与收敛规则缺口。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
+| CORE-26 | S6 | C | C | C | B | C | C | 未就绪（D.12 P2-CORE-26；fail） | V5-18：正式托管受阻 | 独立发现：E-I08；密文持久字段与收敛规则缺口。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 CO-15/16：prepare_push改为接收WriteTx、陈旧批次Stale作废重建、max_bytes请求体口径、错误透传补全及T-STALE/并发/口径验收；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-27 | S6 | B | B | — | B | C | C | 未就绪（D.12 P2-CORE-27；fail） | —（仍须开工锁版本/平台探针） | 独立发现：E-I09；调用模式、引用闭包、格式不唯一。；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
 | CORE-28 | S2 | C | C | B | B | B | B | 未就绪（D.12 P2-CORE-28；pending） | —（仍须开工锁版本/平台探针） | 独立发现：完整依赖闭包及消费确认。；lead修复见D.14，未重新提级。 |
 | CORE-29 | S5 | A | — | — | — | B | B | 未就绪（D.12 P2-CORE-29；pending） | —（仍须开工锁版本/平台探针） | 独立发现：识别后端前提与材料。；lead修复见D.14，未重新提级。 |
@@ -687,7 +687,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | CORE-43 | S7 | B | — | B | B | B | B | 未就绪（D.12 P2-CORE-43；pending） | V5-16：Fake可先行，真实云识别受阻；V5-18：正式托管受阻 | 独立发现：M/L；真实托管/账号/轮换；lead修复见D.14，未重新提级。 |
 | CORE-44 | S7 | A | — | A | A | A | B | 未就绪（D.12 P2-CORE-44；pending） | —（仍须开工锁版本/平台探针） | 独立发现：M/L；锁版SDK/C消费者；lead修复见D.14，未重新提级。 |
 | CORE-45 | S2 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-45；pending） | —（仍须开工锁版本/平台探针） | 独立发现：M/L；供应商/域名；lead修复见D.14，未重新提级。 |
-| CORE-46 | S6 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-46；pending） | V5-18：正式托管受阻 | 独立发现：M/L/H；66分批协议；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
+| CORE-46 | S6 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-46；pending） | V5-18：正式托管受阻 | 独立发现：M/L/H；66分批协议；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 CO-15/16：SYNC_BATCH_UNKNOWN按良性处理、紧凑JSON推送约束与验收；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-47 | S6 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-47；pending） | —（仍须开工锁版本/平台探针） | 独立发现：M/L/H；完整消费确认；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
 | CORE-48 | S3 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-48；pending） | —（仍须开工锁版本/平台探针） | 独立发现：M/L/H；计划DTO/同步；lead修复见D.14，未重新提级。 |
 | CORE-49 | S4 | B | B | B | B | B | B | 未就绪（D.12 P2-CORE-49；pending） | —（仍须开工锁版本/平台探针） | 独立发现：M/L/H；L-N04；lead修复见D.14，未重新提级。 |
@@ -729,14 +729,14 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | CORE-58 | S2 | 新增/无原评级 | — | — | — | C | C | 未就绪（D.12 P2-CORE-58；fail） | 按依赖闭包继承外部门槛 | 独立发现：L-I05；M/L；lead修复见D.14，未重新提级。 |
 | CORE-59 | S2 | 新增/无原评级 | — | — | — | C | C | 未就绪（D.12 P2-CORE-59；fail） | 按依赖闭包继承外部门槛 | 独立发现：L-N02；L-I06/09；M/L；lead修复见D.14，未重新提级。 |
 | CORE-60 | S3 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-60；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L/H；L-N04；lead修复见D.14，未重新提级。 |
-| CORE-61 | S3 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-61；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L/H；草稿schema；lead修复见D.14，未重新提级。 |
+| CORE-61 | S3 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-61；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L/H；草稿schema；lead修复见D.14，未重新提级。 CO-17附带：迁移文件序号0038改为0061（取归属卡编号）；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | CORE-62 | S2 | 新增/无原评级 | — | — | — | C | B | 未就绪（D.12 P2-CORE-62；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L；完整消费者确认；lead修复见D.14，未重新提级。 |
 | CORE-65 | S2 | 新增/无原评级 | — | — | — | C | B | 未就绪（D.12 P2-CORE-65；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L；生命周期确认；lead修复见D.14，未重新提级。 |
 | CORE-63 | S2 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-63；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L；L-N04；lead修复见D.14，未重新提级。 |
 | CORE-64 | S5 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-64；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L/H；平台输入/真机；lead修复见D.14，未重新提级。 |
 | CORE-66 | S6 | 新增/无原评级 | — | — | — | C | C | 未就绪（D.12 P2-CORE-66；fail） | 按依赖闭包继承外部门槛 | 独立发现：快照分批协议缺失；H/M/L；lead修复见D.14，未重新提级。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
 | CORE-67 | S0 | 新增/无原评级 | — | — | — | C | C | 未就绪（D.12 P2-CORE-67；fail） | 按依赖闭包继承外部门槛 | 独立发现：E-N机器契约；L-N07；lead修复见D.14，未重新提级。 |
-| CORE-68 | S6 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-68；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L；Envelope消费者；lead修复见D.14，未重新提级。 |
+| CORE-68 | S6 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-CORE-68；pending） | 按依赖闭包继承外部门槛 | 独立发现：M/L；Envelope消费者；lead修复见D.14，未重新提级。 CO-16：新增to_canonical_json规范JSON；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 | AND-14 | S3 | 新增/无原评级 | — | — | — | B | B | 未就绪（D.12 P2-AND-14；fail） | 按依赖闭包继承外部门槛 | 独立发现：M；P-N05；URI接收方；P-I06；lead修复见D.14，未重新提级。 |
 | CORE-69 | S0 | — | — | — | — | C | B | 未就绪（D.12 P2-CORE-69；pending） | 按本卡外部前提 | 独立发现：M/L；词法子集/消费者；lead修复见D.14，未重新提级。 |
 | CORE-70 | S0 | — | — | — | — | C | C | 未就绪（D.12 P2-CORE-70；fail） | 按本卡外部前提 | 独立发现：L-N05；M/L；lead修复见D.14，未重新提级。 |
@@ -748,8 +748,8 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | WIN-17 | S2 | — | — | — | — | C | C | 未就绪（D.12 P2-WIN-17；fail） | 按本卡外部前提 | 独立发现：P-N01；4warnings；UIA/锁版/交互桌面；lead修复见D.14，未重新提级。 |
 | CORE-75 | S0 | — | — | — | — | C | C | 未就绪（D.12 P2-CORE-75；fail） | 按本卡外部前提 | 独立发现：L-N04/07；L-I09；lead修复见D.14，未重新提级。 |
 | CORE-76 | S0 | — | — | — | — | C | C | 未就绪（D.12 P2-CORE-76；fail） | 按本卡外部前提 | 独立发现：L-N03；M/L；lead修复见D.14，未重新提级。T1-F10已补状态表头/行宽校验，须重新整卡复核。 v5.3.4修订：该卡内容已变，v5.3.3等级对新内容失效，须重新整卡复核。 |
-| CORE-77 | S1 | — | — | — | — | — | B | 未就绪（D.12 P2-CORE-77；fail） | —（沿用CORE-05、CORE-08的外部前提） | 独立复核B/fail（reviewer-core77）：F-01～F-03阻断，已按复核报告修订CORE-77/08/09/11/01，修订后未复检，须重新生成材料并复检；CORE-09作者确认缺失。 |
-| CORE-78 | S6 | — | — | — | — | — | — | 未复核（新增，自CORE-26拆出；须整卡复核） | 按依赖闭包继承（CORE-13） | D.14.5新增；尚无独立复核记录，不填假等级。 |
+| CORE-77 | S1 | — | — | — | — | — | B | 未就绪（D.12 P2-CORE-77；fail） | —（沿用CORE-05、CORE-08的外部前提） | 复检B/fail（reviewer-core77-r2，D.12 P2-CORE-77复检）：N-01 instantiate跨修订协议（高，CO-13）与P-01 CORE-09/11作者确认缺失为阻断；N-02～N-06中（CO-13/CO-14）；首检reviewer-core77 B/fail的F-01/02/05/07/14已闭合、其余部分闭合；修订须重新生成材料并由非作者复检。 CO-13/14：按P2-CORE-77复检N-01～N-12修订（instantiate_all/instantiate_types跨来源协议、to_text文法、DX字面序列、fresh上界、外部前提、规模400）；材料226433/4；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
+| CORE-78 | S6 | — | — | — | — | — | B | 未就绪（D.12 P2-CORE-78；fail） | 按依赖闭包继承（CORE-13） | D.14.5新增；首次独立复核B/fail（reviewer-core78-fresh，D.12 P2-CORE-78）：F-01/F-02/F-03高与P-01 CORE-26/66作者确认缺失为阻断，见CO-15～17；修订后须重新生成材料并由非作者复检。 CO-15/16/17：按P2-CORE-78 F-01～F-14修订（读写均接收WriteTx、至多一个批次、Stale作废、重复结算良性、长度前缀存储、外部前提、规模210）；材料242339/4；lead修订后未复检，受影响条目须由非作者复检，不改等级。 |
 
 ### D.10.1 v5.3.3当前阻断与接续
 
@@ -1008,7 +1008,8 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 | P2-CORE-74 | CORE-74 | /root/p2_core_late / 2026-10-20 | 52288 / 1 | P?PPPP? | P?P?P? | M/L；ABI头/注册表/标签；lead处理见D.14，消费确认未完成 | pending |
 | P2-CORE-75 | CORE-75 | /root/p2_core_late / 2026-10-20 | 10567 / 1 | P?FFFP? | PFFPPF | L-N04/07；L-I09；lead处理见D.14，消费确认未完成 | fail |
 | P2-CORE-76 | CORE-76 | /root/p2_core_late / 2026-10-20 | 11724 / 1 | P?PFFP? | PFFPP? | L-N03；M/L；lead处理见D.14，消费确认未完成 | fail |
-| P2-CORE-77 | CORE-77 | reviewer-core77 / 2026-10-20 | 197247 / 3 | PFPFFP? | PFF?PP | F-01 UnifyError 无溢出通道；F-02 CORE-08 缺 Rational/DimensionFull 运算与溢出通道；F-03 DimVar 作用域与跨修订矛盾、缺 instantiate；F-04～F-14 见 temp/review/T1/CORE-77复核.md；材料约80%为无关 contracts，目录另有重复 part-4.md；lead 已修订 F-01/03～10/12 并经 CORE-08 修订闭合 F-02，修订后未复检；消费确认（CORE-09）缺失 | fail |
+| P2-CORE-77 | CORE-77 | reviewer-core77-r2 / 2026-10-20 | 225619 / 4 | PPPFFPF | PFFPPP | 复检（第二轮，fresh独立复核，同一record更新，因工具不接受P2-CORE-77-R2；报告temp/review/CORE-77复核.md）：N-01高 跨修订instantiate协议错误（CORE-77“其中一份”/CORE-11“来源侧”在无存活Subst时重号误合一，映射作用域未定义），开变更单CO-13；P-01 CORE-09/CORE-11作者调用方确认缺失；中 N-02 derive依赖外卡trait与FmlError构造入口未声明（CO-14）、N-03 DX-05～11无字面序列、N-04 fresh上限panic可达、N-05 to_text文法不全、N-06 TypedAst未写明已resolve（CO-13）；低 N-07～N-12；旧F-01/02/05/07/14闭合，F-03/04/06/08～13部分闭合；首检历史：reviewer-core77 / 2026-10-20，197247 / 3，PFPFFP? / PFF?PP，B/fail（F-01～F-14，temp/review/T1/CORE-77复核.md）；消费确认缺失 | fail |
+| P2-CORE-78 | CORE-78 | reviewer-core78-fresh / 2026-10-20 | 243316 / 4 | PPPFFPF | PFPPP? | 首次独立复核（fresh；报告temp/review/CORE-78复核.md）：高 F-01 非轮换设备导入新密钥后旧key_version批次永不作废、pending_batch不校验epoch/key_version致推送永久卡死（CO-15）；高 F-02 pending_batch/batched_op_ids仅收&Store，无法与save_batch同事务查-建-存，竞态得不可重试SYNC_BATCH_INVALID或作废后落盘旧批次（CO-15）；高 F-03 1 MiB计量口径与元素字节编码未定义且批次字节不可变（CO-16）；中 F-04 CORE-13把push_batch归CORE-26（lead已做文字修正为CORE-78）、F-05 全额结算后重复settle与幂等冲突（CO-15）、F-06 外部前提缺失（CBOR等，CO-16）、F-12 0078先于0026合入的迁移乱序语义未定（CO-17）；低 F-07～F-11、F-14；0078序号合规唯一；SYNC_BATCH_UNKNOWN/INVALID卡内与shared-writes唯一，registry.yaml未创建pending；消费确认（CORE-26/66作者）缺失 | fail |
 | P2-AND-01 | AND-01 | /root/p2_platform / 2026-10-20 | 110580 / 2 | P?PPPP? | P?PP?F | M；宿主锁版探针；lead处理见D.14，消费确认未完成 | fail |
 | P2-AND-02 | AND-02 | /root/p2_platform / 2026-10-20 | 109362 / 2 | P?PPPP? | P?PP?F | M；P-N01；权限合并；lead处理见D.14，消费确认未完成 | fail |
 | P2-AND-03 | AND-03 | /root/p2_platform / 2026-10-20 | 96292 / 2 | P?FPPP? | P?PP?F | M；P-I01；ActivityResult/选择器；lead处理见D.14，消费确认未完成 | fail |
@@ -1254,8 +1255,15 @@ E-I01首卡验收边界、E-I03纯输入稳定排序、E-I04标签码、E-I06事
 | CO-08 | CORE-26 规模 | CORE-26、CORE-78、CORE-66 | 负责人确认现在拆：新增 CORE-78（`push_batch` 表、`save/pending/batched/settle/invalidate`、迁移 `0078_sync_batch.sql`），CORE-26 规模约440行；`SYNC_BATCH_UNKNOWN` 改由 CORE-78 定义；总卡数108 | V5-43 |
 | CO-09 | Purged 保留期 | CORE-32 | 负责人确认 Purged 元数据保留 7 天（`PURGED_RETENTION_MS`，新增 `purged_ms`，`gc_plan/gc_execute` 增加 `now_ms`，`recog.gc` body `{ now_ms }`） | V5-42 |
 | CO-10 | 消费方 | CORE-40、47、24、46 | 备份界面闭包提示与长任务提交、图片暂存扩展名与取消、`wrap_with_passphrase` 取 OsRandom、快照目录分片读写、`cleanup_snapshot_dirs` 默认 24 h | — |
-| CO-11 | CORE-77 整卡复核 | CORE-77、08、09、11、01 | reviewer-core77 复核 B/fail（F-01～F-03 阻断）；lead 修订：UnifyError 加 Overflow、`instantiate`/`bindings`/`free_vars`/`to_text`、失败原子性、DimVar 分配顺序、MathKind 相容判定归 CORE-09、CORE-08 补 Rational/DimensionFull checked 运算与规范形、fml-type 骨架归 CORE-77、CORE-11 增加对 CORE-77 的依赖、CORE-01 规则1通用例外、engine.check 增加 UNIT_OVERFLOW；规模改约330行。修订后未复检 | — |
+| CO-11 | CORE-77 整卡复核 | CORE-77、08、09、11、01 | reviewer-core77 复核 B/fail（F-01～F-03 阻断）；lead 修订：UnifyError 加 Overflow、`instantiate`/`bindings`/`free_vars`/`to_text`、失败原子性、DimVar 分配顺序、MathKind 相容判定归 CORE-09、CORE-08 补 Rational/DimensionFull checked 运算与规范形、fml-type 骨架归 CORE-77、CORE-11 增加对 CORE-77 的依赖、CORE-01 规则1通用例外、engine.check 增加 UNIT_OVERFLOW；规模改约330行。修订后未复检；2026-10-20 reviewer-core77-r2 复检 B/fail（D.12 P2-CORE-77），遗留见CO-13/CO-14 | — |
 | CO-12 | xref 未定义错误码 18 项逐条判断 | CORE-17、36、40、33、35；shared-writes.json | 8 个 CLOUD_*（CORE-33）本已在表中定义，原为工具对“`CODE`（HTTP 状态）”写法的误判；6 个 STUDY_*（CORE-17）与 SYNC_NOT_AVAILABLE（CORE-36）原只在散文中，改为标准错误码表（级别与可重试为补全，待所有者确认）；CORE-40 引用 RECOG_TIMEOUT/RECOG_OOM 写错，应为 CORE-35 定义的 RECOG_MODEL_TIMEOUT/RECOG_MODEL_OOM，并把 RECOG_MODEL_NOT_INSTALLED 的唯一定义卡改为 CORE-35；15 个码补登记（reservation 275→290项）；DTOcheck 新增 XREF-05（引用表声明的定义卡必须正确） | — |
+| CO-13 | CORE-77复检N-01/N-06/N-09（2026-10-20 lead已修订，待非作者复检与CORE-09/11作者确认） | CORE-77、CORE-11、CORE-09 | 目标符号：`Subst::instantiate(&mut self, e: &DimExpr) -> Result<DimExpr, FmlError>`（01:7414）及7422、1875的跨修订合一协议。旧：合一前只对“其中一份/来源侧”typed实例化。新（二选一，由CORE-77所有者定）：(a)新建Subst后两侧都instantiate再unify；(b)增加`Subst::reserve_from(&mut self, e: &DimExpr)`等计数器推进接口，并定义多次调用间映射作用域（如`instantiate_all`或返回映射）。理由：两侧typed均为反序列化结果，无存活Subst，fresh从0编号会重号误合一。消费者：CORE-11（DERIVE_TYPE_MISMATCH、derive.rank pool≤200候选）、CORE-09（N-06：TypedAst中TypeExpr须为resolve后规范形并加验收）；CORE-11另写明rank路径Overflow按不匹配省略（N-09）。迁移风险：无已合入实现；签名若新增为非破坏。所需验收：两侧均自D0编号时按协议合一与手算同构；TypedAst resolve验收；修订后重生成CORE-77/09/11材料、非作者复检并取CORE-09/11作者确认 | — |
+| CO-14 | CORE-77复检N-02/N-07（2026-10-20 lead已修订，待复检） | CORE-02、CORE-05、CORE-08（消费者CORE-77） | 目标符号：CORE-05 `MathKind`、CORE-08 `PseudoDim`、CORE-02 `FmlError`/`Diagnostic`/`TraceId`的derive集合与serde约定；领域crate（无I/O、无随机）构造`FmlError{code: UNIT_OVERFLOW}`的入口（trace_id取值规则）。旧：未声明，CORE-77 7393/7398的derive链与DimensionFull derive(Hash/Eq)及排序无法成立。新：由各所有者补derive/serde声明与构造方式；CORE-77 7423改为规范化溢出时反序列化失败的映射。消费者：CORE-77、CORE-09、CORE-11。迁移风险：无已合入实现。所需验收：CORE-08补checked_*、one、inverse、规范形单测（N-07）；修订后重生成材料并复检 | — |
+| CO-15 | CORE-78复核F-01/F-02/F-05/F-14（2026-10-20 lead已修订，待非作者复检与CORE-26/66作者确认） | CORE-78、CORE-26、CORE-24（消费者CORE-46、CORE-66） | 目标符号：`pending_batch(&Store)`、`batched_op_ids(&Store)`、`save_batch(&mut WriteTx, &StoredBatch)`、`settle`、`invalidate_all(&mut WriteTx, InvalidateReason)`（01:7458-7462）与CORE-26 prepare_push（3548、3601）。旧：读函数只收&Store，无法与save_batch同事务；非轮换设备导入新密钥无作废路径，pending_batch不比较epoch/key_version；全额结算后重复settle返回SYNC_BATCH_UNKNOWN。新（由CORE-78/26所有者定）：增加事务内读取变体（如`pending_batch_tx(&WriteTx)`）并声明“至多一个未结算批次”不变量；prepare_push遇陈旧epoch/key_version同事务作废（或CORE-24导入新密钥事务调invalidate_all）；明确重复结算的良性结果；CORE-26补prepare_push/ack透传集合（SYNC_BATCH_INVALID、STORE_*）。理由：推送可永久卡死、竞态不可重试错误，ADR-V5-43作废语义未完整落实。迁移风险：无已合入实现；签名新增为非破坏，InvalidateReason若加变体需同步CORE-66。所需验收：A端旧批次+B端轮换后A导入新密钥旧批次被作废并以新版本推送成功；并发prepare_push不产生SYNC_BATCH_INVALID；重复settle期望确定；修订后重生成CORE-78/26/66材料、非作者复检并取CORE-26/66作者确认 | V5-43 |
+| CO-16 | CORE-78复核F-03/F-06（2026-10-20 lead已修订，待复检） | CORE-78、CORE-26、CORE-68、CORE-25 | 目标符号：`StoredBatch.envelopes`元素字节编码与“envelopes ≤ 1 MiB”上限（01:7454、7465）、CORE-26 `max_bytes`、CORE-25推送请求体上限。旧：计量对象（CBOR blob/元素字节和/HTTP请求体）与“CORE-68确定性编码”未定义。新：由唯一所有者定义元素字节确切编码与单一上限常量及与HTTP请求体的换算，三卡引用同一常量；CORE-78补外部前提（CBOR库或改依赖CORE-21编码器，uuid/serde_json/rusqlite沿用CORE-13锁定）。理由：批次字节不可变，口径不一致会产生永远SYNC_PAYLOAD_TOO_LARGE的批次。迁移风险：无已合入实现。所需验收：恰好上限与上限+1字节边界向量；修订后重生成材料并复检 | — |
+| CO-17 | CORE-78复核F-04/F-12（F-04已文字修正；F-12于2026-10-20 lead已修订，待复检） | CORE-13（消费者CORE-78、CORE-26及全部迁移归属卡） | F-04：CORE-13业务表归属清单（01:2043）原写`push_batch` → CORE-26，与CO-08拆卡结论冲突，lead按CO-08改为`push_batch` → CORE-78（仅归属文字，不改签名）。F-12：CORE-13未定义“待执行迁移”判定依据与乱序到达时user_version取值；0078必然先于0026合入，开发/测试库可能漏跑0026或user_version回退；迁移序号无机器预留/校验（CORE-61已用0038）。新：由CORE-13所有者补定判定规则（如以schema_migration缺失为准、user_version=已执行最大序号），并评估在DTOcheck/CORE-41增加迁移序号与归属卡一致性检查。迁移风险：无已合入实现。所需验收：乱序迁移到达用例；修订后CORE-13受影响条目复检 | — |
+| CO-13～17处理 | 按用户指示直接修订（2026-10-20，lead） | CORE-01、02、05、08、09、11、13、26、46、61、68、77、78；附录A ADR-V5-43；DTOcheck xref基线 | CO-13：CORE-77 新增 `instantiate_all(&[&DimExpr]) -> Vec<DimExpr>`、`instantiate_types(&[TypeExpr]) -> Vec<TypeExpr>`，`instantiate` 改为不失败，跨来源须新建Subst并对每份来源各实例化一次；CORE-09 输出typed前resolve；CORE-11 substitute/rank按协议，rank的Overflow候选省略。CO-14：CORE-02 derive/serde、`FmlError::new/with_diagnostic/with_trace`、ErrorCode生成方法；CORE-05 MathKind、CORE-08 PseudoDim derive；CORE-77 to_text 空格文法与黄金文本、DX-05～11字面合一序列、fresh上界、反序列化溢出映射FFI_BAD_ARG、外部前提、规模400；CORE-08 补单测；CORE-01 workspace成员。CO-15：CORE-78 `pending_batch/settle` 改为接收WriteTx、删除 `batched_op_ids`、至多一个未结算批次、`InvalidateReason::Stale`、重复结算返回 `{0,0,true}`、UNKNOWN仅在批次作废且条目仍在outbox时；CORE-26 `prepare_push(tx: &mut WriteTx, …)` 在同一写事务读密钥、作废陈旧批次并落盘；CORE-46 UNKNOWN良性处理。CO-16：元素字节=CORE-68 `to_canonical_json`，`max_bytes`=请求体紧凑JSON字节数（16+Σ+(n−1)），CORE-78 只做元素字节和防御检查，envelopes改为u32大端长度前缀存储、无CBOR依赖。CO-17：CORE-13 待执行迁移按schema_migration缺失判定、user_version取最大序号、发布前允许补执行；CORE-61 迁移改0061。xref基线新增PartialEq/PartialOrd为derive名误报。未处理：N-10（pack材料噪声与分段空行差，属工具改进，另行处理）。DTOcheck、stats --check、node --test 均通过；材料重生成 CORE-77 226433/4、CORE-78 242339/4。均未独立复检，不改等级、不授予就绪 | V5-43 |
+| 布局同步 | 拆分布局（2026-10-20）后的路径与链接 | core/and/win 的 00-总览.md、WIN-13 | 拆分无损核对（`readDocs` 拼回与 HEAD e195ba4 的 01/02/03 逐行比较）除 CO-13～17 外仅有以下差异，经用户确认（2026-10-20）作为拆分的同步修改：①三份 00-总览.md 的相对链接改为 `../README.md`、`../core/00-总览.md`、`../and/00-总览.md`、`../win/00-总览.md`、`../附录*.md`；②三份 00-总览.md 引言后各新增一段“拆分布局”说明（指向 README §7）；③core 总览 §3 索引同步 CO-14/16/17 的规模与迁移文件名（CORE-02 370、CORE-08 500、CORE-61 `0061_formula_draft.sql`、CORE-77 400、CORE-78 210）；④WIN-13 `summarize.py --budget` 参数由 `SADD/01-公共核心-v5.md` 改为 `SADD/S0/S0_CORE-01_基座.md`（原文件已删除）。不改卡片语义，不影响等级 | — |
 | 其他 | F01、F06、F10、文档漂移 | CORE-01、41、31、76、README、D.10 | 首卡锁文件验收移交 CORE-41；评分截断 1.0；`current.mjs` 表头/行宽校验；卡数口径 | — |
 
 补充（2026-10-20）：原临时检查脚本（check/xref/mat 与 validate-dto）已清理，由 `tools/DTOcheck`（dto/cards/xref）取代；其 xref 新增“shared-writes.json 错误码登记与卡内定义一致”检查，补登记了 SYNC_BATCH_UNKNOWN 的 owner（CORE-78）、BACKUP_SCOPE_INVALID、SYNC_BATCH_INVALID、SYNC_PATH_INVALID、SYNC_SNAPSHOT_CORRUPT，以及此前漏登记的 AUTH_UPLOAD_RECONFIRM_REQUIRED（CORE-62）、LIB_TAGS_LIMIT（CORE-14）；reservation 由 269 项变为 275 项。
