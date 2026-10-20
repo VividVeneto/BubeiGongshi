@@ -69,6 +69,7 @@ graph TD
   W03 --> W02
   W03 --> W16
   W03 --> C65
+  W03 --> C28
   W06 --> C04
   W06 --> C36
   W06 --> W01
@@ -118,6 +119,7 @@ graph TD
   W13 --> W10
   W13 --> W12
   W13 --> W15
+  W13 --> W14
   W16 --> W01
   W16 --> W06
   W16 --> W07
@@ -141,7 +143,7 @@ graph TD
 | --- | --- | --- | --- | --- |
 | WIN-01 | 工程与构建 | `app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 380 |
 | WIN-02 | 安装器与卸载 | `installer/windows/` | CORE-01、CORE-02、CORE-42、WIN-01、WIN-16 | 300 |
-| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65 | 360 |
+| WIN-03 | 自更新客户端 | `app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28 | 360 |
 | WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50 | 450 |
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
@@ -150,7 +152,7 @@ graph TD
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
 | WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04 | 240 |
 | WIN-12 | 代码签名与发布检查 | `tools/release/windows/` | CORE-01、CORE-02、CORE-42、WIN-02、WIN-03 | 250 |
-| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15 | 430 |
+| WIN-13 | 性能与环境矩阵 | `app/integration_test/windows/`（附属 `tools/perf/windows/`） | CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14 | 430 |
 | WIN-14 | 快捷键自定义 | `app/lib/platform/windows/keymap/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-06、WIN-08、WIN-15、CORE-28 | 340 |
 | WIN-15 | Windows 桌面交互与窗口适配 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/integration_test/windows/interaction_test.dart` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、WIN-01、WIN-06、CORE-58、CORE-28 | 440 |
 | WIN-16 | 启动器与更新恢复 | `installer/windows/launcher/` | CORE-01、CORE-02、WIN-01、WIN-06、WIN-07 | 500 |
@@ -205,6 +207,11 @@ Future<void> runPlatformApp(CoreLibrarySpec spec, PlatformPorts Function() build
 ```dart
 // app/lib/main_windows.dart
 Future<void> main(List<String> args) async {
+  // 仅显式FML_TEST_BUILD测试构建允许故障注入；正式发布流水线拒绝全部FML_TEST_* define。
+  const crash = bool.fromEnvironment('FML_TEST_CRASH_ON_FIRST_START');
+  const testBuild = bool.fromEnvironment('FML_TEST_BUILD');
+  if (crash && !testBuild) throw StateError('test define in production');
+  if (crash && args.any((a) => a.startsWith('--update-nonce'))) exit(3);
   setWindowsLaunchArguments(args);
   await runPlatformApp(CoreLibrarySpec(appDirFile('fmlcore.dll')), buildWindowsPorts);
 }
@@ -218,7 +225,7 @@ String appDirFile(String name) => File(Platform.resolvedExecutable).parent.uri.r
 // app/lib/composition/ports_windows.dart
 PlatformPorts buildWindowsPorts();
 // 每个端口字段一行：初始全部为 CORE-04 的 Unsupported 占位Xxx，并 debugPrint('port <字段名>: unsupported')；camera 恒为 WIN-04 的不支持实现（WIN-04 完成前用 UnsupportedCamera）。
-// platformInstallers 初始为 const []；WIN-03、WIN-04、WIN-05、WIN-06、WIN-07、WIN-08、WIN-09 各向其中追加一项。
+// platformInstallers 初始为 const []；后续卡按下文最终顺序表接入。
 // WIN-04～WIN-10 实现某端口时只替换该字段对应的一行；替换与追加行不计入该卡规模，也不视为跨构建单元。
 ```
 
@@ -244,6 +251,22 @@ app/windows/
 - 顶层消息每卡登记 RegisterTopLevelWindowProcDelegate，保存 token，关闭时注销。子视图消息须由本卡可移除的 SetWindowSubclass 转发到对应模块；不得替换引擎 WndProc，不在工作线程直接访问 HWND 对象所有者。消息只观察返回 nullopt，消费才返回 LRESULT。
 - 退出顺序：停止接受请求→取消任务/等待工作线程→注销等待句柄/事件/窗口委托与子类化→释放通道与 messenger 引用→销毁 FlutterViewController/窗口。清理幂等；不在持锁状态 join 或发送同步窗口消息。
 - Release：C++ runner/启动器编译 `/Zi`、链接 `/DEBUG:FULL /Brepro /PDBALTPATH:%_PDB%`；Rust `[profile.release] debug = "line-tables-only"`，Windows target rustflags 加 `-C link-arg=/Brepro`（保持路径映射）。PDB 保留构建产物，仅符号归档发布，不能装入安装器；完整可复现性仍由两次干净构建验证。
+
+最终组装表（只随对应卡落地启用，不要求S0引用未来实现）：buildWindowsPorts先创建唯一WindowsPrefs，传给WindowsNotificationScheduler，并以闭包`(ctx) => installWindowsShell(ctx, prefs)`登记同一实例；初始Unsupported期间不创建此实例。端口构造先于安装点执行，构造器不得读取FeatureRegistry。
+
+| 安装顺序 | 安装点 | 前置/用途 |
+| --- | --- | --- |
+| 1 | installWindowsShell（WIN-06） | 登记已构造的prefs、shell |
+| 2 | installWindowsInteraction（WIN-15） | 取得prefs，唯一ShellKeyHandler |
+| 3 | installWindowsStorage（WIN-07） | SettingsSections |
+| 4 | installWindowsEditing（WIN-08） | attach到WIN-15 |
+| 5 | installWindowsImport（WIN-04） | 注册拖放 |
+| 6 | installWindowsClipboard（WIN-05） | 注册公式复制 |
+| 7 | installWindowsTray（WIN-09） | 取得WIN-06 shell/prefs |
+| 8 | installWindowsKeymap（WIN-14） | 编辑/学习键位均已登记 |
+| 9 | installWindowsUpdater（WIN-03） | 全局账户安装点CORE-65已完成 |
+
+本表只约束平台安装点相对顺序；CORE-36总编排仍为transportInstallers→featureInstallers→platformInstallers。WIN-10为端口构造替换，无安装点。
 
 **实现约束**
 - 绑定方式只用 C ABI + `dart:ffi`（ADR-V5-02）；只按绝对路径加载 `fmlcore.dll`，不经当前工作目录、PATH 或用户目录搜索。
@@ -342,7 +365,7 @@ ISCC 调用（由 WIN-12 build_release.ps1 执行）：
 - 包含：Dart 侧 `WindowsUpdater`（清单获取、下载与续传、哈希与 Authenticode 校验、退出时安装、健康确认与档案打开确认）；设置页“检查更新”区；更新清单格式。
 - 不包含：独立启动器、验证与回滚状态机（WIN-16）；安装脚本（WIN-02）；托管与 CDN（CORE-43 提供 `/windows/update.json`）；资源包更新（CORE-51）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-23、CORE-36、CORE-43、WIN-02、WIN-16、CORE-65、CORE-28
 
 **接口契约**
 
@@ -367,7 +390,7 @@ final class WindowsUpdater extends ValueNotifier<UpdateState> {
   WindowsUpdater({required HttpTransport http /* ctx.http，即 CORE-28 NetworkGuard */, required LocalFileStore files,
                   required AppLifecycle lifecycle, required String currentVersion, required Uri manifestUrl});
   Future<UpdateOffer?> check();                  // RequestPurpose.updateCheck；无更新或已被标记跳过返回 null
-  Future<void> download({CancelToken? cancel});  // 写 staging\updates\BubeiGongshi-<v>-setup.exe.part，按已收字节 rangeStart 续传
+  Future<void> download({CancelToken? cancel});  // 用户点击下载后调用；RequestPurpose.updateCheck（含清单与安装包），允许计量网络； 写 staging\updates\BubeiGongshi-<v>-setup.exe.part，按已收字节 rangeStart 续传
   void installOnExit();                          // 仅 UpdateReady 有效；退出前先向 WIN-16 提交等待安装请求，取得 armed 确认后才 exitApp
   Future<void> confirmHealthy();                 // 经 WIN-16 --confirm-healthy 确认当前 version/nonce；无 nonce 时 no-op；子进程至多等 1500 ms
   Future<void> confirmOpened();                  // 经 WIN-16 --confirm-opened 确认档案已打开；无 nonce 时 no-op；子进程至多等 1500 ms
@@ -408,7 +431,7 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 
 **验收标准**
 - [R23] 手动：从 1.0.0 经设置页更新到 1.1.0，数据与设置保留；下载中断网后恢复，续传完成且哈希一致。
-- [R19] 故障注入：篡改安装包一个字节 → `PLATFORM_UPDATE_HASH_MISMATCH` 且文件被删除；用另一证书签名的安装包 → `PLATFORM_UPDATE_SIG_INVALID`；以 `--dart-define=FML_TEST_CRASH_ON_FIRST_START=true` 构建的新版本首启退出 → 启动器回滚，旧版本启动并显示“更新失败，已恢复到 1.0.0”，数据库可打开。
+- [R19] 故障注入：篡改安装包一个字节 → `PLATFORM_UPDATE_HASH_MISMATCH` 且文件被删除；用另一证书签名的安装包 → `PLATFORM_UPDATE_SIG_INVALID`；以 `--dart-define=FML_TEST_BUILD=true --dart-define=FML_TEST_CRASH_ON_FIRST_START=true` 构建的新版本首启退出 → 启动器回滚，旧版本启动并显示“更新失败，已恢复到 1.0.0”，数据库可打开。
 - [R27] 回滚后 `database\` 的文件哈希与更新前备份一致。
 - [R26] 游客检查更新的请求不含 `Authorization` 头与设备标识（抓包验证）。
 - [R23] 连续 3 次更新后 `%LOCALAPPDATA%\Programs\BubeiGongshi\` 下只保留 2 个 `app-*` 目录。
@@ -449,12 +472,14 @@ final class WindowsPrefs {                       // HKCU\Software\BubeiGongshi\P
 }
 abstract interface class TrayPresence {          // WIN-09 登记；未登记时关闭即退出
   bool get iconReady;                            // 托盘图标已创建成功
-  Future<void> hideToTray(); }
+  Future<void> hideToTray();
+  Future<void> destroy();                        // 幂等，停止定时并移除托盘图标
+}
 final class WindowsShell {
   WindowsShell(this.lifecycle, this.prefs, this.features);
-  Future<void> exitApp();                        // 发 paused、detached → 等待 800 ms → 通道 destroy
+  Future<void> exitApp();                        // 发 paused、detached → TrayPresence.destroy（至多200 ms）→ 总等待上限800 ms → 通道 destroy
 }
-void installWindowsShell(CompositionContext ctx);  // 登记 WindowsPrefs、WindowsShell；向 SettingsSections 加入 order 80 的“窗口”区；订阅关闭请求；
+void installWindowsShell(CompositionContext ctx, WindowsPrefs prefs);  // 登记ports_windows构造并共享的prefs、WindowsShell；向 SettingsSections 加入 order 80 的“窗口”区；订阅关闭请求；
 // firstFrameHooks order 15（最小化兜底）：有 --minimized 且 TrayPresence 未登记或 iconReady 为 false → 通道 show
 ```
 
@@ -469,7 +494,8 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
           CreateMemoryResourceNotification(LowMemoryResourceNotification) + RegisterWaitForSingleObject（一次性，60 s 后重新登记）→ lowMemory
 关闭：WM_CLOSE 不直接销毁，改发 closeRequested；Dart 按偏好 window.close_action（"exit" 默认，见 README §6 Q15；或 "tray"，后者仅 TrayPresence 已登记时生效）
       调 TrayPresence.hideToTray() 或 WindowsShell.exitApp()
-单实例：main.cpp 在创建窗口前 CreateMutexW(L"Local\\BubeiGongshi.SingleInstance")；已存在 → FindWindowW(L"BubeiGongshiMainWindow", nullptr)，
+单实例：main.cpp 在创建窗口前 CreateMutexW(L"Local\\BubeiGongshi.SingleInstance")；已存在 → 每100 ms调用FindWindowW(L"BubeiGongshiMainWindow", nullptr)，最多10次；
+        超时提示“应用正在启动，请稍后重试”，退出10且不创建第二窗口、不打开库；找到后，
         GetWindowThreadProcessId 后 AllowSetForegroundWindow(该 PID)，SendMessageTimeoutW(WM_COPYDATA, SMTO_ABORTIFHUNG, 5000 ms) 发送
         COPYDATASTRUCT{dwData = 0x464D4C31（"FML1"），lpData = argv[1..] 的 UTF-16LE 串，每个参数以 NUL 结束、末尾再加一个 NUL，
         cbData ≤ 32 KiB（超出时截到最后一个完整参数）}，然后以退出码 10（仅转发，非启动失败）退出；
@@ -484,6 +510,8 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 - `RuntimeSnapshot` 取值：`os = 'windows'`，`abi = 'x64'`，`locale` 取 `PlatformDispatcher.instance.locale`，`dpiScale` 取当前视图的 `devicePixelRatio`，其余来自通道 `runtime`。
 - 错误码：通道失败映射为 `PLATFORM_IO`；本卡不新增错误码。
 
+窗口设置区order80的唯一控件：关闭行为单选`window.close_action`（exit默认/tray；无iconReady时按exit并说明托盘尚未可用）；“记住窗口位置”开关`window.remember_position`（字符串true默认/false）。false时启动使用默认居中1280×800且不读写Placement；true时Placement的WINDOWPLACEMENT同时保存正常位置/最大化状态，按离屏规则纠正。损坏或未知偏好回退默认。WIN-09只链接此关闭行为控件，不另造第二份；自启仍归WIN-09。
+
 **实现约束**
 - runner 窗口类名改为 `BubeiGongshiMainWindow`；清单 PerMonitorV2 由 WIN-01 设置；DPI 变化由 Flutter 重新布局，公式按 DisplayList 重新绘制，不缩放位图。
 - 单实例保证同一数据库只有一个写者进程（CORE-13 单写者）。
@@ -495,7 +523,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 - [R01] 手动：100%、150%、200% 缩放下公式与界面无模糊；在两块不同 DPI 的显示器间拖动窗口，公式即时按新 DPI 绘制。
 - [R01] 窗口位于副显示器时退出，断开副显示器后启动，窗口出现在主显示器可见区域。
 - [R27] 已运行时再次启动，任务管理器中只有一个 `bubeigongshi_app.exe`，已运行窗口被激活。
-- [R04] 学习会话中退出：进程在 2 s 内结束；重启后该会话可继续（CORE-39 `study.session.resume`）。
+- [R01] S2用Fake页面记录paused/detached及托盘destroy，退出在2 s内结束且顺序正确；学习会话恢复联测由WIN-13在S7执行。
 - [R01] 以 `--minimized` 启动（含开机自启）录屏逐帧无窗口闪现；模拟托盘创建失败时 2 s 内显示窗口；dwData 不符的 WM_COPYDATA 被忽略。
 
 **规模**：约 420 行；`app/lib/platform/windows/window/` 与 `app/windows/runner/` 中的 `app/windows/runner/window_channel.cpp`、单实例与窗口位置代码（同属 `app/` 构建单元）。
@@ -562,6 +590,8 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 - 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_AUTH_FAILED`、`PLATFORM_UNSUPPORTED`、`PLATFORM_IO`；本卡不新增错误码。
 
+2026-10-20已读取Microsoft官方RequestSignAsync与IUserConsentVerifierInterop文档：后者仅为用户同意验证提供HWND调用，不证明存在IKeyCredentialManagerInterop，也未证明签名值可作为稳定可恢复密钥。hello.verify传WIN-01 topHwnd；凭据创建/签名的桌面归属窗口、提示前后台与持久化包装能力均为M0阻断项，不能把UserConsent验证等同密钥保护。来源见ADR-V5-37补充。
+
 **实现约束**
 - 首次创建 `%LOCALAPPDATA%\BubeiGongshi\` 时设置受保护 DACL（`SetNamedSecurityInfoW` + `PROTECTED_DACL_SECURITY_INFORMATION`）：只授予当前用户与 SYSTEM 完全控制，不继承父目录权限。
 - 数据只写 `%LOCALAPPDATA%`（不漫游）；不写安装目录、桌面、下载与公共文档目录；`excludeFromSystemBackup` 对数据根内路径为空操作，对根外路径抛 `ArgumentError`。
@@ -610,7 +640,7 @@ abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
 }
-abstract interface class ImageDropSource { Stream<DroppedImages> drops(); }
+abstract interface class ImageDropSource { Stream<DroppedImages> drops({Future<bool> Function(int count, int bytes, int other)? confirmFolder}); }
 ```
 
 本卡实现（`app/lib/platform/windows/picker/`）：
@@ -634,7 +664,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
   copyImage {src, dest_dir, max_bytes} → {mime, size, path}
                                 size > max_bytes → 不复制，返回 {mime, size}（无 path）；
                                 .heic/.heif → IWICImagingFactory 解码（长边 ≤ 4096）后以 JPEG 质量 92 写出，mime 为 image/jpeg；
-                                系统无 HEIF 扩展（创建解码器失败）→ 抛 PLATFORM_UNSUPPORTED；其余按扩展名定 mime 并复制
+                                创建解码器或GetFrame/CopyPixels任一步失败→抛PLATFORM_UNSUPPORTED；其余按扩展名定 mime 并复制
   copyDocument {src, dest_path, max_bytes} → null             超过 max_bytes 抛 PLATFORM_FILE_TOO_LARGE
   scanFolder {path}           → {images: [path], other: int, bytes: int}   只扫描一层，不跟随符号链接与连接点
   Dart 收到的调用：dropped {paths: [string]}                    WM_DROPFILES（DragAcceptFiles(hwnd, TRUE)）→ DragQueryFileW 全部路径
@@ -644,7 +674,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
   DocumentPicker.pick：openDocument → 扩展名（小写）不在 extensions → PLATFORM_FILE_TYPE_MISMATCH；size > maxBytes → PLATFORM_FILE_TOO_LARGE；
                        否则 copyDocument 到 root(staging)\<UUID>.<ext>
   FileExporter.saveAs：saveDocument → null 返回 false；否则写入 <path>.fmlpart（64 KiB 分块，Dart 侧 IOSink），完成后改名覆盖目标；失败删除 .fmlpart，抛 PLATFORM_IO
-  ImageDropSource.drops：dropped 路径按扩展名分为图片与其他；某路径为文件夹 → scanFolder，弹确认框“将导入 n 张图片（约 x MB），跳过 m 个其他文件”，
+  ImageDropSource.drops：dropped 路径按扩展名分为图片与其他；某路径为文件夹 → scanFolder，调用drops的confirmFolder(count,bytes,other)，共享界面负责确认框；回调缺失按取消，平台不创建业务确认UI；
                        取消则整批丢弃；图片取前 10 张 copyImage，其余计入 skippedOverLimit，非图片计入 skippedNotImage；
                        0 张图片时仍发送批次以便提示（images 为空的批次不进入识别流程，由 CORE-50 只显示提示）
 ```
@@ -656,7 +686,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 - Dart 层除 HEIC 转换外不解码图片；HEIC 转换在原生工作线程降采样输出，主线程只等待通道结果。
 - `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束删除副本；`WindowsImagePicker` 构造时异步清空 `staging\tmp-import\`。删除前确保本卡打开的句柄已关闭；删除失败的副本留待下次启动清空。
 - 拖放只在识别页订阅期间生效（CORE-50）；其他页面拖入时 `drops` 无订阅者，事件被丢弃且不复制文件。
-- 外部前提：HEIC/HEIF 依赖用户已安装的“HEIF 图像扩展”；未安装时按 `PLATFORM_UNSUPPORTED` 提示“请安装 HEIF 图像扩展或转换为 JPEG”。
+- 外部前提：HEIC/HEIF的WIC编解码能力取决于系统、HEIF图像扩展与可能需要的HEVC视频扩展（含授权）；1809/11组合须M0实测。任一解码步骤失败提示“当前系统无法解码，请检查HEIF/HEVC扩展或转换为JPEG”，不保证安装某一扩展必然成功。
 
 **验收标准**
 - [R37] 手动：经文件对话框选择 1 张与 10 张图片均进入裁剪页；选择 12 张时只导入前 10 张。
@@ -664,7 +694,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 - [R31] 拖入 25 MiB 图片：不复制，`readBytes` 抛 `PLATFORM_FILE_TOO_LARGE` 并提示；导入 1200 万像素 JPEG 期间界面无超过 100 ms 的帧卡顿（DevTools 时间线）。
 - [R36] 导入并完成识别后 `staging\tmp-import\` 为空，原文件哈希与修改时间不变；`WindowsCamera.capture()` 抛 `PLATFORM_UNSUPPORTED`。
 - [R27] 经保存对话框导出 50 MiB 备份：默认位于“文档”，文件哈希与源一致；取消返回 false 且无 `.fmlpart` 残留；`DocumentPicker.pick(extensions: ['fmlbackup'])` 选中 `.txt` 抛 `PLATFORM_FILE_TYPE_MISMATCH`。
-- [R01] CORE-04 的 `ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController` 契约套件（对话框步骤以 `FML_TEST_DIALOG_RESULT` 环境变量注入预设路径）在 Windows 10 与 11 上通过。
+- [R01] CORE-04 的 `ImagePicker`、`DocumentPicker`、`FileExporter`、`CameraController` 契约套件（对话框步骤以 显式FML_TEST_BUILD构建中的FML_TEST_DIALOG_RESULT编译期define注入预设路径；默认入口为空；正式发布CI拒绝FML_TEST_*，非测试构建发现非空define在运行时抛StateError）在 Windows 10 与 11 上通过。
 
 **规模**：约 450 行；`app/lib/platform/windows/picker/` 与 `app/windows/runner/file_dialog.cpp`（同属 `app/` 构建单元）。
 
@@ -945,7 +975,7 @@ void installWindowsKeymap(CompositionContext ctx);
 
 ```text
 偏好 keymap.v1（WindowsPrefs，HKCU\Software\BubeiGongshi\Prefs 下的字符串值）：
-  {"v": 1, "bindings": {"fraction": ["ctrl+shift+0x00000066"], "sqrt": [], "study.pause": ["ctrl+shift+0x00000071"]}}
+  {"v": 1, "bindings": {"fraction": ["ctrl+shift+0x00000000066"], "sqrt": [], "study.pause": ["ctrl+shift+0x00000071"]}}
   键为 BindableCommand.persistKey；只含与默认不同的命令；值为 0–2 个 KeyChord.encode() 字符串，空数组表示该命令不分配按键；
   未知命令名忽略（向前兼容）；"v" 不为 1 时整体按默认处理
 设置区“快捷键”：
@@ -957,6 +987,8 @@ void installWindowsKeymap(CompositionContext ctx);
 ```
 
 - 错误码：无（偏好无效时回退默认并记日志，不向用户报错）。
+
+BindableCommand必须按具体子类型与枚举值实现==/hashCode：AppCommand(x)==AppCommand(x)，StudyKeyCommand(x)==StudyKeyCommand(x)，跨子类型不等；持久化键仅使用声明的唯一ID，不以显示标题比较。KeyChord严格复用WIN-15规范格式，不接受短位宽旧示例。
 
 **实现约束**
 - ① 一个组合键在全部命令中只能出现一次（不分范围，含“学习”组）：全局命令先于页面收到按键，若与编辑器命令同键，编辑器命令永远不会触发。
@@ -1012,8 +1044,10 @@ final class KeyChord {                              // 自 WIN-08 移入，签�
   final LogicalKeyboardKey key; final bool ctrl, shift, alt;     // key 不为修饰键；不支持 Win 键组合
   static KeyChord? fromEvent(KeyEvent e);           // 修饰状态取 HardwareKeyboard.instance；纯修饰键返回 null
   String get label;                                 // 显示用，如 "Ctrl+Enter"
-  String encode();                                  // 持久化用，如 "ctrl+0x0010000000d"（keyId 十六进制）
-  static KeyChord? decode(String s);                // 非法返回 null
+  String encode();                                  // 持久化：按ctrl、alt、shift顺序仅输出已置位修饰，各后接+；末尾0x加11位小写十六进制keyId（不足补0），如ctrl+0x0010000000d
+  static KeyChord? decode(String s);                // 非规范键序、大小写、位宽、重复修饰或非法keyId返回null
+  @override bool operator ==(Object other);          // key.keyId和ctrl/alt/shift逐字段相等
+  @override int get hashCode;                        // 与值相等一致
 }
 // StudyCommand 从 CORE-58 app/lib/design/commands.dart 导入；不得复制枚举或字符串表。
 const Map<StudyCommand, List<KeyChord>> defaultStudyBindings;    // 见下表 a“默认按键”列；每个命令 0–2 个组合键
@@ -1069,7 +1103,7 @@ MethodChannel "fml/windows/interaction"（app/windows/runner/interaction_channel
         逻辑像素；runner 保存，WM_GETMINMAXINFO 时乘 GetDpiForWindow/96 写入 ptMinTrackSize，且不超过窗口所在显示器的工作区；
         WM_WINDOWPOSCHANGING 中非最大化、非最小化且未带 SWP_NOSIZE 时把 cx/cy 放大到同一下限（覆盖启动时恢复的过小位置）
   interactionMode → "touch" | "pointer"
-        touch：HKCU\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell 的 TabletMode = 1（Windows 10 平板模式），
+        先GetSystemMetrics(SM_MAXIMUMTOUCHES)>0，否则pointer；有触屏才检测以下touch条件：HKCU\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell 的 TabletMode = 1（仅Windows 10读取；Windows 11不使用该注册值），
                或 GetSystemMetrics(SM_CONVERTIBLESLATEMODE) = 0（二合一键盘拆下或翻折为平板姿态）；否则 pointer
   clientAreaAnimation → bool（SystemParametersInfo(SPI_GETCLIENTAREAANIMATION)；“设置 → 辅助功能 → 视觉效果 → 动画效果”）
   windowMetrics → {dpi, work_area_px: {w, h}, min_track_px: {w, h}, high_contrast: bool, slate: bool}
@@ -1109,7 +1143,7 @@ c. 窗口尺寸与断点（分档规则见 CORE-55 d，本表只列 Windows 典�
 
 | 情形 | 逻辑尺寸（约） | CORE-55 分档 | 说明 |
 | --- | --- | --- | --- |
-| 最小窗口 | 600 × 500 | 中等，rail | 拖动缩放不能更小；不进入紧凑档，底部导航只在 Android 出现 |
+| 最小窗口 | 600 × 500 | 中等，rail | 拖动缩放不能更小；更小工作区按CORE-55通用断点处理 |
 | 默认窗口（WIN-06） | 1280 × 800 | 宽，常驻侧栏 | 双栏 |
 | Windows 11 贴靠三分之一（1920×1080 @100%） | 640 × 1032 | 中等，rail | 单列 |
 | 半屏贴靠（1920×1080 @100%） | 960 × 1032 | 宽 | 双栏（列表 360） |
@@ -1198,24 +1232,28 @@ abstract interface class HttpTransport {
 ```dart
 // app/lib/platform/windows/net/windows_http.dart
 final class WindowsHttpTransport implements HttpTransport {
-  WindowsHttpTransport();   // 内部持有一个 HttpClient：connectionTimeout 5 s，idleTimeout 15 s，autoUncompress true，userAgent 'FML/<版本> Windows'
+  WindowsHttpTransport(AppLifecycle lifecycle, {SecurityContext? testContext});
+  void dispose();   // 内部持有一个 HttpClient：connectionTimeout 5 s，idleTimeout 15 s，autoUncompress false（仅接受identity），userAgent 'FML/<版本> Windows'
 }
 ```
 
 ```text
-send(req, cancel) 步骤与 AND-09 相同：
-  1 req.url.scheme != 'https' 或 headers 含 cookie（不区分大小写）→ 抛 NET_HOST_NOT_ALLOWED
-  2 rangeStart != null 而 saveTo == null → ArgumentError
-  3 saveTo 非空且 rangeStart > 0 时加 Range: bytes=<rangeStart>-
-  4 saveTo == null → 响应收集到内存（上限 16 MiB，超出中止并抛 PLATFORM_IO）；saveTo != null → 206 追加、200 截断重写、其他状态码不写文件
-  5 总时限 req.timeout；cancel 每 64 KiB 及等待期间检查，取消时 HttpClientRequest.abort 并抛 FfiCancelled
+send(req, cancel) 步骤（调用前由CORE-28完成HTTPS/主机/Cookie/用途校验）：
+  1 rangeStart != null且(saveTo==null或rangeStart<0) → ArgumentError；rangeStart>0要求文件存在且长度恰好相等，否则ArgumentError，不修改文件
+  2 打开请求、followRedirects=false、Accept-Encoding: identity；rangeStart>0加Range: bytes=<rangeStart>-；写入body
+  3 saveTo==null → 收集响应上限16 MiB，超出中止并抛PLATFORM_IO
+  4 saveTo非空：200截断重写；206仅在Content-Range起点==rangeStart（未指定视为0）、终点/长度合法、Content-Encoding为空或identity时追加；
+    错位、非法或压缩206不写入本次响应，关闭响应后只重发一次无Range请求（仍在原总时限内）并截断重下；重发仍非法则PLATFORM_IO，不递归重试；其他状态不写文件，响应body按16 MiB上限返回
+  5 req.timeout覆盖连接/响应/落盘与一次纠错重发；cancel在等待及每64 KiB检查，HttpClientRequest.abort并抛FfiCancelled
 异常映射：SocketException、HttpException → NET_OFFLINE；HandshakeException、TlsException → NET_TLS；TimeoutException → NET_TIMEOUT；FileSystemException → PLATFORM_IO
 系统代理：构造时与每次 lifecycle resumed 后经 MethodChannel "fml/windows/net" 的 proxy → {host, port} 或 null
           （WinHttpGetIEProxyConfigForCurrentUser：取 lpszProxy 中 https= 项，无则取不带协议前缀的项；fAutoDetect 或 lpszAutoConfigUrl 存在而无静态代理 → null）
           设置 HttpClient.findProxy；读取失败按直连
 ```
 
-- 错误码：只使用 CORE-04 登记的 `NET_OFFLINE`、`NET_TLS`、`NET_TIMEOUT`、`NET_HOST_NOT_ALLOWED`、`PLATFORM_IO`；取消抛 CORE-03 `FfiCancelled`；本卡不新增错误码。
+- 错误码：只使用 CORE-04 登记的 `NET_OFFLINE`、`NET_TLS`、`NET_TIMEOUT`、`PLATFORM_IO`；取消抛 CORE-03 `FfiCancelled`；本卡不新增错误码。
+
+构造器订阅传入的AppLifecycle，在构造和resumed后刷新代理；dispose取消订阅并关闭HttpClient（本卡实现显式dispose方法，组装层生命周期清理调用）。testContext仅供非发布测试构造；kReleaseMode且非空运行时抛StateError，不用assert，不设置badCertificateCallback。生产使用默认信任库。与AND-09共同遵守CORE-04的续传验证协议；平台不引用对方卡作会话材料。
 
 **实现约束**
 - 证书只用 `dart:io` 默认信任库；不设置 `badCertificateCallback`，不做证书固定（V1）。
@@ -1226,7 +1264,7 @@ send(req, cancel) 步骤与 AND-09 相同：
 **验收标准**
 - [R01] CORE-04 `HttpTransport` 契约套件对本实现通过（测试服务器 `integration_test/windows/http_server.dart`，测试 CA 只在测试构建中信任）。
 - [R30] 续传：服务器发送一半后断开 → `NET_OFFLINE` 且保留已收字节；以 `rangeStart` 重发收到 206 后哈希一致；返回 200 时截断重写且哈希一致。
-- [R26] `http://` 与带 `Cookie` 头的请求抛 `NET_HOST_NOT_ALLOWED` 且服务器未收到请求；自签名证书服务器返回 `NET_TLS`。
+- [R26] 组合CORE-28包装后http/Cookie请求在守卫被拒，inner未收到请求；底层自签名证书返回NET_TLS；非测试构造器拒绝testContext。
 - [R40] 服务器延迟 40 s、`timeout` 30 s 时抛 `NET_TIMEOUT`；进行中 `cancel()` 后 1 s 内抛 `FfiCancelled`。
 - [R01] 在“设置 → 网络 → 代理”配置静态代理后，请求经该代理发出（代理日志可见）。
 
@@ -1259,7 +1297,9 @@ abstract interface class NotificationScheduler {
 }
 abstract interface class TrayPresence {
   bool get iconReady;
-  Future<void> hideToTray(); }
+  Future<void> hideToTray();
+  Future<void> destroy();                        // 幂等，停止定时并移除托盘图标
+}
 ```
 
 本卡实现（`app/lib/platform/windows/notify/`）：
@@ -1279,7 +1319,7 @@ void installWindowsTray(CompositionContext ctx);
 MethodChannel "fml/windows/tray"（app/windows/runner/tray_channel.cpp）
   create {tooltip}                 → null   NOTIFYICONDATAW（uVersion NOTIFYICON_VERSION_4，图标取 exe 资源）
   notify {title, body}             → null   NIF_INFO 通知（Windows 10/11 显示为系统通知）；窗口可见时另调 FlashWindowEx(FLASHW_TRAY | FLASHW_TIMERNOFG)
-  destroy                          → null
+  destroy                          → null   NIM_DELETE，重复调用成功；取消Timer/订阅并清iconReady
   autostart.get → bool；autostart.set {enabled, command} → null   HKCU\Software\Microsoft\Windows\CurrentVersion\Run 值 "BubeiGongshi"
   Dart 收到的调用：trayClick（左键单击）、menu {id: "open"|"study"|"recognize"|"exit"}（右键菜单）、notifyClick（NIN_BALLOONUSERCLICK）、
                   timeChanged（WM_TIMECHANGE）、resumed（WM_POWERBROADCAST PBT_APMRESUMEAUTOMATIC）
@@ -1290,11 +1330,13 @@ MethodChannel "fml/windows/tray"（app/windows/runner/tray_channel.cpp）
 taps()：notifyClick 时发送一次；同时 show 主窗口（WIN-06 通道 show）
 托盘菜单：open → 显示主窗口；study → 显示并 nav.go('/study')；recognize → 显示并 nav.go('/recognize')；exit → shell.exitApp()
 开机自启命令："<installRoot>\BubeiGongshi.exe" --minimized；installRoot 下无 BubeiGongshi.exe（开发构建）时开关禁用并说明
-“提醒与托盘”区：开关“关闭窗口时驻留托盘”（prefs window.close_action = "tray"/"exit"，默认 exit）、开关“开机自启并驻留托盘”（默认关）、
+“提醒与托盘”区：链接WIN-06“关闭行为”控件；开关“开机自启并驻留托盘”（默认关）、
                说明“应用完全退出后不会提醒；需要每日提醒请开启开机自启并驻留托盘”
 ```
 
 - 错误码：通道失败映射为 `PLATFORM_IO`；本卡不新增错误码。
+
+Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平台线程delegate收到时重新NIM_ADD并NIM_SETVERSION，成功才置iconReady；失败置false并显示主窗口（含--minimized）。退出先取消重建标志/委托再NIM_DELETE，不能退出后重添。图标重建不补发提醒；WIN-06只经TrayPresence.destroy统一销毁，原生窗口最终清理也须幂等兜底。
 
 **实现约束**
 - 不安装服务、计划任务或常驻后台进程；应用完全退出时不保证提醒（在设置区说明）。
@@ -1379,7 +1421,7 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 - 包含：`app/integration_test/windows/` 下的性能集成测试与一致性测试；`tools/perf/windows/` 下的矩阵运行、汇总与能耗检查脚本；环境矩阵与报告模板。
 - 不包含：功能正确性测试（各卡自带）；Android 测量（AND-12）。
 
-**依赖**：CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15
+**依赖**：CORE-01、CORE-02、WIN-04、WIN-05、WIN-08、WIN-09、WIN-10、WIN-12、WIN-15、WIN-14
 
 **接口契约**
 
@@ -1428,6 +1470,8 @@ tools/perf/windows/
 - integration_test 用 Profile：flutter drive -d windows --profile --driver=test_driver/integration_test.dart --target=integration_test/windows/perf_test.dart（consistency/soft_render 同理，驱动使用 integrationDriver 写出结果）；不依赖 Release 的 VM service。Release 由外部进程脚本采集启动/版本/签名/内存及 FML_PERF_MARK 时间日志，界面操作按 checklist 执行；不开放远程测试端口。UI项至少20次，冷启动/核心/图片优先遵守CORE-01的30/1000/100样本口径，报告 P50 与 P95；不达标项须修复，或在附录 A 记录豁免（含原因、影响与复测计划）。
 - 预算值不复制到脚本或测试中；测试只输出测量值，判定由 `summarize.py` 读取 CORE-01 完成。
 - 不在 CI 每次提交运行全矩阵；CI 只在 Windows 构建机上运行 `perf_test.dart` 的冒烟子集（冷启动、解析）作 Profile 趋势记录；Release 签名制品另跑外部冒烟。
+
+S7业务恢复联测：学习页作答落库后从窗口/托盘退出，重启恢复原会话；S2的WIN-06只验Fake生命周期。依赖闭包经WIN-12→WIN-02/03→WIN-16覆盖02/03/06/07，经WIN-08覆盖14的反向并不成立，故本卡显式依赖WIN-14以验自定义键位。
 
 **验收标准**
 - [R03] 基线机型 `report.md` 中全部预算行 P95 达标（或有附录 A 豁免记录）。

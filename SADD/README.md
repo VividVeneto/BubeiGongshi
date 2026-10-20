@@ -148,7 +148,7 @@ v5 的主要变化：
 | R01 | Windows 与 Android 双平台 | 原文 | V1 | Flutter 共享 UI + Rust 核心 + 两端独立工程 | CORE-03、CORE-04、CORE-12、CORE-15、CORE-37、AND-01、AND-02、AND-05、AND-03、AND-09、AND-08、AND-11、AND-12、AND-14、WIN-01、WIN-02、WIN-06、WIN-04、WIN-05、WIN-10、WIN-12、WIN-13 |
 | R02 | 预留鸿蒙接口 | 原文 | 预留 | C ABI 头文件冻结 + OpenHarmony 目标编译冒烟；不做鸿蒙 UI | CORE-03、CORE-44 |
 | R03 | 轻量化、性能开销低 | 原文 | V1 | 可选包不进安装包；核心本地执行；全局预算表与门禁 | CORE-06、CORE-09、CORE-12、CORE-17、CORE-18、CORE-30、CORE-35、CORE-36、CORE-37、CORE-52、CORE-53、CORE-42、CORE-64、AND-05、AND-04、AND-12、WIN-02、WIN-09、WIN-12、WIN-13 |
-| R04 | 以不背单词为原型强化背诵（只需功能近似，见 R04.a–R04.j） | 原文 + 澄清 2026-10-18 | V1 | 书与计划、分组学习、客观判定、组后默写、FSRS 排程、统计与提醒 | CORE-14、CORE-16、CORE-17、CORE-18、CORE-19、CORE-20、CORE-31、CORE-36、CORE-39、CORE-40、CORE-49、CORE-54、CORE-60、AND-02、AND-08、AND-12、WIN-06、WIN-09 |
+| R04 | 以不背单词为原型强化背诵（只需功能近似，见 R04.a–R04.j） | 原文 + 澄清 2026-10-18 | V1 | 书与计划、分组学习、客观判定、组后默写、FSRS 排程、统计与提醒 | CORE-14、CORE-16、CORE-17、CORE-18、CORE-19、CORE-20、CORE-31、CORE-36、CORE-39、CORE-40、CORE-49、CORE-54、CORE-60、AND-02、AND-08、AND-12、WIN-09 |
 | R04.a | 书与计划：按教材章节、考试大纲（数一/数二/数三）、大学物理基本要求或自建公式书组织；每日新学与复习目标、考试日期 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-19、CORE-39 |
 | R04.b | 分组学习：一组若干公式（默认 10），组内多轮 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-19 |
 | R04.c | 客观辨识：看名称或情境选公式、看公式选名称；干扰项取自易错变体并经人工审校 | 澄清 2026-10-18（功能近似条款） | V1 | 见 R04 | CORE-16、CORE-18、CORE-19 |
