@@ -26,7 +26,7 @@ graph TD
   A02["AND-02 权限与清单"]
   A05["AND-05 生命周期、进程恢复与运行时信息"]
   C36["CORE-36 应用壳、组装层、账户入口与导航"]
-  A06["AND-06 本地存储、Keystore 与生物识别"]
+  A06["AND-06 本地存储与 Keystore"]
   C13["CORE-13 本地库 Schema、单写者与迁移"]
   C21["CORE-21 密钥体系与加密原语"]
   A03["AND-03 相册、文件导入与导出"]
@@ -117,7 +117,7 @@ graph TD
 | AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04 | 360 |
 | AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 420 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 250 |
-| AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
+| AND-06 | 本地存储与 Keystore | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
 | AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64 | 220 |
 | AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
 | AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-28 | 260 |
@@ -130,13 +130,12 @@ graph TD
 
 ## 4. 端口实现映射
 
-CORE-04 §4 的每个端口（共 12 个）在 Android 上由下表的卡实现；`composition/ports_android.dart`（AND-01）负责组装，实现卡只替换该端口对应的一行。
+CORE-04 §4 的每个端口（共 11 个）在 Android 上由下表的卡实现；`composition/ports_android.dart`（AND-01）负责组装，实现卡只替换该端口对应的一行。
 
 | 端口（CORE-04 §4） | Android 实现 | 卡片 |
 | --- | --- | --- |
 | `SecureKeyValueStore` | Android Keystore（优先 StrongBox，降级 TEE，再降级软件密钥并提示） | AND-06 |
 | `LocalFileStore` | `noBackupFilesDir` 下按 `StoreArea` 分目录 | AND-06 |
-| `BiometricPrompt` | AndroidX Biometric（BIOMETRIC_STRONG 或设备凭据） | AND-06 |
 | `ImagePicker` | Photo Picker、ACTION_PICK、SAF `ACTION_OPEN_DOCUMENT` | AND-03 |
 | `ClipboardAdapter` | ClipboardManager（文本；图片 URI 只读一次）；复制公式写 text/plain、text/html 与 image/png（经 FileProvider） | AND-14 |
 | `FileExporter` | SAF `ACTION_CREATE_DOCUMENT` | AND-03 |
@@ -197,7 +196,7 @@ PlatformPorts buildAndroidPorts();
 app/android/
   settings.gradle.kts、build.gradle.kts、app/build.gradle.kts    Android Gradle 工程（统一 Kotlin DSL，文件后缀 .gradle.kts）
   app/src/main/kotlin/.../MainActivity.kt            FlutterFragmentActivity 子类；本卡构造 AndroidChannelModule 列表，逐个 attach；通道全名必须唯一，不存在“注册前缀”机制
-  toolchain.versions                                 ndk=、cargo-ndk=、gradle=、agp=、kotlin=、camerax=、biometric= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
+  toolchain.versions                                 ndk=、cargo-ndk=、gradle=、agp=、kotlin=、camerax= 的锁定版本（每行 key=value；Rust 与 Flutter 只在 CORE-01 的 rust-toolchain.toml、app/.flutter-version）
 Gradle 任务 cargoNdkBuild（preBuild 依赖它）：
   cargo ndk --platform 26 -t arm64-v8a [-t armeabi-v7a] [-t x86_64（仅 debug）] -o app/src/main/jniLibs build -p fml-ffi [--release]
   cargo 退出码非 0 → Gradle 构建失败并原样输出 cargo 错误
@@ -233,11 +232,11 @@ interface AndroidChannelModule {
 - 原生库按 16 KB 内存页对齐（NDK r28 及以上默认；r27 显式开启 flexible page sizes，Rust 链接始终验证，旧版本加链接参数 `-Wl,-z,max-page-size=16384`），以兼容 16 KB 页设备。
 - Release 构建开启 R8，`proguard-rules.pro` 保留 Flutter 与各 MethodChannel 处理类；`.so` 去除调试符号，符号文件另行归档（AND-11）。
 - 构建可复现：`toolchain.versions` 中的版本即 CI 使用的版本；Rust 构建设置 `--remap-path-prefix` 与固定 `SOURCE_DATE_EPOCH` 为源提交Unix时间戳（git show -s --format=%ct HEAD）。
-- 宿主锁版门槛：FlutterFragmentActivity须同时通过AND-02 ActivityResult注册与AND-06 BiometricPrompt最小编译/认证探针；当前仅官方主干源码核对，不声称项目兼容已实测。
-- 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX、androidx.biometric 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
+- 宿主锁版门槛：FlutterFragmentActivity须通过AND-02 ActivityResult注册的最小编译探针；当前仅官方主干源码核对，不声称项目兼容已实测。
+- 外部前提：Android SDK、NDK、cargo-ndk、Gradle/AGP/Kotlin、CameraX 的具体版本由本卡按 ADR-V5-15 在 S0 写入 `toolchain.versions`，Flutter SDK 以 CORE-01 的 `app/.flutter-version` 为准；调试真机至少一台 arm64 设备。
 
 **验收标准**
-- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页，行为按 CORE-04 `smokeEntry`：显示 ABI 版本；runtime 仍为 Unsupported 时显示固定“运行时信息待平台卡实现”、不崩溃，替换为真实端口后显示快照；启动日志列出全部 12 个端口当前为 unsupported。
+- [R01] 在 arm64 真机安装调试包，S0 阶段启动后显示 CORE-04 冒烟页，行为按 CORE-04 `smokeEntry`：显示 ABI 版本；runtime 仍为 Unsupported 时显示固定“运行时信息待平台卡实现”、不崩溃，替换为真实端口后显示快照；启动日志列出全部 11 个端口当前为 unsupported。
 - [R18] 用 MAJOR+1 的核心库替换 `jniLibs` 中的 `libfmlcore.so` 后安装，应用显示“核心版本不匹配，请重新安装”，不崩溃。
 - [R41] `app/lib/ui/` 中 `Platform.isAndroid` 与平台判断零命中（CI 规则由 CORE-41 执行）；Android 专属 Dart 代码只在 `app/lib/platform/android/`、`main_android.dart` 与 `ports_android.dart`。
 - [R23] 两次干净构建得到的 `libfmlcore.so` 哈希一致；`llvm-readelf -l` 显示所有 LOAD 段对齐为 0x4000。
@@ -288,8 +287,6 @@ tools/ci/check_android_manifest.py <merged-manifest.xml> → 退出码 0 通过�
 | `INTERNET` | 普通；AND-09 网络 |
 | `ACCESS_NETWORK_STATE` | 普通；AND-09 网络变化 |
 | `RECEIVE_BOOT_COMPLETED` | 普通；AND-08 提醒重排 |
-| `USE_BIOMETRIC` | 普通；AND-06/AndroidX |
-| `USE_FINGERPRINT`（maxSdkVersion=28） | 兼容普通；AND-06/AndroidX |
 | `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX core 合入，signature 自定义 permission 与 uses-permission 成对审计 |
 | `CAMERA` | 用户第一次点击“拍照识别”时 |
 | `POST_NOTIFICATIONS`（Android 13+） | 用户开启复习提醒时 |
@@ -314,7 +311,7 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 **实现约束**
 - 不申请 `READ_EXTERNAL_STORAGE`、`READ_MEDIA_IMAGES`、`MANAGE_EXTERNAL_STORAGE`、定位、通讯录、电话、麦克风、精确闹钟（`SCHEDULE_EXACT_ALARM`）与前台服务权限；选图走系统选择器（AND-03）。
 - 每次请求前先显示用途说明；拒绝后不反复弹窗，只在用户再次主动使用该功能时提示并提供“去设置”。
-- 第三方依赖带入的白名单权限保留并核对 protectionLevel/maxSdkVersion；白名单外项先核实用途，再移除并跑能力测试，或先修 ADR 与本表，不得删掉生物识别/动态接收器正常工作所需权限。
+- 第三方依赖带入的白名单权限保留并核对 protectionLevel/maxSdkVersion；白名单外项先核实用途，再移除并跑能力测试，或先修 ADR 与本表，不得删掉动态接收器等正常工作所需权限。
 - 不使用权限类第三方插件，权限请求只经本卡通道；不使用 Google Play 服务专属能力（推送、Play Integrity、Google 登录），保证无 GMS 设备可用。
 - 审计脚本输入为 Gradle 生成的 `build/intermediates/merged_manifests/release/AndroidManifest.xml`；CI 在 release 构建后调用（CORE-41 的 `ci.yml` 追加一步）。
 
@@ -398,13 +395,13 @@ API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依
 
 **规模**：约 250 行；`app/lib/platform/android/lifecycle/` 与 MainActivity 中的通道代码（同属 `app/` 构建单元）。
 
-### AND-06 本地存储、Keystore 与生物识别
+### AND-06 本地存储与 Keystore
 
-**目标**：提供 Android 私有目录、Keystore 密钥包装与生物识别端口，使数据库与识别历史只存在本机私有目录并排除出系统备份与设备迁移。
+**目标**：提供 Android 私有目录与 Keystore 密钥包装，使数据库与识别历史只存在本机私有目录并排除出系统备份与设备迁移。
 
 **范围**
-- 包含：`LocalFileStore`、`SecureKeyValueStore`、`BiometricPrompt` 端口实现；各 `StoreArea` 的根目录；备份与迁移排除规则文件；安全等级探测；Kotlin 侧 `KeystoreBridge.kt`。
-- 不包含：数据库本身（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机、应用锁策略与退避（CORE-23）；档案子目录的创建（共享层在各根目录下建 `<profile_id>/`）。
+- 包含：`LocalFileStore`、`SecureKeyValueStore` 端口实现；各 `StoreArea` 的根目录；备份与迁移排除规则文件；安全等级探测；Kotlin 侧 `KeystoreBridge.kt`。
+- 不包含：数据库本身（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机（CORE-23）；不提供生物识别与应用锁（README §6 Q41）；档案子目录的创建（共享层在各根目录下建 `<profile_id>/`）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01
 
@@ -415,7 +412,7 @@ API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依
 ```dart
 abstract interface class SecureKeyValueStore {
   Future<Uint8List> wrap(String alias, Uint8List secret);     // 返回包装后的密文；alias 匹配 ^[a-z0-9_.-]{1,64}$
-  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；需认证的别名认证失败或取消抛 PLATFORM_AUTH_FAILED；系统认证当前不可用（未配置、被策略禁用或无设备）抛 PLATFORM_UNSUPPORTED
+  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；包装与解包都不要求用户认证
   Future<void> delete(String alias);                          // 别名不存在时静默成功
   Future<KeySecurityLevel> securityLevel(String alias);
 }
@@ -424,25 +421,17 @@ abstract interface class LocalFileStore {
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
   Future<void> excludeFromSystemBackup(Directory dir);
 }
-abstract interface class BiometricPrompt {
-  Future<bool> isAvailable();
-  Future<bool> authenticate(String reasonKey);                // 失败或用户取消返回 false；不可用抛 PLATFORM_UNSUPPORTED
-}
 ```
 
-本卡实现：`AndroidKeyStore implements SecureKeyValueStore`、`AndroidFileStore implements LocalFileStore`、`AndroidBiometric implements BiometricPrompt`（`app/lib/platform/android/storage/`），经 MethodChannel `"fml/android/keystore"` 调用 Kotlin：
+本卡实现：`AndroidKeyStore implements SecureKeyValueStore`、`AndroidFileStore implements LocalFileStore`（`app/lib/platform/android/storage/`），经 MethodChannel `"fml/android/keystore"` 调用 Kotlin：
 
 ```text
 keystore.wrap      {alias, secret: bytes}   → bytes   格式：0x01 ‖ IV(12) ‖ AES-256-GCM 密文与标签；别名不存在则先创建密钥
 keystore.unwrap    {alias, wrapped: bytes}  → bytes
 keystore.delete    {alias}                  → null
 keystore.level     {alias}                  → "strong_box" 或 "tee" 或 "software"
-biometric.available                         → bool    androidx.biometric BiometricManager.canAuthenticate(与下述.applock认证同一API分档的authenticators) == SUCCESS；26–29 WEAK|DEVICE_CREDENTIAL，30+ STRONG|DEVICE_CREDENTIAL；不单独猜支持能力
-biometric.auth     {title, subtitle}        → bool    文案由 Dart 按 reasonKey 查 l10n 后传入
 Kotlin 异常映射：KeyPermanentlyInvalidatedException、AEADBadTagException、别名不存在 → PLATFORM_KEY_UNAVAILABLE；
-                 UserNotAuthenticatedException、认证取消或失败 → PLATFORM_AUTH_FAILED；
-                 BiometricPrompt 回调 ERROR_HW_UNAVAILABLE、ERROR_HW_NOT_PRESENT、ERROR_NO_BIOMETRICS、ERROR_NO_DEVICE_CREDENTIAL、
-                 ERROR_SECURITY_UPDATE_REQUIRED（认证器当前不可用）→ PLATFORM_UNSUPPORTED（CORE-23 不计入退避）；其他 IO 错误 → PLATFORM_IO
+                 其他 IO 错误 → PLATFORM_IO
 ```
 
 目录（`root(area)` 的返回值；全部位于 `noBackupFilesDir` 之下，不存在时创建）：
@@ -457,23 +446,18 @@ Kotlin 异常映射：KeyPermanentlyInvalidatedException、AEADBadTagException�
 | exports | `noBackupFilesDir/exports/` | 导出前的临时产物（随后经 `FileExporter` 保存） |
 | logs | `noBackupFilesDir/logs/` | 本地脱敏日志（CORE-28） |
 
-Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：`fml.<profile_id>.db`（无需认证）、`fml.<profile_id>.applock`（需用户认证）；其他密钥由 CORE-21 在已解包密钥之下派生或包装，不建别名。
+Keystore 别名（由 CORE-23 使用，见 CORE-23 实现约束）：只有 `fml.<profile_id>.db`（无需认证，不调用 setUserAuthenticationRequired）；其他密钥由 CORE-21 在已解包密钥之下派生或包装，不建别名。
 
 **实现约束**
 - 创建密钥：API 28+ 先请求 StrongBox（`setIsStrongBoxBacked(true)`），`StrongBoxUnavailableException` 时降级为普通 Keystore；`keystore.level` 由 `KeyInfo` 判定（API 31+ 用 `securityLevel`，更早用 `isInsideSecureHardware`），如实返回 `software`。
-- `.applock` 别名：API 26–29 采用 10 s 时效密钥，PromptInfo 使用 BIOMETRIC_WEAK | DEVICE_CREDENTIAL，authenticate 不传 CryptoObject；认证成功立即解包，过时重认证，不在 API 28–29 构造 STRONG | DEVICE_CREDENTIAL。API 30+ 使用 setUserAuthenticationParameters(0, AUTH_BIOMETRIC_STRONG | AUTH_DEVICE_CREDENTIAL)，PromptInfo 匹配 STRONG | DEVICE_CREDENTIAL 并使用 CryptoObject；设备凭据与 CryptoObject 的具体 AndroidX/ROM 组合列外部前提（M0 实测），不支持时返回 PLATFORM_UNSUPPORTED，不降级为无认证密钥。该参数用 KeyProperties.AUTH_*，不能把 BiometricManager.BIOMETRIC_* 数值传给 KeyGenParameterSpec。
-- 指纹变更不是所有密钥通用失效条件：时效密钥及允许设备凭据的密钥不能承诺“新增指纹必失效”。测试真实 KeyPermanentlyInvalidatedException 映射；生物识别专用、每次认证密钥的 enrollment 失效另在真机条件测试，不能套到支持 PIN 的默认配置。
 - 备份：清单 `android:allowBackup="false"`，并提供 `data_extraction_rules.xml`（Android 12+：cloud-backup 与 device-transfer 均排除全部域）与 `full_backup_content.xml`（排除全部域）；`excludeFromSystemBackup` 对上述根目录内的路径为空操作，对根目录之外的路径抛 `ArgumentError`。
 - 不使用 MediaStore 与公共目录；恢复出厂或清除应用数据会丢失本机密钥，提示文案由 CORE-23/CORE-47 负责。
 - `freeBytes()` 取 `StatFs(noBackupFilesDir).availableBytes`；空间不足的处理由调用方按 CORE-15、CORE-32 的规则执行，本卡不删除任何文件。
-- 外部前提：`androidx.biometric` 版本随 ADR-V5-15 锁定。
 
 **验收标准**
-- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore`、`BiometricPrompt` 契约套件在真机（`integration_test/android/storage_test.dart`）全部通过。
+- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore` 契约套件在真机（`integration_test/android/storage_test.dart`）全部通过。
 - [R27] 手动：执行 `adb shell bmgr backupnow <package>` 与设备迁移后，新设备上不存在 `database/`、`recognition/`、`drafts/` 内容。
 - [R27] 在支持 StrongBox、仅 TEE、模拟器三类设备上 `securityLevel` 分别返回 `strongBox`、`tee`、`software`。
-- [R25] 开启应用锁后在 API 26/28/29/30/34 逐档验证上述认证器组合；注入或真机触发永久失效时 unwrap 抛 PLATFORM_KEY_UNAVAILABLE；取消认证对话框时抛 `PLATFORM_AUTH_FAILED`；`.db` 别名不受影响。
-- [R25] 单元测试（Fake BiometricPrompt 回调）：`ERROR_HW_UNAVAILABLE`、`ERROR_NO_BIOMETRICS`、`ERROR_NO_DEVICE_CREDENTIAL` 时 `unwrap(".applock")` 抛 `PLATFORM_UNSUPPORTED`；`ERROR_USER_CANCELED` 时抛 `PLATFORM_AUTH_FAILED`。常量名依据 androidx BiometricPrompt 源码（https://raw.githubusercontent.com/androidx/androidx/androidx-main/biometric/biometric/src/main/java/androidx/biometric/BiometricPrompt.java ，2026-10-20 读取），锁定版本以 M0 编译为准。
 - [R27] 篡改 `wrap` 结果中任一字节后 `unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`。
 
 **规模**：约 420 行；`app/lib/platform/android/storage/` 与 `app/android/.../KeystoreBridge.kt`、两个备份规则 XML（同属 `app/` 构建单元）。
@@ -1050,7 +1034,6 @@ MethodChannel "fml/android/interaction"（InteractionHandler.kt，挂在 MainAct
   windowMetrics → {smallest_width_dp, orientation: "portrait" | "landscape", in_multi_window: bool,
                    cutout_dp: {left, top, right, bottom}, nav_mode: "gesture" | "three_button", create_count: int /* 转发 AND-05 lifecycle.createCount */}
                    只供集成测试与诊断使用，界面布局不读（布局只按 MediaQuery，CORE-55）
-  setScreenSecure {enabled: bool} → bool   CORE-04 ScreenSecurity 唯一线格式；FLAG_SECURE 设置成功为 true，窗口不可用为 false
 EventChannel  "fml/android/interaction/events"
   ContentObserver 监听 ANIMATOR_DURATION_SCALE → {"animatorScale": double}
 ```
@@ -1116,11 +1099,9 @@ f. 屏幕方向与窗口变化
 
 - 错误码：无（通道失败时触感静默跳过、动画缩放取 1.0，不抛异常）。
 
-本卡登记CORE-04 ScreenSecurity接缝，使用模块在Activity UI线程设置/清除FLAG_SECURE，按请求回传成功状态；应用级引用计数由注入控制器统一维护，恢复重建窗口时重放当前值。
 
 LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
-ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，不另定义字段；本卡契约套件测试开启/关闭、失败、两页嵌套最后释放与窗口重建重放。
 
 **实现约束**
 - 方向：`app/lib/` 与 `app/android/` 中不得调用 `SystemChrome.setPreferredOrientations` 或设置 `requestedOrientation`，清单中任何 Activity 不声明 `screenOrientation`（扫描测试与 AND-02 审计脚本检查）。

@@ -36,7 +36,7 @@ graph TD
   C65["CORE-65 账户客户端控制器与安全令牌存取"]
   C28["CORE-28 隐私守卫、日志与复现包"]
   W06["WIN-06 窗口、DPI、生命周期与单实例"]
-  W07["WIN-07 本地存储、DPAPI 与 Windows Hello"]
+  W07["WIN-07 本地存储与 DPAPI"]
   C13["CORE-13 本地库 Schema、单写者与迁移"]
   C21["CORE-21 密钥体系与加密原语"]
   W04["WIN-04 文件导入、拖拽与导出"]
@@ -134,7 +134,7 @@ graph TD
 | 阶段 | 模块 | 出口 |
 | --- | --- | --- |
 | S0 骨架 | WIN-01 | Release 构建在 Windows 10/11 启动并显示 CORE-04 冒烟页（ABI 版本；运行时快照端口未实现时显示固定的“未实现”提示） |
-| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 包装与（Windows 11）Hello 应用锁验证门可用；HTTPS 传输契约套件通过 |
+| S2 本地库与账户入口 | WIN-06、WIN-07、WIN-10、WIN-15 | 单实例、高 DPI 窗口与位置恢复；最小窗口、标题栏深浅色、输入方式与学习键盘命令；加密库落盘、DPAPI 包装可用；HTTPS 传输契约套件通过 |
 | S4 内容与学习 | WIN-09 | 托盘、应用内提醒与开机自启 |
 | S5 识别与云识别 | WIN-04、WIN-05、WIN-08、WIN-14 | 文件、拖放、剪贴板导入；多格式复制；快捷键（含自定义）与笔输入 |
 | S7 发布 | WIN-16、WIN-02、WIN-03、WIN-12、WIN-13 | 签名安装器、卸载、自更新与回滚演练；环境矩阵达标 |
@@ -149,7 +149,7 @@ graph TD
 | WIN-04 | 文件导入、拖拽与导出 | `app/lib/platform/windows/picker/`、`app/windows/runner/file_dialog.cpp` | CORE-01、CORE-02、CORE-04、CORE-50、WIN-01 | 450 |
 | WIN-05 | 剪贴板与多格式复制 | `app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-52、WIN-04 | 320 |
 | WIN-06 | 窗口、DPI、生命周期与单实例 | `app/lib/platform/windows/window/`、`app/windows/runner/` | CORE-01、CORE-02、CORE-04、CORE-36、WIN-01 | 420 |
-| WIN-07 | 本地存储、DPAPI 与 Windows Hello | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
+| WIN-07 | 本地存储与 DPAPI | `app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01 | 450 |
 | WIN-08 | 编辑器快捷键、输入法与笔输入 | `app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28 | 460 |
 | WIN-09 | 应用内提醒、托盘与开机自启 | `app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp` | CORE-01、CORE-02、CORE-04、CORE-20、CORE-36、WIN-06 | 380 |
 | WIN-10 | 网络传输 | `app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp` | CORE-01、CORE-02、CORE-04、WIN-01 | 240 |
@@ -166,9 +166,8 @@ graph TD
 
 | 端口（CORE-04） | Windows 实现 | 卡片 |
 | --- | --- | --- |
-| `SecureKeyValueStore` | DPAPI（`CryptProtectData`，当前用户范围）；`.applock` 别名在 Windows 11 上解包前加 Windows Hello 用户同意验证，密钥本身仍只受 DPAPI 保护（README §6 Q41，待确认） | WIN-07 |
+| `SecureKeyValueStore` | DPAPI（`CryptProtectData`，当前用户范围） | WIN-07 |
 | `LocalFileStore` | `%LOCALAPPDATA%\BubeiGongshi\` 下按 `StoreArea` 分目录，受保护 DACL | WIN-07 |
-| `BiometricPrompt` | Windows Hello（`UserConsentVerifier`；窗口归属的验证经 `IUserConsentVerifierInterop`，要求 Windows 11 build 22000 起） | WIN-07 |
 | `ImagePicker` | `IFileOpenDialog` 多选 | WIN-04 |
 | `DocumentPicker` | `IFileOpenDialog` 按扩展名过滤 | WIN-04 |
 | `FileExporter` | `IFileSaveDialog`，默认“文档” | WIN-04 |
@@ -178,7 +177,7 @@ graph TD
 | `NotificationScheduler` | 应用内定时 + 托盘通知（`NIF_INFO`）+ 任务栏闪烁 | WIN-09 |
 | `HttpTransport` | `dart:io` `HttpClient`（系统 CA、系统静态代理），由 CORE-28 `NetworkGuard` 包裹 | WIN-10 |
 
-共 12 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `InkInputPolicy`（WIN-08）、`ShellKeyHandler`（WIN-15 `WindowsKeyRouter`，WIN-08 的 `WindowsShellKeys` 挂入）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（WIN-15；不登记 `UiFeedbackSink`）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（65，笔与数位板）、WIN-14（60，快捷键）加入。
+共 11 个端口（`AppLifecycle` 与 `RuntimeInfo` 合为一行）。接缝实现：`ImageDropSource`（WIN-04）、`FormulaClipboardWriter`（WIN-05）、`EditorPlatformBindings` / `InkInputPolicy`（WIN-08）、`ShellKeyHandler`（WIN-15 `WindowsKeyRouter`，WIN-08 的 `WindowsShellKeys` 挂入）、`InputModalitySource` / `MotionScaleSource` / `DevicePrefStore` / `ShortcutLabelSource`（WIN-15；不登记 `UiFeedbackSink`）、`TrayPresence`（WIN-09）；`SettingsSections` 项由 WIN-03（90）、WIN-06（80）、WIN-09（75）、WIN-07（70）、WIN-08（65，笔与数位板）、WIN-14（60，快捷键）加入。
 
 ---
 
@@ -400,7 +399,7 @@ final class WindowsUpdater extends ValueNotifier<UpdateState> {
 void installWindowsUpdater(CompositionContext ctx);
 // install读取 WIN-01 的 windowsLaunchArguments 解析 --update-nonce，版本取本构建常量，nonce只在内存且不记日志；
 // 登记 WindowsUpdater；向 SettingsSections 加入 order 90 的“检查更新”区；启动钩子 order 85：距上次检查 ≥ 24 h 时自动 check（只提示，不下载）；
-// firstFrameHooks order 20：confirmHealthy（独立于顺序 startupHooks，早于其 order 20 解锁）；读取 installRoot\rolled-back.txt 存在时置 UpdateFailed(PLATFORM_UPDATE_ROLLED_BACK)、
+// firstFrameHooks order 20：confirmHealthy（独立于顺序 startupHooks，早于其 order 20 档案打开）；读取 installRoot\rolled-back.txt 存在时置 UpdateFailed(PLATFORM_UPDATE_ROLLED_BACK)、
 //   installRoot\update-failed.txt 存在时置 UpdateFailed(PLATFORM_IO)，读后删除该文件；
 // 有 nonce 时订阅 ctx.features 中 CORE-23 的 AccountController.state，首次出现 GuestUnlocked 或 RegisteredUnlocked 时调用一次 confirmOpened（档案打开含迁移已成功）
 ```
@@ -418,7 +417,7 @@ download：freeBytes < size × 3 → PLATFORM_UPDATE_DISK_FULL；完成后 SHA-2
 state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后把失败版本写入 skipped_version。
 健康确认：firstFrameHooks 中只调用 BubeiGongshi.exe --confirm-healthy <nonce> --version <currentVersion>；档案首次打开后调用 --confirm-opened（参数同）；
           两者都至多等待子进程 1500 ms（在 CORE-36 每项 2 s 上限内），超时记 AppLog、不重试、不终止子进程；
-          启动器按 WIN-16 协议写带 nonce 的 healthy/opened 文件；应用锁等待与网络同步不延迟健康确认。
+          启动器按 WIN-16 协议写带 nonce 的 healthy/opened 文件；账户入口等待与网络同步不延迟健康确认。
 版本选择、数据备份、首启等待、原子提交与回滚全部由 WIN-16 唯一定义。
 ```
 
@@ -530,13 +529,13 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 
 **规模**：约 420 行；`app/lib/platform/windows/window/` 与 `app/windows/runner/` 中的 `app/windows/runner/window_channel.cpp`、单实例与窗口位置代码（同属 `app/` 构建单元）。
 
-### WIN-07 本地存储、DPAPI 与 Windows Hello
+### WIN-07 本地存储与 DPAPI
 
-**目标**：提供 Windows 私有目录、DPAPI 密钥包装，以及基于 Windows Hello 用户同意验证的应用锁解锁门，并在设置页如实说明 DPAPI 和解锁门各自的安全边界。
+**目标**：提供 Windows 私有目录与 DPAPI 密钥包装，并在设置页如实说明 DPAPI 的安全边界。
 
 **范围**
-- 包含：`LocalFileStore`、`SecureKeyValueStore`、`BiometricPrompt` 端口实现；各 `StoreArea` 根目录与私有 ACL；`.applock` 别名的 Windows Hello 验证门（解包前验证，不是密钥级保护）；设置页“安全说明”区。
-- 不包含：数据库（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机、应用锁策略与退避（CORE-23）；档案子目录（共享层在各根目录下建 `<profile_id>/`）。
+- 包含：`LocalFileStore`、`SecureKeyValueStore` 端口实现；各 `StoreArea` 根目录与私有 ACL；设置页“安全说明”区。
+- 不包含：数据库（CORE-13）；密钥层次与 AEAD（CORE-21）；账户状态机（CORE-23）；不提供 Windows Hello、应用锁与防截屏（README §6 Q41）；档案子目录（共享层在各根目录下建 `<profile_id>/`）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-36、WIN-01
 
@@ -547,7 +546,7 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 ```dart
 abstract interface class SecureKeyValueStore {
   Future<Uint8List> wrap(String alias, Uint8List secret);     // 返回包装后的密文；alias 匹配 ^[a-z0-9_.-]{1,64}$
-  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；需认证的别名认证失败或取消抛 PLATFORM_AUTH_FAILED；系统认证当前不可用（未配置、被策略禁用或无设备）抛 PLATFORM_UNSUPPORTED
+  Future<Uint8List> unwrap(String alias, Uint8List wrapped);  // 密钥失效抛 PLATFORM_KEY_UNAVAILABLE；包装与解包都不要求用户认证
   Future<void> delete(String alias);                          // 别名不存在时静默成功
   Future<KeySecurityLevel> securityLevel(String alias);
 }
@@ -556,27 +555,15 @@ abstract interface class LocalFileStore {
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
   Future<void> excludeFromSystemBackup(Directory dir);
 }
-abstract interface class BiometricPrompt {
-  Future<bool> isAvailable();
-  Future<bool> authenticate(String reasonKey);                // 失败或用户取消返回 false；不可用抛 PLATFORM_UNSUPPORTED
-}
 ```
 
-本卡实现：`WindowsKeyStore`、`WindowsFileStore`、`WindowsHello`（`app/lib/platform/windows/storage/`）与 `installWindowsStorage(CompositionContext ctx)`（向 `SettingsSections` 加入 order 70 的“安全说明”区），经 MethodChannel `"fml/windows/keystore"`（`app/windows/runner/keystore_channel.cpp`）调用：
+本卡实现：`WindowsKeyStore`、`WindowsFileStore`（`app/lib/platform/windows/storage/`）与 `installWindowsStorage(CompositionContext ctx)`（向 `SettingsSections` 加入 order 70 的“安全说明”区），经 MethodChannel `"fml/windows/keystore"`（`app/windows/runner/keystore_channel.cpp`）调用：
 
 ```text
-wrap   {alias, secret}  → bytes
-       普通别名：0x02 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
-       以 .applock 结尾：0x04 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
-       0x03 是已废弃的“Hello 签名派生密钥”格式，任何版本都不生成
-unwrap {alias, wrapped} → bytes   普通别名：版本字节不是 0x02 或 DPAPI 解密失败 → PLATFORM_KEY_UNAVAILABLE
-                                   .applock：版本字节不是 0x04（含 0x03）或 DPAPI 解密失败 → PLATFORM_KEY_UNAVAILABLE
-delete {alias}          → null    只删除调用方保存的包装结果对应的本地状态；Windows 没有需要另删的 Hello 凭据
-level  {alias}          → 两类别名都返回 "dpapi"；不返回 "dpapi_with_hello"（该枚举值留给今后经 ADR 确立的密钥级方案）
-hello.available         → bool    build ≥ 22000 且 UserConsentVerifier.CheckAvailabilityAsync() == Available；build < 22000 直接 false
-hello.verify {message}  → string  build ≥ 22000 时调用 IUserConsentVerifierInterop::RequestVerificationForWindowAsync(topHwnd, message)，
-                                   返回 UserConsentVerificationResult 的小驼峰名（verified、deviceNotPresent、notConfiguredForUser、
-                                   disabledByPolicy、deviceBusy、retriesExhausted、canceled）；build < 22000 → PLATFORM_UNSUPPORTED
+wrap   {alias, secret}  → bytes   0x02 ‖ CryptProtectData(secret, entropy = UTF-8(alias), CRYPTPROTECT_UI_FORBIDDEN)
+unwrap {alias, wrapped} → bytes   版本字节不是 0x02 或 DPAPI 解密失败 → PLATFORM_KEY_UNAVAILABLE
+delete {alias}          → null    只删除调用方保存的包装结果对应的本地状态
+level  {alias}          → "dpapi"
 free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 ```
 
@@ -592,30 +579,20 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 | exports | `…\exports\` | 导出前的临时产物（随后经 `FileExporter` 保存） |
 | logs | `…\logs\` | 本地脱敏日志（CORE-28） |
 
-- 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_AUTH_FAILED`、`PLATFORM_UNSUPPORTED`、`PLATFORM_IO`；本卡不新增错误码。
-
-`.applock` 的验证顺序由 Dart `WindowsKeyStore` 执行，通道 wrap/unwrap 只处理字节格式：`wrap(".applock")` 先查 hello.available，为 false 时抛 `PLATFORM_UNSUPPORTED`、不调用通道 wrap；`unwrap(".applock")` 先调 hello.verify：canceled、retriesExhausted、deviceBusy 抛 `PLATFORM_AUTH_FAILED`；deviceNotPresent、notConfiguredForUser、disabledByPolicy 抛 `PLATFORM_UNSUPPORTED`（CORE-23 不计入退避，提示重新启用 Hello）；两种情况都不调用通道 unwrap，也不删除密文。
-
-`BiometricPrompt` 映射：`isAvailable()` = hello.available；`authenticate(reasonKey)` 以本地化文案调用 hello.verify，verified → true，deviceNotPresent / notConfiguredForUser / disabledByPolicy → 抛 `PLATFORM_UNSUPPORTED`，其余 → false。
-
-应用锁在 Windows 上的含义（README §6 Q41，待确认）：Windows 11（build 22000 起）上，`.applock` 解包前必须通过 Windows Hello 用户同意验证，用来防止他人在已登录的 Windows 会话中直接打开应用；DbKey 仍只由 DPAPI 保护，能以当前用户身份运行的程序可以绕过这道门。Windows 10 上 `hello.available` 为 false，不提供应用锁。依据（2026-10-20 核实 Microsoft 官方文档）：桌面应用应使用 [RequestVerificationForWindowAsync](https://learn.microsoft.com/en-us/windows/win32/api/userconsentverifierinterop/nf-userconsentverifierinterop-iuserconsentverifierinterop-requestverificationforwindowasync)，文档标明最低客户端为 Windows build 22000；[RequestVerificationAsync](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverifier.requestverificationasync) 只适用于 UWP；[UserConsentVerificationResult](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverificationresult) 与 [UserConsentVerifierAvailability](https://learn.microsoft.com/en-us/uwp/api/windows.security.credentials.ui.userconsentverifieravailability) 的取值即上表。基于 KeyCredential 签名派生密钥的方案未经证实可稳定恢复，不采用（ADR-V5-37）。
+- 错误码：只使用 CORE-04 登记的 `PLATFORM_KEY_UNAVAILABLE`、`PLATFORM_IO`；本卡不新增错误码。
 
 **实现约束**
 - 首次创建 `%LOCALAPPDATA%\BubeiGongshi\` 时设置受保护 DACL（`SetNamedSecurityInfoW` + `PROTECTED_DACL_SECURITY_INFORMATION`）：只授予当前用户与 SYSTEM 完全控制，不继承父目录权限。
 - 数据只写 `%LOCALAPPDATA%`（不漫游）；不写安装目录、桌面、下载与公共文档目录；`excludeFromSystemBackup` 对数据根内路径为空操作，对根外路径抛 `ArgumentError`。
-- DPAPI 不等于 Windows Hello，界面不得混称；“安全说明”区必须列出：更换 Windows 用户或重置系统后密钥不可恢复；同机管理员与已解锁会话中的恶意软件不在防护范围内；卸载、重装、重置前应导出备份或开启同步；第三方整盘备份软件可能复制密文目录；开启应用锁时另列一条“应用锁只在打开应用时要求 Windows Hello 验证，数据仍只受 DPAPI 保护”。Windows 10 上设置页不显示应用锁开关，“安全说明”区注明原因。
-- Windows Hello 被移除或被策略禁用后，`.applock` 解包返回 `PLATFORM_UNSUPPORTED`（不计入退避），密文不删除；用户在 Windows 设置中重新配置 Hello 后即可解锁。
+- “安全说明”区必须列出：数据由 Windows 账户加密（DPAPI），打开应用不需要额外验证；更换 Windows 用户或重置系统后密钥不可恢复；同机管理员与已解锁会话中的恶意软件不在防护范围内；卸载、重装、重置前应导出备份或开启同步；第三方整盘备份软件可能复制密文目录。
 - `freeBytes` 只读不删；空间不足由调用方按 CORE-15、CORE-32、CORE-50 的规则处理。
-- 外部前提：Windows Hello 需设备已设置 PIN 或生物识别；C++/WinRT 随 Windows SDK 提供，不引入其他库。M0 须在 Windows 11 22000 及最新版本实测：验证框归属 topHwnd 并显示在前台、`CheckAvailabilityAsync` 可从桌面进程调用。若实测 Windows 10 1809～22H2 也支持该 interop，另修 ADR-V5-37 与 Q41 后再放开，不得凭推测放开。
+- 外部前提：DPAPI 与 ACL API 随 Windows SDK 提供，不引入其他库。
 
 **验收标准**
-- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore`、`BiometricPrompt` 契约套件（`integration_test/windows/storage_test.dart`）全部通过。
+- [R27] CORE-04 的 `SecureKeyValueStore`、`LocalFileStore` 契约套件（`integration_test/windows/storage_test.dart`）全部通过；`securityLevel` 返回 `dpapi`。
 - [R27] 把数据目录复制到另一 Windows 用户下运行，`unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE`，应用提示且不崩溃；篡改包装结果任一字节同样抛该码。
 - [R27] `icacls "%LOCALAPPDATA%\BubeiGongshi"` 只列出当前用户与 SYSTEM，且无继承项。
-- [R25] Windows 11 上开启应用锁后 `unwrap(".applock")` 弹出归属主窗口的 Windows Hello，verified 后返回原密钥；取消时抛 `PLATFORM_AUTH_FAILED` 且包装结果仍可在下次 verified 后解开；`.db` 别名不受影响。
-- [R25] Dart 单元测试（Fake `fml/windows/keystore` 通道）：hello.available 返回 false 时 `isAvailable` 为 false、`wrap(".applock")` 抛 `PLATFORM_UNSUPPORTED` 且通道未收到 wrap；hello.verify 返回 canceled 时 `unwrap(".applock")` 抛 `PLATFORM_AUTH_FAILED`、返回 notConfiguredForUser 时抛 `PLATFORM_UNSUPPORTED`，两种情况通道都未收到 unwrap，改为 verified 后成功；通道对首字节 0x03 或 0x02 的 `.applock` 包装结果返回 `PLATFORM_KEY_UNAVAILABLE`；`securityLevel` 对两类别名都返回 `dpapi`；`authenticate` 在 disabledByPolicy 时抛 `PLATFORM_UNSUPPORTED`、canceled 时返回 false。
-- [R25] 手动 checklist（WIN-13 汇总）：Windows 10 22H2 上 `isAvailable` 为 false、设置页无应用锁开关；Windows 11 上验证框归属主窗口并显示在前台。
-- [R27] 设置页显示“安全说明”区，包含上述各项说明；Windows 11 开启应用锁后多出应用锁一条，Windows 10 不显示应用锁开关并注明原因。
+- [R27] 设置页显示“安全说明”区，包含上述各项说明。
 
 **规模**：约 450 行；`app/lib/platform/windows/storage/` 与 `app/windows/runner/keystore_channel.cpp`（同属 `app/` 构建单元）。
 
@@ -1121,7 +1098,6 @@ MethodChannel "fml/windows/interaction"（app/windows/runner/interaction_channel
   clientAreaAnimation → bool（SystemParametersInfo(SPI_GETCLIENTAREAANIMATION)；“设置 → 辅助功能 → 视觉效果 → 动画效果”）
   windowMetrics → {dpi, work_area_px: {w, h}, min_track_px: {w, h}, high_contrast: bool, slate: bool}
         只供集成测试与诊断，界面布局不读（布局只按 MediaQuery，CORE-55）
-  setScreenSecure {enabled: bool} → bool   CORE-04 ScreenSecurity 唯一线格式；SetWindowDisplayAffinity 成功为 true，失败或窗口不可用为 false
 EventChannel  "fml/windows/interaction/events"
   WM_SETTINGCHANGE（lParam 为 "UserInteractionMode" 或 "ConvertibleSlateMode"）→ {"interactionMode": "touch" | "pointer"}
   WM_SETTINGCHANGE（wParam 为 SPI_SETCLIENTAREAANIMATION）→ {"clientAreaAnimation": bool}
@@ -1185,11 +1161,9 @@ d. 桌面交互对照（规范见 CORE-55 e、f、i；本表为 Windows 真机�
 
 - 错误码：无（通道失败时输入方式取 `pointer`、动画取 1.0、标题栏保持系统默认，记 AppLog warning，不向用户报错）。
 
-本卡登记CORE-04 ScreenSecurity接缝，通过interaction通道对topHwnd设置窗口捕获策略；Windows 10 2004+请求WDA_EXCLUDEFROMCAPTURE，旧版请求WDA_MONITOR，失败返回false；1809效果为M0实测前提，不能承诺截图一定被阻止。
 
 LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点ignored：↑/↓/Home/End/PageUp/PageDown分别→library.batch.move.up/down/home/end/pageUp/pageDown，Shift组合对应library.batch.extend.up/down/home/end/pageUp/pageDown（每项均独立无参ID），Space→toggle，Ctrl+A→selectAll，Esc→clear，Enter→open，Delete→trash，Ctrl+T→editTags，Shift+F10/菜单键→menu，Ctrl+Z→undo；handled后不再执行页面默认动作，命令不可用返回ignored。Android同样由early handler安装点路由，不另加第二个ShellKeyHandler。
 
-ScreenSecurity逐字采用CORE-04 setScreenSecure方法及enabled/bool协议，不另定义字段；本卡契约套件测试开启/关闭、失败、两页嵌套最后释放与窗口重建重放。
 
 **实现约束**
 - 唯一按键入口：全应用只有 `WindowsKeyRouter` 登记为 `ShellKeyHandler`（CORE-36 只取一个）；WIN-08 不再直接登记，改为 `attach`。学习命令只经 `FmlCommands` 调用，本卡不 import `app/lib/ui/study/`，命令 ID 直接引用 CORE-58 `StudyCommand.id`（本卡单元测试与 a 表比对；本卡在 S2，不依赖 S4 的 CORE-39）。
@@ -1329,7 +1303,7 @@ final class WindowsNotificationScheduler implements NotificationScheduler {
 }
 final class WindowsTray implements TrayPresence { WindowsTray(this.nav, this.shell); final AppNavigator nav; final WindowsShell shell; }
 void installWindowsTray(CompositionContext ctx);
-// 登记 TrayPresence；向 SettingsSections 加入 order 75 的“提醒与托盘”区；firstFrameHooks order 10：创建托盘图标，成功后置 iconReady（--minimized 时窗口自始未显示，失败由 WIN-06 order 15 兜底显示）；不经顺序启动钩子，不等待解锁；
+// 登记 TrayPresence；向 SettingsSections 加入 order 75 的“提醒与托盘”区；firstFrameHooks order 10：创建托盘图标，成功后置 iconReady（--minimized 时窗口自始未显示，失败由 WIN-06 order 15 兜底显示）；不经顺序启动钩子，不等待档案打开；
 // 追加到 ports_windows.dart 的 platformInstallers（须位于 installWindowsShell 之后）
 ```
 
@@ -1370,7 +1344,7 @@ Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平�
 - [R26] 提醒全流程抓包无网络请求；通知正文只含数量。
 - [R03] 托盘菜单“退出”后进程结束、托盘图标消失。
 
-- [R23][R27] 应用锁开启且 --minimized 首启时，解锁等待超过 120 s 托盘仍存在；点“打开”能显示解锁页，首帧健康标记已写；模拟托盘创建失败时窗口保持可见。
+- [R23][R27] 已登出的注册用户（停在账户入口）以 --minimized 首启时，账户入口等待超过 120 s 托盘仍存在；点“打开”能显示账户入口，首帧健康标记已写；模拟托盘创建失败时窗口保持可见。
 
 **规模**：约 380 行；`app/lib/platform/windows/notify/` 与 `app/windows/runner/tray_channel.cpp`（同属 `app/` 构建单元）。
 
@@ -1568,13 +1542,13 @@ installRoot = %LOCALAPPDATA%\Programs\BubeiGongshi\（控制文件只由启动�
 **实现约束**
 - 持久化顺序按上述表，文件/进程/管道调用封装可注入；所有等待在启动器进程执行。无常驻服务、无网络访问。
 - 备份/回滚只允许写文档指定目录，路径正规化拒绝重解析点逃逸；写者退出之前禁止复制与恢复。备份保留到 opened 后的 committed → idle 清理或恢复核验完成；committed 期间保留 app-<C>。
-- 首帧健康只表示壳与路由可呈现；opened 只表示档案打开（含迁移）成功；二者都不代表同步成功。后续同步、账户失败由对应模块报告，不自动回滚用户解锁；整库恢复后由同步客户端按 ADR-V5-33 更换设备身份，本卡不改库内容。
+- 首帧健康只表示壳与路由可呈现；opened 只表示档案打开（含迁移）成功；二者都不代表同步成功。后续同步、账户失败由对应模块报告，不自动回滚用户已打开的档案；整库恢复后由同步客户端按 ADR-V5-33 更换设备身份，本卡不改库内容。
 
 **验收标准**
 - [R23][R27] CTest 故障注入覆盖每次文件提交前后、复制中断、CreateProcess/PID 登记间隙与重启；最终为完整 C+原库或已确认 N，不出现混合数据库。
 - [R23] 验证期间连续双击 20 次只激活现有实例，不产生第二个 N、不回滚；已有实例运行时启动不进入 verifying；N 以返回码 10 退出时 journal 回到 pending、数据库未被恢复，与异常退出分别验证。
 - [R23][R27] N 崩溃/超时恢复后数据库哈希与快照一致；模拟 TerminateProcess 后句柄仍未结束不改库；5 次 rename 失败进入救援，保留 C 与唯一备份，不启动损坏库。
-- [R23][R27] 陈旧 healthy/opened、错误 nonce、错误版本均不能提交或清理；首帧完成后解锁等待超过 120 s 不回滚；提交后档案始终未打开时备份与 app-C 保留，第 4 次启动出现恢复对话框，选择恢复后数据库哈希与快照一致；--minimized 同样通过。
+- [R23][R27] 陈旧 healthy/opened、错误 nonce、错误版本均不能提交或清理；首帧完成后停在账户入口超过 120 s 不回滚；提交后档案始终未打开时备份与 app-C 保留，第 4 次启动出现恢复对话框，选择恢复后数据库哈希与快照一致；--minimized 同样通过。
 - [R23] 安装模式校验 PID 创建时间、armed 确认、30 s 超时与 Inno 非零退出（写 update-failed.txt 并提示，current/pending 不变）；只有旧进程结束后启动安装器；成功后不自动启动应用且 pending=N。
 - [R23] journal、manifest、healthy/opened、update-failed 与黄金文件逐字节一致；截断、含未知键或 schema=2 的 journal 进入救援且不改文件；其他进程抢先创建同名管道时客户端拒绝；verifying 期间 `--register-install` 返回 1 且文件不变。
 

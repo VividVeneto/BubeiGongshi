@@ -622,9 +622,9 @@ v5.3.1旧接续是历史输入，其H1～H7/M组落点见D.9；不再声称Andro
 - H6：仓储op的档案handle与账户持有/关闭、敏感密钥加载、业务DTO/schema/manifest仍未全闭合（PA04/08、PB01/03/04）；pending不能开工，不允许私造全局账户上下文。
 - 缓存：Dart generation查询/通知未定义，结果/字形缓存暂禁用（PA12）；CORE-06 budget/boundIndex等低级遗留转P2。
 - CORE-41门禁族范围/逐文件估算不可信，实施前拆卡或复核可复用实现（PC09）；独立复核未通过，不用430行估算授予S0许可。
-- 平台：Android锁版ActivityResult/认证/权限合并/导入能力探针、Windows Hello验证门在Windows 11上的窗口归属与前台显示均未实测；P1补修（D.13.2）已把Windows应用锁定为Hello用户同意验证门（DbKey仍只受DPAPI保护，Windows 10不提供，README §6 Q41待确认），密钥级Hello保护未采用。WDA_EXCLUDEFROMCAPTURE的系统版本要求待核实。Android主机驱动M-HOST须另卡明确规模并实现，AND-12在此前受阻（PAN05）。
+- 平台：Android锁版ActivityResult/权限合并/导入能力探针仍未实测。应用锁、生物识别/Windows Hello 与防截屏已按甲方确认（README §6 Q41）移除（ADR-V5-38，见 D.13.3），相关 M0 探针与 WDA_EXCLUDEFROMCAPTURE 核实不再需要。Android主机驱动M-HOST须另卡明确规模并实现，AND-12在此前受阻（PAN05）。
 - 材料：保守打包和无损分段已入库，但总量未缩到8万以内。D.13逐卡登记超量；每条warning在持久化审计台账保留，未关闭本地缺定义/依赖/Q关联不能当合法引用。
-- 真实内容/模型、数据及发布许可、供应商/证书/托管/设备矩阵均有外部门槛，M-CONTENT/M-MODEL不能用工具夹具替代。Q32～41保持待确认；Q33确认后另改选卡向量。
+- 真实内容/模型、数据及发布许可、供应商/证书/托管/设备矩阵均有外部门槛，M-CONTENT/M-MODEL不能用工具夹具替代。Q32～40保持待确认（Q41 已确认）；Q33确认后另改选卡向量。
 - P1补修后仍待处理：CORE-33规模已到约500行另加运维脚本，P2评估拆卡；`reports/v5.3.2-交付核对.md`与`v5.3.2-audit.json`为v5.3.2标版时的快照，未随补修重新生成（其中NOTATION_*仍列为未定义），P2最终复评时重新生成；补修中CORE-23、CORE-47、CORE-62、AND-06、AND-14、WIN-07新增的验收尚未进入独立复核以外的整卡复核（D.12）。
 
 ## D.11 v5.3 复核与 v5.3.1 修订记录（2026-10-20）
@@ -894,3 +894,15 @@ P1 交付后的审核发现：WIN-07 已把 `.applock` 改为一律不支持，�
 5. 本提交：RecognitionFlow 与 CandidateVm 改为显式 `notationProfileId`/`userDecls`，CORE-31 列 fml-ffi 附属适配；AND-06 把认证器不可用类回调映射为 `PLATFORM_UNSUPPORTED` 并补验收（常量名依据 androidx 源码）；识别提交前检查熔断标记，解除熔断改为 CORE-33 运维 SQL 脚本；CORE-37 旧归属最后两处；CORE-34 透传行移入引用表，消费表表头统一。这一步没有再做第三轮复核，结论以本节为准。
 
 本次补修不改变 §D.10 任何卡的独立等级，就绪数仍为 0；S0 九张卡仍需按 README §8.5.1 复核。修订期间另有会话在同一分支提交了 P2 的 L-A～L-C（`c765274`、`7bf12ad`、`5d015fe`），补修以当时的文件为基础，没有覆盖这些提交。
+
+### D.13.3 移除应用锁、Windows Hello 与防截屏（2026-10-20）
+
+甲方确认（README §2.2、§6 Q41）：“防截屏，应用锁和Windowshello相关内容去掉，不需要过强的保护”。按 ADR-V5-38 修订：
+
+- CORE-04：删除 `BiometricPrompt` 端口（`PlatformPorts` 由 12 个端口减为 11 个）、`ScreenSecurity` 可选接缝与唯一线格式、`PLATFORM_AUTH_FAILED`；`KeySecurityLevel` 去掉 `dpapiWithHello`；`SecureKeyValueStore.unwrap` 注释改为“包装与解包都不要求用户认证”，01/02/03 三处逐字一致。
+- CORE-23：只保留系统级解锁；删除 GuestLocked、`UnlockTier`、`account.set_unlock_tier`、`AUTH_APP_LOCK_FAILED`、`AUTH_APP_LOCK_BACKOFF` 与 `.applock` 别名；新增 `profile.logged_out` 与 `account.set_logged_out` 记录登出，已登出的注册档案启动时停在账户入口（RegisteredLocked），验收同步。CORE-28 `GuardAccountState` 去掉 guestLocked；CORE-65 删除 `unlock`/`appLockEnabled`/`setAppLock`，账户状态镜像改为五个；CORE-47 删除应用锁开关与恢复码页防截屏；CORE-36 首帧与 order 20 钩子措辞改为档案打开；CORE-32 删除 AUTH_FAILED 上抛；CORE-44 映射表删除 BiometricPrompt 行。
+- AND-06 改名“本地存储与 Keystore”，删除生物识别实现、`biometric.*` 通道方法、`.applock` 别名与 API 分档约束及相关验收；AND-01 去掉 `biometric=` 锁版键与宿主认证探针；AND-02 权限白名单删除 USE_BIOMETRIC、USE_FINGERPRINT；AND-13 删除 setScreenSecure。
+- WIN-07 改名“本地存储与 DPAPI”，只保留 DPAPI 包装（0x02）与安全说明；删除 Hello 通道方法、`.applock` 格式与相关验收；WIN-15 删除 setScreenSecure；WIN-09 验收改为“已登出停在账户入口 + --minimized”；WIN-03、WIN-16 的“解锁等待”措辞改为档案打开或账户入口等待。
+- README §5 R25 行去掉 AND-06、WIN-07；§6 Q41 移入已确认表；附录 A：00 D-09 部分撤销，ADR-V5-15/36/37 去掉生物识别与 Hello 内容，新增 ADR-V5-38，相关历史段落标“已撤销”。
+
+本节之前（D.9～D.13.2）关于应用锁、Hello、防截屏的记录保留为历史，不再代表现行设计。卡片独立等级不变，就绪数仍为 0。
