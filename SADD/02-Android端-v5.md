@@ -20,6 +20,17 @@ Android 端的职责边界：
 
 ```mermaid
 graph TD
+  C03["CORE-03 C ABI 与 Dart 绑定"]
+  C04["CORE-04 平台端口契约"]
+  C13["CORE-13 本地库 Schema、单写者与迁移"]
+  C20["CORE-20 学习统计、掌握度与本地提醒"]
+  C21["CORE-21 密钥体系与加密原语"]
+  C36["CORE-36 应用壳、组装层、账户入口与导航"]
+  C37["CORE-37 公式渲染组件与编辑器"]
+  C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
+  C52["CORE-52 公式复制格式与富格式导出"]
+  C55["CORE-55 界面设计系统与主题"]
+  C42["CORE-42 发布流水线、版本矩阵与回滚"]
   A01["AND-01 工程与构建"]
   A02["AND-02 权限与清单"]
   A05["AND-05 生命周期、进程恢复与运行时信息"]
@@ -32,17 +43,6 @@ graph TD
   A11["AND-11 打包、签名与发布"]
   A12["AND-12 性能、能耗与真机矩阵"]
   A13["AND-13 Android 触摸交互与横竖屏适配"]
-  C03["CORE-03 C ABI 与 Dart 绑定"]
-  C04["CORE-04 平台端口契约"]
-  C36["CORE-36 应用壳、组装层、账户入口与导航"]
-  C13["CORE-13 本地库 Schema、单写者与迁移"]
-  C21["CORE-21 密钥体系与加密原语"]
-  C52["CORE-52 公式复制格式与富格式导出"]
-  C37["CORE-37 公式渲染组件与编辑器"]
-  C40["CORE-40 识别流程编排、手写画布与图片预处理界面"]
-  C20["CORE-20 学习统计、掌握度与本地提醒"]
-  C42["CORE-42 发布流水线、版本矩阵与回滚"]
-  C55["CORE-55 界面设计系统与主题"]
   A01 --> C03
   A01 --> C04
   A02 --> C04
@@ -100,18 +100,18 @@ graph TD
 
 | 编号 | 名称 | 代码位置 | 直接依赖 | 预估规模 |
 | --- | --- | --- | --- | --- |
-| AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 约 300 行 |
-| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 约 245 行 |
-| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-52 | 约 500 行 |
-| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 约 420 行 |
-| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 约 250 行 |
-| AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 约 420 行 |
-| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40 | 约 220 行 |
-| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 约 380 行 |
-| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04 | 约 260 行 |
-| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 约 260 行 |
-| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 约 490 行 |
-| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05 | 约 380 行 |
+| AND-01 | 工程与构建 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | CORE-01、CORE-02、CORE-03、CORE-04 | 300 |
+| AND-02 | 权限与清单 | `app/android/app/src/main/AndroidManifest.xml`、`app/lib/platform/android/permissions.dart`、`tools/ci/check_android_manifest.py` | CORE-01、CORE-02、CORE-04、AND-01 | 245 |
+| AND-03 | 相册、文件导入与导出 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-52 | 500 |
+| AND-04 | 相机 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt` | CORE-01、CORE-02、CORE-04、AND-02 | 420 |
+| AND-05 | 生命周期、进程恢复与运行时信息 | `app/lib/platform/android/lifecycle/` | CORE-01、CORE-02、CORE-04、CORE-36、AND-01、AND-02 | 250 |
+| AND-06 | 本地存储、Keystore 与生物识别 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、AND-01 | 420 |
+| AND-07 | 手写与编辑器的 Android 适配 | `app/lib/platform/android/editing/` | CORE-01、CORE-02、CORE-04、CORE-37、CORE-40 | 220 |
+| AND-08 | 本地通知与提醒自检 | `app/lib/platform/android/notify/`、`app/android/.../ReminderBridge.kt` | CORE-01、CORE-02、CORE-04、CORE-20、AND-02 | 380 |
+| AND-09 | 网络传输 | `app/lib/platform/android/net/`、`app/android/.../NetBridge.kt` | CORE-01、CORE-02、CORE-04 | 260 |
+| AND-11 | 打包、签名与发布 | `tools/release/android/`、`app/android/app/build.gradle`（release 段） | CORE-01、CORE-02、CORE-42、AND-01、AND-02 | 260 |
+| AND-12 | 性能、能耗与真机矩阵 | `app/integration_test/android/`、`tools/perf/android/` | CORE-01、CORE-02、AND-03、AND-04、AND-07、AND-08、AND-09、AND-11、AND-13 | 490 |
+| AND-13 | Android 触摸交互与横竖屏适配 | `app/lib/platform/android/interaction/`、`app/android/.../InteractionHandler.kt`、`app/android/app/src/main/res/values*/styles.xml` | CORE-01、CORE-02、CORE-04、CORE-36、CORE-55、AND-01、AND-02、AND-05 | 380 |
 
 > AND-10（资源包获取与识别历史平台存储）已在 v5.1 撤销：资源包下载与管理并入 CORE-51，存储紧张时的识别历史清理并入 CORE-50（两端共用同一 Dart 实现）。编号不复用；理由见附录 D。
 
