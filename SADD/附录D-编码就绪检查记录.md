@@ -1257,6 +1257,8 @@ E-I01首卡验收边界、E-I03纯输入稳定排序、E-I04标签码、E-I06事
 | CO-11 | CORE-77 整卡复核 | CORE-77、08、09、11、01 | reviewer-core77 复核 B/fail（F-01～F-03 阻断）；lead 修订：UnifyError 加 Overflow、`instantiate`/`bindings`/`free_vars`/`to_text`、失败原子性、DimVar 分配顺序、MathKind 相容判定归 CORE-09、CORE-08 补 Rational/DimensionFull checked 运算与规范形、fml-type 骨架归 CORE-77、CORE-11 增加对 CORE-77 的依赖、CORE-01 规则1通用例外、engine.check 增加 UNIT_OVERFLOW；规模改约330行。修订后未复检 | — |
 | 其他 | F01、F06、F10、文档漂移 | CORE-01、41、31、76、README、D.10 | 首卡锁文件验收移交 CORE-41；评分截断 1.0；`current.mjs` 表头/行宽校验；卡数口径 | — |
 
+补充（2026-10-20）：原临时检查脚本（check/xref/mat 与 validate-dto）已清理，由 `tools/DTOcheck`（dto/cards/xref）取代；其 xref 新增“shared-writes.json 错误码登记与卡内定义一致”检查，补登记了 SYNC_BATCH_UNKNOWN 的 owner（CORE-78）、BACKUP_SCOPE_INVALID、SYNC_BATCH_INVALID、SYNC_PATH_INVALID、SYNC_SNAPSHOT_CORRUPT，以及此前漏登记的 AUTH_UPLOAD_RECONFIRM_REQUIRED（CORE-62）、LIB_TAGS_LIMIT（CORE-14）；reservation 由 269 项变为 275 项。
+
 遗留：CORE-77/78 的单元与属性测试、各 op 的 DTO schema、BK-V1 与 T-RESEND 向量均未生成；CORE-09/21/23/26/27/30/32/46/66/77 材料须重生成并整卡复核；直接消费者（CORE-24 等）未取得作者确认。
 
 材料登记（`node tools/sadd/audit.mjs --out SADD/reports/v5.3.4-audit.json`，108卡，errors=0、warnings=666，超80000者107张，平均300199字符；材料均按无损part-N分段，不静默省略）。受影响卡全文字符数/分段数：CORE-01 132455/2；CORE-08 239218/4；CORE-09 255806/4；CORE-11 245025/4；CORE-21 251728/4；CORE-23 335902/5；CORE-24 315862/5；CORE-25 248839/4；CORE-26 398827/6；CORE-27 357222/5；CORE-30 225484/4；CORE-32 332414/5；CORE-46 393112/6；CORE-47 384443/6；CORE-66 361731/6；CORE-77 222501/4；CORE-78 240198/4。CORE-77 复核用材料为修订前版本（197247/3，未入库，留存于 temp/review/T1/evidence/CORE-77-material-pre-revision，已由 reviewer-core77 读完前606行并扫描其余，见复核报告§1）；修订后须重新 `pack.mjs CORE-77` 并复检。分类warning未逐条语义关闭，本登记不代表复核人已读完。
