@@ -6,7 +6,7 @@
 - 包含：RecognitionFlow、图片裁剪增强页面、作答输入适配与识别安装点。
 - 不包含：墨迹控制器与画布，迁至 CORE-64；结果/历史页面由 CORE-50（下游说明，非契约）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-29、CORE-30、CORE-31、CORE-32、CORE-34、CORE-35、CORE-37、CORE-39、CORE-55、CORE-64、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-29、CORE-30、CORE-31、CORE-32、CORE-34、CORE-35、CORE-37、CORE-39、CORE-55、CORE-64、CORE-58、CORE-59
 
 **接口契约**
 
@@ -68,7 +68,7 @@ void installRecognition(CompositionContext ctx);
 | `RECOG_MODEL_NOT_INSTALLED` | CORE-35 | 显示“手工输入”与“选择其他本地模型”，不出现自动改用云端 |
 | `RECOG_BACKEND_UNAVAILABLE` | CORE-29 | 显示“手工输入”与“选择其他本地模型”，不出现自动改用云端 |
 | `RECOG_MODEL_TIMEOUT` / `RECOG_MODEL_OOM` | CORE-35 | `FlowFailed(canRetry: true)` |
-| `CLOUD_*`（CORE-34） | CORE-33/34 | `CloudUnknown`、`CloudExpiredUnknown` 显示“结果未知，可能已计费”，不自动重提 |
+| `CLOUD_*` | CORE-33（服务端返回，经 CORE-34 透传）；`CLOUD_TOKEN_EXPIRED`、`CLOUD_PREVIEW_STALE` 为 CORE-34 | `CloudUnknown`、`CloudExpiredUnknown` 显示“结果未知，可能已计费”，不自动重提 |
 
 - Dart RecognitionModeDto 只是 CORE-29 RecognitionMode 的客户端映射；lookup/answer 逐字一致，不能扩展服务端未知的枚举值。
 
@@ -90,7 +90,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - `ImportedImage` 字节写入 `StoreArea.staging` 后立即交 `img.probe`（暂存文件的扩展名须与实际格式一致，或统一用 `.bin`；扩展名比较由 CORE-30 适配层完成，CORE-40 不自行判断；`img.prepare` 被新的 `updateCrop` 取消时返回的 `IMG_CANCELLED` 视为正常，不弹错误）；HEIC 已由平台卡转为 JPEG（CORE-04），若仍收到未知格式按 `IMG_*` 处理；暂存文件在会话转换写入资产后删除，页面销毁时删除剩余暂存文件。
 - 增强选项或裁剪变化后旧 `previewPath` 作废；在 `CloudPreviewing` 返回裁剪必须重新 `preparePreview` 与确认（同一哈希原则见 CORE-34）。
 - 后端列表：游客只列 `networked = false`；作答模式只列 `faithful_transcription = true`；`cloud` 为 null 时不出现任何云端项。本地失败不得自动切换后端。
-- 墨迹采样、擦除、增量绘制及延迟唯一归CORE-64；本卡只接收其InkDocument快照并驱动识别，不重复实现。
+- 墨迹采样、擦除、增量绘制及延迟唯一归CORE-64；本卡只接收其 `InkController.strokes`（`InkStrokesDto`）快照并驱动识别，不重复实现。
 - 手写作答：`HandwritingAnswerInput` 以 `RecognitionModeDto.answer`、`notationProfileId = 期望修订的 notation_profile_id` 运行流程；展示 Top-1 转写到 CORE-59 编辑器（LaTeX 模式）供用户修改，点“确认作答”后才调用 `AnswerSink`（`answer_mode = handwriting`、`Graded(Latex)`）；不显示识别置信度。
 - 安装点：`installRecognition(ctx)` 构造 CORE-32 `HistoryKeyUnlocker` 并登记到 `ctx.features`；`RecognitionFlow` 在档案解锁后首次调用 `recog.session.*` 前 `ensure()`，返回 true 时提示一次“本机密钥失效，识别历史已清空”；以 order 40 登记“本地模型注册”（`pack.list` 中 `model-` 开头的包逐个 `recog.local.register`，失败只记录）、order 50 登记 `recog.recover`；向 `ctx.features` 中的 `AnswerInputRegistry`（CORE-39）注册 `HandwritingAnswerInput`；订阅 `ports.lifecycle.events()`，`paused` 持续 30 s 或 `lowMemory` 时调用 `recog.local.unload_all`。在 CORE-36 `installers.dart` 追加一行，位于 `installStudy` 之后。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 不把图片写入系统相册或公共目录。

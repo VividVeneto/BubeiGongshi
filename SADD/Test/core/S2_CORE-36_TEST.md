@@ -13,4 +13,4 @@
 
 - [R19] order 20 档案打开钩子悬挂超过 120 s、order 70 同步不完成时，firstFrameHooks 仍先完成且只执行一次；首帧前不执行。
 - [R19] 托盘首帧钩子悬挂不返回时，2 s 后健康确认钩子照常执行，随后启动钩子开始；悬挂项记录一条超时日志。
-- [R18] 源码扫描：`app/lib/ui/` 下任何 Widget 的构造参数或字段类型为 `AppDeps`、`CoreBinding`、`PlatformPorts` 时 CORE-41 DEP-5 失败；`app/lib/<feature>/routes.dart` 读取 `deps.core` 不报错。
+- [R18] 源码扫描：`app/lib/ui/` 下任何 Widget 的构造参数或字段类型为 `AppDeps`、`CoreBinding`、`PlatformPorts` 时 CORE-69 DEP-5（CORE-41 编排）失败；`app/lib/<feature>/routes.dart` 读取 `deps.core` 不报错。

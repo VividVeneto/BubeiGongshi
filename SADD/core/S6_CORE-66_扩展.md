@@ -6,7 +6,7 @@
 - 包含：快照构建/应用、旧事件重新包装与轮换事务。
 - 不包含：依赖卡已定义的业务算法、存储与平台能力；不修改其契约。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-05、CORE-13、CORE-21、CORE-24、CORE-25、CORE-26、CORE-78
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-05、CORE-13、CORE-21、CORE-24、CORE-25、CORE-26、CORE-68、CORE-78
 
 **接口契约**
 
