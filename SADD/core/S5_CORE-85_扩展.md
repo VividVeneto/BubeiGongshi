@@ -15,8 +15,8 @@ CORE-32定义的HistoryRepo/HistoryFs、op/错误协议为唯一权威，本卡�
 ```rust
 // crates/fml-store/src/recognition/gc.rs；Store类型仅出现在本存储卡
 pub fn gc_plan(store: &Store, now_ms: i64) -> Result<GcPlan, FmlError>;   // keep_last 与 history_disk_cap_mb 读自 recognition_counter  // 阶段一：单写者事务内标记 DELETING、删会话密钥包装、写 cleanup_job
-pub fn gc_execute(plan: &GcPlan, fs: &dyn HistoryFs, now_ms: i64) -> Result<GcReport, FmlError>; // 阶段二：幂等删除密文、缩略图、推理缓存、临时副本，置 PURGED 并写 purged_ms = now_ms；随后删除已过 PURGED_RETENTION_MS（7 天）的 Purged 行。时钟只来自调用方传入的 now_ms
-pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs) -> Result<RecoveryReport, FmlError>;
+pub fn gc_execute(store: &Store, plan: &GcPlan, fs: &dyn HistoryFs, now_ms: i64) -> Result<GcReport, FmlError>; // 阶段二：幂等删除密文、缩略图、推理缓存、临时副本，置 PURGED 并写 purged_ms = now_ms；随后删除已过 PURGED_RETENTION_MS（7 天）的 Purged 行。时钟只来自调用方传入的 now_ms
+pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs, now_ms: i64) -> Result<RecoveryReport, FmlError>; // 清未提交暂存、重试 next_try_ms ≤ now_ms 的 cleanup_job、对账孤儿、expires_ms ≤ now_ms 的 pending_cloud_job → EXPIRED_UNKNOWN
 ```
 
 - 表（主包外附属：`crates/fml-store/migrations/0032_recognition.sql` 与仓储 `crates/fml-store/src/recognition/`；全部本地，不进 outbox、不导出）：
@@ -36,9 +36,9 @@ pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs) -> Result<RecoveryRep
 - 触发 GC：会话进入终态、调小 `keep_last`、启动恢复、存储紧张、账户清理。
 写资产文件时空间不足返回 CORE-13 定义的 `STORE_DISK_FULL`（不在本卡重复登记）。
 - 每个会话使用独立随机会话密钥，由 `RecognitionHistoryKey` 包装；元数据与密文分开存储；删除会话时删除密文、缩略图、缓存、记录与被包装的会话密钥。
-- 阶段二失败保留 `cleanup_job`，指数退避，启动时重试；只按受控目录与文件 ID 对账孤儿文件，不扫描用户源目录，不跟随符号链接或重解析点。
+- 阶段二失败保留 `cleanup_job`，`attempts + 1` 并按 CORE-32 退避公式设 `next_try_ms`，启动时与每次 `recog.gc` 重试到期项；只按受控目录与文件 ID 对账孤儿文件，不扫描用户源目录，不跟随符号链接或重解析点。
 - 暂存区：未提交云端的暂存在崩溃后启动时清理；已提交的保留到终态或 24 h；暂存运行期 TTL ≤ 1 h。
-- 同一账户最多一个活动识别任务；`pending_cloud_job` 不受 N 限制，24 h 后过期为 EXPIRED_UNKNOWN。
+- 同一账户最多一个活动识别任务（活动 = Running 或 Authorized，判定与 seq 分配在 `start` 的同一写事务）；用户单条删除 `delete` 在一个写事务内对该会话执行与 `gc_plan` 相同的阶段一；`pending_cloud_job` 不受 N 限制，24 h 后过期为 EXPIRED_UNKNOWN。
 - 被引用（Adopted）的会话不受次数 GC；被一键清空或用户手动删除后，公式来源显示“识别图片已清理”。V1 不提供“另存为公式附件”（需要长期保留时用 Pin）。
 - 历史不同步；GC 保证逻辑不可访问并尽力物理删除，界面披露闪存擦除的局限。
 
@@ -49,4 +49,4 @@ pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs) -> Result<RecoveryRep
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-85_TEST.md](../Test/core/S5_CORE-85_TEST.md)；修改本卡功能时同步修改该文件。
 
-**规模**：约555行；主包`crates/fml-store/src/recognition/`，附属`crates/fml-ffi/src/ops/recognition_history.rs`持久化op处理/登记。分阶段：① 仓储/加密存储/接入380行；② GC/启动恢复175行；每阶段通过内存HistoryFs与故障注入独立构建验收，不冒称尚未实现的恢复通过。DDL、数据与自测不计。
+**规模**：约570行；主包`crates/fml-store/src/recognition/`，附属`crates/fml-ffi/src/ops/recognition_history.rs`持久化op处理/登记。分阶段：① 仓储/加密存储/接入（含单条删除）395行；② GC/启动恢复175行；每阶段通过内存HistoryFs与故障注入独立构建验收，不冒称尚未实现的恢复通过。DDL、数据与自测不计。

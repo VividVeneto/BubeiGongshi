@@ -35,6 +35,7 @@
   "BackendCapsDto@CORE-40",
   "BackupKey@CORE-21",
   "BackupScopeDto@CORE-47",
+  "ExportProtectionDto@CORE-47",
   "BookDto@CORE-89",
   "BookDto@CORE-90",
   "BubeiGongshi@WIN-01",

@@ -1208,6 +1208,17 @@
       "blocked_reason": "CORE-29：schema及mode核对待提交，禁止注册。"
     },
     {
+      "op": "recog.session.delete",
+      "owner": "CORE-32",
+      "status": "pending",
+      "mode": null,
+      "scope": "profile",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-32：schema及mode核对待提交，禁止注册。"
+    },
+    {
       "op": "recog.session.get",
       "owner": "CORE-32",
       "status": "pending",

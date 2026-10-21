@@ -14,3 +14,4 @@
 - [R40] 注册用户云端路径（Fake `CloudRecognitionService`）：无同意 → `CloudConsentNeeded` → 同意 → `CloudPreviewing` → 确认 → `Running` → `CandidatesReady`；`cancel()` 后会话为 Cancelled；`CloudUnknown` 不触发重提。
 - [R26] 游客：`ChoosingBackend.backends` 不含 networked 后端，且未调用任何 `CloudRecognitionService` 方法。
 - [R04][R04.e] 手写作答：识别返回 `m v^2` 时编辑器显示原样转写；未点“确认作答”前不调用 `AnswerSink`；确认后提交 `answer_mode = handwriting`。
+- [R31][R32] 请求与结果形状（Fake CoreBinding）：img.probe/prepare 与图片 recog.run、session.transition/get 请求都带 staging_root（等于 Fake LocalFileStore 暂存根）；开启增强时 img.prepare 带 gray_out_path 并展示对照图；postprocess 返回空 candidates 加 RECOG_ALL_CANDIDATES_INVALID 时进入手工输入且只提示一次；transition 请求带 now_ms 与 payload.networked。

@@ -60,7 +60,7 @@ void installRecognition(CompositionContext ctx);
 ```
 
 - Dart wire DTO（统一由CORE-67生成到`app/lib/binding/dto/`；特性dto.dart只允许re-export或页面状态）：`InkStrokesDto`、`ImageInfoDto`、`CropDto`、`EnhanceOptionsDto`、`QualityReportDto`、`BackendCapsDto`、`CandidateDto`（含 `SymbolSpanDto`）、`SessionSummaryDto`、`SessionStateDto`。
-- 调用的 op：`recog.session.start / transition / get`、`recog.settings.get`、`recog.recover`（CORE-32）；`img.probe / prepare`（CORE-30）；`recog.backends / run`（CORE-29）；`recog.postprocess`（CORE-31）；`recog.local.register / unload_all`（CORE-35）；云端经 CORE-34 `CloudRecognitionService`。
+- 调用的 op：`recog.session.start / transition / get`、`recog.settings.get`、`recog.recover`（CORE-32；start/transition/recover 的 `now_ms` 在调用边界取一次 UTC 毫秒，transition 的 `payload.networked` 取 `recog.backends` 描述中该后端的联网标志）；`img.probe / prepare`（CORE-30）；`recog.backends / run`（CORE-29）；`recog.postprocess`（CORE-31）；`recog.local.register / unload_all`（CORE-35）；云端经 CORE-34 `CloudRecognitionService`。
 - 错误码与界面行为（本卡不新增错误码）：
 
 | 错误码引用 | 唯一定义卡 | 本卡处理 |
@@ -90,7 +90,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - 每次 startInk/startImages 捕获 sessions.current，读取该 session 的 account.state，游客策略不得来自构造时冻结的 account 参数；无 current 不调用任何 profile op。全批图片使用同一 session.core，不能在 next/retry 时换到新库。所有 awaited probe/prepare/推理/云/密钥结果发布或持久化前再次核对 identity/handle；过期结果只清理，不转入新会话。
 - routes/AnswerInputFactory 用 deps.sessions 构造 flow；changes(null) 立即使公开方法不可启动并抹去候选/预览，下一 session 重建 flow；每个 flow 以唯一 id 登记 addBeforeClose，stopAndDrain 先取消长任务和 watch/HTTP，再等待任务、用旧 core 完成必要 Cancelled/暂存清理，最后释放订阅和回调，成功才注销。云任务取消使用 CORE-34 的旧任务控制路径，不再次上传/转投；失败向 close 传播，不能无等待 dispose 后释放句柄。无 scope 的 img/推理调用也绑定本次 Dart 世代以免迟到结果污染界面。
 - 一个 `RecognitionFlow` 同时只推进一个会话；多图逐张处理，每张一个会话（CORE-32 计数口径）；空导入与进入 `Cropping` 前取消不调用 `recog.session.start`。
-- `ImportedImage` 字节写入 `StoreArea.staging` 后立即交 `img.probe`（暂存文件的扩展名须与实际格式一致，或统一用 `.bin`；扩展名比较由 CORE-30 适配层完成，CORE-40 不自行判断；`img.prepare` 被新的 `updateCrop` 取消时返回的 `IMG_CANCELLED` 视为正常，不弹错误）；HEIC 已由平台卡转为 JPEG（CORE-04），若仍收到未知格式按 `IMG_*` 处理；暂存文件在会话转换写入资产后删除，页面销毁时删除剩余暂存文件。
+- `ImportedImage` 字节写入 `StoreArea.staging` 后立即交 `img.probe`（暂存文件的扩展名须与实际格式一致，或统一用 `.bin`；扩展名比较由 CORE-30 适配层完成，CORE-40 不自行判断；`img.prepare` 被新的 `updateCrop` 取消时返回的 `IMG_CANCELLED` 视为正常，不弹错误）；`img.*`、`recog.run`（图片）、`recog.session.transition/get` 的 `staging_root` 取 CORE-04 `LocalFileStore.root(StoreArea.staging)`（ADR-V5-53）；`img.prepare` 在任一增强开启时带 `gray_out_path`，Cropping 页用返回的对照图展示增强前后；`quality.hints` 消息键按 CORE-30 清单映射文案；`recog.postprocess` 的 ok 为 `{candidates, diagnostics}`（CORE-31 PostOutput），diagnostics 中的 `RECOG_OUTPUT_REJECTED`/`RECOG_ALL_CANDIDATES_INVALID` 只作提示，candidates 为空时进入手工输入；HEIC 已由平台卡转为 JPEG（CORE-04），若仍收到未知格式按 `IMG_*` 处理；暂存文件在会话转换写入资产后删除，页面销毁时删除剩余暂存文件。
 - 增强选项或裁剪变化后旧 `previewPath` 作废；在 `CloudPreviewing` 返回裁剪必须重新 `preparePreview` 与确认（同一哈希原则见 CORE-34）。
 - 后端列表：游客只列 `networked = false`；作答模式只列 `faithful_transcription = true`；`cloud` 为 null 时不出现任何云端项。本地失败不得自动切换后端。
 - 墨迹采样、擦除、增量绘制及延迟唯一归CORE-64；本卡只接收其 `InkController.strokes`（`InkStrokesDto`）快照并驱动识别，不重复实现。

@@ -46,7 +46,7 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 
 - 墨迹规范渲染：按包围盒缩放到长边 `long_edge_px`，四周留 5% 白边；笔宽 `max(2, long_edge_px / 200)` 像素，圆头圆角，忽略压力；白底黑字 8 位灰度；用 tiny-skia 软件光栅化、png crate 编码（压缩级别固定），使两端像素逐字节一致。
 - `run` 的检查顺序：id 不存在 → `RECOG_BACKEND_UNAVAILABLE`；networked 且游客 → `RECOG_BACKEND_NOT_ALLOWED`；networked（注册用户）→ `RECOG_BACKEND_REMOTE`（调用方改走 CORE-34）；输入类型不在 `input_kinds` 且为墨迹 → 先 `render_ink` 再识别；其余调用后端。后端返回空候选 → `RECOG_NO_CANDIDATE`。
-- FFI op：`recog.backends`（同步）`{ account }` → `{ backends: BackendCaps[] }`；`recog.register_remote`（同步）`{ caps }` → `{}`（CORE-34 在注册用户解锁后调用）；`recog.run`（长任务）`{ backend_id, account, input: { ink } | { image_path }, context }` → `RawOutput`（`image_path` 须位于 `StoreArea.staging`，由 CORE-30 产出）。
+- FFI op：`recog.backends`（同步）`{ account }` → `{ backends: BackendCaps[] }`；`recog.register_remote`（同步）`{ caps }` → `{}`（CORE-34 在注册用户解锁后调用）；`recog.run`（长任务）`{ backend_id, account, input: { ink } | { image_path }, context, staging_root? }` → `RawOutput`（`image_path` 须位于请求的 `staging_root`（ADR-V5-53，图片输入时必填，规范化后比较、不跟随符号链接）之下，由 CORE-30 产出；墨迹输入不带该字段）。
 - 错误码：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -54,7 +54,7 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 | `RECOG_BACKEND_UNAVAILABLE` | error | 否 | 后端 id 未注册，或本地模型未加载成功 |
 | `RECOG_BACKEND_NOT_ALLOWED` | error | 否 | 游客请求 networked 后端 |
 | `RECOG_BACKEND_REMOTE` | info | 否 | 注册用户经 `recog.run` 请求远程后端（应改走 CORE-34） |
-| `RECOG_INPUT_INVALID` | error | 否 | 墨迹为空、超过笔数或点数上限、坐标非有限值；图片路径不在暂存区或不是 PNG |
+| `RECOG_INPUT_INVALID` | error | 否 | 墨迹为空、超过笔数或点数上限、坐标非有限值；图片路径不在 `staging_root` 之下（或图片输入缺 `staging_root`）或不是 PNG |
 | `RECOG_CANCELLED` | info | 否 | `CancelFlag` 置位 |
 | `RECOG_NO_CANDIDATE` | warning | 是 | 后端返回零个候选 |
 

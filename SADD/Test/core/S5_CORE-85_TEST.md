@@ -14,3 +14,10 @@
 - [R27] 一键清空后历史目录为空、历史密钥已轮换、WAL 中无残留记录。
 
 - [R27][R35] 明文 SQL 扫描无 32 字节历史密钥（只有平台包装值与 `key_check`）；锁定时无法读历史，解锁后 `ensure()` 装入即可读，未装入时 `recog.history.list` 返回 `RECOG_HISTORY_KEY_UNAVAILABLE`；将 A 会话包装换给 B 时 AAD 失败；Fake `SecureKeyValueStore` 注入别名失效时 `ensure()` 返回 true 且旧会话全部进入 `Deleting`；轮换在 `wrap` 后、`rotate_commit` 前与提交后各杀一次进程，重启后遵从已提交版本且旧会话不可恢复。
+- [R33] 活动任务：一个 Running 或 Authorized 会话存在时 start 报 RECOG_ACTIVE_TASK_EXISTS 且 next_seq 不变；仅 UnknownRemote 时可 start；两线程并发 start 恰一个成功、seq 不重复。
+- [R33] 单条删除：Pinned、Adopted 与普通终态会话 delete 后同阶段一（state=Deleting、包装/结果/质量 NULL、cleanup_job 存在），下一次 recog.gc 后 Purged；Running 会话 delete 报 RECOG_TRANSITION_INVALID；transition 到 Deleting 被拒。
+- [R33] 配额：用 Fake HistoryFs used_bytes 超过 history_disk_cap_mb 时先清缓存/暂存、再按 seq 从旧到新清普通会话；只剩 Pinned/Adopted 仍超限时报 RECOG_QUOTA_EXCEEDED（warning）且新会话仍可 start。
+- [R36] 读取：资产文件被删或密文被改时 session.get 报 RECOG_IMAGE_LOST（warning）、其余字段照常；has_images 只反映 recognition_asset 行；Purged 或不存在 id 的 get 报 RECOG_SESSION_NOT_FOUND，history.list 不列 Deleting/Purged；分页 page=0 返回最新 20 条、末页后为空、total 正确。
+- [R40] pending_cloud：record 写 submitted_ms=now_ms、expires_ms=now_ms+86 400 000；recover_on_start 以 now_ms=expires_ms−1 时保持、=expires_ms 时会话转 EXPIRED_UNKNOWN 并删除该行。
+- [R27] 密钥校验：provide 错误版本或 key_check 认证失败报 RECOG_HISTORY_KEY_UNAVAILABLE 且不装入；rotate_commit 无待提交密钥或版本不是当前+1 同码。
+- [R33] 文件系统与退避：受控目录内指向外部的符号链接/重解析点不被跟随删除；非 UUID 名子目录不列出、不删除；孤儿 UUID 目录被对账删除；阶段二失败后 attempts 递增、next_try_ms = now_ms + min(60 000·2^attempts, 86 400 000)，未到期不重试。
