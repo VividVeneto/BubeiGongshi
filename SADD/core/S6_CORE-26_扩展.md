@@ -6,7 +6,7 @@
 - 包含：outbox 取批与 ACK 处理、实体负载编码、加密与 AAD、拉取结果的校验与按实体合并、隔离区、待选择记录、字段逻辑时钟、纪元变化处理；快照与轮换已迁至CORE-66（下游说明，非契约）；对应 FFI op。
 - 不包含：HTTP 收发、触发时机与重试（CORE-46）；服务端（CORE-25）；同步界面（CORE-36）。
 
-**依赖**：CORE-01、CORE-02、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-68、CORE-78
+**依赖**：CORE-01、CORE-02、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-56、CORE-68、CORE-78、CORE-82、CORE-86
 
 **接口契约**
 
@@ -19,9 +19,9 @@ pub struct PullPage { pub envelopes: Vec<Envelope>, pub next_cursor: String, pub
 pub struct ApplyReport { pub applied: u32, pub duplicates: u32, pub quarantined: u32, pub new_choices: u32 }
 pub fn prepare_push(tx: &mut WriteTx, keys: &AccountKeys, rng: &mut dyn SecureRandom, max_count: u32 /* ≤ 200 */, max_bytes: u32 /* ≤ 1 MiB，口径见下 */) -> Result<Option<PushBatch>, FmlError>;
 // 全部在调用方的同一写事务内：先调 CORE-78 `pending_batch(tx)`；有未结算批次且其 account_epoch == keys.account_epoch、key_version == keys.current，则原样返回其持久化字节，不取 rng、不重新加密；二者任一不一致（如另一设备轮换后本机经 import_account_key 取得新版本、或纪元已变），先 `invalidate_all(tx, Stale)` 再按当前密钥重建；无批次时读取 outbox 构造并加密新批次，并 `save_batch(tx)` 落盘。rng 由 FFI 适配传入 CORE-23 OsRandom，nonce 经 seal_with_rng 逐条取得
-pub fn ack(store: &Store, batch_id: Uuid, results: &[PushResult]) -> Result<(), FmlError>;   // 在一个 Store::write 内调 CORE-78 `settle(tx, …)`：Ack 与 Conflict 的条目都出队（Conflict = 服务端已有同一 op_id 的修改，视为同一修改，不进隔离区，并按“整库回退”规则处理）；results 未覆盖的条目留在批次中；全部结算后的重复 ack 返回 Ok（CORE-78 重复结算语义）；批次已被作废而条目仍在 outbox → SYNC_BATCH_UNKNOWN（CORE-78 定义，调用方按良性处理）
-pub fn apply_pull(store: &Store, keys: &AccountKeys, page: &PullPage) -> Result<ApplyReport, FmlError>; // 一个事务：业务表 + 游标
-pub fn on_epoch_changed(store: &Store, server_epoch: u32) -> Result<(), FmlError>; // 清游标，按实体重建全量 outbox，并在同一事务调 CORE-78 `invalidate_all(EpochChanged)`
+pub fn ack(store: &Store, batch_id: Uuid, results: &[PushResult]) -> Result<(), FmlError>;   // 在一个 Store::write 内调 CORE-78 `settle(tx, …)`：Ack 与 Conflict 的条目都出队（Conflict = 服务端已有同一 op_id 的修改，不进隔离区；正常密钥/epoch重包装也可能出现，不据此单独旋转身份）；results 未覆盖的条目留在批次中；全部结算后的重复 ack 返回 Ok（CORE-78 重复结算语义）；批次已被作废而条目仍在 outbox → SYNC_BATCH_UNKNOWN（CORE-78 定义，调用方按良性处理）
+pub fn apply_pull(store: &Store, registry: &EntityRegistry, analyzer: &dyn RemoteRevisionAnalyzer, cancel: &CancelFlag, page: &PullPage) -> Result<ApplyReport, FmlError>; // 一个事务：业务表 + 游标
+pub fn on_epoch_changed(store: &Store, registry: &EntityRegistry, server_epoch: u32) -> Result<(), FmlError>; // 清游标，按实体重建全量 outbox，并在同一事务调 CORE-78 `invalidate_all(EpochChanged)`
 pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Result<(), FmlError>;
 ```
 
@@ -35,7 +35,7 @@ pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Res
 | `book`、`study_plan`、`attempt`、`confusable_group` | CORE-19（纯模型与 DDL）；CORE-82（仓储、codec/applier 与删除） | `StudyData` |
 | `merge_choice` | 本卡 | `UserFormula` |
 | `setting`（`local_setting.syncable = 1` 的键） | CORE-13 | `UserSettings` |
-| `tombstone` | CORE-13 | 与被删实体相同 |
+| Delete 墓碑（仍用原实体类型） | 原实体所有者；CORE-13 存墓碑 | 与被删实体相同 |
 
   不同步：`derivation`（由修订重建）、`study_session`、`*_cache`、识别历史、`device.*` 设置、本机密钥。
 - 负载：明文为确定性 CBOR `{1: schema_version, 2: entity_type, 3: entity_id, 4: body（CORE-13 outbox 本地明文中 `entity` 部分的 JSON UTF-8 字节；删除时为空字节串）, 5: clocks（map：字段名 → `[counter, device_id 16 字节]`，原样取自同一 outbox 行的 `clocks`；删除只含 `__deleted`，不可变修订与事件只含 `__entity`）}`；本卡只做编码与加密，不重新取时钟；密钥 = `derive_subkey(AccountDataKey, purpose, key_version)`；AAD = `aad_cbor(AadFields { domain: "sync.entity", account_id, entity_type, entity_id, key_version, format_version: aad_version })`；解密后内层 `entity_type` / `entity_id` 必须与外层一致。修订负载携带源码与规范化元数据而非 AST，接收端在 CORE-06 预算内重新解析。
@@ -45,7 +45,7 @@ pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Res
 | 实体 | 策略 |
 | --- | --- |
 | 公式修订 | 不可变修订 DAG；出现并发头时生成 `merge_choice`（ID 调 CORE-05 merge_choice_id，按规范字节生成，两端一致），用户选择一次，选择结果也同步；卡片在选择前保持原绑定 |
-| 公式条目元数据、学习计划、书、自定义单位元数据 | 按字段合并：逐字段比较负载 `clocks` 与本地 `field_clock` 的 `(counter, device_id 网络字节)`，大者胜，胜出字段连同其时钟写入（CORE-13 合并规则）；标签为增删集合；不是整对象覆盖 |
+| 公式条目元数据、学习计划、书、自定义单位元数据 | 按字段合并：逐字段比较负载 `clocks` 与本地 `field_clock` 的 `(counter, device_id 网络字节)`，大者胜，胜出字段连同其时钟写入（CORE-13 合并规则）；tags_json 作为规范化有序标签数组整体按单字段 LWW（不另造增删集合时钟）；不是整对象覆盖 |
 | 自定义单位、记号方案命名冲突 | 两者都保留，后到者名称加后缀并生成提示，不静默覆盖 |
 | 复习事件与作答 | 追加合并，按 event_id 去重；排序与重放规则见 CORE-17 |
 | 设置 | 可同步标量按该键的 `(counter, device_id)`；设备设置不同步 |
@@ -58,7 +58,7 @@ pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Res
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
 | `SYNC_DECRYPT_FAILED` | warning | 否 | 标签校验失败（该条进隔离区，批次其余照常） |
-| `SYNC_AAD_MISMATCH` | warning | 否 | 内层与外层 `entity_type` / `entity_id` / `key_version` 不一致 |
+| `SYNC_AAD_MISMATCH` | warning | 否 | 内层与外层 entity_type/entity_id 不一致；key_version 篡改由 AAD/认证校验拒绝（内层没有该字段） |
 | `SYNC_QUARANTINED` | warning | 否 | 未知 `schema_version`、未知 `entity_type`、负载无法解析或哈希不符 |
 | `SYNC_KEY_MISSING` | error | 否 | 本地无 envelope 的 `key_version` 对应密钥：暂停该页、不前移游标，引导用恢复码或同步密语恢复 |
 | `SYNC_DISABLED` | info | 否 | 游客或未开启同步时调用任一 `sync.*` op |
@@ -79,13 +79,22 @@ pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Res
 
 这些规则在 S2/S3/S4 各写仓储时已生效；本卡只组装推拉与合并，不能另定义时钟生成器。
 
-- 整库回退（WIN-16 回滚、CORE-27 恢复或用户手动复制旧库后，本地 `local_clock` 落后于已推送的数据）：`apply_pull` 遇到 `device_id` 等于本机且 `device_seq` 大于本机 `local_clock.device_seq` 的 envelope，或推送结果中本机 op_id 返回 `CONFLICT`，即判定发生回退。处理在同一合并事务内完成：按普通远端数据合并这些 envelope（找回回退前已推送的修改），再调用 CORE-13 `rotate_device_id(本批见过的最大 counter)`，之后的本地写入用新设备身份，不再与旧序号或旧时钟重叠；`CONFLICT` 的 op_id 视为服务端已有同一修改（op_id 是一次本地修改的唯一标识），从 outbox 与 `push_batch` 删除，不重试，也不进隔离区；批次字节已持久化，同一 op_id 的原样重发得到 ACK，因此 `CONFLICT` 只会出现在整库回退（回退副本中的待推送修改早已由原库推送）或 op_id 复用时，随后由 `apply_pull` 的 `device_seq` 规则完成身份更换。回退到更换身份之间产生的同时钟异值由 CORE-13 的 BLAKE3 规则裁决（ADR-V5-33）。
+- 整库回退：只有通过认证并完成负载/时钟校验的本机旧身份 envelope，其 device_seq 大于本机 local_clock.device_seq，才是回退证据。先按普通远端实体合并，再在同一事务 rotate_device_id(已验证远端最大 counter)；原实体 ID、事件 device_id/device_seq/tx_index 和 field_clock 不重写。Conflict 只结算对应 op_id，不单独证明回退：密钥/epoch 重包装也可正常产生 Conflict；后续 pull 完成证据判定。身份轮换 RNG 失败返回 CRYPTO_RNG_FAILED，整页含游标全回滚；同时钟异值按 CORE-13 BLAKE3 规则收敛。
 - 持久化批次（ADR-V5-43）：`push_batch` 表、`save_batch/pending_batch/settle/invalidate_all` 与迁移 `0078_sync_batch.sql` 归 CORE-78（自本卡拆出），本卡只在 `prepare_push`、`ack`、`on_epoch_changed` 中调用；同一时刻至多一个未结算批次；未 ACK 且纪元、密钥版本未变的批次在下次 `prepare_push` 原样重发，`op_id` 与密文字节不变；纪元或密钥版本已变的批次作废后按当前密钥重建（重建条目中服务端已存的 op_id 返回 `CONFLICT` 并按同一修改出队）。
 - 批次字节口径（ADR-V5-43）：`PushBatch` 中每个 Envelope 的元素字节为 CORE-68 `to_canonical_json`，即 CORE-78 `StoredBatch.envelopes` 的元素；`max_bytes` 计量 CORE-25 `POST /v1/sync/push` 的请求体紧凑 JSON 字节数：`{"envelopes":[` + 各元素以 `,` 连接 + `]}`，即 16 + Σ元素字节 + (n − 1)；构造时按 outbox 顺序累加，加入下一条会使该值超过 `max_bytes` 或条数超过 `max_count` 即停止。Envelope 的字符串字段均为 ASCII 且不含需转义字符（UUID、标准 base64、十六进制、蛇形名），CORE-46 以紧凑 JSON 发送（无空白、不转义 `/`）时请求体长度与此计量逐字节相等。`device_seq` 只取 CORE-13 `local_clock`（经 `WriteTx::stamp` 分配），本卡不另存计数。
 
 Store读写/加密批次编排和上述接收Store的API归fml-store::sync；纯字段合并在fml-sync只消费解密后的实体/字段时钟与已有值，返回合并值/冲突，不持Store、不I/O。fml-store可依赖fml-sync，反向禁止；CORE-66同样在存储层。
 
-本卡全部op为profile scope。处理适配先由CORE-03解析profile_handle取得Store，再从CORE-24的account_key/account_state表在同一只读快照构造AccountKeys（current=max(key_version)；`sync.prepare_push` 例外：在一个 `Store::write` 内用该写事务读表构造 AccountKeys 并调用 `prepare_push(tx, …)`，使密钥读取、批次作废与落盘在同一事务，不与轮换或纪元变化交错），其账户必须等于库内account_id；缺失返回SYNC_KEY_MISSING。AccountKeys只作为原生Zeroizing局部值，禁止经JSON入出。prepare_push body={max_count:u32=200,max_bytes:u32=1048576}（适配层传入 CORE-23 OsRandom，不经 JSON），ok={batch?:PushBatch}（无待推送省略batch）；ack body={batch_id:UUID,results:PushResult[]}，ok={}；apply_pull body={page:PullPage}，ok=ApplyReport；cursor/status/choices body={}，分别返回既定游标、状态、{choices:MergeChoice[]}（本卡merge_choice表列一一映射，heads_json解为UUID数组）。on_epoch_changed body={server_epoch:u32}，resolve_choice body={choice_id:UUID,chosen:RevisionId}，ok均{}。上述均submit（含cursor/status，统一避免主线程等待Store），例status ok={"outbox_len":0,"quarantined":0,"open_choices":0,"last_applied_ms":0}；prepare_push无队列ok={}。
+本卡全部op为profile scope。处理适配先由CORE-03解析profile_handle取得Store，再从CORE-24的account_key/account_state表在同一只读快照构造AccountKeys（current=max(key_version)；prepare_push与apply_pull在各自Store.write内部用load_account_keys_tx，密钥与epoch读取不与轮换交错），其账户必须等于库内account_id；缺失返回SYNC_KEY_MISSING。AccountKeys只作为原生Zeroizing局部值，禁止经JSON入出。prepare_push body={max_count:u32=200,max_bytes:u32=1048576}（适配层传入 CORE-23 OsRandom，不经 JSON），ok={batch?:PushBatch}（无待推送省略batch）；ack body={batch_id:UUID,results:PushResult[]}，ok={}；apply_pull body={page:PullPage}，ok=ApplyReport；cursor/status/choices body={}，分别返回既定游标、状态、{choices:MergeChoice[]}（本卡merge_choice表列一一映射，heads_json解为UUID数组）。on_epoch_changed body={server_epoch:u32}，resolve_choice body={choice_id:UUID,chosen:RevisionId}，ok均{}。上述均submit（含cursor/status，统一避免主线程等待Store），例status ok={"outbox_len":0,"quarantined":0,"open_choices":0,"last_applied_ms":0}；prepare_push无队列ok={}。
+
+**所有者分派、事务与分析接线**
+
+- FFI 的组合层建立一个 EntityRegistry：CORE-13 setting、CORE-14 公式/单位/记号/常数、CORE-17 卡片/事件、CORE-82 学习实体、CORE-86 calculation_plan 与本卡 merge_choice 各注册一次。registry 是原生只读接线，不新增 JSON 字段；不登记 study_session、参数或缓存。应用 Delete 仍分派原 entity_type。
+- apply_pull 进入一个 Store.write 后调用 CORE-24 load_account_keys_tx，从相同事务构造 keys；按依赖拓扑先应用 user_unit/notation_profile，再 formula_revision，再 formula_item，再依赖修订的其他实体；同层按 entity_type/entity_id 稳定排序，不用到达次序决定缓存。每条保存点调用 registry.apply；Invalid 回滚该条并隔离，Duplicate 无写；SQL/I/O/取消/缺密钥等 Err 回滚整页与游标。先验证完整页的密钥与 epoch 再改表；page.account_epoch 与库不符不合并，透传 SYNC_EPOCH_STALE 交协调器处理。remote最大counter只取验证通过的负载，lamport=max(local,remote)，不调用 stamp/enqueue_outbox；统计失效hook归CORE-20，不在本卡重复计行。
+- 具体 RemoteRevisionAnalyzer 实现位于本卡 fml-ffi/src/ops/sync_analysis.rs（S6，不属于 CORE-56 S1）：取得一次 EngineContext.snapshot()?，在调用领域算法前检查该 Arc 的 unavailable；快照获取失败或 unavailable 非空按 CORE-56 返回 ENGINE_UNAVAILABLE。对传入 conn 合同只读地加载当前事务全部 user_unit；目标记号方案按输入 notation_profile_id 精确查当前事务 notation_profile，自建记录存在时使用它，否则在同一个 Arc.data.profiles 中查同 ID 的 Embedded/Pack 方案，二者均无则 NOTATION_UNBOUND，绝不改用其他默认 ID。此顺序是事务自建叠加层加同代引擎基础数据，不混入另一代全局值。先以 CORE-08 MemRegistry::from_parts(snapshot.base_units.clone(),snapshot.base_kinds.clone()) 构造不含User的base，再 MemRegistry::with_user_definitions(&base,&tx_defs) 构造临时单位表；不修改全局 EngineContext、不嵌套 Store.read/write。将输入 source_latex/profile/user_decls/units/empirical 与 CORE-03 该任务 CancelFlag 连同显式 ParseOptions { budget_ms: 100, allow_unicode: true } 传给 CORE-56 analyze_source；把 ast/symbols 与 check_result.validation/diagnostics 投影成 CORE-13 RemoteRevisionAnalysis，保留并验证 conditions。没有 AST 则 None，不回退上传 AST；取消、ENGINE_UNAVAILABLE、NOTATION_UNBOUND 等本地分析前提故障原样 Err，整页与游标回滚，不作为恶意内容隔离。输出不依赖下游导入适配。
+- apply_pull 的 analyzer/cancel 由该 FFI handler 构造/借用，cancel 是原任务旗标，不自建永不取消的旗标。快照 handler 复用此适配（接线行归 CORE-66）；Rust测试可注入Fake。接收方 formula_revision 的 user_decls=上传 symbols.decls.clone()（CORE-05 真字段），但重新 bind/check 的结果覆盖本地 ast/symbols/validation 缓存，不相信上传验证结论。
+- on_epoch_changed 同一写事务作废批次、清 cursor/outbox、更新 account_epoch，然后按 registry 稳定枚举存活实体与未过期墓碑调用 requeue_outbox；保留字段时钟/实体ID，不伪造全库编辑；失败全回滚。
+- Envelope 字段逐项来源：envelope_version=2、kind=event、account_epoch=keys.account_epoch；op_id/device_id/device_seq 来自该 outbox 固定行；key_version=keys.current；entity_type/entity_id 来自 codec；仅 formula_revision 有 revision_id=entity_id；schema_version=1、aad_version=1、purpose 为上表 KeyPurpose 的 CORE-21 蛇形线名；nonce/ciphertext 为 Sealed 原始字节的标准base64，ciphertext_hash=SHA-256(raw ciphertext)小写hex。删除 body 空，但类型/ID与 __deleted 时钟仍认证。
 
 产品约束追踪：见README §6 Q3；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
@@ -94,9 +103,9 @@ Store读写/加密批次编排和上述接收Store的API归fml-store::sync；纯
 - outbox 与业务同事务写入（CORE-13）；`apply_pull` 在一个事务内写业务表、`field_clock` 与游标，失败整体回滚。
 - 每批对象数与字节数限制同 CORE-25；单个负载 > 256 KiB 的实体拆分为修订链或拒绝写入（`LIB_*` 由 CORE-14 校验上限）。
 - 核心不发网络请求，不持有令牌。
-- 外部前提：CBOR 编码复用 CORE-21 的最小编码器；`uuid` v5。
+- 外部前提：本卡实现自身负载的最小严格确定性 CBOR 编解码，不调用 CORE-21 私有编码器；只接受上文 1..5 键、最短整数/长度、确定性 map 键序、无重复键/尾随字节、无不定长项。CORE-21 仅提供公开 aad_cbor/加解密。字节向量 SY-PAYLOAD-V1 由本卡在 crates/fml-store/tests/vectors/sync_payload_v1.hex 交付：固定实体/时钟，由独立 RFC 8949 参照手算复核，含 delete、空 clocks、非法编码反例；不得用被测实现生成期望值。uuid v5 仅用于 CORE-05 已定义确定性 ID，不用于 op_id。
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-26_TEST.md](../Test/core/S6_CORE-26_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 655 行；主包 `crates/fml-store/src/sync/`（约 510），附属 `crates/fml-sync/src/merge.rs`（纯字段合并，约 70）、`crates/fml-ffi/src/ops/sync.rs`（8 个 sync.* op，约 75）。不含 CORE-66 的 snapshot/rotation、CORE-78 的批次持久化，各实体 applier 本体计入所有者卡。分阶段：① 推送、负载与加密（类型、确定性 CBOR、加解密、prepare_push、ack、on_epoch_changed、cursor/status 与 5 个 op，约 320）；② 拉取合并、隔离与待选择（apply_pull 与 EntityApplier 分派、字段合并编排、merge_choice/隔离区与 codec/applier、fml-sync 纯合并、3 个 op，约 335）。
+**规模**：约 730 行；主包 `crates/fml-store/src/sync/`（约 550），附属 `crates/fml-sync/src/merge.rs`（纯字段合并，约 70）、`crates/fml-ffi/src/ops/sync.rs`（8 个 sync.* op 与事务只读分析适配，约 110）。不含 CORE-66 的 snapshot/rotation、CORE-78 的批次持久化，各实体 applier 本体计入所有者卡。分阶段：① 推送、负载与加密（类型、确定性 CBOR、加解密、prepare_push、ack、on_epoch_changed、cursor/status 与 5 个 op，约 320）；② 拉取合并、隔离与待选择（apply_pull 与 EntityApplier 分派、字段合并编排、merge_choice/隔离区与 codec/applier、fml-sync 纯合并、3 个 op，约 410）。
 

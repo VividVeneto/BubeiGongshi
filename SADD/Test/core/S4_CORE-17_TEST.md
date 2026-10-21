@@ -10,5 +10,7 @@
 
 - [R04.h] reset_card将Card.reset_epoch从0增至1后，即使epoch1尚无事件，replay也忽略epoch0的全部历史并返回新卡调度；序列化/仓储往返保留epoch。
 
-- [R04][R19] 同一事务写两个ReviewEvent：device_seq相同、tx_index=0/1，均可插入并稳定重放；相同三元唯一键重放只保留一次，不同设备同序号不冲突。
+- [R04][R19] 同一事务写两个ReviewEvent：device_seq相同、tx_index=0/1，均可插入并稳定重放；相同UUID重放只保留一次；整库回退后不同UUID即使同三元也保留，不因唯一索引静默丢失；同日仅一次有效排程是派生调度判定，不删除原事件。
 - [R04] 参数采用expected_version校验、原子更新与上一版本回退，取消/写失败不部分提交，保留率边界拒绝。
+- [R28] study_card/review_event两个owner codec/applier用FakeRegistry独立验证；参数不注册，card派生state/due不上传；重复UUID同负载零写、同UUID异负载拒绝，乱序新事件全部保留且完整重放一致，无本地stamp/outbox；Delete旧Upsert不复活。
+- [R04][R28] card.reset_epoch按字段时钟同步，不取远端事件max；无now_ms/StudyDay上下文只标缓存失效，读取再按注入上下文重算，不写伪造now=0排程；stats hook不重复实现。

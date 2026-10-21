@@ -16,8 +16,15 @@ pub struct EngineData { pub units: Vec<Unit>, pub kinds: Vec<QuantityKind>, pub 
                         pub constants: Vec<ConstantSet>, pub fonts: Vec<FontData> }
 pub enum LayerSource { Embedded, Pack { pack_id: String, pack_version: String }, User { profile_id: String } }
 pub struct DataLayer { pub source: LayerSource, pub data: EngineData }
-pub struct EngineSnapshot { pub generation: u64, pub unavailable: Option<ErrorCode>, pub data: EngineData }
+pub struct EngineSnapshot { pub generation: u64, pub unavailable: Option<ErrorCode>, pub data: EngineData,
+    pub base_units: Vec<Unit>, pub base_kinds: Vec<QuantityKind> } // 同代Embedded+Pack投影，严格排除User层
 pub fn compose(layers: &[DataLayer]) -> Result<EngineData, FmlError>;   // 纯函数，规则见下
+// crates/fml-ffi/src/analysis.rs；Rust 内部复用，不新增 FFI DTO 或存储依赖
+pub struct AnalysisResult { pub ast: Option<FormulaNode>, pub source_map: SourceMap,
+    pub raw_symbols: Vec<RawSymbol>, pub symbols: SymbolEnv, pub check_result: CheckResult }
+pub fn analyze_source(source: &str, opts: &ParseOptions, profile: &NotationProfile,
+    user_decls: &[SymbolDecl], units: &dyn UnitRegistry, empirical: bool,
+    cancel: &CancelFlag) -> AnalysisResult;
 pub struct EngineContext { /* RwLock<Arc<EngineSnapshot>> + 写者 Mutex<Vec<DataLayer>> */ }
 impl EngineContext {
     pub fn global() -> &'static EngineContext;                         // 首次调用以 Embedded 层构造，generation = 0
@@ -34,7 +41,8 @@ impl EngineContext {
 - 数学字体采用 Latin Modern Math（GUST Font License），固定文件与许可哈希；本卡校验字体字节的 BLAKE3 与 MATH 表后放入 `EngineData.fonts` 交 CORE-12，领域层不读文件；发行许可证核对见附录 C。字体不作为用户数据上传。
 - 叠加规则（`compose`）：层序固定为 Embedded → Pack（按 pack_id 字节序）→ User（至多一层）；Embedded 只在构造时给出，`set_layer`/`remove_layer` 指向 Embedded 返回 `ENGINE_DATA_INVALID`。后层同 ID 覆盖前层：Pack 可替换内置单位但量纲与量的种类必须不变，方案与常数集整体替换，同 ID 字体替换字节并保留原位置；两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID 时，后设置的层被拒绝（`ENGINE_DATA_CONFLICT`）；User 层只允许 `user:` 前缀单位，否则 `ENGINE_DATA_INVALID`，同 ID 重复按 CORE-08 `UNIT_DUPLICATE`。合成后整体校验引用、重复 ID、量纲、字体哈希与 MATH 表，且至少有一个含 MATH 表的字体，失败为 `ENGINE_DATA_INVALID`。字体顺序：内置字体在前，再按层序与 `fonts.json` 顺序；`Glyph.font` 下标与 `DisplayList.font_ids`（CORE-12）据此确定。
 - 层身份不含Pack.pack_version；同pack_id升级先在副本替换整层再compose，不能保留新旧两层。remove_layer对Pack只匹配pack_id（忽略调用者携带版本），User只匹配profile_id；不存在时返回当前generation不发布。
-- 发布：写者持 Mutex 在副本上 `compose`，成功后在写锁内替换 Arc 并令 generation + 1；失败不改变快照与层集合。在途任务持旧 Arc，后续请求取新快照；读者只在读锁内克隆 Arc。`mark_unavailable` 发布 `unavailable = Some(reason)` 的快照，此后五个 op 均返回 `ENGINE_UNAVAILABLE`，直到下一次 `set_layer`/`remove_layer` 成功。
+- 同代基础投影：每个EngineSnapshot的base_units/base_kinds来自同一层副本中仅Embedded+Pack的compose结果，不是从完整data按ID前缀猜测删除，也不读取数据库。调用侧可用 `MemRegistry::from_parts(snapshot.base_units.clone(), snapshot.base_kinds.clone())` 拥有稳定base，再以事务内最新用户定义构造 `MemRegistry::with_user_definitions(&base, &defs)`；两个registry的借用均不得离开持有该快照的本次分析。当前data保留完整已发布User层供普通engine/calc调用；临时事务overlay只供事务分析，不能反向发布或修改Arc。这是S1内部Rust接缝，不增加profile/Store依赖或FFI字段。
+- 发布：写者持 Mutex 在副本上分别compose完整层与Embedded+Pack基础投影，二者均成功后在写锁内一起替换同一个 Arc 并令 generation + 1；失败不改变快照与层集合。在途任务持旧 Arc，后续请求取新快照；读者只在读锁内克隆 Arc。`mark_unavailable` 发布 `unavailable = Some(reason)` 的快照，此后五个 op 均返回 `ENGINE_UNAVAILABLE`，直到下一次 `set_layer`/`remove_layer` 成功。
 - 推送者：CORE-95 的安装/恢复/卸载 `pack.*` 处理（`crates/fml-ffi/src/ops/pack.rs`）在恢复、安装、卸载后设置或移除 Pack 层；CORE-14 的 `units.*_user` 处理（`crates/fml-ffi/src/ops/units_user.rs`）在打开档案和用户单位提交后设置 User 层，关闭档案时移除，提交后设置失败调用 `mark_unavailable`。bootstrap 包的引擎数据由 CORE-16 工具从同一 `assets/engine-v1/` 生成，CI 比对两者 BLAKE3；安装它只使 generation + 1，结果与内置一致。
 - FFI op（本表为五个 op 的唯一登记；DTO 未列字段按 CORE-03 映射规则，坐标为 JSON 数值，保留 2 位小数）：
 
@@ -46,7 +54,9 @@ impl EngineContext {
 | `typeset.layout` | {ast, symbols, options: LayoutOptions} → DisplayList（CORE-12） | 否 |
 | `typeset.glyph_outlines` | {font_id, glyph_ids: [u16]} → {units_per_em, outlines: [{glyph_id, segs: [PathSeg]}]}，字体设计单位、y 轴向上 | 否 |
 
-- 处理编排：`engine.check` 固定 parse → bind → check，注入同一快照的单位与方案；`calc.*` 在同一快照上重跑同一链路得到 `revision_ast`、`symbols`、`typed`（SymbolId 与 `engine.check` 一致）再构造 CORE-10 `CalcRequest`，校验结果不是 Verified/VerifiedPolymorphic 时返回 `EVAL_NOT_COMPUTABLE`；常数按 given → textbook → exact 解析。`typeset.layout` 传入快照的 `fonts`；`typeset.glyph_outlines` 的 `font_id` 不在快照中时返回 `TYPESET_NO_FONT`。未知方案按 `NOTATION_UNBOUND` 返回；领域错误码沿用各领域卡，不新设重复码。
+- 纯分析接缝：`analyze_source` 只消费显式传入的源码、CORE-06 ParseOptions、CORE-07 NotationProfile、CORE-05 SymbolDecl、CORE-08 UnitRegistry、empirical 与 CancelFlag，不读 EngineContext::global、档案、文件、数据库或时钟，不接收 Connection/Store。先 CORE-06 parse，保留原始 SourceMap/raw_symbols；ast=None 时不调用 bind/check，symbols 为 `SymbolEnv { decls: vec![] }`、typed=None、validation=Invalid，诊断保留解析结果，绝不伪造 Hole/空 AST。ast=Some 时用同一 AST/raw_symbols 调 CORE-07 bind，再调 CORE-09 check；check_result.diagnostics 按 parse、bind、check 顺序拼接，保留全部级别且不去重/改码。任一 Error 使最终 Invalid；无 Error 时保留检查器的 Invalid/Draft/Unresolved，检查器已验证但存在未绑定或 needs_confirm 诊断则降为 Unresolved，其余保留 Verified/VerifiedPolymorphic；Invalid 清空 typed。Hole 的解析 Error 不因检查器仅返回 Unresolved 而丢失。该结果只供 Rust 编排，已有 CheckResponse/ParseResult wire 形状不变。
+- 接缝消费（下游说明，非契约）：CORE-31 逐候选注入适配可保留 ast=None 及 raw_symbols 用于评分；CORE-26/66 的 S6 fml-ffi 附属适配把事务只读数据构造为显式 profile/units 输入后调用本函数，再按 CORE-13 RemoteRevisionAnalyzer 契约映射失败或本地验证状态。trait 与事务类型归 CORE-13，具体存储适配归调用卡，不倒灌到本 S1 卡；CORE-56 不增加 CORE-13/26/31/66 依赖。conditions 是调用侧已有 AST，既不当源码重解析，也不在本 helper 中被悄悄删除或替换。
+- 处理编排：`engine.check` 固定 parse → bind → check，注入同一快照的单位与方案；`calc.*` 在同一快照上重跑同一链路得到 `revision_ast`、`symbols`、`typed`（SymbolId 与 `engine.check` 一致）再构造 CORE-10 `CalcRequest`，校验结果不是 Verified/VerifiedPolymorphic 时返回 `EVAL_NOT_COMPUTABLE`；常数按 given → textbook → exact 解析。`typeset.layout` 传入快照的 `fonts`；`typeset.glyph_outlines` 的 `font_id` 不在快照中时返回 `TYPESET_NO_FONT`。上述链路复用 analyze_source；`engine.check` 的 ast=None 映射首条解析 Error 为 FmlError（保留诊断），不输出不符合 CheckResponse 的 null AST；ast=Some 的 Invalid/Unresolved 仍为成功 CheckResponse，不能因诊断 Error 改成外层失败。未知方案由处理层查同一 Arc 的 profiles 时按 `NOTATION_UNBOUND` 返回，不以默认方案替代；领域错误码沿用各领域卡，不新设重复码。
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
@@ -77,5 +87,5 @@ generation耗尽的故障语义：所有发布入口均返回Result，mark_unava
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-56_TEST.md](../Test/core/S1_CORE-56_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 535 行；主包 `crates/fml-ffi/`（`engine_context.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；assets/engine-v1/ 数据与字体不计，发布接缝由 CORE-73 计。分阶段：① 引擎数据与上下文（类型、compose、字体校验、数据加载、EngineContext、可用性检查、notation/constants/units 六个 op、错误，约 390）；② 引擎编排 op（engine.check、calc.*、typeset.* 五个 op，含可复用的 parse→bind→check 分析函数，约 145）。
+**规模**：约 575 行；主包 `crates/fml-ffi/`（`engine_context.rs`、`analysis.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；assets/engine-v1/ 数据与字体不计，发布接缝由 CORE-73 计。分阶段：① 引擎数据与上下文（类型、compose、字体校验、数据加载、EngineContext、可用性检查、notation/constants/units 六个 op、错误，同代基础投影与一致性约20，合计约410）；② 引擎编排 op（engine.check、calc.*、typeset.* 五个 op，含可复用的 parse→bind→check 分析函数，诊断状态收敛与可选AST接缝约20，合计约165）。
 

@@ -20,11 +20,11 @@ tools/ohos-smoke/
   consumer.c        只 #include "fmlcore.h"（contracts/include/），步骤：
                     ① fml_abi_version() 的 MAJOR 等于 FML_ABI_MAJOR
                     ② fml_capabilities() 返回的 JSON 含 "engine.check"，随后 fml_free_buffer
-                    ③ fml_call("engine.check", {"v":1,"trace_id":"ohos-smoke","body":{"source":"E = m c^2","notation_profile_id":"cn-default","user_decls":[],"empirical":false}})
-                       返回 0，响应 JSON 中 "ast" 非 null；fml_free_buffer
-                    ④ fml_call("no.such_op", ...) 返回 -2 且 out 为 FmlError JSON（含 "FFI_UNKNOWN_OP"）；fml_free_buffer
+                    ③ fml_call("engine.check", {"v":1,"trace_id":"00000000000000000000000000000044","body":{"source":"E = m c^2","notation_profile_id":"cn-default","user_decls":[],"empirical":false}})
+                       返回0，响应JSON中ast非null，外层trace_id回显上述非零32hex；fml_free_buffer
+                    ④ 用同一合法信封调用fml_call("no.such_op", ...)，返回-2且out错误信封含FFI_UNKNOWN_OP，外层trace_id与内层error.trace_id均为上述32hex；再以全零trace调用，须-1/FFI_BAD_ARG且错误信封两处trace均非零并一致；每次fml_free_buffer
                     ⑤ 每步失败打印步骤号并以 1 退出；全部通过打印 OK 并以 0 退出
-                    JSON 只做子串检查，不引入 JSON 库
+                    JSON 不引入库：固定断言可作子串检查；trace 须在out.ptr/out.len有界缓冲内按外层与error对象位置分别提取32字节，校验全为小写hex且非全零，再memcmp比较两值/预期值；拒绝缺失、重复或越界字段，不得仅一次strstr错误码代替trace断言
 .github/workflows/ci.yml 中的 ohos-smoke 作业（与 CORE-41 共用文件，本卡追加一个 job）
 ```
 

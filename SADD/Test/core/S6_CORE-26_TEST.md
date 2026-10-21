@@ -14,3 +14,8 @@
 - [R28] T-ROLLBACK：A 端推送 3 次修改后把档案库文件替换为推送前的副本，再离线改同一字段；同步后检测到回退、`device_id` 更换，A 与 B 两端该字段取值一致，回退前已推送的其他修改在 A 端恢复，CONFLICT 项不重复推送。
 - [R28] 纪元变化：`on_epoch_changed` 后游标清空、outbox 含全部可同步实体各一条。
 - [R26] 游客与未开启同步时任一 `sync.*` op 返回 `SYNC_DISABLED`。
+- [R28] 每类实体由其owner applier执行，FakeRegistry审计分派/拓扑顺序；同一页先单位/记号后修订，其分析能读到本事务overlay；conn合同只读，不嵌套Store调用。Fake分析器和真实CORE56 helper适配分别验证ast/symbols/validation/diagnostics输出，ast=None不回退上传AST；任务cancel使整页和游标回滚。
+- [R28] prepare/apply在写事务内load_account_keys_tx；与导入/轮换交错只能读到同一事务版本。page epoch不匹配不写业务/游标；缺钥不前移，非法单条保存点回滚并隔离而其他合法条可提交，存储错误整页回滚。
+- [R28] SY-PAYLOAD-V1独立字节向量与CBOR非法最短编码/重复键/不定长/尾字节反例；逐项断言Envelope的固定version/kind、原outbox身份序号、修订专用revision_id、purpose/base64/hash与AAD一致，内层不虚构key_version。
+- [R28] 正常Stale重包装Conflict仅出队，不改变device_id；只有通过验证的本机高device_seq触发rotate，篡改/未知schema的高序号不能旋转；RNG失败整页回滚。epoch全量重排保留业务时钟，含未过期原类型墓碑，不上传tombstone第二类型。
+- [R28] 事务分析前提矩阵：未自建的cn-default/iso从同Arc内置方案精确取得；同ID自建方案以当前事务记录覆盖，真正未知ID返回NOTATION_UNBOUND而非任意默认。快照获取失败/不可用返回ENGINE_UNAVAILABLE；Fake记录ParseOptions=100/true、empirical=false。以上前提故障均整页/游标回滚、无隔离行，不与无效远端内容的逐条Invalid混淆。

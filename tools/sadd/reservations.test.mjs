@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 import {validateReservations,compareActual,routeOwner} from './reservations.mjs';
 const cards=new Map([['CORE-01',{}],['CORE-02',{}]]);
 const row={kind:'startup',key:'10',owner:'CORE-01',point:'FeatureRegistry.startupHooks'};
@@ -37,4 +38,26 @@ test('root and parameter paths use longest whole-segment ownership',()=>{
  assert.ok(compareActual(p,{version:1,entries:[route('/study/stats','CORE-01')]},cards).length);
  assert.deepEqual(compareActual(p,{version:1,entries:[route('/library/units/new','CORE-02')]},cards),[]);
  assert.ok(validateReservations({version:1,entries:[route('/study/:a'),route('/study/:b')]},cards).length);
+});
+
+test('production profile hooks migrate without adding process startup orders',()=>{
+  const p=JSON.parse(readFileSync(new URL('../../contracts/policies/shared-writes.json',import.meta.url),'utf8'));
+  const expected=[['30','CORE-99'],['50','CORE-40'],['55','CORE-101'],['60','CORE-34'],['70','CORE-46'],['80','CORE-20']];
+  assert.deepEqual(p.entries.filter(r=>r.kind==='profile').map(r=>[r.key,r.owner]),expected);
+  for(const [key,owner] of expected){
+    assert.equal(p.entries.find(r=>r.kind==='profile' && r.key===key).point,'ProfileHooks');
+    assert.equal(p.entries.some(r=>r.kind==='startup' && r.key===key),false);
+  }
+  assert.equal(p.entries.find(r=>r.kind==='startup' && r.key==='40').owner,'CORE-40');
+});
+
+test('profile hook orders form an independent strict registration sequence',()=>{
+  const profile={kind:'profile',key:'30',owner:'CORE-02',point:'ProfileHooks'};
+  const mixed={version:1,entries:[{...row,key:'30'},profile]};
+  assert.deepEqual(validateReservations(mixed,cards),[]);
+  assert.deepEqual(compareActual(mixed,{version:1,entries:[profile]},cards),[]);
+  assert.ok(validateReservations({...mixed,entries:[profile,{...profile,owner:'CORE-01'}]},cards).length);
+  for(const key of ['030','1000','-1','1.0']) assert.ok(validateReservations({version:1,entries:[{...profile,key}]},cards).length);
+  assert.ok(compareActual({version:1,entries:[profile]},{version:1,entries:[{...profile,kind:'startup'}]},cards).length);
+  assert.ok(compareActual(mixed,{version:1,entries:[{...profile,point:'FeatureRegistry.startupHooks'}]},cards).length);
 });

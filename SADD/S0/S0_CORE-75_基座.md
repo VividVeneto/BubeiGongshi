@@ -9,7 +9,7 @@
 **依赖**：CORE-01、CORE-02
 
 **接口契约**
-node tools/sadd/reservations.mjs [--policy contracts/policies/shared-writes.json] [--actual build/extensions.json]。0表与回执有效/1违约/2输入解析错误；不传actual只校验设计预分配，输出mode=design不得当实现通过。policy固定{version:1,entries:[{kind,key,owner,point}]}，kind为error/file/route/installer/shortcut/startup/firstFrame/settings，key/owner/point为非空字符串、owner必须现行有效卡。每种kind内key唯一；route合法绝对路径，同前缀唯一、按最长段前缀解析。error为CORE-02合法大写码；排序号为规范十进制0～999，同一序列唯一。
+node tools/sadd/reservations.mjs [--policy contracts/policies/shared-writes.json] [--actual build/extensions.json]。0表与回执有效/1违约/2输入解析错误；不传actual只校验设计预分配，输出mode=design不得当实现通过。policy固定{version:1,entries:[{kind,key,owner,point}]}，kind为error/file/route/installer/shortcut/startup/profile/firstFrame/settings，key/owner/point为非空字符串、owner必须现行有效卡。每种kind内key唯一；route合法绝对路径，同前缀唯一、按最长段前缀解析。error为CORE-02合法大写码；排序号为规范十进制0～999，同一序列唯一。 startup为进程一次序列，profile为每档案句柄序列（point固定ProfileHooks），firstFrame和settings同样独立；同order跨序列不冲突，不能把profile登记伪装成startup。profile具体调度是CORE-36（下游说明，非契约）的行为，本卡只定义声明格式与一致性检查。
 actual由构建后注册器导出相同version/entries形状，只含本构建已注册项；每项必须存在同kind/key/owner/point预分配。未实现项允许不出现，不伪造回执。发布required-stage清单由CORE-70（下游说明，非契约）另检全部应启用项，不能用子集比对代替完整性。脚本只验证声明归属，不声称能证明源码没有绕过安装点；扫描或消费者人工确认仍需D.12。
 CI checks作业先design验证，功能构建后对该平台actual再验。新增项先由对应文件单写维护者分配并修本机器表，其他会话提交片段，不直接重排共享文件。
 

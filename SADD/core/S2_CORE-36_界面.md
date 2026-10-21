@@ -13,15 +13,16 @@
 ```dart
 // app/lib/composition/compose_app.dart（CompositionContext、FeatureRegistry、Installer、StartupHook 定义在 CORE-04）
 Future<AppDeps> composeApp({required CoreBinding core, required PlatformPorts ports});
-    // ① 建 ctx → ② 逐项await transportInstallers（前项成功完成后才执行后项） → ③ 用 ctx.http 构造 TokenStore、ApiClient、AccountController 并登记到 ctx.features
+    // ① 建 ctx → ② 逐项await transportInstallers（前项成功完成后才执行后项） → ③ 创建 CORE-65 ProfileSessionHost(core)，以它为 sessions 构造 SecureTokenStore(core, ports.keys, sessions)、ApiClient(ctx.http, tokens, baseUrl: Uri.https(NetworkPolicy.fromEnvironment().apiHost, ''))、DefaultAccountController(root: core, ports: ports, api: api, tokens: tokens, sessions: sessions)，按接口登记并登记下述 GuardContext 与 ProfileHooks
     // → ④ 逐项await featureInstallers，再逐项await ports.platformInstallers；任一失败即停止、清理已创建资源并抛错，不发布AppDeps → ⑤ 生成 AppDeps（ports.http 替换为 ctx.http；sync/upgrade 取不到时用 Disabled 实现）
 // app/lib/composition/installers.dart —— CORE-36维护者单写；特性卡只提交自己的installXxx登记片段，不直接修改本文件
 final List<Installer> transportInstallers = [ /* CORE-28: installPrivacy */ ];
-final List<Installer> featureInstallers = [ /* 顺序固定：installDesign（CORE-55，第一项）、installDesignComponents（CORE-58）、installEditor（CORE-37）、installEditorInput（CORE-87）、installFormulaCopy（CORE-91）、installLatexCompletion（CORE-53）、installLibraryBatch（CORE-54）、installStudy（CORE-39）、installRecognition（CORE-40）、installStorageGuard（CORE-50）、
+final List<Installer> featureInstallers = [ /* 顺序固定：installDesign（CORE-55，第一项）、installDesignComponents（CORE-58）、installEditor（CORE-37）、installEditorInput（CORE-87）、installFormulaCopy（CORE-91）、installLatexCompletion（CORE-53）、installLibraryBatch（CORE-54）、installStudy（CORE-39）、installRecognition（CORE-40）、installStorageGuard（CORE-101）、
                                                  installCloud（CORE-34）、installReminders（CORE-20）、installKeys（CORE-98）、installSync（CORE-46）、installUpgrade（CORE-99）、installPacks（CORE-51） */ ];
 
 final class AppDeps {   // 只给组装层与特性目录（app/lib/<feature>/，含各卡 routes.dart）使用；app/lib/ui/ 不得接收或保存
   final CoreBinding core; final PlatformPorts ports; final AccountController account; final FeatureRegistry features;
+  final ProfileSessionSource sessions; final ProfileHooks profileHooks; // 不进入 UiDeps
   final SyncFacade sync; final UpgradeFacade upgrade; final List<(int, String, StartupHook)> firstFrameHooks, startupHooks;   // 来自 ctx.startupHooks
   UiDeps get ui;          // 去掉 core/ports 的界面视图
 }
@@ -52,6 +53,20 @@ abstract interface class UpgradeFacade {
 }
 final class DisabledSyncFacade implements SyncFacade { /* status 恒为 disabled；其余方法抛 FmlException('SYNC_NOT_AVAILABLE') */ }
 final class DisabledUpgradeFacade implements UpgradeFacade { /* run 抛 SYNC_NOT_AVAILABLE；resumeIfPending 什么也不做 */ }
+
+// app/lib/composition/profile_hooks.dart；不改变 CORE-04 StartupHook
+final class ProfileHooks {
+  ProfileHooks(ProfileSessionSource sessions);
+  void add(int order, String id, Future<void> Function(ProfileSession session) hook);
+  Future<void> start(); // 进程启动钩子完成后调用一次；订阅已打开及之后每个新 handle
+  Future<void> stopAndDrain(ProfileSession session);
+}
+// app/lib/composition/account_guard_context.dart
+final class AccountGuardContext implements GuardContext {
+  AccountGuardContext(AccountController account, ProfileSessionSource sessions);
+  GuardAccountState get accountState;
+  bool get syncEnabled;
+}
 
 // app/lib/composition/shell_ext.dart —— 平台卡经 PlatformPorts.platformInstallers 扩展外壳；ui/ 中不得判断平台
 abstract interface class AppNavigator { void go(String location); }   // ③ 登记；路由器建好前的调用排队，建好后按序执行
@@ -89,7 +104,10 @@ Future<void> mainCommon(PlatformPorts ports, CoreBinding core);   // 平台 main
 - 汇总顺序：静态路径先于带参数路径（CORE-60静态导入/单位路由排在libraryRoutes的参数项之前，`libraryEditRoutes` 中的静态新建项及 `libraryRoutes` 的回收站项排在动态 itemId 前，`bookReminderRoutes` 的静态新建项排在 `studyHomeRoutes` 的动态 bookId 前，使 `/study/books/new` 不被 `/study/books/:bookId` 吞掉）；主导航四个入口依次指向 `/study`（首页）、`/library`、`/recognize`、`/settings`，由 CORE-55 `AdaptiveScaffold` 按宽度分档呈现为底部导航栏、导航轨或侧栏；完成账户入口后落在 `/study`；对应路由尚未追加时入口置灰。
 - 入口接缝：本卡完成时把 CORE-04 `entry.dart` 中的 `appEntry` 由 `smokeEntry` 改为 `mainCommon`（只改这一行）。
 - 首帧协议：路由器已创建且账户入口页（或已自动打开档案的首页）已渲染后，`mainCommon` 的 post-frame 回调先依次 await `firstFrameHooks`，再启动下面的顺序钩子。第一组只含本地短操作（托盘 order 10、最小化兜底显示 order 15、健康确认 order 20），每项以 2 s 为上限 await，超时或失败都记录 `AppLog` 并继续下一项（超时的 Future 不再等待，其结果被忽略）；失败的健康确认不得伪造标记。它不等待档案打开、同步或网络。`--minimized` 不影响路由创建与首帧渲染。
-- 启动钩子（首帧协议完成后按 order 依次 await，单个钩子失败只记 `AppLog` 并继续）：
+- 进程启动钩子只运行一次；下表标为档案钩子的 30/50/55/60/70/80 改登记 ProfileHooks，不再登记 ctx.startupHooks。首帧协议先完成，再按 order 依次 await 进程钩子，最后调用 profileHooks.start()；已在 order20 打开的 session 也只触发一次档案序列。单项失败记 AppLog 后继续，同一 handle 不自动重复该项。
+- 档案钩子每个新 handle 按 order 串行 await；null 时停止启动后续项，取消并排空当前项，不运行旧 session 的下一项。第二次打开同 profileId 的新 handle 必须重新执行。ProfileHooks 的 stopAndDrain 作为唯一 composition.profile_hooks beforeClose 登记；start 幂等，重复 id/order 拒绝；没有档案不运行。不能拿所有 StartupHook 重跑，也不能把普通启动动作包成档案动作。
+
+进程/档案钩子归属：
 
 | order | 钩子 | 登记者 |
 | --- | --- | --- |
@@ -97,29 +115,32 @@ Future<void> mainCommon(PlatformPorts ports, CoreBinding core);   // 平台 main
 | 12 | Windows自定义键位加载 | WIN-14平台安装点（下游说明，非契约） |
 | 15 | 资源包更新检查（后台进行，不阻塞后续钩子，只检查不下载） | CORE-51 的安装点 |
 | 20 | `account.profiles` → 恢复账户状态 → 打开档案（系统级解包 DbKey，不弹认证） | CORE-65账户安装点（宿主只调度） |
-| 30 | 预留升级恢复区间，S2 为空 | CORE-99 的独立安装点 installUpgrade（S6；安装顺序 CORE-98 → CORE-46 → CORE-99，CORE-46 不反向依赖升级实现） |
+| 30 | 档案：升级恢复区间，S2 为空 | CORE-99 的独立安装点 installUpgrade（S6；安装顺序 CORE-98 → CORE-46 → CORE-99，CORE-46 不反向依赖升级实现） |
 | 40 | 本地模型注册（对 `model-` 开头的包调 `recog.local.register`） | CORE-40 的安装点 |
-| 50 | 识别历史恢复（`recog.recover`） | CORE-40 的安装点 |
-| 55 | 存储空间检查（可用空间 < 500 MiB 时 `recog.gc`） | CORE-50 的安装点 |
-| 60 | 云任务查询（`resumePending`，仅注册用户） | CORE-34 的安装点 |
-| 70 | 预留同步区间，S2 为空 | CORE-46 自己的安装点（S6） |
-| 80 | 提醒重排 | CORE-20 的安装点 |
+| 50 | 档案：识别历史恢复（`recog.recover`） | CORE-40 的安装点 |
+| 55 | 档案：存储空间检查（可用空间 < 500 MiB 时 `recog.gc`） | CORE-101 的安装点 |
+| 60 | 档案：云任务查询（`resumePending`，仅注册用户） | CORE-34 的安装点 |
+| 70 | 档案：预留同步区间，S2 为空 | CORE-46 自己的安装点（S6） |
+| 80 | 档案：提醒重排 | CORE-20 的安装点 |
 | 85 | Windows应用更新检查（仅检查不下载） | WIN-03平台安装点（下游说明，非契约） |
 | 86 | 保留，不登记钩子；旧健康确认已迁firstFrameHooks 20 | WIN-03（下游说明，非契约） |
 | 90 | 界面预热 `DesignWarmup.run`（空闲时进行，不阻塞后续操作） | CORE-58 的安装点 `installDesignComponents` |
 
+- AccountGuardContext 以账户状态五值分别映射 uninitialized/guest/registered/registeredLocked/upgrading；syncEnabled 只取当前同 handle 的档案快照。初始状态缺失及关闭完成一律 uninitialized/false，不把 stale registered 快照用于新业务。CORE-28 installPrivacy 已提供 _CtxGuard/_LazyConsent 延迟查找，本卡只登记真实 GuardContext，不另包第二层 NetworkGuard。CORE-34（下游说明，非契约）登记真实 ConsentVerifier；缺失仍默认拒绝上传，且每次上传只消费一次 consent。
+- closing 开始由 sessions=null 阻止所有新业务；beforeClose 控制取消仍需旧注册状态与旧访问令牌，composition 保留其私有只读上下文直到 drain 完成，随后清空。这个窗口不能开启同步/上传/刷新，只允许既有任务取消/清理；若既有云取消被拒绝，关闭流程保留可重试而非提前释放旧句柄。AccountGuardContext 不引入 CORE-28 表外放行规则。
+- 档案路由在特性 routes 层监听 sessions.changes：null 立即撤销旧 VM 的写入口、隐藏敏感状态并导航账户入口；await beforeClose 排空/释放旧 VM 后才允许新会话构建。session identity/handle 作为 VM key；同 profileId 重新打开也创建新 VM。页面 Widget 仍只接收 VM/DTO/UiDeps，不读取 source/core；旧回调不得向新 VM 发布。
 - 文案键集中在 `app/lib/l10n/zh_CN.arb`；错误码到文案的映射由 CORE-02 生成（`app/lib/l10n/errors.g.dart`）。
 - 错误码（本卡唯一定义）：账户相关错误复用 CORE-22、CORE-23。
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
-| `SYNC_NOT_AVAILABLE` | info | 否 | 同步模块未安装或当前为游客时调用门面方法 |
+| `SYNC_NOT_AVAILABLE` | info | 否 | 相应同步/升级模块未安装时调用其 Disabled 门面方法；已安装但游客/关闭同步不在此列 |
 
-规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：组装层/门面/外壳接缝约 310、外壳/路由守卫/启动钩子约 260，共约 570，测试与特性接入行不计；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
+规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：组装层/门面/外壳接缝约 350、外壳/路由守卫/进程与档案钩子约 300，共约 650，测试与特性接入行不计；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
 
 启动order 95保留不登记：旧托盘创建已迁firstFrameHooks 10，最小化兜底15、健康确认20均属于首帧钩子独立序列，不得重新塞入顺序队列。startup12/85分别归Windows键位/更新，平台未安装时空缺；同号跨序列允许，同序列不同所有者冲突需CORE-36维护者分配，不靠登记先后碰运气。
 
-PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行为仍以上述契约为准。file项由单一维护者合入独立片段；installer每卡在自身install.dart定义，聚合文件由本卡维护者单写。route按最长路径前缀匹配（/settings/appearance优先于/settings），禁止相同前缀不同owner；未知前缀先申请再登记。startup/firstFrame/settings在各自序列内key唯一，86/95未分配不可注册；测试可用专用test-only表，不占生产号。快捷键固定保留与默认表归WIN-08/15（下游说明，非契约），命令ID归CORE-58；消费者只提交引用，不增第二份。运行时FeatureRegistry和SettingsSections必须拒绝重复生产ID/order并导出build/extensions.json登记回执，CORE-75（下游说明，非契约）比对owner/key/point，不以人工记顺序代替门禁。
+PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行为仍以上述契约为准。file项由单一维护者合入独立片段；installer每卡在自身install.dart定义，聚合文件由本卡维护者单写。route按最长路径前缀匹配（/settings/appearance优先于/settings），禁止相同前缀不同owner；未知前缀先申请再登记。startup/profile/firstFrame/settings在各自序列内key唯一，86/95未分配不可注册；测试可用专用test-only表，不占生产号。快捷键固定保留与默认表归WIN-08/15（下游说明，非契约），命令ID归CORE-58；消费者只提交引用，不增第二份。运行时FeatureRegistry、ProfileHooks和SettingsSections必须拒绝各自序列重复生产ID/order并导出build/extensions.json登记回执，CORE-75（下游说明，非契约）比对owner/key/point，不以人工记顺序代替门禁。
 
 产品约束追踪：见README §6 Q1、Q7、Q9、Q41；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
@@ -139,5 +160,5 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-36_TEST.md](../Test/core/S2_CORE-36_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 570 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`（含 `entry.dart` 一行接缝）。各特性在聚合文件中的接入行计入特性卡。分阶段：① 组装层、门面与外壳接缝（compose_app、AppDeps/UiDeps、installers、facades、shell_ext 与登记回执，约 310）；② 应用外壳、路由守卫与启动钩子（routes.dart、app_shell.dart、main_common.dart，约 260）。
+**规模**：约 650 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`（含 `entry.dart` 一行接缝）。各特性在聚合文件中的接入行计入特性卡。分阶段：① 组装层、门面与外壳接缝（compose_app、AppDeps/UiDeps、installers、facades、shell_ext 与登记回执，约 350）；② 应用外壳、路由守卫与启动钩子（routes.dart、app_shell.dart、main_common.dart，约 300）。
 

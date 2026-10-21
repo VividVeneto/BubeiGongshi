@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {load,ROOT} from './pack.mjs';
 
-const kinds=new Set(['error','file','route','installer','shortcut','startup','firstFrame','settings']);
+const kinds=new Set(['error','file','route','installer','shortcut','startup','profile','firstFrame','settings']);
 export function validateReservations(value,cards) {
   const errors=[]; const seen=new Set();
   if(!value || value.version!==1 || !Array.isArray(value.entries) ||
@@ -22,7 +22,7 @@ export function validateReservations(value,cards) {
     if(!cards.has(row.owner))errors.push(`EXT-3: unknown owner ${row.owner}`);
     if(row.kind==='route' && !/^\/(?:[a-z][a-z0-9_-]*|:[A-Za-z][A-Za-z0-9_]*)(?:\/(?:[a-z][a-z0-9_-]*|:[A-Za-z][A-Za-z0-9_]*))*$/.test(row.key) && row.key!=='/')errors.push(`EXT-1: invalid route ${key}`);
     if(row.kind==='error' && !/^[A-Z]+(?:_[A-Z0-9]+)+$/.test(row.key))errors.push(`EXT-1: invalid code ${key}`);
-    if(['startup','firstFrame','settings'].includes(row.kind) && !/^(?:0|[1-9][0-9]{0,2})$/.test(row.key))errors.push(`EXT-1: invalid order ${key}`);
+    if(['startup','profile','firstFrame','settings'].includes(row.kind) && !/^(?:0|[1-9][0-9]{0,2})$/.test(row.key))errors.push(`EXT-1: invalid order ${key}`);
   }
   return errors;
 }

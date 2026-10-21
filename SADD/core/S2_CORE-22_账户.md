@@ -10,6 +10,8 @@
 
 **接口契约**
 
+workspace接入：本卡首次创建 `server/Cargo.toml`（package.name固定 `fml-server`）时，在同一提交将 "server" 追加到根Cargo.toml的workspace.members；CORE-01首卡只建crates/*与最小fml-error骨架，不提前引用尚不存在的server。服务端本仓库依赖只取fml-error与纯协议fml-sync-proto，不依赖客户端Store/FFI；新增边先修CORE-01机器允许表。
+
 ```text
 POST /v1/auth/register            { email, email_code, password } → 201 { account_id }（不返回授权码；随后显式 authorize）
 POST /v1/auth/password/reset      { email, email_code, new_password } → 204（身份服务吊销该账户全部会话/刷新令牌后才成功）
@@ -22,9 +24,9 @@ GET  /v1/devices                  → 200 { devices: [{ device_id, platform, app
 DELETE /v1/devices/{device_id}    吊销设备并吊销绑定该设备的令牌族 → 204（触发 CORE-26 密钥轮换提示）
 GET  /v1/meta/client-policy       → 200 { min_app_version, api_major: 1 }（无需令牌）
 GET  /healthz                     → 200 { status: "ok", version }
-所有请求头：Authorization: Bearer <token>（除注册、令牌、client-policy、healthz）；X-Fml-App-Version；X-Fml-Request-Id（32 位十六进制，缺省由服务端生成）
+所有请求头：Authorization: Bearer <token>（除注册、令牌、client-policy、healthz）；X-Fml-App-Version；X-Fml-Request-Id（非零32位小写十六进制；缺省/格式非法/全零均由边界生成新的非零值，不原样反射非法头）
 版本过低：HTTP 426 { error: { code: "SERVER_CLIENT_TOO_OLD", … }, min_app_version }
-错误体：CORE-02 的 FmlError JSON（`error.code`、`error.retryable`、`error.trace_id` = 请求 ID）；HTTP 状态取注册表 `http_status`
+错误体：CORE-02 的 FmlError JSON；统一错误中间件调用 error.with_trace(request_trace)，仅补零，保留上游已有非零trace。响应头 X-Fml-Request-Id、记录本次响应的request_id及error.trace_id均取最终error.trace_id；不得为配合入站头而覆盖上游trace，零trace禁止序列化出边界。成功响应头使用本次request_trace；HTTP状态取注册表http_status，未填为400
 限流响应：429 + 头 `Retry-After`（秒），错误码 `AUTH_RATE_LIMITED`
 ```
 

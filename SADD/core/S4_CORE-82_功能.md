@@ -49,6 +49,12 @@ BookSummary `{id:Uuid,title:string,source:BookSource,chapter_count:u32,item_coun
 | STUDY_BOOK_READ_ONLY | CORE-19 | 拒绝内容包书写/删除 |
 | STUDY_INPUT_INVALID | CORE-19 | 当前题/待自评/答题模式或题源不匹配时拒绝 |
 
+**实体应用与删除（CORE-13 接缝）**
+
+- 注册 book、study_plan、attempt、confusable_group 四类 codec/applier；study_session 仅本机续学，不注册/不入outbox。book只枚举User来源，预置书不复制上传；按ID UTF-8排序。各类型read_entity返回权威字段与既有完整时钟，排除当前游标/派生统计。
+- book/study_plan/confusable_group按字段时钟合并，数组值作为单字段整体决胜，非匿名增删集合。收到两份active计划时不额外生成用户编辑：active候选按其active字段时钟、同钟按计划ID字节最大者作为本机有效计划投影，保留各原权威值，下次plan.set才产生用户字段写。删除书同事务停用引用计划的本机有效投影，不删公式条目；Delete保存原类型墓碑防旧版本复活。
+- attempt不可变：相同ID/相同权威值Duplicate，异值Invalid；保留所有不同ID的远端作答，不能用到达顺序覆盖。与review_event关联的更新经CORE17本卡接缝而非直接重写排程算法；完整Attempt用于确定性投影，study_session.cursor仍是本机续学状态，不从他设备覆盖。所有applier在传入WriteTx内完成，Invalid回滚该实体，存储故障Err整页回滚；不stamp/enqueue，不产生同步回声。统计失效hook归CORE20，不双计。
+
 **实现约束**
 - fml-study保持sans-I/O；处理层组合grade→Attempt→step→事务效果→UiCommand，所有引擎与Store依赖只在允许层持有。
 - Book章节深度/计划范围与exam_subject等校验沿用CORE-19/16；产品Q33/Q34保持确认值/暂行默认，不增减范围。

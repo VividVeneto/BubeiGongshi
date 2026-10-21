@@ -38,7 +38,14 @@ pub fn grade(req: &GradeRequest, profile: &NotationProfile, units: &dyn UnitRegi
 - 必须形式（如不定积分须带 +C、指定用 sin x 表示）在等价判定之后检查。
 - 抽样参数：每个自由变量按声明类型取值（实数默认在 [-10, 10]，正量或量纲量在 [0.1, 10]），用 `seed` 初始化的 ChaCha8 生成 16 个点；取值域以期望式为准：先在显式声明域内求期望式，期望式非有限或域非法的点丢弃重取；期望式有限而作答式非有限或域非法时立即 Incorrect（附域反例，如 GX-11 的 x<0）；因此 ln(ab) 与 ln a + ln b 这类只在未声明域上分歧的恒等式按期望式的域判定，不因作答侧多出的定义域误判；可求奇点时距离不足1e-6也重取，有效点少于 8 个转第三层；比较用相对容差 1e-9（期望绝对值 < 1e-12 时用绝对容差 1e-12）；方程以残差 lhs − rhs 比较，两边残差之比在全部点上为同一非零常数视为等价。
 - 选择题与顺序题直接比较下标序列；数值题按 `sig_figs` 修约后比较，单位经 CORE-08 换算到标准单位后比较。
-- 错误码（触发条件）：`GRADE_PARSE_FAILED`（作答文本无法解析，GradeResult为Undetermined(parse_failed)，先提示用户修改，不记事件）、`GRADE_TIMEOUT`（超过 `budget_ms`，结果转 Undetermined）、`GRADE_UNSUPPORTED`（`GradeTarget` 与 `GradeAnswer` 种类不匹配，或包含本判分器不支持的节点，如极限、无穷级数，转 Undetermined）。
+- 诊断码在下表唯一定义，owner=CORE-18，先登记 CORE-02 registry 后生成。三个码均放在成功 `GradeResult.diagnostics` 中，`grade.answer` 返回 ok 而不是 CORE-02 FmlError；error 级诊断也不改变传输结果。retryable 仅为注册表元数据，不指令界面自动重试；修改答案或增加预算是新请求，不是原样重试。
+
+| 错误码 | 级别 | 可重试 | 触发条件 |
+| --- | --- | --- | --- |
+| `GRADE_PARSE_FAILED` | error | 否 | 作答文本无法解析；Undetermined(reason=parse_failed)，先提示用户修改，不记事件 |
+| `GRADE_TIMEOUT` | warning | 否 | 超过 budget_ms，结果转 Undetermined；固定种子与同一预算的原样重试不保证改善 |
+| `GRADE_UNSUPPORTED` | warning | 否 | GradeTarget/GradeAnswer 种类不匹配，或包含不支持的极限、无穷级数等节点，转 Undetermined |
+
 - 外部前提：随机数 `rand_chacha` crate，版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`。
 
 所需输入为 GradeRequest、标准符号环境与记号方案（由处理层解析）、UnitRegistry、CancelFlag；数值样本和形式要求由req决定。GX-11/12 在随机采样前固定注入允许域中的 -2,-1,1,2 四点（仍受声明域筛选），保证不会因固定 seed 恰好全正而漏反例；x>0声明域时两式等价可判Correct。

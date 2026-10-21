@@ -41,17 +41,10 @@ pub fn verify(file: &Path, prot: &ExportProtection, cancel: &CancelFlag) -> Resu
   - 解析：先读块 0，再顺序读至 AAD 为 `backup.final` 的块；块号与 AAD 不符、末块之后仍有字节、未见末块即文件结束、`block_count`、`payload_len`、哈希或行数不符 → `BACKUP_CORRUPT`。
   - 固定字节向量 BK-V1（`crates/fml-store/tests/vectors/backup_v1.hex`）：`FixedRandom`、固定 `now_ms`、固定口令与最小 KDF 测试参数、含两张小表的库；头、块 0、一个数据块、末块的期望字节由独立于实现的 RFC 8949 编码与 CORE-21 KV 向量方法人工计算并双人复核，不由被测实现生成。
 - 负载不落明文临时文件：导出从ReadTx快照逐行编码、分块加密至调用方传入的StoreArea.staging/out_path，Dart经FileExporter.saveAs流式保存后删除；共享解码器按块/行流式交付已认证负载，不在本卡实施恢复写库。
-- 导出范围与外键闭包（ADR-V5-44）：所选范围的表整表导出；若所选行经外键引用了未选范围（不含“永不导出”）的父行，这些**被引用的父行**自动随导出带出（沿 `PRAGMA foreign_key_list` 向父表方向传递闭包，只含被引用行），在负载中作为 kind = 1 的闭包段写在所有范围段之前、父表在前，并计入 `closure_added` 与 `row_counts["表名#closure"]`。典型：只选 `study` 时带出被引用的 `formula_item`、`formula_revision`、`symbol_binding`；选 `formulas` 时带出被引用的 `user_unit`。若闭包需要“永不导出”表中的行 → `BACKUP_SCOPE_INVALID`（实现错误，由往返测试覆盖）。界面在范围选择处显示“将同时带出被引用的 N 条公式/单位”。
-- 导出范围与表（固定顺序，父表在前）：
-
-| 范围 | 表 |
-| --- | --- |
-| `formulas` | `formula_item`、`formula_revision`、`symbol_binding`、`notation_profile`、`constant_set`、`derivation`、`calculation_plan` |
-| `units` | `user_unit` |
-| `study` | `book`、`study_card`、`review_event`、`study_session`、`attempt`、`confusable_group` |
-| `plans` | `study_plan` |
-| `settings` | `local_setting` 中 `syncable = 1` 的行（`device.*` 不导出） |
-| 永不导出 | `schema_migration`、`sync_*`、`tombstone`、`field_clock`、`push_batch`、`merge_choice`、`account_*`、`upgrade_journal`、`installed_pack`、识别相关表、`mastery_cache`、`stats_cache`、`formula_fts`、`formula_draft` |
+- 导出范围与外键闭包（ADR-V5-44）：所选范围只导出满足 CORE-13 表策略固定行过滤的行；若所选行经外键引用了未选范围（不含“永不导出”）的父行，这些**被引用的父行**自动随导出带出（沿 `PRAGMA foreign_key_list` 向父表方向传递闭包，只含被引用行），在负载中作为 kind = 1 的闭包段写在所有范围段之前、父表在前，并计入 `closure_added` 与 `row_counts["表名#closure"]`。典型：只选 `study` 时带出被引用的 `formula_item`、`formula_revision`、`symbol_binding`；选 `formulas` 时带出被引用的 `user_unit`。若闭包需要“永不导出”表中的行 → `BACKUP_SCOPE_INVALID`（实现错误，由往返测试覆盖）。界面在范围选择处显示“将同时带出被引用的 N 条公式/单位”。
+- 表策略唯一来自 CORE-13 的 table_policies()：将 ExportScope 五个开关对应到 BackupScope，按 TablePolicy.scope/row_filter 选行；Never 以及不满足固定行过滤的记录不进入范围或闭包。CORE-27 不再维护表白名单、所有权、不可变类别或过滤 SQL 副本；列/约束也不从其他业务卡转录。独立设备库不属于导出数据源。
+- 在同一 ReadTx 快照内，经 PRAGMA table_info 读取当前列名/列序/类型/默认值/主键序，经 PRAGMA foreign_key_list 读取完整外键分组（复合键按 id/seq 配对）；仅在 CORE-13 策略允许的 profile 表之间求被引用父行闭包。表段列名来自该快照的实际列，行值按相同列序编码；表名只取策略白名单并正确引用 SQL 标识符，不把文件表名或任意 SQL 当查询输入。未知实际表默认 Never，不因被 PRAGMA 发现而扩大 ExportScope。
+- table_policies() 仅包含本构建已合入迁移的 profile 表：未来尚未合入表不要求存在、不创建；策略已声明应存在却缺失的表或固定过滤所需列按 CORE-13 返回 STORE_CORRUPT，禁止默默跳过或导出不完整文件。PRAGMA 只解决结构发现，不改变范围、包引用或闭包 kind=1 语义；预置内容仍仅按既有稳定 ID 引用并由恢复层报告 missing_packs，不借 schema 重构新增产品限制。
 
 - FFI op唯一登记：submit `backup.export` `{scope, protection, out_path}`→`{manifest}`、`backup.verify` `{path, protection}`→`{manifest}`，均可取消；本卡fml-ffi适配向export传CORE-23 OsRandom，不经JSON。BACKUP_SCOPE_INVALID在创建输出文件与KDF之前检查；口令/恢复码只在请求中，不进日志。恢复op由CORE-84（下游说明，非契约）登记。
 - 错误码：

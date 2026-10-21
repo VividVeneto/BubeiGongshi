@@ -5,3 +5,4 @@
 **验收标准**
 - [R18] 正例预分配通过；同kind重复key、未知owner、非法route/order、未知字段/版本退出1；坏JSON/文件缺失退出2。
 - [R18] actual只含已预分配子集通过且mode=implementation；相同key改owner/point或新增未分配项失败；不带actual时只输出design。
+- [R18] startup/profile/firstFrame/settings各自成序列；跨序列同order可并存，profile内部重复或非规范/越界order失败。六项档案钩子迁至profile与ProfileHooks，错报startup或旧point的actual必须失败；design预分配不冒充真实构建回执。

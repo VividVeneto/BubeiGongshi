@@ -72,7 +72,7 @@ pub fn build_question(card: &Card, content: &QuestionSource, seed: u64) -> Resul
 - 评分映射（`RatingMap`，带版本，初值）：判错或放弃 → Again；用提示或经组内重现后判对 → Hard；首次判对且无提示 → Good；首次判对、无提示且用时 ≤ 本人该题型最近 30 次判对用时中位数的 50%（判对少于 10 次时不判 Easy）→ Easy；Undetermined → 先返回 `NeedSelfRate`，界面显示标准答案请用户自评，收到 `SelfRated` 后才生成 Attempt（`self_knew` 有值）并推进状态机：自评“会” → Hard 且计入连续计数，自评“不会” → Again；自评不能单独使公式进入 Mastered（CORE-20）。
 - 申诉/会话续学、持久化与全部study.* op由CORE-82（下游说明，非契约）消费本卡纯类型与函数；本卡不做I/O，不包含op处理函数。DDL结构见下“迁移元数据”，保留原序号而不形成仓储实现依赖。
 
-选卡纯函数所需输入与算法（见 README §6 Q33（待确认），暂行默认）：
+选卡纯函数所需输入与算法（见 README §6 Q33，2026-10-21 已确认；稳定排序与复习先于新学）：
 
 ```rust
 pub struct SessionSelectionInput { pub schedules: Vec<CardSchedule>, pub book: Book,
@@ -117,7 +117,7 @@ BookSummary `{id:Uuid,title:string,source:BookSource,chapter_count:u32,item_coun
 | `book` | `id TEXT PK`，`title TEXT NOT NULL`，`source_json TEXT NOT NULL`，`chapters_json TEXT NOT NULL`，`updated_at_ms` | — |
 | `study_plan` | `id TEXT PK`，`book_id TEXT NOT NULL REFERENCES book(id)`，`plan_json TEXT NOT NULL`，`active INTEGER NOT NULL`，`updated_at_ms` | `(active)` |
 | `study_session` | `id TEXT PK`，`plan_id TEXT NOT NULL`，`kind TEXT NOT NULL`，`state_json TEXT NOT NULL`（GroupState），`started_at_ms`，`last_active_at_ms`，`finished_at_ms INTEGER` | `(plan_id, last_active_at_ms)` |
-| `attempt` | Attempt 各字段一列（`verdict_json TEXT`），`session_id TEXT NOT NULL`，`UNIQUE (device_id, device_seq, tx_index)`；只插入不更新 | `(card, at_ms)`，`(session_id)` |
+| `attempt` | Attempt 各字段一列（`id TEXT PK`、`verdict_json TEXT`），`session_id TEXT NOT NULL`；只插入不更新，幂等以 `id` 为准；回滚恢复后不同设备可能保留相同旧序列三元组，不加三元组唯一约束 | `(card, at_ms)`，`(session_id)`，普通非唯一 `(device_id, device_seq, tx_index)` |
 | `confusable_group` | `id TEXT PK`，`source TEXT NOT NULL`（pack 或 user），`items_json TEXT NOT NULL`（2–8 个条目 ID），`note TEXT` | — |
 
 这些DDL不计代码规模；对应仓储、codec/applier和删除分支归CORE-82（下游说明，非契约），本卡领域crate不依赖Store。

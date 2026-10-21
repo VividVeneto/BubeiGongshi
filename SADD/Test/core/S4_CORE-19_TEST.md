@@ -6,4 +6,5 @@
 - [R04][R04.a][R04.b][R04.d][R04.e] 纯T-SESSION：默认组10条，合法K=1/3/5和复习K=1；答错插回本组靠后第3位；组后默写全部或只错题、默写错标记次日错题，跳过/暂停/关闭题型；相同事件输入纯函数重放结果一致，不读写Store。
 - [R04] 评分映射单元测试覆盖表中每一行，含“判对少于 10 次不判 Easy”。
 - [R04.c] 固定QuestionSource+seed连跑两次options完全相同，所有非正确项均能回溯已审校Distractor及error_type；少于所需项改输入题，未审校源拒绝出题。
-- [R04] SELECT-01/02/03、EASY-01逐向量通过；New/Review/Mistakes/Cram/Dictation的过滤、稳定排序、日配额/去重与source_session_id输入按卡片契约，纯函数不查询仓储。
+- [R04] 已确认 Q33 的 SELECT-01/02/03、EASY-01逐向量通过；New/Review/Mistakes/Cram/Dictation的过滤、稳定排序、日配额/去重与source_session_id输入按卡片契约，纯函数不查询仓储。
+- [R04][R28] 迁移元数据与 CORE-82 仓储集成夹具核对 attempt 仅 id 唯一、序列三元组为普通索引：两个不同 id、相同旧 (device_id,device_seq,tx_index) 均可保留，同 id 同负载重放不得重复；实际仓储写侧的冲突判定与设备回滚旋转测试归 CORE-82（下游说明，非契约），本纯函数卡不新增数据库运行时依赖。

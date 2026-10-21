@@ -6,7 +6,7 @@
 - 包含：日/周/月学习量与时长、连续天数、客观正确率、平均用时、题型与章节掌握分布、章节完成率、复习积压、到期预测、易错公式榜；掌握度判据；统计缓存与全量重算；每日提醒用例。
 - 不包含：预测偏差监测/stats.calibration（CORE-97）；统计界面（CORE-49）；通知的平台实现（AND-08、WIN-09）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-17、CORE-19
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-17、CORE-19、CORE-36、CORE-65（后两项仅 Dart 提醒与组装接入，Rust 依赖方向不变）
 
 **接口契约**
 
@@ -33,9 +33,10 @@ pub fn invalidate(cache: &mut Option<StatsCache>); // 不按事件序号截断�
 ```dart
 // app/lib/study/reminder_service.dart
 class ReminderService {
-  ReminderService(this._scheduler, this._core);   // NotificationScheduler 见 CORE-04
+  ReminderService(NotificationScheduler scheduler, ProfileSessionSource sessions);   // NotificationScheduler 见 CORE-04
   Future<void> reschedule({required LocalTime at}); // 先成功申请权限/安排，再写设置
   Future<void> resume(); // 从已有device.reminder_time恢复，缺失则取消
+  Future<void> stopAndDrain(ProfileSession session); // 关闭档案只取消平台提醒，不清除档案设置
   Future<void> cancel(); // 取消并将device.reminder_time置null // 正文只含待复习数量，不含公式内容
   // 内部调用 FFI op stats.due_count（→ {"due": u32}）取数量；due = 0 时取消当日提醒；正文消息键 reminder.body（参数 n）
 }
@@ -82,15 +83,17 @@ ReminderService.reschedule(at:)先成功申请权限并重排，再写device.rem
 ReminderCheckState为本卡公共枚举{ok,warn,unknown}（Dart同名；通道wire为ok/warn/unknown）；可确定正常=ok，可确定问题=warn，不可检测=unknown。CORE-49（下游说明，非契约）按正常/警示/中性信息图标显示，unknown不计入问题数；不再用bool ok制造红项。
 
 **实现约束**
-- 安装点：`app/lib/study/install.dart` 的 `installReminders(CompositionContext ctx)` 登记 `ReminderService` 并以 order 80 登记“提醒重排”启动钩子；在 CORE-36 `installers.dart` 的 `featureInstallers` 追加一行。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
-- 重排时机：启动钩子、应用每次进入后台（`installReminders` 订阅 `ports.lifecycle.events()` 的 `paused`，与上次重排间隔 ≥ 1 分钟）与提醒时刻修改后各一次，因此学完一组后退出即按新的到期数安排；应用长期未打开时平台按 AND-08、WIN-09 的规则沿用上次正文。
+- 每次 resume/reschedule/cancel 在入口捕获 sessions.current；null 时不调 FFI、不申请权限、不调度通知。整条链只使用该 session.core，stats.due_count 的 now_ms 在调用边界取一次 UTC 毫秒；设置读取、权限申请、due_count、平台调度、设置写入每个 await 后及下一副作用前检查 current 的对象身份与 handle（不能只比 profileId）。同 handle 的重排与修改串行，迟到结果不重定向到新档案。平台调度无法取消时，排空其 Future 后再次取消平台提醒，完成后才允许新档案重排。
+- stopAndDrain 的同步前缀停止该 handle 的新重排/paused 回调并发出取消；随后等待进行中的设置/平台操作及补偿取消全部结束，释放旧 handle 的任务/缓存与回调引用（进程唯一 paused 订阅保留供下一档案，应用销毁才注销）。它只取消平台提醒，绝不调用会写 device.reminder_time=null 的公开 cancel；切回 A 仍恢复 A 原时刻。关闭失败原样上抛，CORE-65 保持 closing/null 且不打开 B；所有 beforeClose 同步停止前缀由宿主先调用，再统一 await，不自行等待尚未发出的其他消费者取消。paused 订阅全进程仅一份，null 时跳过，节流水位按 handle 隔离。
+- 安装点：`app/lib/study/install.dart` 的 `installReminders(CompositionContext ctx)` 登记 `ReminderService` 并从 ctx.features.require<ProfileSessionSource>() 取得会话源，构造 ReminderService(ctx.ports.notifications, sessions)；以 CORE-36 ProfileHooks.add 的 order 80、id reminders.resume 登记每个新 handle 的 resume，不写普通 StartupHook；以 reminders.lifecycle 登记 sessions.addBeforeClose 回调 stopAndDrain；在 CORE-36 `installers.dart` 的 `featureInstallers` 追加一行。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
+- 重排时机：每档案 ProfileHooks order 80、应用每次进入后台（`installReminders` 订阅 `ports.lifecycle.events()` 的 `paused`，与上次重排间隔 ≥ 1 分钟）与提醒时刻修改后各一次，因此学完一组后退出即按新的到期数安排；应用长期未打开时平台按 AND-08、WIN-09 的规则沿用上次正文。
 - 正确率只计客观判定，自评与 Undetermined 不计。掌握度与统计缓存不同步，各端从同步后的事件重算。
 - 提醒：每日一次，本地调度，不依赖网络；不做组队打卡。
 - 预测偏差监测与stats.calibration迁CORE-97；正常统计/提醒不调用或反向依赖该监测实现。
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-20_TEST.md](../Test/core/S4_CORE-20_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约700行，分阶段：①统计模型/计算360及同快照cache仓储120，共480行；②四op65、Dart提醒与安装130、跨表stats_generation接入25，共220行。主包 `crates/fml-study/src/stats/` 360；附属 `crates/fml-store/src/stats.rs`120、`crates/fml-ffi/src/ops/stats.rs`65、`app/lib/study/{reminder_service,install}.dart`及聚合130、各表仓储/applier接入25；DDL/生成物/自测不计。①独立构建测全量统计/cache水位，②独立构建测四op/提醒/跨表失效。原815行另115归CORE-97。
+**规模**：约750行，分阶段：①统计模型/计算360及同快照cache仓储120，共480行；②四op65、Dart提醒与安装180（含会话捕获、串行排空及平台补偿取消新增50）、跨表stats_generation接入25，共270行。主包 `crates/fml-study/src/stats/` 360；附属 `crates/fml-store/src/stats.rs`120、`crates/fml-ffi/src/ops/stats.rs`65、`app/lib/study/{reminder_service,install}.dart`及聚合180、各表仓储/applier接入25；DDL/生成物/自测不计。①独立构建测全量统计/cache水位，②独立构建测四op/提醒/跨表失效。原815行另115归CORE-97。
 
 ---
 

@@ -6,7 +6,7 @@
 - 包含：纯会话状态与转换校验、HistoryRepo/HistoryFs接口和DTO/op协议、历史密钥解锁器；本卡不实现文件/数据库访问。
 - 不包含：云端调用（CORE-34）；界面（CORE-40）；平台目录（AND-06、WIN-07 经 CORE-04 `LocalFileStore` 提供 `StoreArea.recognition` 与 `StoreArea.staging` 的实际位置）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-05、CORE-21、CORE-23、CORE-29、CORE-30、CORE-31
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-05、CORE-21、CORE-23、CORE-29、CORE-30、CORE-31、CORE-65
 
 **接口契约**
 
@@ -79,17 +79,22 @@ pub trait HistoryFs {                       // 平台目录由 StoreArea.recogni
 ```dart
 // app/lib/recognition/history_key.dart（本卡附属；CORE-40 安装点构造并登记到 ctx.features，CORE-47、CORE-50 从 features 取用）
 final class HistoryKeyUnlocker {
-  HistoryKeyUnlocker(CoreBinding core, SecureKeyValueStore keys, String Function() profileId); // core必须为该profileId对应的scopedTo视图（CORE-03），调用前捕获同一会话
+  HistoryKeyUnlocker(ProfileSessionSource sessions, SecureKeyValueStore keys); // CORE-65 仅供 Dart 附属层，不引入 Rust 依赖
   Future<bool> ensure();   // 幂等；返回 true 表示因平台密钥失效已清空历史，调用方提示一次
   Future<void> clearAll(); // 一键清空：轮换并 clear = true
+  Future<void> stopAndDrain(ProfileSession session); // 取消待办并排空已开始的密钥操作，所有字节 finally 清零
 }
 ```
 
 `ensure`：`recog.key.status` 已 `loaded` 直接返回 false；有 `wrapped` 则 `unwrap(fml.<profile_id>.db, wrapped)` 后 `provide`；`version = 0`（新档案）则轮换且 `clear = false`；`unwrap` 抛 `PLATFORM_KEY_UNAVAILABLE` 或 `provide` 返回 `RECOG_HISTORY_KEY_UNAVAILABLE`（库与密钥不匹配，如快照回滚）时轮换且 `clear = true` 并返回 true。轮换 = `rotate_begin` → `wrap` → `rotate_commit`；`rotate_commit` 在一个事务内更新包装值、`key_check` 与版本，`clear = true` 时同一事务把全部会话置 `Deleting`、删除会话密钥包装并写 `cleanup_job`，提交后新密钥生效。提交前崩溃：库内仍是旧版本，待提交密钥随进程消失；提交后崩溃：旧会话包装已删除，阶段二按 `cleanup_job` 补删文件。旧密钥只存在于被覆盖的包装值中，`recognition` 库开启 `secure_delete` 并在提交后截断 WAL。需要历史密钥的调用方在档案解锁后首次调用前 `ensure()`，收到 `RECOG_HISTORY_KEY_UNAVAILABLE` 时 `ensure()` 后重试一次。GC 删除单会话只删其包装，历史密钥与包装值都不上传、不导出。
 
+解锁器每次 ensure/clearAll 开始捕获 sessions.current 的 identity、handle、profileId 与 scoped core；null 不调用 FFI/平台端口，回账户入口。每次 status/unwrap/begin/wrap/provide/commit 的 await 后、下一次调用前核对同一世代；不符合则丢弃结果清零，不重定向新库。相同 profileId 的新 handle 也视为过期。ensure 按 handle singleflight；ensure 与 clearAll 共用该 handle 串行队列（clearAll 排在正在进行的 ensure 后，之后的 ensure 排在 clearAll 后），避免并发 rotate_begin 或 provide 旧版本。close 时移除待办，等待已执行操作返回并清零，不再启动后续 provide/commit；已提交的事务只等待结果，不伪造回滚。安装点以唯一 recognition.history_keys 登记 beforeClose，并在真实排空后释放订阅；失败传播，不提前关闭 Store。
+
+重试只限同一仍 current 的 session，RECOG_HISTORY_KEY_UNAVAILABLE → ensure → 原业务最多一次；世代过期不能作为密钥失效来轮换新档案。所有 unwrap/rotate_begin/FFI 编解码得到的 Uint8List 及副本都在 finally fillRange 清零，wrapped 是密文无需冒称明文；不可变 String 不宣称可擦除。
+
 `Page<T>`引用CORE-05。recog.pending_cloud.record body=`{id,job_id,image_hash}`（image_hash为64hex），ok=`{}`；list body=`{}`，ok=`{jobs:[PendingCloudJob]}`；均call。PendingCloudJob字段session_id/job_id/image_hash/submitted_ms/expires_ms对应本卡表；不存在id复用RECOG_SESSION_NOT_FOUND。
 
-本卡持久化的recog.session.*/history.*/settings.*/key.*/pending_cloud.*/recover/gc均为profile scope，core视图来自CORE-65（下游说明，非契约）的已打开会话，使用CORE-03信封profile_handle；临时推理recog.run/backends/register_remote是CORE-29的none scope，不借全局当前档案。key.provide只装入该handle的Store，关闭清零；HistoryKeyUnlocker.ensure前后核对profileId未切换，切换则丢弃解包结果并清零，不向新库提供旧密钥。
+本卡持久化的recog.session.*/history.*/settings.*/key.*/pending_cloud.*/recover/gc均为profile scope，core视图来自CORE-65的已打开会话，使用CORE-03信封profile_handle；临时推理recog.run/backends/register_remote是CORE-29的none scope，不借全局当前档案。key.provide只装入该handle的Store，关闭清零；HistoryKeyUnlocker.ensure前后核对session identity与handle未切换，切换则丢弃解包结果并清零，不向新库提供旧密钥。
 
 产品约束追踪：见README §6 Q4；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
@@ -99,4 +104,4 @@ final class HistoryKeyUnlocker {
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-32_TEST.md](../Test/core/S5_CORE-32_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约240行；主包`crates/fml-recognize/src/session.rs`纯模型/转换校验，附属`app/lib/recognition/history_key.dart`解锁编排与接入。接口及错误/op协议仍在本卡定义，由CORE-85实现存储；不计其I/O实现、DDL、自测及生成DTO。
+**规模**：约320行；主包`crates/fml-recognize/src/session.rs`纯模型/转换校验，附属`app/lib/recognition/history_key.dart`解锁编排与接入。接口及错误/op协议仍在本卡定义，由CORE-85实现存储；不计其I/O实现、DDL、自测及生成DTO。

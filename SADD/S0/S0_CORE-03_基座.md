@@ -38,14 +38,14 @@ int32_t  fml_close_handle(FmlHandle h);
 
 - 返回码：`0` 成功（`out` 为下述成功信封）；`1` 业务错误（`out` 为下述错误信封）；负数为 FFI 层错误，此时 `out` 尽量写入同样错误信封（分配失败时 `ptr` 为 NULL、`len` 为 0）：
 
-| 返回码 | 错误码 | 可重试 | 触发条件 |
+| 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
-| -1 | `FFI_BAD_ARG` | 否 | 空指针、`req_len` 超过 16 MiB、请求不是合法 UTF-8 JSON、顶层缺 `v` 或 `body`、重复释放缓冲区、未注册回调就调用 `fml_submit` |
-| -2 | `FFI_UNKNOWN_OP` | 否 | op 未登记，或该 op 不支持当前调用方式（同步 op 走了 `fml_submit`，反之亦然） |
-| -3 | `FFI_VERSION_MISMATCH` | 否 | DTO 主版本 `v` 不是该 op 支持的主版本 |
-| -4 | `FFI_STALE_HANDLE` | 否 | 句柄代数不符或已关闭；未知 `job_id` |
-| -5 | `FFI_PANIC` | 否 | op 内部 panic（已被 `catch_unwind` 捕获） |
-| -6 | `FFI_BUSY` | 是 | 长任务队列已满（排队 + 运行 ≥ 64）；或 `fml_register_completion` 在仍有活跃 job 或未释放回调缓冲时被调用（含 NULL 注销） |
+| `FFI_BAD_ARG` | error | 否 | 返回 -1：空指针、req_len 超过 16 MiB、非合法 UTF-8 JSON、缺 v/body/trace_id 或 trace_id 格式错误/全零、重复释放缓冲区、未注册回调就 submit |
+| `FFI_UNKNOWN_OP` | error | 否 | 返回 -2：op 未登记，或该 op 不支持当前调用方式（同步 op 走 submit，反之亦然） |
+| `FFI_VERSION_MISMATCH` | error | 否 | 返回 -3：DTO 主版本 v 不是该 op 支持的主版本 |
+| `FFI_STALE_HANDLE` | error | 否 | 返回 -4：句柄代数不符或已关闭；未知 job_id |
+| `FFI_PANIC` | error | 否 | 返回 -5：op 内部 panic 被 catch_unwind 捕获 |
+| `FFI_BUSY` | error | 是 | 返回 -6：排队 + 运行 ≥ 64；或仍有活跃 job/未释放回调缓冲时注册、替换或 NULL 注销回调 |
 
 - `fml_cancel`：返回 `0` 表示已取消且不会再回调；返回 `1` 表示任务已完成或回调已发出（取消无效）；未知 `job_id` 返回 `-4`。
 - `fml_register_completion`：进程内只保存一个回调，只有无活跃job及未释放回调缓冲时允许替换；否则返回-6。cb=NULL注销也遵守此规则；回调在核心工作线程上执行，`result` 的所有权交给回调方，用完须 `fml_free_buffer`。长任务工作线程数为 `min(4, CPU 核数)`。
@@ -84,7 +84,7 @@ final class FfiException implements Exception {
   final String? traceId;
 }
 final class FfiCancelled implements Exception {}
-// 业务错误抛 FmlException（CORE-02）；FFI 层错误抛 FfiException。
+// 业务错误先提取 {error: envelope.error} 交 CORE-02 FmlException.fromJson；FFI 层错误抛 FfiException。
 // 启动时 abiVersion() 的 MAJOR 与 Dart 侧常量不一致即拒绝启动并提示重装。
 ```
 
@@ -92,6 +92,7 @@ final class FfiCancelled implements Exception {}
 
 **跨语言信封、回调与资源**
 - 请求示例：`{"v":1,"trace_id":"00000000000000000000000000000001","body":{}}`。成功示例：`{"v":1,"trace_id":"00000000000000000000000000000001","ok":{"profiles":[]},"diagnostics":[]}`。业务错误/负返回码示例：`{"v":1,"trace_id":"00000000000000000000000000000001","error":{"code":"FFI_BAD_ARG","domain":"ffi","retryable":false,"trace_id":"00000000000000000000000000000001","diagnostics":[]}}`。ok/error 必有且仅有一个；error 内部形状归 CORE-02；完成回调传相同信封，负状态由 error.code 判别；call/submit 的 Dart 包装只向业务返回 ok。
+- Trace 边界：call/submit 的请求 trace_id 必须是非零 32 位小写十六进制；Dart 包装在每次调用前生成，scopedTo 不另生成第二个 ID，C 调用方自行提供。Rust 在校验失败而尚不能取到合法请求 trace 时生成非零备用 ID（仅边界允许随机源），可写错误信封使用该 ID；无 out 参数的 ABI 函数仍只返回状态，不新增 ABI。领域错误、FFI 错误及捕获的 panic 在序列化前统一 `with_trace(request_trace)`；已非零错误 trace 保留，响应外层 trace_id 必须等于最终 error.trace_id。异步 job 在提交时捕获 trace，完成/失败回调沿用，不读工作线程“当前调用”。成功响应沿用请求 trace。负状态且无缓冲区时 Dart FfiException.traceId 可空；有信封时必须验证非零且内外一致，否则拒绝为格式损坏，不伪装业务错误。
 - Dart ≥3.1 使用 `NativeCallable.listener`，不使用 Pointer.fromFunction。C 工作线程调用后返回；Dart isolate 收到后在 try/finally 中复制、解析结果并 fml_free_buffer；取消竞态收到的迟到结果也必须释放。绑定为进程主 isolate 保存唯一 listener，活跃 job 与已投递结果未清零前不得 close listener/卸载 DLL；dispose先拒绝新call/submit、对绑定活跃job调用cancel，等待已投递通知经finally释放；用fml_register_completion(NULL,NULL)确认无活跃job/回调buf后才close listener，Busy则继续事件循环等待，不能同步阻塞isolate。结果分配至Dart释放的全过程计入未释放回调缓冲计数；无listener的其他isolate绑定dispose不注销全局listener。动态库保持进程寿命，不假设Dart有可安全卸载API。
 - `store.open` 是 FmlHandle 的产生者，JSON 用十进制字符串表示 u64；generation 高16位、slot低48位，耗尽后 slot 不复用。close/integrity 等携 handle 查表，拒绝过期值；close 等待在途读写后销毁。缓冲区在注册表按 allocation_id 核对 ptr/len，未知值不解引用，重复释放返回-1；id 进程内单调且不复用。
 - db_key_b64、恢复码、口令、令牌均为敏感字段，schema 标记 writeOnly/x-sensitive；禁止请求/响应全量日志、快照与异常插值。FFI只读const请求并在返回前复制需要保留的字节，绝不写入调用者内存；核心拥有的敏感副本使用Zeroizing。Dart自己分配的临时Uint8List在native调用返回（submit已同步复制）后的finally填零；其他C调用者负责自己可写缓冲区清理。JSON/String的不可控副本不能承诺可靠擦除，产品安全边界明确为“不持久化、不记录”，不是“明文从不进Dart堆”。

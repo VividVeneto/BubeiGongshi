@@ -15,13 +15,25 @@
 pub struct Candidate { pub latex: String, pub ast: Option<FormulaNode>, pub validation: Option<Validation>,
                        pub score: f32, pub diagnostics: Vec<Diagnostic>, pub symbol_spans: Vec<SymbolSpan> }
 pub struct SymbolSpan { pub node_path: NodePath, pub source_range: (u32, u32), pub alternatives: Vec<String> }
-pub fn postprocess(raw: &RawOutput, ctx: &RecognitionContext, env: &SymbolEnv, units: &dyn UnitRegistry) -> Result<Vec<Candidate>, FmlError>; // 至多 3 个
-pub fn apply_correction(c: &Candidate, span: &SymbolSpan, replacement: &str, env: &SymbolEnv) -> Result<Candidate, FmlError>;
-pub fn final_check(latex: &str, env: &SymbolEnv, units: &dyn UnitRegistry) -> Result<CheckResult, FmlError>; // 保存前完整校验
+// 本卡拥有纯领域数据与object-safe分析端口；不引用fml-ffi::AnalysisResult
+pub struct CandidateAnalysis { pub ast: Option<FormulaNode>, pub source_map: SourceMap,
+    pub raw_symbols: Vec<RawSymbol>, pub symbols: SymbolEnv, pub check_result: CheckResult }
+pub trait CandidateAnalyzer {
+    fn analyze(&self, latex: &str, profile: &NotationProfile, user_decls: &[SymbolDecl],
+               units: &dyn UnitRegistry, cancel: &CancelFlag) -> CandidateAnalysis;
+}
+pub fn postprocess(raw: &RawOutput, ctx: &RecognitionContext, profile: &NotationProfile, user_decls: &[SymbolDecl],
+    units: &dyn UnitRegistry, cancel: &CancelFlag, analyzer: &dyn CandidateAnalyzer) -> Result<Vec<Candidate>, FmlError>; // 至多3个
+pub fn apply_correction(c: &Candidate, span: &SymbolSpan, replacement: &str, profile: &NotationProfile,
+    user_decls: &[SymbolDecl], units: &dyn UnitRegistry, cancel: &CancelFlag, analyzer: &dyn CandidateAnalyzer) -> Result<Candidate, FmlError>;
+pub fn final_check(latex: &str, profile: &NotationProfile, user_decls: &[SymbolDecl], units: &dyn UnitRegistry,
+    cancel: &CancelFlag, analyzer: &dyn CandidateAnalyzer) -> Result<CheckResult, FmlError>; // 保存前完整重解析/绑定/校验
 ```
 
 - 评分 `score`（0..=1，仅查找模式用于排序）：可解析 0.4 + 绑定无未知符号 0.2 + 量纲一致 0.2 + 后端置信度 × 0.2（None 计 0.1）；与 `symbol_hints` 每命中一个加 0.02，上限 0.1；总分最后截断到 1.0（各项全满时 0.4+0.2+0.2+0.2+0.1 会达 1.1，须截断以满足 0..=1）；同分保持后端原序。
-- FFI op唯一表（上述纯算法不读仓储）：请求体只携带可序列化数据，符号环境与单位注册表由 fml-ffi 处理层按 `notation_profile_id` 与 `user_decls` 从 CORE-56 当前引擎快照构造后传给纯函数，与 `engine.check` 同一规则。recog.postprocess固定submit，body={raw,context,notation_profile_id,user_decls}，ok={candidates}，预算30ms×候选数；recog.correct为call，body={candidate,span_index,replacement,notation_profile_id,user_decls}，ok={candidate}；recog.final_check为call，body={latex,notation_profile_id,user_decls}，ok=CheckResult。Invalid/Unresolved为成功校验结果，仅输入/预算故障为Err；这些Rust快照的完整跨语言schema仍随H6标pending，不以此表冒充已生成DTO。
+- FFI op唯一表（上述纯算法不读仓储）：请求体只携带可序列化数据；fml-ffi处理层捕获一次CORE-56可用引擎Arc，从该Arc查notation_profile_id得到具体NotationProfile，并取同一快照units，把user_decls原样传入三个纯函数；未知方案返回NOTATION_UNBOUND，不回退默认方案。每个候选/校正后新文本各自解析取得AST和raw_symbols，再按profile/user_decls绑定为各自SymbolEnv，禁止解析前构造跨候选共用env或沿用旧SymbolId。recog.postprocess固定submit，body={raw,context,notation_profile_id,user_decls}，ok={candidates}，预算30ms×候选数；recog.correct为call，body={candidate,span_index,replacement,notation_profile_id,user_decls}，ok={candidate}；recog.final_check为call，body={latex,notation_profile_id,user_decls}，ok=CheckResult。Invalid/Unresolved为成功校验结果，仅输入/预算故障为Err；这些Rust快照的完整跨语言schema仍随H6标pending，不以此表冒充已生成DTO。
+- 分析适配唯一归本卡附属 `crates/fml-ffi/src/ops/recog_post.rs`：实现CandidateAnalyzer，调用CORE-56的analyze_source(latex, &ParseOptions { budget_ms: 100, allow_unicode: true }, profile, user_decls, units, false, cancel)，将其拥有的AnalysisResult逐字段搬入本卡CandidateAnalysis；不在fml-recognize复制parse→bind→check，也不令领域crate依赖fml-ffi。固定empirical=false，不从识别置信度放宽量纲校验。ast=None的解析诊断与原文仍保留，不伪造AST；校正重跑完整链路后用新source_map/AST生成跨度，不复用旧raw_symbols/symbols。CandidateAnalysis为Rust临时数据，不向既有持久化Candidate或H6 pending wire偷偷加字段；CORE-32无需迁移候选记录。
+- 三个函数都在入口、逐候选/校正/终检前后检查同一CancelFlag，置位返回CORE-29的RECOG_CANCELLED；submit用任务旗标，call适配传本次调用旗标。Invalid/Unresolved/Draft及其全部诊断作为CheckResult成功返回，final_check不做“保存决定”，消费者按Q32确认；不是解析Error就丢失原文。输入过滤/大小故障仍按本卡码处理。
 - 8 步：① 候选 LaTeX 解析（CORE-06 预算）；② 构造 AST；③ 符号表绑定（CORE-07）；④ 类型与量纲推导（CORE-09）；⑤ 按 `RecognitionContext` 重排（仅查找模式）；⑥ 取 Top-3；⑦ 逐符号校正；⑧ 保存前完整校验。
 - 作答模式：跳过第 ⑤ 步；候选顺序保持后端原序；不做任何自动替换；量纲诊断只显示，不用于排序或判分。
 - 白名单过滤：候选去掉首尾空白与 `$`、`\[` 等定界符后，只允许 CORE-06 子集中的命令与可打印字符；出现 `<script`、`http://`、`https://`、`\href`、`\url`、`\input`、`\include`、函数调用形式的 JSON 或代码围栏即拒绝该候选。

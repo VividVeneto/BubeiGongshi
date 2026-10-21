@@ -30,7 +30,7 @@ pub fn import_account_key(store: &Store, account_id: Uuid, records: &[WrapRecord
     // 新设备登录或密钥轮换后：解包全部可解的 key_version 写入 account_key
 pub fn rotate_account_key(store: &Store, rng: &mut dyn SecureRandom) -> Result<(u32 /* 新 key_version */, KeyOutput), FmlError>;
     // 设备吊销或怀疑泄露：生成新 AccountDataKey 与新恢复码（旧恢复码对新版本无效）；已设同步密语时须由调用方再次包装
-pub fn advance(store: &Store, rng: &mut dyn SecureRandom, j: &mut UpgradeJournal, input: StepInput) -> Result<(UpgradeStep, Option<KeyOutput>), FmlError>;
+pub fn advance(store: &Store, registry: &EntityRegistry, rng: &mut dyn SecureRandom, j: &mut UpgradeJournal, input: StepInput) -> Result<(UpgradeStep, Option<KeyOutput>), FmlError>;
     // rng 由 FFI 适配传入 CORE-23 的 OsRandom；仅 NewKey 与 rotate_account_key 实际取随机字节，其余步骤不消耗
     // 只做本地工作，每步幂等，可重入；输入与当前步骤不匹配 → SYNC_UPGRADE_STEP_INVALID
 pub fn resume_on_start(store: &Store) -> Result<Option<UpgradeJournal>, FmlError>;   // 启动时读取未完成日志，由协调器继续
@@ -73,7 +73,15 @@ pub fn abandon(store: &Store, j: &UpgradeJournal) -> Result<(), FmlError>;      
 
 本卡全部op为profile scope，继承CORE-03信封profile_handle。升级日志从该Store取当前未完成行，不能从单例查“当前游客”。StepInput线上形状为互斥单键对象：{"identity":{"account_id":UUID}}、"new_key"、{"key_uploaded":{"key_version":u32}}、{"existing_key":{"account_id":UUID,"records":[base64 WrapRecord],"secret":{"recovery_code":string}或{"passphrase":string}}}、"commit"；与CORE-03的外部标记枚举一致。KeyOutput为{recovery_code:string,wrap_record:string}，wrap_record为CORE-21规范CBOR的标准base64；不是内联Rust结构。secret/passphrase/recovery_code/target_db_key均x-sensitive。advance请求仅input，journal由本Store查询，响应step及可选key_output；不返回SecretKey。例begin body={"mode":"new_account"}，ok={"journal":{"id":"00000000-0000-4000-8000-000000000002","step":"prepared","mode":"new_account","started_ms":0,"updated_ms":0}}；advance body={"input":{"identity":{"account_id":"00000000-0000-4000-8000-000000000003"}}}，ok={"step":"identity_ready"}。
 
-account_key读取接缝归本卡：load_account_keys(store)在同一只读快照加载account_state.account_id/account_epoch及account_key全部版本，返回本卡定义的AccountKeyRows { account_id:Uuid, account_epoch:u32, versions:Vec<(u32,SecretKey)> }；CORE-26消费者据此构造自己的AccountKeys（下游说明，非契约），本卡不引用下游类型；在当前账户没有密钥时SYNC_KEY_MISSING，不回退其他档案。每次同步操作读取独立Zeroizing快照，操作结束清零；轮换/导入提交后下次请求自动读取新版本，不跨请求长期缓存明文密钥。
+account_key读取接缝归本卡（crates/fml-store/src/sync/keys.rs）：
+
+```rust
+pub struct AccountKeyRows { pub account_id: Uuid, pub account_epoch: u32, pub versions: Vec<(u32, SecretKey)> }
+pub fn load_account_keys(store: &Store) -> Result<AccountKeyRows, FmlError>;
+pub fn load_account_keys_tx(tx: &WriteTx) -> Result<AccountKeyRows, FmlError>;
+```
+
+load_account_keys 在一个 Store.read 快照加载 account_state.account_id/account_epoch 与全部版本（key_version 升序）；load_account_keys_tx 在传入写事务读取同样字段，不另开读连接、不嵌套 Store.read/write。账户/epoch 不存在或无密钥均报 SYNC_KEY_MISSING；版本重复/非法是 STORE_CORRUPT。CORE-26消费者据此构造自己的AccountKeys（下游说明，非契约），本卡不引用下游类型；在当前账户没有密钥时SYNC_KEY_MISSING，不回退其他档案。每次同步操作读取独立Zeroizing快照，操作结束清零；轮换/导入提交后下次请求自动读取新版本，不跨请求长期缓存明文密钥。
 
 产品约束追踪：见README §6 Q3；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
@@ -82,7 +90,7 @@ account_key读取接缝归本卡：load_account_keys(store)在同一只读快照
 - 为CORE-83提供本卡拥有的目标journal/注册表投影接缝：同一目标WriteTx内更新cursor/映射并提交LocalCommitted（registry_pending=1），其后由本卡resume_on_start完成投影；不在新卡重写此机制。
 - 本机数据库密钥与识别历史密钥从不上传；只上传被恢复码或同步密语包装的 AccountDataKey。新设备生成自己的 DbKey；不得跨设备复制 SQLCipher 库文件。
 - 升级成功前不得删除游客原库与原密钥包装；LocalCommitted 之后不自动回退为游客。首次同步失败时保留 outbox 待重试。
-- 识别历史与 `*_cache` 表不写入首次全量 outbox。
+- Commit 的同一个 WriteTx 先更新注册资格/account_epoch，再按注入 registry.entity_types/list_entity_ids 的稳定顺序调用 requeue_outbox，补入未过期墓碑；保留实体 ID 与全部 field_clock，不以 stamp 伪造升级编辑。不存在批次的游客阶段无需调用尚未依赖的批次模块；该事务若任一 codec/入队失败则 account_state、日志与 outbox 全回滚。registry 是组合层提供的原生参数，绝不经 JSON；MergeInto 仍走专用合并路径。识别历史、会话、参数与缓存不入首次全量 outbox。
 - 本卡不发网络请求；联网协调（注册或登录、上传与下载包装记录、首次同步）由 CORE-99 完成并做端到端测试。
 - 外部前提：`uuid` crate（v5 特性）随 CORE-13 锁定。
 

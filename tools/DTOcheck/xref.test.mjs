@@ -29,6 +29,23 @@ test('未定义错误码、未定义类型、跨卡未声明依赖会进入候�
   assert.ok(x.crossDep.includes('CORE-02 uses Alpha (CORE-05)'));
 });
 
+test('Flutter只读监听类型属于SDK，未知项目类型仍检查', () => {
+  const root = fresh('```dart\nValueListenable<bool> observe(UnknownListenable value);\n```');
+  const x = collectXref({sadd: root + '/SADD', root});
+  assert.ok(!x.undefTypes.includes('ValueListenable@CORE-05'));
+  assert.ok(x.undefTypes.includes('UnknownListenable@CORE-05'));
+});
+
+test('Rust单元枚举成员声明不是类型，载荷及真实未知引用仍检查', () => {
+  const root = fresh('```rust\npub enum RowFilter { AllRows, NoRows, UserRows = 3 }\npub enum PayloadKind { WithValue(MissingPayload), StructValue { field: MissingField } }\npub struct Holder { value: UnknownValue }\n```');
+  const x = collectXref({sadd: root + '/SADD', root});
+  for (const name of ['AllRows', 'NoRows', 'UserRows']) assert.ok(!x.undefTypes.includes(`${name}@CORE-05`), name);
+  for (const name of ['MissingPayload', 'MissingField', 'UnknownValue']) assert.ok(x.undefTypes.includes(`${name}@CORE-05`), name);
+  const ordinary = fresh('```rust\npub enum LocalFilter { AllRows, NoRows }\npub struct Holder { bad: AllRows }\n```');
+  const actual = collectXref({sadd: ordinary + '/SADD', root: ordinary});
+  assert.ok(actual.undefTypes.includes('AllRows@CORE-05'), '同名普通类型引用不能因存在枚举成员而豁免');
+});
+
 test('基线：已有候选通过，新增候选报错，消失候选提示', () => {
   const root = fresh(table('DEMO_ONE') + '\n\n引用 DEMO_TWO。');
   const bp = path.join(root, 'baseline.json');

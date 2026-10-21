@@ -3,6 +3,7 @@
 > 来源卡：[S4_CORE-16_功能.md](../../core/S4_CORE-16_功能.md)（内容管线与课程内容包）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（`S编号_卡号_TEST.md`）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。
 
 **验收标准**
+- [R19][R21] 七个 CONTENT 码逐项故障夹具覆盖：缺普通必填字段、非法字段/引用、重复 key/去重键、禁用许可、缺许可、缺审校人/作者自审、非 Verified，输出对应唯一错误码，级别 error、retryable=false 且 owner 为 CORE-16；许可/审校缺失不用泛化 FIELD_MISSING 代替。PARSE_/UNIT_/TYPE_ 诊断保持原有码/级别，不另登记。CLI 校验失败仍退出1，用法/I/O退出2；registry/ownership/shared-writes 投影全量对照标准表。
 - [R05] 自有最小夹具覆盖四类包：validate对合法条目通过、空包按发布校验拒绝；coverage生成可复现计数。真实四包非空交付归M-CONTENT，不计作工具编码完成条件。
 - [R39] 高中数学、高中物理两个包的 `education_level` 全为 `high_school`，`validate` 对混入 `university` 条目的高中包报 `CONTENT_FIELD_INVALID`。
 - [R05] 用固定scope与已审/审核中/未审夹具，coverage分科分母为冻结scope知识点数，分子只含已审覆盖点；空分母输出pending而非100%，计数与预期一致。真实三科100%归M-CONTENT。
