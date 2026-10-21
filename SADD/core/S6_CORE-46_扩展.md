@@ -30,7 +30,7 @@ final class DefaultSyncCoordinator implements SyncCoordinator {
 
 ```
 
-- 同步一次（`syncNow`）：① current=null、游客或未开启 → `disabled`，不发请求也不调用 sync op；② 循环 `GET /v1/sync/pull` → `sync.apply_pull`，直到 `has_more = false`；③ 循环 `sync.prepare_push` → `POST /v1/sync/push` → `sync.ack`，直到无批次；④ 单次最多 50 个往返，超出则结束并在下次触发继续。新设备首次同步先 `GET /v1/sync/snapshots/latest`，有快照则把分片逐个下载为 `StoreArea.staging/snapshot-<id>/chunk-NNNN.bin`（校验 `sha256`，已存在且哈希相符的分片跳过以便续传）→ `sync.snapshot_apply { in_dir, chunk_count, total_bytes, chunk_hashes, covers_through, key_version }`，成功或放弃后删除该目录，再从 `covers_through` 拉增量；上传方向由 `sync.snapshot_build { out_dir }` 生成分片目录后逐片 `PUT …/chunks/{n}`，再 `commit`（CORE-66，ADR-V5-45）。
+- 同步一次（`syncNow`）：① current=null、游客或未开启 → `disabled`，不发请求也不调用 sync op；② 循环 `GET /v1/sync/pull` → `sync.apply_pull { page, now_ms }`（now_ms 取 CORE-46 注入时钟的 UTC 毫秒），直到 `has_more = false`；③ 循环 `sync.prepare_push` → `POST /v1/sync/push` → `sync.ack`，直到无批次；④ 单次最多 50 个往返，超出则结束并在下次触发继续。新设备首次同步先 `GET /v1/sync/snapshots/latest`，有快照则把分片逐个下载为 `StoreArea.staging/snapshot-<id>/chunk-NNNN.bin`（校验 `sha256`，已存在且哈希相符的分片跳过以便续传）→ `sync.snapshot_apply { staging_root, in_dir, chunk_count, total_bytes, chunk_hashes, covers_through, key_version }`，成功或放弃后删除该目录，再从 `covers_through` 拉增量；上传方向由 `sync.snapshot_build { staging_root, out_dir }` 生成分片目录后逐片 `PUT …/chunks/{n}`，再 `commit`（CORE-66，ADR-V5-45）。staging_root 取 CORE-04 `LocalFileStore.root(StoreArea.staging)` 的绝对路径（ADR-V5-53）；快照目录名固定 `snapshot-<snapshot_id>`（构建方用新 UUID）。应用启动、任何同步开始之前调用一次 `sync.snapshot_cleanup { staging_root, older_than_ms: 86400000, now_ms }` 清理崩溃遗留目录，失败只记 warning 诊断不阻断同步。
 - 异常处理：
 
 | 情况 | 处理 |
@@ -38,7 +38,9 @@ final class DefaultSyncCoordinator implements SyncCoordinator {
 | `NET_*`、5xx、`AUTH_RATE_LIMITED` | `offline` / 退避重试：30 s、60 s、120 s… 上限 15 min，仅在前台；`Retry-After` 优先 |
 | 401 | `ApiClient` 刷新一次；仍失败 → `AUTH_REAUTH_REQUIRED`，回到登录，本地数据不动 |
 | 426 | `clientTooOld`，停止同步写入 |
-| `SYNC_EPOCH_STALE` | 读取响应中的 `account_epoch` → `sync.on_epoch_changed` → 重新同步一次 |
+| `SYNC_EPOCH_STALE` | 读取错误体 `args.account_epoch`（十进制字符串）→ `sync.on_epoch_changed { server_epoch }` → 重新同步一次 |
+| `SYNC_CURSOR_INVALID` | 带 `args.account_epoch` 时同 `SYNC_EPOCH_STALE` 处理；不带（游标损坏）时调用 `sync.on_epoch_changed` 传入本地当前纪元以清空游标与批次并重入队，再重新同步一次；同一轮再次失败 → `failed` |
+| `SYNC_ENVELOPE_INVALID`、`SYNC_HASH_MISMATCH`、`SYNC_PAYLOAD_TOO_LARGE`（push） | 客户端编码缺陷：`failed`，记录 error 诊断，不重试、不丢弃批次（等待升级修复） |
 | `SYNC_KEY_VERSION_REJECTED`、`SYNC_KEY_MISSING` | `GET /v1/keys`；本地缺少更高版本 → `needsKey`，界面引导输入恢复码或同步密语（`restoreOnNewDevice`） |
 | `SYNC_QUOTA_EXCEEDED` | `failed`，停止推送，拉取照常 |
 | `SYNC_BATCH_UNKNOWN`（`sync.ack`） | 批次已因纪元变化或密钥更新被作废，属良性：丢弃本次 ack 结果，继续下一轮 `sync.prepare_push`（重建批次中服务端已存的 op_id 返回 CONFLICT 并出队），记录 warning 诊断后不计失败、不退避，不重试旧 ack |

@@ -1694,6 +1694,17 @@
       "blocked_reason": "CORE-66：schema待补；mode=submit与暂存目录分片协议已由CORE-66定义（ADR-V5-45），开工前补schema与向量后转ready。"
     },
     {
+      "op": "sync.snapshot_cleanup",
+      "owner": "CORE-66",
+      "status": "pending",
+      "mode": null,
+      "scope": "device",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "CORE-66：schema及mode核对待提交，禁止注册。"
+    },
+    {
       "op": "sync.status",
       "owner": "CORE-26",
       "status": "pending",

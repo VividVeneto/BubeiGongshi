@@ -6,7 +6,7 @@
 - 包含：升级日志状态机与表、各步幂等实现（纯本地，网络结果由调用方作为输入传入）、升级后首次全量上传的触发标记。
 - 不包含：驱动升级的联网协调器与首次全量上传（CORE-99，经 CORE-25 的 `/v1/keys`）；注册用例（CORE-23）；账户界面（CORE-36）。
 
-**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-21、CORE-22、CORE-23
+**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-21、CORE-22、CORE-23（CORE-22 仅概念依赖：服务端账户与 `/v1/keys` 语义，本卡 Rust 代码不引用其符号）
 
 **接口契约**
 
@@ -16,7 +16,7 @@ pub enum UpgradeStep { Prepared, IdentityReady, KeyReady, LocalCommitted, Done }
 pub enum UpgradeMode { NewAccount, MergeInto }
 pub struct UpgradeJournal { pub id: Uuid, pub step: UpgradeStep, pub mode: UpgradeMode, pub target_account: Option<Uuid> /* IdentityReady 后非空 */,
                             pub started_ms: i64, pub updated_ms: i64, pub last_error: Option<String> /* 错误码，不含内容 */ }
-pub fn begin(store: &Store, mode: UpgradeMode) -> Result<UpgradeJournal, FmlError>;   // 暂停业务写入（写 op 返回 SYNC_UPGRADE_IN_PROGRESS）
+pub fn begin(store: &Store, rng: &mut dyn SecureRandom, mode: UpgradeMode, now_ms: i64) -> Result<UpgradeJournal, FmlError>;   // 暂停业务写入（写 op 返回 SYNC_UPGRADE_IN_PROGRESS）；journal.id 由 rng 取 16 字节置 UUID-v4 版本/变体位，started_ms = updated_ms = now_ms；rng 失败 CRYPTO_RNG_FAILED 且不写日志
 pub enum StepInput {
     Identity { account_id: Uuid },                       // 调用方已完成注册或登录（CORE-23）
     NewKey,                                              // NewAccount：本卡生成 AccountDataKey 与恢复码，返回 KeyOutput 供界面显示与上传
@@ -25,19 +25,22 @@ pub enum StepInput {
     Commit,                                              // 执行本地提交
 }
 pub enum KeySecret { RecoveryCode(String), Passphrase(String) }
-pub struct KeyOutput { pub recovery_code: RecoveryCode, pub wrap_record: WrapRecord }   // 只返回一次，不落盘恢复码
+pub struct KeyOutput { pub key_version: u32, pub recovery_code: RecoveryCode, pub wrap_record: WrapRecord }   // 只返回一次，不落盘恢复码；key_version 供调用方拼 PUT /v1/keys/{key_version}/recovery_code，wrap_kind 恒为 recovery_code
 pub fn import_account_key(store: &Store, account_id: Uuid, records: &[WrapRecord], secret: &KeySecret) -> Result<u32 /* 导入的最高 key_version */, FmlError>;
+    // account_state 已有 account_id 且不等于入参 → SYNC_UPGRADE_STEP_INVALID；只尝试 wrap_kind 与 secret 种类一致的记录，在一个写事务写入全部能解开的版本（轮换后旧恢复码只解开旧版本属正常），已存在的同版本同值跳过；一个也解不开 → SYNC_UPGRADE_KEY_FAILED 且不写入
     // 新设备登录或密钥轮换后：解包全部可解的 key_version 写入 account_key
-pub fn rotate_account_key(store: &Store, rng: &mut dyn SecureRandom) -> Result<(u32 /* 新 key_version */, KeyOutput), FmlError>;
+pub fn rotate_account_key(store: &Store, rng: &mut dyn SecureRandom, now_ms: i64) -> Result<(u32 /* 新 key_version */, KeyOutput), FmlError>;
     // 设备吊销或怀疑泄露：生成新 AccountDataKey 与新恢复码（旧恢复码对新版本无效）；已设同步密语时须由调用方再次包装
-pub fn advance(store: &Store, registry: &EntityRegistry, rng: &mut dyn SecureRandom, j: &mut UpgradeJournal, input: StepInput) -> Result<(UpgradeStep, Option<KeyOutput>), FmlError>;
-    // rng 由 FFI 适配传入 CORE-23 的 OsRandom；仅 NewKey 与 rotate_account_key 实际取随机字节，其余步骤不消耗
+pub fn advance(store: &Store, registry: &EntityRegistry, rng: &mut dyn SecureRandom, j: &mut UpgradeJournal, input: StepInput, now_ms: i64) -> Result<(UpgradeStep, Option<KeyOutput>), FmlError>;
+    // rng 由 FFI 适配传入 CORE-23 的 OsRandom；advance 内仅 NewKey 取随机字节（另有 begin、rotate_account_key、wrap_with_passphrase 取随机），其余步骤不消耗；每步写 updated_ms = now_ms，WrapRecord.created 亦取 now_ms
+pub fn wrap_with_passphrase(store: &Store, rng: &mut dyn SecureRandom, key_version: u32, passphrase: &str, now_ms: i64) -> Result<WrapRecord, FmlError>;
+    // 取 account_key[key_version]（缺失 SYNC_KEY_MISSING）；CORE-21 check_passphrase_policy（违反 CRYPTO_PASSPHRASE_WEAK）；rng 先取 16 字节 salt，passphrase_key(KdfParams 默认 65536/3/4) 后 wrap_with_params（kind 取同步密语包装），nonce 亦取自 rng；在一个写事务覆盖写 account_key_wrap(key_version, sync_passphrase, uploaded=0, created_at_ms=now_ms)；rng 失败 CRYPTO_RNG_FAILED 且不写入
     // 只做本地工作，每步幂等，可重入；输入与当前步骤不匹配 → SYNC_UPGRADE_STEP_INVALID
 pub fn resume_on_start(store: &Store) -> Result<Option<UpgradeJournal>, FmlError>;   // 启动时读取未完成日志，由协调器继续
-pub fn abandon(store: &Store, j: &UpgradeJournal) -> Result<(), FmlError>;           // 仅 LocalCommitted 之前允许；恢复游客写入
+pub fn abandon(store: &Store, j: &UpgradeJournal, now_ms: i64) -> Result<(), FmlError>;           // 仅 LocalCommitted 之前允许；删除本次 NewKey 写入的 account_key/account_key_wrap（MergeInto 的 ExistingKey 导入同样删除），日志标记放弃（updated_ms = now_ms），恢复游客写入
 ```
 
-- 表（`crates/fml-store/migrations/0024_upgrade.sql`）：`upgrade_journal`（`id TEXT PK`，`step TEXT NOT NULL`，`mode TEXT NOT NULL`，`target_account TEXT NULL`，`started_ms INTEGER`，`updated_ms INTEGER`，`last_error TEXT NULL`，`registry_pending INTEGER NOT NULL DEFAULT 0`，`target_profile TEXT`；同时至多一行未到 `Done`）、`account_key_wrap`（`key_version INTEGER`，`wrap_kind TEXT`（CORE-21 线上名 `recovery_code` / `sync_passphrase`），`record BLOB NOT NULL`（CORE-21 `WrapRecord` 的 CBOR），`uploaded INTEGER NOT NULL DEFAULT 0`，PK `(key_version, wrap_kind)`）、`account_key`（`key_version INTEGER PK`，`key BLOB NOT NULL`；只存在于 SQLCipher 加密的档案库内，不进 outbox）。
+- 表（`crates/fml-store/migrations/0024_upgrade.sql`）：`upgrade_journal`（`id TEXT PK`，`step TEXT NOT NULL`，`mode TEXT NOT NULL`，`target_account TEXT NULL`，`started_ms INTEGER`，`updated_ms INTEGER`，`last_error TEXT NULL`，`registry_pending INTEGER NOT NULL DEFAULT 0`，`target_profile TEXT`；同时至多一行未到 `Done`）、`account_key_wrap`（`key_version INTEGER`，`wrap_kind TEXT`（CORE-21 线上名 `recovery_code` / `sync_passphrase`），`record BLOB NOT NULL`（CORE-21 `WrapRecord` 的 CBOR），`uploaded INTEGER NOT NULL DEFAULT 0`，`created_at_ms INTEGER NOT NULL`，PK `(key_version, wrap_kind)`；账户由同库 account_state 确定，不冗余 account_id 列。轮换后旧版本的 account_key 与包装行保留，用于解密旧 envelope 与旧备份；“旧包装过期”指 CORE-99 在新版本上传确认且 CORE-66（下游说明，非契约）重排上传完成后调用 CORE-25 `POST /v1/keys/min-version` 提升服务端下限，本地不删除旧行）、`account_key`（`key_version INTEGER PK`，`key BLOB NOT NULL`；只存在于 SQLCipher 加密的档案库内，不进 outbox）。
 - 步骤语义：
 
 | 步骤 | 完成条件 | 中断后重入 |
@@ -48,30 +51,31 @@ pub fn abandon(store: &Store, j: &UpgradeJournal) -> Result<(), FmlError>;      
 | LocalCommitted | 只在目标档案库单事务提交 account_state、account_epoch、首次全量 outbox 与 upgrade_journal（含 registry_pending=1、target_profile）；游客 DbKey 保持不变。此事务不写 device_registry.db | 以档案库日志为准，提交后幂等投影 DeviceRegistry，成功后另一个档案事务清 registry_pending；不回滚已提交档案 |
 | Done | registry_pending 已清且 DeviceRegistry 与已提交档案一致，日志标记完成，恢复业务写入；返回后由 CORE-23 询问是否开启同步 | — |
 
-- FFI op（Commit 经 CORE-03 长任务提交，其余快速调用；入参类型按上方 UpgradeMode/StepInput/KeySecret 的 DTO 映射）：
+- FFI op（`account.upgrade_advance` 整体为 submit 长任务，因 Commit 需重建全量 outbox，其余步骤也走同一 submit 路径，不按输入切换调用方式；`account.import_account_key`、`account.rotate_account_key`、`account.wrap_with_passphrase` 含 Argon2id 或解包，同为 submit；`upgrade_begin`、`upgrade_status`、`upgrade_abandon` 为同步 call；合并 op `account.upgrade_merge` 归 CORE-83；入参类型按上方 UpgradeMode/StepInput/KeySecret 的 DTO 映射；需要时间的请求带调用方 `now_ms`，核心不读时钟）：
 
 | op | 请求 | 响应 | 说明 |
 | --- | --- | --- | --- |
-| `account.upgrade_begin` | `{ mode }` | `{ journal }` | — |
-| `account.upgrade_advance` | `{ input }` | `{ step, key_output? }` | （`recovery_code` 只在此响应中出现一次） |
+| `account.upgrade_begin` | `{ mode, now_ms }` | `{ journal }` | — |
+| `account.upgrade_advance` | `{ input, now_ms }` | `{ step, key_output? }` | （`recovery_code` 只在此响应中出现一次） |
 | `account.upgrade_status` | `{}` | `{ journal? }` | — |
-| `account.upgrade_abandon` | `{}` | `{}` | — |
+| `account.upgrade_abandon` | `{ now_ms }` | `{}` | — |
 | `account.import_account_key` | `{ account_id, records, secret }` | `{ key_version }` | `records` 为 `GET /v1/keys` 返回的 `record_base64` 数组原样转交，由本卡按 CORE-21 wire v1 解码 |
-| `account.rotate_account_key` | `{}` | `{ key_version, key_output }` | — |
-| `account.wrap_with_passphrase` | `{ key_version, passphrase }` | `{ record_base64 }` | （CORE-21 口令策略校验；适配层向 `wrap_with_params` 传入 CORE-23 的 OsRandom 取盐与 nonce，失败 `CRYPTO_RNG_FAILED`）；`KeyOutput.wrap_record` 与 `StepInput::ExistingKey.records` 在 FFI 上同样用 `record_base64` |
+| `account.rotate_account_key` | `{ now_ms }` | `{ key_version, key_output }` | — |
+| `account.wrap_with_passphrase` | `{ key_version, passphrase, now_ms }` | `{ record_base64 }` | 对应 Rust `wrap_with_passphrase`；适配层传入 CORE-23 的 OsRandom 取盐与 nonce，失败 `CRYPTO_RNG_FAILED`；口令不合规 `CRYPTO_PASSPHRASE_WEAK`；`KeyOutput.wrap_record` 与 `StepInput::ExistingKey.records` 在 FFI 上同样用 `record_base64` |
 - 错误码（触发条件）：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
 | `SYNC_UPGRADE_IN_PROGRESS` | warning | 是 | 升级期间调用业务写 op，或已有未完成日志时再次 `begin` |
 | `SYNC_UPGRADE_STEP_INVALID` | error | 否 | 输入与当前步骤不匹配，或 IdentityReady 后输入了不同 account_id |
-| `SYNC_UPGRADE_KEY_FAILED` | error | 是 | 经 `SecureRandom` 生成 AccountDataKey 或恢复码失败（底层 `CRYPTO_RNG_FAILED`，写入 `last_error`；日志已推进的步骤不回滚，重试时重新取随机字节），或 `ExistingKey` / `import_account_key` 的恢复码、密语无法解开任何记录（底层 `CRYPTO_*` 原因码记在 `last_error`） |
+| `SYNC_UPGRADE_KEY_FAILED` | error | 是 | 升级日志 NewKey 步骤经 `SecureRandom` 生成 AccountDataKey 或恢复码失败（`begin`、`rotate_account_key`、`wrap_with_passphrase` 不经日志，rng 失败直接透传 `CRYPTO_RNG_FAILED`）（底层 `CRYPTO_RNG_FAILED`，写入 `last_error`；日志已推进的步骤不回滚，重试时重新取随机字节），或 `ExistingKey` / `import_account_key` 的恢复码、密语无法解开任何记录（底层 `CRYPTO_*` 原因码记在 `last_error`） |
 | `SYNC_UPGRADE_NOT_ABANDONABLE` | error | 否 | 已到 LocalCommitted 后调用 `abandon` |
+| `SYNC_KEY_MISSING` | error | 否 | `load_account_keys(_tx)` 时账户/epoch 不存在或无密钥，`wrap_with_passphrase` 指定版本无密钥；下游 CORE-26（下游说明，非契约）用于 envelope 的 key_version 无本地密钥（暂停该页、不前移游标），CORE-66（下游说明，非契约）用于快照，CORE-46（下游说明，非契约）据此引导恢复码或同步密语（本卡为唯一定义卡，CO-30 自 CORE-26（下游说明，非契约）迁入） |
 
 跨文件恢复的唯一路径：CORE-23 首次启动扫描所有档案的未完成 journal（只在平台密钥可用且所需档案已打开后读），发现 LocalCommitted 后先补写 DeviceRegistry，再放行路由。注册表先更新/后崩溃则下次同值覆盖；档案提交后未投影则按 journal 补写；注册表损坏可重建，不能覆盖档案真值。平台密钥不可用或档案未打开时保持账户入口并报告原因，不把陈旧游客标记当成可写游客。CORE-23 设备记录附 profile_commit_id，等于 journal.id 即已投影。实现方式：本卡实现 CORE-23 的 ProjectionRecovery（pending 读 upgrade_journal：registry_pending=1 → Some(RegistryProjection{profile_commit_id=journal.id, upgrading=未到 Done})；projected 在另一个档案事务清 registry_pending），由组装层替换 SqliteRegistry::open 的 NoRecovery 构造参数；CORE-23 open_profile 负责写注册表投影，本卡不直接写 device_registry.db。
 
 
-本卡全部op为profile scope，继承CORE-03信封profile_handle。升级日志从该Store取当前未完成行，不能从单例查“当前游客”。StepInput线上形状为互斥单键对象：{"identity":{"account_id":UUID}}、"new_key"、{"key_uploaded":{"key_version":u32}}、{"existing_key":{"account_id":UUID,"records":[base64 WrapRecord],"secret":{"recovery_code":string}或{"passphrase":string}}}、"commit"；与CORE-03的外部标记枚举一致。KeyOutput为{recovery_code:string,wrap_record:string}，wrap_record为CORE-21规范CBOR的标准base64；不是内联Rust结构。secret/passphrase/recovery_code/target_db_key均x-sensitive。advance请求仅input，journal由本Store查询，响应step及可选key_output；不返回SecretKey。例begin body={"mode":"new_account"}，ok={"journal":{"id":"00000000-0000-4000-8000-000000000002","step":"prepared","mode":"new_account","started_ms":0,"updated_ms":0}}；advance body={"input":{"identity":{"account_id":"00000000-0000-4000-8000-000000000003"}}}，ok={"step":"identity_ready"}。
+本卡全部op为profile scope，继承CORE-03信封profile_handle。升级日志从该Store取当前未完成行，不能从单例查“当前游客”。StepInput线上形状为互斥单键对象：{"identity":{"account_id":UUID}}、"new_key"、{"key_uploaded":{"key_version":u32}}、{"existing_key":{"account_id":UUID,"records":[base64 WrapRecord],"secret":{"recovery_code":string}或{"passphrase":string}}}、"commit"；与CORE-03的外部标记枚举一致。KeyOutput为{key_version:u32,recovery_code:string,wrap_record:string}，wrap_record为CORE-21规范CBOR的标准base64；不是内联Rust结构。secret/passphrase/recovery_code/target_db_key均x-sensitive。advance请求仅input，journal由本Store查询，响应step及可选key_output；不返回SecretKey。例begin body={"mode":"new_account","now_ms":0}，ok={"journal":{"id":"00000000-0000-4000-8000-000000000002","step":"prepared","mode":"new_account","started_ms":0,"updated_ms":0}}；advance body={"input":{"identity":{"account_id":"00000000-0000-4000-8000-000000000003"}},"now_ms":0}，ok={"step":"identity_ready"}。
 
 account_key读取接缝归本卡（crates/fml-store/src/sync/keys.rs）：
 

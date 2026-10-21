@@ -12,3 +12,4 @@
 - [R18] 越权测试：用 A 的令牌访问 B 的设备或数据返回 404/403。
 
 - [R18][R24] Casdoor 受测容器契约：错误 verifier/state/nonce 被拒；不带 client_secret 直接向 Casdoor 刷新授权码令牌被拒（刷新只能经本服务）；刷新重放使令牌族失效；刷新所得访问令牌调用敏感接口返回 `AUTH_RECENT_LOGIN_REQUIRED`，prompt=login 重新交互登录后成功，301 s 后再次被拒；访问、ID、刷新三种令牌的 payload 不含邮箱、手机号与昵称；验证码/管理适配超时重试不重复创建账户。Fake 通过只证明适配代码，不替代真实部署验收。
+- [R26] 未认证：需认证路由分别以缺 Authorization、`Basic` 头、篡改签名、错误 aud、已删除账户的令牌访问，均返回 401 `AUTH_TOKEN_INVALID` 且带 `WWW-Authenticate: Bearer`；过期令牌返回 `AUTH_TOKEN_EXPIRED`。

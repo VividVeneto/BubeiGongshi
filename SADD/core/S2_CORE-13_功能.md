@@ -30,6 +30,7 @@ impl WriteTx<'_> {
     pub fn stamp(&mut self) -> Result<TxStamp, FmlError>;   // 本事务首次调用时分配，之后返回同一值
     pub fn enqueue_outbox<C: OutboxEntityCodec>(&mut self, op: OutboxOp) -> Result<(), FmlError>;   // 业务写与 outbox 同事务；op.entity_type 必须等于 C::ENTITY_TYPE
     pub fn tombstone(&mut self, entity_type: &str, entity_id: &str, at_ms: i64) -> Result<(), FmlError>;
+    pub fn purge_tombstones(&mut self, before_ms: i64) -> Result<u32, FmlError>; // 删除 deleted_at_ms < before_ms 的墓碑并返回条数；仅 CORE-26 apply_pull 以 now_ms − 180 天调用，不入 outbox
     pub fn rotate_device_id(&mut self, min_lamport: u64) -> Result<Uuid, FmlError>; // 仅 CORE-26 在检测到整库回退时调用：新随机 device_id、device_seq=0、lamport=max(当前, min_lamport)；已有 field_clock 与 outbox 行不改
 }
 impl ReadTx<'_> { pub fn conn(&self) -> &rusqlite::Connection; }
@@ -99,7 +100,7 @@ impl WriteTx<'_> {
 | --- | --- | --- |
 | `schema_migration` | `version INTEGER PRIMARY KEY`，`name TEXT NOT NULL`，`applied_at_ms INTEGER NOT NULL`，`checksum TEXT NOT NULL`（迁移文件原始 UTF-8 字节的 BLAKE3 小写 64 位十六进制，不规范化换行） | — |
 | `local_setting` | `key TEXT PRIMARY KEY`（匹配 `^[a-z0-9_.]+$`），`value TEXT NOT NULL`（JSON），`syncable INTEGER NOT NULL DEFAULT 0 CHECK (syncable IN (0,1))`，`updated_at_ms INTEGER NOT NULL` | — |
-| `sync_outbox` | `seq INTEGER PRIMARY KEY AUTOINCREMENT`，`entity_type TEXT NOT NULL`，`entity_id TEXT NOT NULL`，`kind TEXT NOT NULL CHECK (kind IN ('upsert','delete'))`，`payload BLOB NOT NULL`，`created_at_ms INTEGER NOT NULL`，`attempts INTEGER NOT NULL DEFAULT 0` | `(entity_type, entity_id)` |
+| `sync_outbox` | `seq INTEGER PRIMARY KEY AUTOINCREMENT`，`entity_type TEXT NOT NULL`，`entity_id TEXT NOT NULL`，`kind TEXT NOT NULL CHECK (kind IN ('upsert','delete'))`，`payload BLOB NOT NULL`，`created_at_ms INTEGER NOT NULL`，`attempts INTEGER NOT NULL DEFAULT 0`，`op_id TEXT NOT NULL UNIQUE`（小写带连字符 UUID），`device_id TEXT NOT NULL`，`device_seq INTEGER NOT NULL CHECK (device_seq >= 1)`（三列在 `0013_core.sql` 的同一 CREATE TABLE 内定义，不另 ALTER） | `(entity_type, entity_id)` |
 | `sync_cursor` | `stream TEXT PRIMARY KEY`，`cursor TEXT NOT NULL`，`epoch INTEGER NOT NULL`，`updated_at_ms INTEGER NOT NULL` | — |
 | `tombstone` | `entity_type TEXT NOT NULL`，`entity_id TEXT NOT NULL`，`deleted_at_ms INTEGER NOT NULL`，`PRIMARY KEY (entity_type, entity_id)` | `(deleted_at_ms)` |
 
@@ -193,7 +194,7 @@ RowFilter 的 SQL 谓词/必要连接由本卡闭集映射实现，不允许调�
 - 一个命令一个 Store.write：先业务更新，再 enqueue_outbox。`stamp()` 每个事务只分配一次：lamport=L+1、device_seq=S+1 并写回 local_clock；同一事务内的多条 outbox、`review_event`/`attempt` 等事件行的 device_seq 与字段时钟都用这一个 TxStamp（同事务多条事件需要区分时由归属卡加事件内序号列，不再另取 device_seq）；enqueue_outbox 内部调用 stamp()，给 changed_fields 每字段写 (L+1,device_id)。device_seq 的唯一来源是 local_clock，别的卡不得另存计数。delete 固定字段 __deleted；不可变修订/事件固定 __entity。OutboxOp 不接收 payload/时钟；payload 由 `C::read_entity` 在本事务回读最终实体，存为本地明文 JSON `{"entity": …, "clocks": {字段: [counter, device_id]}}`（库本身已加密），加密与信封由 CORE-26 在推送时完成；不能信任调用者传来的时钟。业务、时钟、tombstone、outbox 任一失败整体回滚。
 - 游客写入也维护字段时钟，但不创建上传队列；注册升级按已有 field_clock 为全部实体生成 outbox，不能重分配实体 ID 或制造虚假字段更改。注册未开启同步仍记 outbox，开关只阻止网络发送。
 - 远端合并事务先执行 lamport=max(local,所有验证通过的remote counter)，LWW 按 (counter,device_id网络字节) 词典序比较；两者完全相等而值不同（只会出现在整库回退之后，见 CORE-26）时比较该字段值规范 JSON 的 BLAKE3，大者胜，保证各端收敛；合并不生成本地 outbox，不把旧值写回。本地下一次真实编辑才 +1。
-- sync_outbox 附加 op_id TEXT UNIQUE NOT NULL、device_id TEXT、device_seq INTEGER；重试保留同一 op_id 与 payload，不用本地 seq 当跨设备水位。该事务规则供所有业务仓储调用，不允许手工直接 INSERT sync_outbox。归属卡可在同一 WriteTx 内追加派生更新（如 CORE-20 的 `local_setting` `stats_generation` + 1），派生更新不进 outbox、不分配时钟。
+- sync_outbox 的 op_id、device_id、device_seq 列见上表（建表即含）；重试保留同一 op_id 与 payload，不用本地 seq 当跨设备水位。该事务规则供所有业务仓储调用，不允许手工直接 INSERT sync_outbox。归属卡可在同一 WriteTx 内追加派生更新（如 CORE-20 的 `local_setting` `stats_generation` + 1），派生更新不进 outbox、不分配时钟。
 
 | 向量 | 输入 | 期望 |
 | --- | --- | --- |

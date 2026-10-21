@@ -15,3 +15,4 @@
 
 - [R12][R28] 两设备同步已保存两步calculation_plan，另一端重开与运行结果一致（复用CORE-48夹具）。
 - [R28] 快照分片逐片SHA256校验/已有正确片复用续传，apply携带完整chunk_count/total_bytes/hashes/covers_through/key_version，成功或放弃清理目录；上传build逐片PUT再commit，随后增量无重复。单次50往返停止、singleflight合并、paused取消、Retry-After/前台退避/426/密钥与quota状态均满足契约。
+- [R28] 纪元与游标错误：Fake ApiClient 返回 `SYNC_EPOCH_STALE`（args.account_epoch="3"）时以 server_epoch=3 调用 `sync.on_epoch_changed` 并只重试一轮；`SYNC_CURSOR_INVALID` 带与不带 account_epoch 两种情况分别按表处理，第二次失败进入 `failed`；`SYNC_ENVELOPE_INVALID` 不重试且批次保留。
