@@ -11,3 +11,4 @@
 - [R11] 中文子串：条目“动能定理/机械能守恒”分别用“动能”“能定”“机械能”“能守恒”命中；单字“能”匹配两条；查询“%”只匹配字面百分号，英文大小写一致，组合筛选与分页顺序稳定。
 - [R11] 大小写折叠边界：LIKE 路径只折叠 ASCII（SQLite 内置规则），trigram 路径按其 Unicode 折叠；向量固定：“Ab”命中“ab”；“É”不命中“é”（1～2 个标量走 LIKE，只折叠 ASCII）；“Énergie”命中“énergie”（≥3 个标量走 trigram，按 Unicode 折叠）；写入 `tests/fixtures/library/search.yaml`。
 - [R11][R14] 使用Fake RevisionAnalyzer验证导入行号/诊断；fml-ffi薄适配复用CORE-56分析，snapshot失败、unavailable、expected_generation不符均不运行算法；导入适配只在 Store.read 内复制所需数据、释放闭包后分析，锁内不再调用 Store；同步写侧不复用此实现，仅共享 CORE-56 纯函数，fml-store不依赖fml-ffi。
+- [R11] `library.substitution_pool` 的 `output_type`（CO-28）：对 `F = ma`（F 声明为 L M T^-2）返回 output=F 的 Candidate，其 output_type 与对该修订单独调用 CORE-09 check 后 F 节点的类型逐字节相等；重算不再 Verified 的修订（如单位快照变更后冲突）不出现在结果中；`candidate_rows` 本身不含 typed。
