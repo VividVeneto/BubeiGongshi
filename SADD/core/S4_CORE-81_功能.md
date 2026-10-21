@@ -21,6 +21,7 @@ pub fn optimize_params(events: &[ReviewEvent], current: &FsrsParams, last_opt_ms
 
 **实现约束**
 - 个性化：有效复习少于 400 次使用默认参数；只有留出集 log-loss 优于默认时启用，每个自然月最多一次；TooSoon.next_allowed_ms 为下月 1 日学习日起点，可一键回退；突击、跳过与自评兜底事件不进优化集；目标保留率限定 0.80–0.95，默认 0.90。
+- 处理层：开始时读 CORE-17 `params_state`，以其 last_optimized_ms 作 last_opt_ms、current 作 current（desired_retention 由请求体 `desired_retention` 给出）；Adopted 时调用 `adopt_params(store, params, expected_version = 开始时 current.version, optimized_ms = now_ms)`，期间参数已变则透传 CORE-17 STUDY_PARAMS_VERSION_STALE；Rejected/TooSoon/Insufficient 不写库。请求体 `{now_ms, desired_retention}`。
 - 调用fsrs=6.6.2 compute_parameters与evaluate，版本/包体约束沿CORE-17；得到Adopted后通过CORE-17 adopt_params原子写入，算法不直接写表；保留默认/当前/上一参数与版本/优化时间供回退和月限额。
 - profile scope，使用CORE-03信封handle，切换档案不复用旧Store；取消不写半成品；不复制FSRS调度状态机。
 

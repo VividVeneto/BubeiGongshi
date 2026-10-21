@@ -12,3 +12,4 @@
 - [R04] RecentStats过滤本人/同题型/客观Correct且非跳过自评改判；按(at_ms,device_id,seq)逆序截30后计算中位数，偶数向下取整，当前题不入历史；同kind未结束组优先续接防绕配额，dictation来源组校验。
 - [R28] 注册且只注册book/study_plan/attempt/confusable_group；User书稳定枚举，study_session/游标不进同步，预置书不上传。Delete书保留条目且停用计划有效投影；旧数据不复活；同ID同Attempt零写，异值拒绝；不同ID作答保留并确定性投影，无回声outbox。
 - [R28] 两设备离线各设active计划，交换顺序任意均由active字段时钟/ID选出同一本机有效计划，原权威值不被隐式改写；下一次显式plan.set才写字段时钟/outbox。保存点失败不漏统计失效/派生更新。
+- [R04] 修订变化：条目 head 换为新的 Verified 修订后 study.session.start 先标记待选择，该卡不进入本组；head 为未校验修订时照常出卡。

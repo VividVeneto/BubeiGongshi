@@ -6,3 +6,4 @@
 - [R04] 个性化边界：有效复习 399 与 400 次、log-loss 劣于默认、同月第二次优化、回退、目标保留率 0.79/0.80/0.95/0.96 均按规则处理。
 - [R04] 突击/跳过/自评不进训练集；TooSoon/Insufficient返回OptimizeOutcome而非错误；取消/Rejected不采用参数，Adopted经CORE-17写入并能回退。
 - [R04] 同一自然月第二次返回 TooSoon，断言 next_allowed_ms 等于下月 1 日学习日起点；覆盖跨年与学习日起点边界。
+- [R04] 处理层：last_opt_ms 取 params_state（回退后仍计入月限额）；优化期间另一请求已采用参数时返回 STUDY_PARAMS_VERSION_STALE 且不写；Rejected/TooSoon/Insufficient 不改 srs_params。

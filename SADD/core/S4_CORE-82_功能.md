@@ -30,7 +30,7 @@
 | `study.appeal` | `{attempt_id}` → `{}` | “记错了” |
 
 - 申诉“记错了”：生成引用原 Attempt 的纠正事件并重算排程，原事件保留。
-select_cards 的 Dictation 输入由处理层用来源组成员裁剪 schedules/book，kind与source_session_id均校验；session.start DTO附 source_session_id?（只在dictation必填），既有未结束同计划同kind会话优先续接，不能重开绕过额度。
+study.session.start 读取候选排程前先调用 CORE-17 `mark_revision_changes`，待选择卡（Card.pending_choice）由 select_cards 过滤；select_cards 的 Dictation 输入由处理层用来源组成员裁剪 schedules/book，kind与source_session_id均校验；session.start DTO附 source_session_id?（只在dictation必填），既有未结束同计划同kind会话优先续接，不能重开绕过额度。
 
 RecentStats 由op层在提交前查询本人同题型最近30条客观Correct、未跳过/自评/改判作答的duration，按(at_ms,device_id,seq)逆序截30，再按duration排序；偶数中位取两中间均值向下取整，samples是实际条数。step不查库，samples<10或median=None不判Easy；当前题不算历史。
 
