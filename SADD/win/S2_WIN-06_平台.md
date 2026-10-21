@@ -81,5 +81,5 @@ MethodChannel "fml/windows/window"（app/windows/runner/window_channel.cpp）
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-06_TEST.md](../Test/win/S2_WIN-06_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；`app/lib/platform/windows/window/` 与 `app/windows/runner/` 中的 `app/windows/runner/window_channel.cpp`、单实例与窗口位置代码（同属 `app/` 构建单元）。
+**规模**：约 680 行；`app/lib/platform/windows/window/`、`app/windows/runner/`、`app/windows/runner/window_channel.cpp`、`app/`。组件估算：原生窗口位置与离屏纠正约 85 行，runtime/注册表偏好约 105 行，低内存与生命周期/消息清理约 130 行，单实例与COPYDATA约 110 行，Dart端口/WindowsShell/退出约 200 行，设置区与聚合接入约 50 行。分阶段：① runner生命周期与单实例约 430 行；② Dart状态与设置约 250 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

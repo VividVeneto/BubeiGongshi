@@ -64,7 +64,7 @@ free_bytes              → int     GetDiskFreeSpaceExW(数据根)
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-07_TEST.md](../Test/win/S2_WIN-07_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行；`app/lib/platform/windows/storage/` 与 `app/windows/runner/keystore_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 410 行；`app/lib/platform/windows/storage/`、`app/windows/runner/keystore_channel.cpp`、`app/`。组件估算：Dart两端口与路径/别名校验约 135 行，DPAPI/版本/内存与异常映射约 105 行，目录/ACL/空间与通道约 100 行，安全说明与安装/接入约 70 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 
 ---
 

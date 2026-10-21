@@ -94,5 +94,5 @@ Cargo workspace：根 `Cargo.toml` 为虚拟 workspace（`resolver = "2"`），`
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-01_TEST.md](../Test/S0/S0_CORE-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行（配置与 README）；仓库根。
+**规模**：约 95 行（根 Cargo.toml、app/pubspec.yaml、analysis_options.yaml、main.dart 骨架与仓库忽略/属性配置）；仓库根。锁版文件、deny.toml/lints 等策略配置与 README 为数据/文档，不计行数；CI 骨架归 CORE-41；平台工程由 AND-01/WIN-01 生成，不计本卡。
 

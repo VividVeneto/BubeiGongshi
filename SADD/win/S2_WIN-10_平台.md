@@ -57,7 +57,7 @@ send(req, cancel) 步骤（调用前由CORE-28完成HTTPS/主机/Cookie/用途�
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-10_TEST.md](../Test/win/S2_WIN-10_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 240 行；`app/lib/platform/windows/net/` 与 `app/windows/runner/net_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 365 行；`app/lib/platform/windows/net/`、`app/windows/runner/net_channel.cpp`、`app/`。组件估算：请求/续传/纠错重发约 175 行，总超时/取消/IO与异常约 115 行，代理原生解析/生命周期/dispose/接入约 75 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 
 ---
 

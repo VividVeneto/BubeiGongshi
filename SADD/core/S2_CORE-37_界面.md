@@ -4,9 +4,9 @@
 
 **范围**
 - 包含：EditorWorker、EditorRequest/Result、FormulaView、MathText、FormulaDecorations 与共享绘制函数。
-- 不包含：编辑控制器、输入组件、复制按钮与声明面板，迁至 CORE-59（下游说明，非契约）。
+- 不包含：编辑控制器、输入组件、复制按钮与声明面板，控制器归 CORE-59、输入组件归 CORE-87（下游说明，非契约）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-08、CORE-09、CORE-12、CORE-55、CORE-56、CORE-58、CORE-73
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-08、CORE-09、CORE-12、CORE-55、CORE-56、CORE-58、CORE-73、CORE-94
 
 **接口契约**
 
@@ -48,7 +48,7 @@ Future<void> installEditor(CompositionContext ctx);   // EditorWorker.start(ctx.
 ```
 
 - Dart DTO（`app/lib/binding/dto/`，按 CORE-67 schema 生成）：`DisplayListDto`、`DrawCmdDto`、`NodePathDto`、`LayoutOptionsDto`、`SourceSpanDto`、`CheckResponseDto`（`ast, source_map, symbols, check_result`）、`SymbolDeclDto`（CORE-05 `SymbolDecl` 镜像）。
-- 调用的 op：`engine.check`（CORE-56 登记，语义见 CORE-09，`budget_ms = 100`）、`typeset.layout` 与 `typeset.glyph_outlines`（CORE-56 登记，DTO 为 CORE-12 类型）、`units.compatible`（CORE-08）。
+- 调用的 op：`engine.check`（CORE-56 登记，语义见 CORE-09，`budget_ms = 100`）、`typeset.layout` 与 `typeset.glyph_outlines`（CORE-56 登记，布局算法归 CORE-94，低层 DTO/字形契约归 CORE-12）、`units.compatible`（CORE-08）。
 Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/editor/`（由安装点构造 CoreBinding/端口依赖）；Widget、绘制、页面与路由视图在 `app/lib/ui/editor/`。Widget 只接收前者的抽象/状态和回调，不接收 CoreBinding/CoreLibrarySpec，不从 FeatureRegistry 取裸绑定或 HttpTransport。两个目录仍属同一 app/ 构建单元。
 
 以下只列本卡展示/恢复处理；触发条件、级别与可重试性严格复用唯一定义卡，不在此改变语义。
@@ -70,5 +70,5 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/e
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-37_TEST.md](../Test/core/S2_CORE-37_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行；主包 `app/lib/editor/editor_worker.dart`、`app/lib/ui/editor/formula_view.dart`、`app/lib/ui/editor/math_text.dart`、`app/lib/render/`。
+**规模**：约720行，分阶段（Ⅰ worker/队列与缓存约390行；Ⅱ 绘制、组件及安装接入约330行；各阶段可独立构建与测试）；app/lib/editor/editor_worker.dart、app/lib/editor/install.dart、app/lib/ui/editor/formula_view.dart、app/lib/ui/editor/math_text.dart、app/lib/render/及本卡编写的composition接入行；不计自测、夹具与生成物。
 

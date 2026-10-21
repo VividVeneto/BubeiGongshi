@@ -3,7 +3,7 @@
 **目标**：把格式、静态检查、测试、依赖许可、ABI、迁移、资源包、隐私与文档追踪等检查固化为 CI 门禁，并持续度量可维护性。
 
 **范围**
-- 包含：`tools/ci/` 下的检查脚本与公共库；CI 工作流定义 `.github/workflows/ci.yml` 与 `weekly.yml`（附属，只编排脚本，不含检查逻辑）；`CODEOWNERS`；门禁阈值配置 `tools/ci/thresholds.yaml`。
+- 包含：`tools/ci/` 下的检查脚本与公共库；CI 工作流定义 `.github/workflows/ci.yml` 与 `weekly.yml`（附属，只编排脚本，不含检查逻辑）；`CODEOWNERS`。门禁阈值配置 `tools/ci/thresholds.yaml` 归 CORE-71（见下表），本卡只读取。
 - 不包含：发布打包与签名（CORE-42 与平台卡）；性能基准的测量程序本身（AND-12、WIN-13 与各卡测试）；鸿蒙冒烟工程（CORE-44，本卡只编排其编译任务）。
 
 **依赖**：CORE-01、CORE-02、CORE-03、CORE-69、CORE-70、CORE-71、CORE-74、CORE-57、CORE-75、CORE-76
@@ -12,12 +12,12 @@
 
 门禁实现归属（本卡只编排，不重复实现）：
 
-| 所有者 | 唯一实现与规则 | 估算（含测试） |
+| 所有者 | 唯一实现与规则 | 规模 |
 | --- | --- | --- |
-| CORE-69 | common/source_scan/check_deps/check_privacy，DEP/PRIV | 430 |
-| CORE-74 | check_unsafe/check_abi/check_errors，UNSAFE/ABI/ERR | 400 |
-| CORE-70 | SADD-1～12、acceptance_jobs与D统计校验 | 440 |
-| CORE-71 | maint_report与thresholds，复杂度/LCOV覆盖率门禁及annotation | 460 |
+| CORE-69 | common/source_scan/check_deps/check_privacy，DEP/PRIV | 见该卡 |
+| CORE-74 | check_unsafe/check_abi/check_errors，UNSAFE/ABI/ERR | 见该卡 |
+| CORE-70 | SADD-1～12、acceptance_jobs与D统计校验 | 见该卡 |
+| CORE-71 | maint_report与thresholds，复杂度/LCOV覆盖率门禁及annotation | 见该卡 |
 | CORE-57 | pack材料选择与契约收集 | 见该卡 |
 | CORE-76 | current/stats/audit评级与独立证据核对 | 见该卡 |
 
@@ -32,7 +32,7 @@
 
 PRIV-2与no_platform_check_test规则及反例见CORE-69；本卡只验证检查作业调用和退出码聚合。
 
-P2按门禁族拆为CORE-69/70/71/74；本卡依赖上述S0卡后再实现聚合器与工作流。源扫描与度量规则只在其所有者定义。逐文件估算：run_all80、作业/pending清单60、聚合测试80、ci.yml/weekly/CODEOWNERS80，合计300；不再用480行承担全部门禁。后续业务卡仍是延迟目标，不成为S0编译依赖。
+P2按门禁族拆为CORE-69/70/71/74；本卡依赖上述S0卡后再实现聚合器与工作流。源扫描与度量规则只在其所有者定义。逐文件估算（不含测试，2026-10-21 新口径）：run_all 与退出码聚合80、作业/pending与发布阶段清单处理70、ci.yml/weekly/CODEOWNERS170，合计320；不再用480行承担全部门禁。后续业务卡仍是延迟目标，不成为S0编译依赖。
 
 checks中调用CORE-75共享写入点design校验；业务构建后按平台actual回执再校验，required-stage完整性归CORE-70清单，缺实现不当门禁通过。
 
@@ -48,5 +48,5 @@ checks中调用CORE-75共享写入点design校验；业务构建后按平台actu
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-41_TEST.md](../Test/S0/S0_CORE-41_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行；主包 `tools/ci/`（run_all/清单/聚合测试220），附属 `.github/workflows/ci.yml`、`weekly.yml` 与 `CODEOWNERS`（80行，只编排）。
+**规模**：约 320 行；主包 `tools/ci/`（run_all 与 pending/发布阶段聚合，约 150 行），附属 `.github/workflows/ci.yml`、`weekly.yml` 与 `CODEOWNERS`（约 170 行，只编排）。
 

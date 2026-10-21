@@ -1,12 +1,12 @@
-### CORE-27 备份导出与恢复
+### CORE-27 备份格式、导出与校验
 
-**目标**：提供用户可控的加密导出文件与离线恢复；恢复失败时原库保持不变。
+**目标**：提供用户可控的加密导出、共享容器字节协议与完整校验，供恢复层复用。
 
 **范围**
-- 包含：导出范围与表映射、`.fmlbackup` 容器格式、导出后自检、两阶段恢复（准备 → 用户确认 → 提交）、合并与替换规则、临时文件清理、FFI op。
-- 不包含：迁移前本地备份（CORE-13）；服务端备份（CORE-43）；保存位置与文件选择（CORE-04 `FileExporter`、`DocumentPicker`，由界面 CORE-36 调用）；识别历史与已安装内容包（不导出，见实现约束）。
+- 包含：导出范围/闭包与表映射、.fmlbackup容器/编码解码公共层、export/verify、导出后自检与导出临时文件清理、backup.export/verify处理。
+- 不包含：准备/提交/丢弃恢复、合并替换和恢复staging生命周期（CORE-84，下游说明，非契约）；迁移前本地备份、服务端备份、文件选择；识别历史与内容包不导出。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-17、CORE-21、CORE-23
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-05、CORE-13、CORE-21、CORE-23
 
 **接口契约**
 
@@ -19,19 +19,9 @@ pub struct ExportManifest { pub format_version: u16 /* 1 */, pub schema_version:
                             pub closure_added: BTreeMap<String, u64> /* 外键闭包自动带出的行数，按表名；无则空 */,
                             pub row_counts: BTreeMap<String, u64> /* 范围行按表名，闭包行按 "表名#closure" */,
                             pub payload_len: u64, pub payload_blake3: [u8; 32], pub header_blake3: [u8; 32] }
-// 落盘位置见下“字节协议”：块 0 存 format_version/schema_version/app_version/created_at_ms/scope/closure_added/header_blake3，末块存 row_counts/payload_len/payload_blake3；verify 与 prepare_restore 读完两处后合成本结构
+// 落盘位置见下字节协议；verify读完块0与末块合成ExportManifest。恢复消费者复用本卡共享解码层，不复制加密/格式逻辑。
 pub fn export(store: &Store, scope: &ExportScope, prot: &ExportProtection, rng: &mut dyn SecureRandom, out_path: &Path, cancel: &CancelFlag) -> Result<ExportManifest, FmlError>; // rng 取文件密钥、盐与每块 nonce；由 FFI 适配传入 CORE-23 OsRandom
 pub fn verify(file: &Path, prot: &ExportProtection, cancel: &CancelFlag) -> Result<ExportManifest, FmlError>;   // 完整解密并校验，不写库
-pub enum RestoreMode { Merge, Replace }
-pub struct RestorePreview { pub manifest: ExportManifest, pub mode: RestoreMode, pub inserts: BTreeMap<String, u64>,
-                            pub kept_local: u64 /* 合并时两端同主键、保留本地的行数 */, pub replaced: u64 /* 替换时将删除的本地行数 */,
-                            pub possible_duplicates: Vec<(FormulaItemId, FormulaItemId)>, pub missing_packs: Vec<String> }
-pub struct PreparedRestore { pub token: Uuid, pub preview: RestorePreview }   // 临时库句柄由本卡在进程内按 token 保存
-pub fn prepare_restore(store: &Store, file: &Path, prot: &ExportProtection, mode: RestoreMode, rng: &mut dyn SecureRandom, staging: &Path, cancel: &CancelFlag) -> Result<PreparedRestore, FmlError>; // rng 只用于临时库的随机 DbKey
-pub fn commit_restore(store: &Store, token: Uuid) -> Result<RestoreReport, FmlError>;
-pub fn discard_restore(token: Uuid) -> Result<(), FmlError>;
-pub fn cleanup_staging(staging: &Path) -> Result<u32, FmlError>;   // 启动时删除遗留临时库，返回删除个数
-pub struct RestoreReport { pub inserted: BTreeMap<String, u64>, pub kept_local: u64, pub replaced: u64, pub cards_replayed: u64 }
 ```
 
 - 容器 `.fmlbackup`（字节序小端）：
@@ -50,7 +40,7 @@ pub struct RestoreReport { pub inserted: BTreeMap<String, u64>, pub kept_local: 
   - 末块（AAD domain `backup.final`）明文 = 尾部 CBOR：`1` row_counts（map tstr→uint，范围行键为表名，闭包行键为 "表名#closure"）、`2` payload_len（uint，负载流总字节数）、`3` payload_blake3（bstr 32，BLAKE3(负载流全部字节)，即数据块明文按块号拼接）、`4` block_count（uint，含块 0 与末块）。
   - 解析：先读块 0，再顺序读至 AAD 为 `backup.final` 的块；块号与 AAD 不符、末块之后仍有字节、未见末块即文件结束、`block_count`、`payload_len`、哈希或行数不符 → `BACKUP_CORRUPT`。
   - 固定字节向量 BK-V1（`crates/fml-store/tests/vectors/backup_v1.hex`）：`FixedRandom`、固定 `now_ms`、固定口令与最小 KDF 测试参数、含两张小表的库；头、块 0、一个数据块、末块的期望字节由独立于实现的 RFC 8949 编码与 CORE-21 KV 向量方法人工计算并双人复核，不由被测实现生成。
-- 负载不落明文临时文件：导出时从 `ReadTx` 快照逐行编码、分块加密写入 `out_path`（调用方传入 `StoreArea.staging` 下路径，随后由 Dart 经 `FileExporter.saveAs` 流式保存并删除）；恢复时逐块解密直接插入临时库。
+- 负载不落明文临时文件：导出从ReadTx快照逐行编码、分块加密至调用方传入的StoreArea.staging/out_path，Dart经FileExporter.saveAs流式保存后删除；共享解码器按块/行流式交付已认证负载，不在本卡实施恢复写库。
 - 导出范围与外键闭包（ADR-V5-44）：所选范围的表整表导出；若所选行经外键引用了未选范围（不含“永不导出”）的父行，这些**被引用的父行**自动随导出带出（沿 `PRAGMA foreign_key_list` 向父表方向传递闭包，只含被引用行），在负载中作为 kind = 1 的闭包段写在所有范围段之前、父表在前，并计入 `closure_added` 与 `row_counts["表名#closure"]`。典型：只选 `study` 时带出被引用的 `formula_item`、`formula_revision`、`symbol_binding`；选 `formulas` 时带出被引用的 `user_unit`。若闭包需要“永不导出”表中的行 → `BACKUP_SCOPE_INVALID`（实现错误，由往返测试覆盖）。界面在范围选择处显示“将同时带出被引用的 N 条公式/单位”。
 - 导出范围与表（固定顺序，父表在前）：
 
@@ -63,13 +53,7 @@ pub struct RestoreReport { pub inserted: BTreeMap<String, u64>, pub kept_local: 
 | `settings` | `local_setting` 中 `syncable = 1` 的行（`device.*` 不导出） |
 | 永不导出 | `schema_migration`、`sync_*`、`tombstone`、`field_clock`、`push_batch`、`merge_choice`、`account_*`、`upgrade_journal`、`installed_pack`、识别相关表、`mastery_cache`、`stats_cache`、`formula_fts`、`formula_draft` |
 
-- 准备恢复 6 步：① 读头、解包文件密钥（失败 → `BACKUP_WRONG_SECRET`）；② 解密块 0，核对 `header_blake3`；③ `schema_version > SCHEMA_VERSION` → `BACKUP_SCHEMA_TOO_NEW`；④ 在 `staging` 用随机 `DbKey` `Store::open` 新临时库（迁移到当前版本），按列名插入负载（迁移只增不删，旧备份缺少的新列取默认值；出现当前 schema 没有的列 → `BACKUP_CORRUPT`）；⑤ 核对 `payload_blake3`、行数与末块标记、`integrity_check` 与外键检查；⑥ 计算 `RestorePreview`。任一步失败删除临时库，原库未被写入。
-- 提交（单个 `Store::write` 事务，ATTACH 临时库）：
-  - `Replace`：删除本地属于所选范围的表的全部行，再整表插入；kind = 1 的闭包行**按 Merge 处理**（只插入本地缺失行，主键已存在时保留本地行并计入 `kept_local`），不删除本地其余公式或单位；
-  - `Merge`：不可变表（`formula_revision`、`review_event`、`attempt`）按主键插入缺失行；可变表主键已存在时保留本地行（计入 `kept_local`），不存在时插入；用户自建公式规范 AST 哈希相同但 ID 不同只列入 `possible_duplicates`，不自动合并；
-  - 两种模式下插入的行都经 `enqueue_outbox`（同步开启时上传）；有新 `review_event` 的卡片用 CORE-17 `replay` 重算 `study_card` 调度；清空 `mastery_cache` 与 `stats_cache`（CORE-20 缺缓存时全量重算）；`formula_fts` 由 CORE-14 触发器维护。
-  - 提交成功或失败后都删除临时库；`token` 30 min 未提交自动丢弃。
-- FFI op（适配层向 `export` 与 `prepare_restore` 传入 CORE-23 的 OsRandom，不经 JSON）。submit（长任务，经 CORE-03 提交）：`backup.export` `{ scope, protection, out_path }` → `{ manifest }`（可取消）；`backup.verify` `{ path, protection }` → `{ manifest }`（可取消）；`backup.prepare_restore` `{ path, protection, mode }` → `{ token, preview }`（可取消）；`backup.commit_restore` `{ token }` → `{ report }`（**submit**；取消只在提交事务开始前生效，事务开始后不可取消，结果以报告返回）。call（快速调用）：`backup.discard_restore` `{ token }` → `{}`。`BACKUP_SCOPE_INVALID` 在创建输出文件与 KDF 之前检查。口令与恢复码只出现在请求中，不进日志。
+- FFI op唯一登记：submit `backup.export` `{scope, protection, out_path}`→`{manifest}`、`backup.verify` `{path, protection}`→`{manifest}`，均可取消；本卡fml-ffi适配向export传CORE-23 OsRandom，不经JSON。BACKUP_SCOPE_INVALID在创建输出文件与KDF之前检查；口令/恢复码只在请求中，不进日志。恢复op由CORE-84（下游说明，非契约）登记。
 - 错误码：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -86,13 +70,12 @@ pub struct RestoreReport { pub inserted: BTreeMap<String, u64>, pub kept_local: 
 backup.export在创建输出文件/耗时KDF之前校验check_passphrase_policy，失败返回CORE-21 CRYPTO_PASSPHRASE_WEAK且不生成部分文件；CORE-47只做两次输入一致与错误呈现。
 
 **实现约束**
-- 识别历史不导出：其图片资产归 CORE-32 管理且有保留上限，V1 备份只覆盖用户数据（R27）；已安装内容包不导出，恢复后预置内容派生 ID（CORE-05 的 pack_item_id/card_id）在重新安装对应包后自动关联，`missing_packs` 列出需要重新安装的包。
+- 识别历史不导出：图片资产/保留清理由识别历史所有者管理，V1只覆盖R27用户数据；已安装内容包不导出。预置内容派生ID依CORE-05 pack_item_id/card_id保持稳定，恢复消费者据此生成missing_packs。
 - 导出完成后立即对输出文件调用 `verify`，失败则删除文件并报原错误码。
 - 导出时用户再次确认范围；口令保护须通过 CORE-21 `check_passphrase_policy`。
-- 应用启动时调用 `cleanup_staging`。
+- 导出取消/自检失败清理本卡部分输出；恢复staging启动清理由CORE-84（下游说明，非契约）承担，不混淆两类临时文件。
 - 外部前提：无新增第三方依赖（加密、CBOR、BLAKE3 已由 CORE-21、CORE-05 引入）。
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-27_TEST.md](../Test/core/S6_CORE-27_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 490 行；`crates/fml-store/src/backup/`（同属 fml-store crate；闭包计算与字节协议约 +40 行）。
-
+**规模**：约500行；crates/fml-store/src/backup/的范围闭包、字节协议、共享编码解码、export/verify及本卡编写的crates/fml-ffi/src/ops/backup_export.rs适配；不含恢复/合并代码，不计DDL/schema/资源数据、生成物、自测及夹具。若编码超出500而总量不超800，按范围闭包/格式校验二级边界分阶段，不隐去附属op行。

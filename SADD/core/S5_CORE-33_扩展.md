@@ -93,5 +93,5 @@ recognition_job增加quota_state reserved/charged/refunded、reserved_units、qu
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-33_TEST.md](../Test/core/S5_CORE-33_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `server/src/recognition/`（路由80、worker100、配额/幂等100、provider边界60、迁移40；不含测试约100）；运维解除脚本迁至CORE-72，不计入本卡。首个供应商适配另据实测规模复评，当前仅Fake，不以未选供应商估算为已交付。
+**规模**：约 695 行；主包 `server/src/recognition/`（约 685），附属 `server/src/` 路由挂载与 worker 启动接入（约 10）；迁移 DDL 为数据，运维解除脚本归 CORE-72，FakeVisionProvider 为测试替身，均不计。首个真实供应商适配据实测规模另行复评，当前仅 Fake，不以未选供应商估算为已交付。分阶段：① 云识别接口、状态与配额（5 个端点、状态机、配额与预算事务、结果加密/配置/错误与接入行，约 430）；② worker、供应商边界与清理（worker 池、VisionProvider 边界与注册表、模板加载与输出过滤、清理与墓碑，约 265）。
 

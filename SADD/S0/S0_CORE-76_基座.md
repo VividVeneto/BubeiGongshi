@@ -21,5 +21,5 @@ D.12的P2记录固定列record/card/复核人与日期/材料字符与段数/a�
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-76_TEST.md](../Test/S0/S0_CORE-76_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 230 行；主包tools/sadd/（current100、stats60、audit70；不含测试约150）；复核JSON与Markdown是数据。
+**规模**：约190行；tools/sadd/current.mjs、stats.mjs、audit.mjs及本卡编写的CLI/聚合接入行；不计自测、夹具、审计记录/卡片数据与生成报告；不含README §7.1排除的layout/split/split-tests/cardiff及tools/DTOcheck/。
 

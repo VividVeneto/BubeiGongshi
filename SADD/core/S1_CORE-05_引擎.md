@@ -202,5 +202,5 @@ pub struct Page<T> { pub items: Vec<T>, pub total: u32, pub page: u32, pub page_
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-05_TEST.md](../Test/core/S1_CORE-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行；`crates/fml-ast/`。
+**规模**：约740行，分阶段：①类型、遍历/上限、CancelFlag约345行；②严格规范JSON/解码、哈希、确定性ID与seed约395行；主包均为 crates/fml-ast/；schema/黄金向量与自测不计。 阶段独立构建/测试：①模型、遍历/上限与取消（345行）：crate可构建；直接构造AST验证类型、NodePath、limits和取消，不要求未交付JSON入口。；②规范编码/解码、哈希与ID（395行）：新增codec/ids模块后验证规范字节、所有变体拒绝路径与确定性ID；不改阶段①接口。
 

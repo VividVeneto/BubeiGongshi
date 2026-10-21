@@ -76,5 +76,5 @@ state.json（staging\updates\）：{last_check_ms, skipped_version?}；回滚后
 
 **验收标准**：测试方案全文见 [Test/win/S7_WIN-03_TEST.md](../Test/win/S7_WIN-03_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 360 行；`app/lib/platform/windows/update/` 与 `app/windows/runner/update_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 735 行；`app/lib/platform/windows/update/`、`app/windows/runner/update_channel.cpp`、`app/`。组件估算：Dart状态/清单/SemVer/本地状态约 115 行，下载续传/空间/哈希/取消约 155 行，原生签名验链与证书指纹约 180 行，安装pipe握手/进程身份与启动约 110 行，健康/opened确认与账户订阅约 90 行，设置区/安装/失败结果处理约 85 行。分阶段：① 清单、下载与验签约 450 行；② 安装确认与设置接入约 285 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

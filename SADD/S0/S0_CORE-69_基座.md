@@ -15,10 +15,10 @@ DEP-1/3/4查Cargo依赖图及extern C声明；DEP-2查领域crate中的std::fs/n
 
 **实现约束**
 - Python标准库与锁定PyYAML；扫描器不用网络，不输出敏感源代码；与CORE-28的no_direct_http_test读同一白名单。
-- 逐文件估算：common60、词法层100、deps90、privacy60、fixtures/tests120，合计430；不实现完整Dart/Rust语义解析器，超出上述子集先报warning并申请拆卡。
+- 逐组件实现估算：common/Finding65、source_scan词法层180、deps150、privacy85、附属聚合调用10，合计490；fixtures/tests不计。不实现完整Dart/Rust语义解析器，超出上述子集先报warning并申请拆卡。
 - 外部前提：CORE-01锁定Python/PyYAML并创建policies；工具不存在前明确pending。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-69_TEST.md](../Test/S0/S0_CORE-69_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 310 行；主包 `tools/ci/`（不含测试约120行）。
+**规模**：约490行；tools/ci/common.py、词法辅助、check_deps.py、check_privacy.py及本卡编写的聚合调用行；不计自测、夹具、规则纯数据与报告生成物。
 

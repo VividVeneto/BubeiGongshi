@@ -3,10 +3,10 @@
 **目标**：提供设置页及其子页：外观（主题色与深浅色）、账户与设备管理、同步开关与状态、游客升级向导、恢复码与同步密语、导出与恢复、识别历史设置、提醒与关于。
 
 **范围**
-- 包含：`/settings` 及子路由 `/settings/account`、`/settings/devices`、`/settings/sync`、`/settings/upgrade`、`/settings/backup`、`/settings/history`、`/settings/reminders`、`/settings/privacy`、`/settings/about` 的页面与视图模型；外观只提供导航入口到CORE-58独立路由；升级向导（新建账户 / 并入已有账户）、恢复码展示与确认保存、needsKey 时的恢复码或同步密语输入、设备吊销后展示新恢复码；导出与恢复的选择、口令输入、预览与确认（调用 CORE-27 op，文件经 CORE-04 `DocumentPicker` 与 `FileExporter`）；识别历史 `keep_last` 设置与一键清空；关于页与开源许可。
-- 不包含：门面与组装层（CORE-36）；同步与升级逻辑（CORE-46）；备份格式与恢复逻辑（CORE-27）；识别历史 GC（CORE-32）。
+- 包含：`/settings` 及子路由 `/settings/account`、`/settings/devices`、`/settings/sync`、`/settings/upgrade`、`/settings/backup`、`/settings/history`、`/settings/reminders`、`/settings/privacy`、`/settings/about` 的页面与视图模型；外观只提供导航入口到CORE-58独立路由；升级向导（新建账户 / 并入已有账户）、恢复码展示与确认保存、needsKey 时的恢复码或同步密语输入、设备吊销后展示新恢复码；导出与恢复的选择、口令输入、预览与确认（调用 CORE-27 导出与 CORE-84 恢复 op，文件经 CORE-04 `DocumentPicker` 与 `FileExporter`）；识别历史 `keep_last` 设置与一键清空；关于页与开源许可。
+- 不包含：门面与组装层（CORE-36）；同步/升级实现（CORE-46/99）；备份格式（CORE-27）与恢复实现（CORE-84）；识别历史 GC（CORE-85，低层契约 CORE-32）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-23、CORE-27、CORE-32、CORE-36、CORE-55、CORE-58、CORE-62、CORE-65
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-23、CORE-27、CORE-32、CORE-36、CORE-55、CORE-58、CORE-62、CORE-65、CORE-84
 
 **接口契约**
 
@@ -23,8 +23,8 @@ final class HistorySettingsVm { HistorySettingsVm(CoreBinding core, HistoryKeyUn
 final class DevicesVm         { DevicesVm(ApiClient api, SyncFacade sync); Future<List<DeviceDto>> load(); Future<String> revoke(String deviceId); }
 ```
 
-- op 与端点：备份 `backup.export / prepare_restore / commit_restore / discard_restore`（CORE-27）；识别历史 `recog.settings.get / set` 与 `HistoryKeyUnlocker.clearAll()`（CORE-32，`HistoryKeyUnlocker` 从 `AppDeps.features` 取）；设备 `GET /v1/devices`（CORE-22）与 `SyncFacade.revokeDeviceAndRotate`。`BackupScopeDto`、`RestorePreviewDto`、`RestoreModeDto`、`DeviceDto` 为 `contracts/` 生成类型。
-- 错误码：不新增；只按 CORE-02 的统一 FmlException.code 消息映射展示，来源为已依赖的 CORE-04（`PLATFORM_*`）、CORE-27（含其透传的 CORE-21 `CRYPTO_PASSPHRASE_WEAK`、`CRYPTO_RECOVERY_CODE_FORMAT`）、CORE-32、CORE-36、CORE-65。同步/升级页面经 SyncFacade 提供状态与回调，状态含错误码时也用同一映射，不消费 CORE-46 私有错误表。
+- op 与端点：备份 `backup.export`（CORE-27）、`backup.prepare_restore / commit_restore / discard_restore`（CORE-84）；识别历史 `recog.settings.get / set` 与 `HistoryKeyUnlocker.clearAll()`（CORE-32，`HistoryKeyUnlocker` 从 `AppDeps.features` 取）；设备 `GET /v1/devices`（CORE-22）与 `SyncFacade.revokeDeviceAndRotate`。`BackupScopeDto`、`RestorePreviewDto`、`RestoreModeDto`、`DeviceDto` 为 `contracts/` 生成类型。
+- 错误码：不新增；只按 CORE-02 的统一 FmlException.code 消息映射展示，来源为已依赖的 CORE-04（`PLATFORM_*`）、CORE-27、CORE-84（含其透传的 CORE-21 `CRYPTO_PASSPHRASE_WEAK`、`CRYPTO_RECOVERY_CODE_FORMAT`）、CORE-32、CORE-36、CORE-65。同步/升级页面经 SyncFacade 提供状态与回调，状态含错误码时也用同一映射，不消费 CORE-46 私有错误表。
 
 Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/settings/`（由安装点构造 CoreBinding/端口依赖）；Widget、绘制、页面与路由视图在 `app/lib/ui/settings/`。Widget 只接收前者的抽象/状态和回调，不接收 CoreBinding/CoreLibrarySpec，不从 FeatureRegistry 取裸绑定或 HttpTransport。两个目录仍属同一 app/ 构建单元。
 
@@ -43,7 +43,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/s
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-47_TEST.md](../Test/core/S6_CORE-47_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 480 行；用例/状态目录 `app/lib/settings/`；`app/lib/ui/settings/`。
+**规模**：约 790 行；用例/状态目录 `app/lib/settings/`；`app/lib/ui/settings/`。分阶段：① 设置首页与账户/同步/设备/升级（routes 骨架与首页、Sync/Upgrade/Devices/Account/needsKey 的视图模型与页面，约 480）；② 备份、识别历史、提醒、隐私与关于（视图模型、页面与子路由登记，约 310）。
 
 ---
 

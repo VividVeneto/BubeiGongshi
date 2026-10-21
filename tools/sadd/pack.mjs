@@ -6,9 +6,10 @@ import {FILES, readDocs} from './layout.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export {FILES};
-export function load(sadd = path.join(ROOT, 'SADD')) {
+/** tests=false 时卡片正文不拼回 Test/ 测试方案，只保留引用行（testFile 仍记录路径）。 */
+export function load(sadd = path.join(ROOT, 'SADD'), {tests = true} = {}) {
   const cards = new Map();
-  const {texts, cardFiles} = readDocs(sadd);
+  const {texts, cardFiles} = readDocs(sadd, {tests});
   for (const doc of FILES) {
     const text = texts[doc];
     const matches = [...text.matchAll(/^### ((?:CORE|AND|WIN)-\d+) (.+)$/gm)];
@@ -63,8 +64,9 @@ export function definedSymbols(text) {
   definitionCache.set(text, out);
   return out;
 }
-export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
-  const cards = load(sadd); const target = cards.get(id);
+export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests = false} = {}) {
+  // 默认不收录 Test/ 测试方案（README §8.1）；本卡功能变更须同步修改测试方案时用 withTests 收录。
+  const cards = load(sadd, {tests: withTests}); const target = cards.get(id);
   if (!target) throw new Error(`Unknown card: ${id}`);
   const closure = new Set();
   function visit(key, stack = []) {
@@ -255,12 +257,14 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = []} = {}) {
   if (undefinedIdentifiers.length) warnings.push('SDK/third-party or undefined identifiers require review; see undefinedIdentifiers');
   const header = `# ${id} 会话材料\n\n生成时间：${new Date().toISOString()}；字符按 Unicode code point 计数。\n`+
     `完整材料由下列分段共同组成，分段不是独立编码会话；全部读完后才能实现。\n\n未创建文件：${missing.join('、') || '无'}。\n\n`+
-    (target.testFile ? `目标卡“验收标准”取自测试方案 ${target.testFile}（已按卡片中的引用拼回下方目标卡正文）；实现与测试改动须同步修改该文件。\n\n` : '')+
+    (target.testFile ? (withTests
+      ? `目标卡“验收标准”取自测试方案 ${target.testFile}（已按卡片中的引用拼回下方目标卡正文）；实现与测试改动须同步修改该文件。\n\n`
+      : `测试方案默认不收录：各卡“验收标准”只保留引用行（目标卡为 ${target.testFile}）。本卡功能变更须同步修改测试方案时，用 --with-tests 重新生成并运行 cardiff 对比变更（README §8.1）。\n\n`) : '')+
     `去噪：contracts 只收录与目标卡及直接依赖（${ownerList}）相关的内容，其余列名并给出 SHA-256，见文末“contracts 清单”与 report.json 的 filteredFiles；附录 A 只收录相关 ADR 行与补充章节。\n`;
   const text = header + '\n' + sections.join('\n\n');
   const chars = [...text].length;
   const chunks = segment(text);
-  return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length,
+  return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length, tests: withTests ? 'included' : 'excluded',
     closure: [...closure], related: [...related], manifest, files, filteredFiles, adr: adrSelection.report, missing, warnings, missingFromMaterials,
     undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort(), classifiedReferences, excludedSupplements: adrSelection.report.excludedSupplements}};
 }
@@ -411,10 +415,10 @@ export function writeOutput(out, result, extra = {}) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const id = process.argv[2];
-  if (!id) { console.error('Usage: node tools/sadd/pack.mjs CARD [--out DIR] [--sadd DIR] [--file PATH]'); process.exit(2); }
+  if (!id) { console.error('Usage: node tools/sadd/pack.mjs CARD [--out DIR] [--sadd DIR] [--file PATH] [--with-tests] [--check-budget]'); process.exit(2); }
   const opt = name => { const i=process.argv.indexOf(name); return i<0?undefined:process.argv[i+1]; };
   const extra = process.argv.flatMap((x,i) => x === '--file' ? [process.argv[i+1]] : []);
-  const result = pack(id, {sadd: opt('--sadd'), extra});
+  const result = pack(id, {sadd: opt('--sadd'), extra, withTests: process.argv.includes('--with-tests')});
   const out = path.resolve(opt('--out') ?? `build/sadd/${id}`);
   writeOutput(out, result, {node: process.version});
   console.log(JSON.stringify({id, chars: result.report.chars, segments: result.chunks.length, warnings:result.report.warnings}));

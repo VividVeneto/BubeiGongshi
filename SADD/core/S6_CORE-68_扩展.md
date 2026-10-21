@@ -29,5 +29,5 @@ wire: version=2/kind=event；UUID小写带连字符；nonce标准base64解码24�
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-68_TEST.md](../Test/core/S6_CORE-68_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 120 行；`crates/fml-sync-proto/`，附属 `contracts/vectors/envelope-v2.json`。
+**规模**：约160行；主包crates/fml-sync-proto/，附属contracts/vectors/envelope-v2.json为数据0行；无分阶段；端侧/服务端调用点由各消费者编写，未知entity_type隔离由调用方处理，不计本卡。 单阶段可独立构建测试；只计本卡实现及本卡编写的附属接入，不计数据/生成物/自测。
 

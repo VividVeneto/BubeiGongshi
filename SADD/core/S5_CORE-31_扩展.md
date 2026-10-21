@@ -41,5 +41,5 @@ pub fn final_check(latex: &str, env: &SymbolEnv, units: &dyn UnitRegistry) -> Re
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-31_TEST.md](../Test/core/S5_CORE-31_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `crates/fml-recognize/src/post.rs`；附属 `crates/fml-ffi/src/ops/recog_post.rs`（三个 op 的薄适配，约 40 行）。fml-recognize 不依赖 fml-ffi，对 CORE-56 的依赖只来自这个附属适配。
+**规模**：约 375 行；主包 `crates/fml-recognize/src/post.rs`（类型与逐候选分析 trait、过滤与预算、8 步编排、评分排序、符号跨度、校正与终检，约 285），附属 `crates/fml-ffi/src/ops/recog_post.rs`（三个 op 处理、分析上下文构造与 CandidateAnalyzer 薄适配，约 90；parse→bind→check 共用函数由 CORE-56 拆出的引擎编排卡实现，不计）。fml-recognize 不依赖 fml-ffi，对 CORE-56 的依赖只来自这个附属适配。
 

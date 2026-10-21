@@ -267,5 +267,5 @@ installDesign使用ctx.features和ctx.ports.files构造AppearanceController，�
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-55_TEST.md](../Test/core/S2_CORE-55_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
 
-**规模**：约 360 行；主包 `app/lib/design/`、`app/lib/ui/design/`（不含 components/、warmup.dart）。
+**规模**：约745行，分阶段（Ⅰ ThemeExtension、themeFor与LayoutInfo约415行；Ⅱ AppearancePrefs/文件存储、Controller、模态/反馈与接入约330行；各阶段可独立构建与测试）；app/lib/design/、app/lib/ui/design/及本卡编写的composition接入行；不计自测、夹具、颜色/尺寸/语义token等纯资源数据与生成物。
 

@@ -100,5 +100,5 @@ LibraryBatchCommands唯一命令字符串前缀library.batch.；无参动作togg
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-58_TEST.md](../Test/core/S2_CORE-58_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 430 行；主包 `app/lib/ui/design/components/`、`app/lib/ui/design/warmup.dart`、`app/lib/design/{commands,routes}.dart`（含测试与必要的同构建单元接缝）。
+**规模**：约 765 行；主包 `app/lib/ui/design/components/`、`app/lib/ui/design/{adaptive_scaffold,two_pane,commands_scope,appearance_picker,warmup}.dart`、`app/lib/design/{commands,routes,install}.dart`。分阶段：① 布局容器、命令与外观入口（AdaptiveScaffold、TwoPane、命令接缝与 ShortcutLabelSource、commands.dart、AppearancePicker、路由与安装点、DesignWarmup，约 340）；② 核心组件（f 表 12 个组件，约 425）。
 

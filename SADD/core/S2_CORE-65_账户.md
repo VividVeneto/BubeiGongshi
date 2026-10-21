@@ -62,5 +62,5 @@ CORE-36 composition注入ProfileSessionSource：依赖档案的用例在调用�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-65_TEST.md](../Test/core/S2_CORE-65_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 360 行；主包 `app/lib/account/`（controller/token_store约240、profile_session约120；不含测试约100）（含必要的同构建单元接缝）。
+**规模**：约 510 行；主包 `app/lib/account/`。分阶段：① 账户控制器与档案会话（接口、状态流与启动恢复、游客与注册账户落地、logout、SecureTokenStore、ProfileSession/Source 与串行切换及档案钩子、清零与安装点，约 400）；② OIDC 授权与邮箱验证码客户端流程（`app/lib/account/auth/`：PKCE 与 state/nonce、系统浏览器授权与回调校验、令牌交换、注册/验证码/找回请求，约 110）。
 

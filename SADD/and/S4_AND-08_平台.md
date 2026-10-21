@@ -78,7 +78,7 @@ selfCheck可确定布尔判定true→state=ok、false→warn；仅autostart与�
 
 **验收标准**：测试方案全文见 [Test/and/S4_AND-08_TEST.md](../Test/and/S4_AND-08_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；`app/lib/platform/android/notify/` 与 `app/android/.../` 下的 ReminderBridge、ReminderReceiver、RomSettings 三个 Kotlin 文件（同属 `app/` 构建单元）。
+**规模**：约 550 行；`app/lib/platform/android/notify/`、`app/android/.../`、`app/`。组件估算：Dart端口、tap流与自检映射约 140 行，原生排程/持久化/Receiver约 180 行，冷启动/热启动tap精确一次约 85 行，原生自检与ROM兜底约 120 行，模块/端口/审计接入约 25 行。分阶段：① 日程、通知与点击去重约 320 行；② 自检与系统设置回退约 230 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 
 ---
 

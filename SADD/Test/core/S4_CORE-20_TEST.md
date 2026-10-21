@@ -10,4 +10,4 @@
 
 - [R04.i] 先缓存设备A seq=100，再同步设备B seq=1 且 at_ms更早的事件，下一次统计必须失效并重算计入B；重复拉取B不再增加数量。
 
-- [R04] calibration 199/200样本、偏差0.05/0.0501边界符合规则；at写入后重启读取相同时刻，None不调schedule。
+- [R04] at写入后重启读取相同时刻，None不调schedule；calibration样本/偏差验收迁CORE-97。

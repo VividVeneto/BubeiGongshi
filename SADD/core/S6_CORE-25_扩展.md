@@ -58,5 +58,5 @@ Envelope v2字段、Rust结构和编码唯一归CORE-68，本卡/客户端都imp
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-25_TEST.md](../Test/core/S6_CORE-25_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；`server/`（`server/src/sync/`、`server/src/account/` 与迁移 `server/migrations/0025_sync.sql`，DDL 不计）。
+**规模**：约 555 行；`server/`（`server/src/sync/`、`server/src/account/` 与迁移 `server/migrations/0025_sync.sql`，DDL 不计）。分阶段：① 同步存储与包装密钥记录（push 含 sync_account 行锁内分配 seq、pull 与游标、快照、reset、keys 三端点、路由与错误映射、数据访问层，约 420）；② 账户删除与保留例外（delete 端点与状态查询、删除执行器、deletion_manifest 与恢复后重放、保留例外清理、路由，约 135）。
 

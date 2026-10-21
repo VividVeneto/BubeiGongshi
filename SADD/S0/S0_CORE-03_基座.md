@@ -119,5 +119,5 @@ expected_generation 只用于引擎快照消费op（CORE-56五op及CORE-11三个
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-03_TEST.md](../Test/S0/S0_CORE-03_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 490 行；主包 `crates/fml-ffi/`（约 330 行），附属：跨语言另一侧 `app/lib/binding/`（约 150 行）与 `contracts/include/fmlcore.h`（约 10 行声明；ffigen 生成物不计手写行）。业务 schema/生成器归 CORE-67，本卡不接手。
+**规模**：约 775 行；主包 `crates/fml-ffi/`（导出边界、缓冲区、句柄代数与关闭、op 分派、信封、档案路由、长任务池、错误映射，约 490），附属：`contracts/include/fmlcore.h`（约 25 行手写声明）与跨语言另一侧 `app/lib/binding/`（CoreBinding/FfiCoreBinding、submit 与 NativeCallable 监听、dispose 与 scopedTo、异常与取消类型、ffigen 配置，约 260）；ffigen 与 CORE-67 生成物不计，业务 schema/生成器归 CORE-67。分阶段：① C ABI 与同步运行时（含 fmlcore.h，约 350）；② Rust 长任务池、监听/取消与关闭收敛（约 165）；③ Dart 核心绑定（app/lib/binding/，约 260）。阶段①以同步op和Fake派发独立构建验证，阶段②以Rust回调夹具验证长任务，阶段③接入Dart并完成跨语言验收，不提前宣称后续阶段通过。
 

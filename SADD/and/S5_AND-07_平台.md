@@ -3,14 +3,14 @@
 **目标**：通过 CORE-37、CORE-40 预留的接缝，为 Android 提供手写输入策略（触控笔优先、防手掌误触、压力、橡皮擦）与软键盘上方的模板快捷栏。
 
 **范围**
-- 包含：`AndroidInkPolicy`（实现 CORE-64 `InkInputPolicy`）；`AndroidEditorBindings`（实现 CORE-59 `EditorPlatformBindings`，含软键盘快捷栏）；安装点 `installAndroidEditing` 及其在 `ports_android.dart` 中的登记行。
-- 不包含：画布、笔画模型与撤销（CORE-40）；编辑器逻辑、模板与符号面板（CORE-37）；笔迹渲染为识别图（CORE-29 `render_ink`）；原生 `MotionEvent` 采集（不做，笔迹点来自 Flutter 指针事件）。
+- 包含：`AndroidInkPolicy`（实现 CORE-64 `InkInputPolicy`）；`AndroidEditorBindings`（实现 CORE-87 `EditorPlatformBindings`，含软键盘快捷栏）；安装点 `installAndroidEditing` 及其在 `ports_android.dart` 中的登记行。
+- 不包含：画布、笔画模型与撤销（CORE-40）；编辑控制器/模板（CORE-59）、编辑器组件/符号面板（CORE-87）；笔迹渲染为识别图（CORE-29 `render_ink`）；原生 `MotionEvent` 采集（不做，笔迹点来自 Flutter 指针事件）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64、AND-15
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-37、CORE-40、CORE-59、CORE-64、AND-15、CORE-87
 
 **接口契约**
 
-实现的接缝（逐字摘录，定义见 CORE-37、CORE-40）：
+实现的接缝（逐字摘录，定义见 CORE-87、CORE-64）：
 
 ```dart
 abstract interface class EditorPlatformBindings {   // 平台卡经 PlatformPorts.platformInstallers 登记；未登记时用 DefaultEditorBindings
@@ -70,5 +70,5 @@ void installAndroidEditing(CompositionContext ctx) {
 
 **验收标准**：测试方案全文见 [Test/and/S5_AND-07_TEST.md](../Test/and/S5_AND-07_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 220 行；`app/lib/platform/android/editing/`。
+**规模**：约 130 行；`app/lib/platform/android/editing/`。组件估算：输入策略约 35 行，编辑绑定与快捷栏约 80 行，安装与端口登记约 15 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

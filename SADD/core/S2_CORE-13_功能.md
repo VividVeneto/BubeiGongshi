@@ -56,7 +56,7 @@ pub const SCHEMA_VERSION: u32;   // 由 build.rs 取 migrations/ 中最大序号
 | `sync_cursor` | `stream TEXT PRIMARY KEY`，`cursor TEXT NOT NULL`，`epoch INTEGER NOT NULL`，`updated_at_ms INTEGER NOT NULL` | — |
 | `tombstone` | `entity_type TEXT NOT NULL`，`entity_id TEXT NOT NULL`，`deleted_at_ms INTEGER NOT NULL`，`PRIMARY KEY (entity_type, entity_id)` | `(deleted_at_ms)` |
 
-- 业务表归属（列、约束与索引在归属卡中定义，迁移文件由归属卡提交）：`formula_item`、`formula_revision`、`symbol_binding`、`user_unit`、`notation_profile`、`constant_set`、`derivation`、`mastery_cache` → CORE-14；`formula_draft` → CORE-61；`calculation_plan` → CORE-48；设备级 `pack_meta.db` 的 `installed_pack` → CORE-15（不在档案库）；`study_card`、`review_event` → CORE-17；`book`、`study_plan`、`study_session`、`attempt`、`confusable_group` → CORE-19；`stats_cache` → CORE-20；`account_state` → CORE-23（设备级 `device_registry.db` 是独立小库，不在本库内）；`upgrade_journal`、`account_key_wrap`、`account_key` → CORE-24；`local_clock`、`field_clock` → CORE-13；`sync_quarantine`、`merge_choice` → CORE-26；`push_batch` → CORE-78（CO-08拆出）；`recognition_counter`、`recognition_session`、`recognition_asset`、`cleanup_job`、`pending_cloud_job` → CORE-32。
+- 业务表归属（列、约束与索引在归属卡中定义，迁移文件由归属卡提交）：`formula_item`、`formula_revision`、`symbol_binding`、`user_unit`、`notation_profile`、`constant_set`、`derivation`、`mastery_cache` → CORE-14；`formula_draft` → CORE-61；`calculation_plan` → CORE-86（`0086_calculation_plan.sql`）；设备级 `pack_meta.db` 的 `installed_pack` → CORE-95（不在档案库）；`study_card`、`review_event` → CORE-17；`book`、`study_plan`、`study_session`、`attempt`、`confusable_group` → CORE-19 定义纯模型与 `0019_study.sql` DDL，CORE-82 实现仓储、codec/applier；`stats_cache` → CORE-20；`account_state` → CORE-23（设备级 `device_registry.db` 是独立小库，不在本库内）；`upgrade_journal`、`account_key_wrap`、`account_key` → CORE-24；`local_clock`、`field_clock` → CORE-13；`sync_quarantine`、`merge_choice` → CORE-26；`push_batch` → CORE-78（CO-08拆出）；`recognition_counter`、`recognition_session`、`recognition_asset`、`cleanup_job`、`pending_cloud_job` → CORE-85（五表 DDL 与仓储；CORE-32 保留纯模型与历史协议）。
 - 通用列约定：主键为 UUID 文本（小写带连字符）或整数；时间列为 `*_at_ms INTEGER`；布尔为 `INTEGER CHECK (x IN (0,1))`；JSON 列为 `TEXT` 且以 `_json` 结尾；所有外键 `ON DELETE RESTRICT`，启用 `PRAGMA foreign_keys = ON`。
 - 不进 outbox 的数据：识别历史、各类 cache、诊断、本机密钥、本地路径。
 - 资源包权威内容只存 `(pack_id, content_hash, entry_key)` 引用；CORE-14 可保存可重建的只读查询投影与全文索引，不作为用户修订、不进 outbox。长期保留或编辑时复制成用户修订。
@@ -113,5 +113,5 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-13_TEST.md](../Test/core/S2_CORE-13_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行（不含 DDL）；`crates/fml-store/`（本卡只写 crate 核心代码与 0013_core.sql 迁移；业务仓储子模块由归属卡编写）。
+**规模**：约 660 行；主包 `crates/fml-store/`（crate 核心代码，约 620；`0013_core.sql` 等 DDL 为数据不计，业务仓储子模块由归属卡编写），附属 `crates/fml-ffi/src/ops/store.rs`（store.open/close/integrity_check 处理，约 40）。分阶段：① 存储内核（打开与 SQLCipher、单写者、只读池、迁移执行器与 checksum 规则、build.rs、完整性检查、错误映射、表所有权元数据骨架、store.* 三个 op，约 405）；② 写事务、字段时钟与同步接缝（WriteTx/stamp、enqueue_outbox、tombstone、rotate_device_id、OutboxEntityCodec 含 list_entity_ids、requeue_outbox、EntityApplier 与注册表、合并时钟辅助、setting codec/applier，约 255）。
 

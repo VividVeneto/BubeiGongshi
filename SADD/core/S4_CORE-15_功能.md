@@ -1,12 +1,12 @@
-### CORE-15 资源包格式、验签与安装
+### CORE-15 资源包格式、验签与安全读取
 
-**目标**：定义与程序剥离的通用资源包格式，并在两端以同一实现完成验签、安全解包、原子激活与防回滚。
+**目标**：定义通用资源包格式与底层验签、安全解包/读取能力；安装激活恢复由CORE-95组合，在线信任由CORE-96处理。
 
 **范围**
-- 包含：包格式与 manifest、Ed25519 签名与条目哈希、安装 7 步、解包安全检查、激活指针与崩溃恢复、防降级与安全高水位、在线更新元数据校验、离线导入、包内资源读取 API、`pack.*` 处理与向 CORE-56 推送 Pack 层（`crates/fml-ffi/src/ops/pack.rs`）。
-- 不包含：包内容的制作与签名流水线（CORE-16）；包下载的 HTTP 调用（平台卡与 CORE-43 提供地址）；模型推理（CORE-35）。
+- 包含：包格式/manifest与共享运行时数据类型；Ed25519签名、版本/依赖/安全限额、路径与文件类型安全、流式解包/条目哈希复验；PackCatalog底层只读适配。
+- 不包含：安装七步/active指针/meta高水位/恢复卸载/pack四op与Pack层推送（CORE-95）；TUF及pack.check_updates（CORE-96）；制包签名流水线（CORE-16）；下载HTTP、模型推理。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-13、CORE-14、CORE-56
+**依赖**：CORE-01、CORE-02、CORE-14
 
 **接口契约**
 
@@ -56,21 +56,13 @@ pub struct PackOffer { pub pack_id: String, pub pack_version: semver::Version, p
                        pub url_path: String /* 相对 CDN 根，如 packs/<pack_id>/<version>.fmlpack */, pub size: u64, pub blake3: [u8; 32],
                        pub subject: String, pub education_level: String }
 pub fn verify_manifest(manifest: &[u8], sig: &[u8], root: &TrustRoot) -> Result<Manifest, FmlError>;
-pub fn install(file: &Path, packs_root: &Path, root: &TrustRoot, meta: &PackMetaStore, cancel: &CancelFlag) -> Result<InstalledPack, FmlError>;
-pub fn recover(packs_root: &Path, meta: &PackMetaStore) -> Result<Vec<InstalledPack>, FmlError>;  // 启动时清理 staging 与半成品
-pub fn open_entry(pack: &InstalledPack, logical_id: &str) -> Result<EntryReader, FmlError>; // 读取时再校验哈希
-pub fn verify_update_metadata(meta: &UpdateMetadata, root: &TrustRoot, now_ms: i64, last_seen: &SecurityState) -> Result<Vec<PackOffer>, FmlError>;
-pub type UninstallHook = Box<dyn Fn(&str /* pack_id */) -> Result<(), FmlError> + Send + Sync>;
-pub fn add_uninstall_hook(hook: UninstallHook);   // pack.uninstall 删除版本目录前按登记顺序调用；任一钩子出错则中止卸载并返回该错误
+pub fn open_entry(pack: &InstalledPack, logical_id: &str) -> Result<EntryReader, FmlError>; // EOF时复验BLAKE3
 ```
 
-- 安装步骤：① 写入 staging 并校验长度与整包哈希；② 先读 ≤ 1 MiB 的 manifest 并以内置公钥验签；③ 校验 format/app/core/ABI/AST 版本、依赖无环、`security_epoch` 不低于已记录值、`pack_version` 不低于已安装版本；④ 检查限额：条目 ≤ 10000、压缩后 ≤ 256 MiB、解压后 ≤ 512 MiB、单条目 ≤ 128 MiB（模型包例外须经 ADR）、压缩比 ≤ 100；⑤ 流式解压并逐条校验 BLAKE3；⑥ 写入按内容哈希命名的只读版本目录与完成标记并 fsync；⑦ 原子替换 `active.json` 指针并写 `installed_pack`。任一步失败保留旧包。
+- 本卡manifest/validate/extract/reader为底层模块，可由CORE-95调用；安全校验不能由安装层复制。CORE-15不调用CORE-95/96；共享SecurityState/UpdateMetadata/PackOffer仅是数据类型，持久化与处理分别归95/96。
+- 安全限额：manifest≤1MiB；条目≤10000、压缩后≤256MiB、解压后≤512MiB、单条目≤128MiB（模型例外须ADR）、压缩比≤100；按声明大小/实际流量双重检查，校验每条BLAKE3。版本兼容检查覆盖format/app/core/ABI/AST，依赖无环，拒绝远端旧包；当前版本/高水位由95传入，底层不自行打开meta。
 - 路径拒绝规则：绝对路径、`..`、盘符与 UNC、混用分隔符、重复路径、大小写冲突、NTFS 备用数据流、Windows 保留设备名、符号链接与重解析点。包内禁止 `.so`、`.dll`、`.exe`、脚本与模型自定义算子库。
-- 在线更新元数据：服务端发布带 root/targets/snapshot/timestamp 角色的 TUF 风格元数据，timestamp 有效期 ≤ 7 天；使用成熟 TUF 客户端实现，不自研协议；过期或时钟异常时暂停在线更新，已安装内容照常可用。
-- 回滚：内容回滚只允许回到本机已验证、未吊销、同 `security_epoch` 的上一可用版本；拒绝远端旧包。
-- 引擎层：第 ⑥ 步后读取新包的 `units`/`notation`/`constants`/`fonts` 条目（CORE-56 引擎数据格式），连同现有层调用 CORE-56 `compose` 试合成，失败按该 `ENGINE_DATA_*` 错误拒绝安装并保留旧包；⑦ 成功后 `set_layer(LayerSource::Pack)`。`pack.recover` 对每个已激活包同样设置层，`pack.uninstall` 删除目录前 `remove_layer`。不含引擎条目的包不设层。
-- FFI op：`pack.install`（长任务，请求 `{"file": "<staging 内绝对路径>", "expected_size"?: u64, "expected_blake3"?: "<64 位十六进制>"}`，在线安装由 CORE-51 按 PackOffer 填入，离线导入省略，此时只靠签名与条目哈希；响应 InstalledPack）、`pack.list`（响应 `[InstalledPack]`）、`pack.uninstall`（请求 `{pack_id}`；bootstrap 包与被依赖的包拒绝，返回 `PACK_DEP_MISSING`）、`pack.check_updates`（请求 UpdateMetadata 四个角色的 base64，由平台卡下载；响应 `[PackOffer]`，并持久化新的 SecurityState）、`pack.recover`（启动时调用，响应 `[InstalledPack]`）。
-- 表（本卡 `crates/fml-pack/migrations/0001_pack_meta.sql`）：`installed_pack`（`pack_id TEXT PK`，`pack_version TEXT NOT NULL`，`security_epoch INTEGER NOT NULL`，`content_hash TEXT NOT NULL`，`dir TEXT NOT NULL`（相对 `StoreArea.packs`），`manifest_json TEXT NOT NULL`，`installed_at_ms INTEGER NOT NULL`，`previous_version TEXT`）；SecurityState 存设备级 PackMetaStore（下述约定），绝不存账户 local_setting。
+
 - 错误码（触发条件）：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -87,25 +79,15 @@ pub fn add_uninstall_hook(hook: UninstallHook);   // pack.uninstall 删除版本
 | `PACK_FORBIDDEN_ENTRY` | error | 否 | 包含禁止的文件类型（按扩展名与魔数双重判断） |
 | `PACK_METADATA_EXPIRED` | error | 否 | timestamp 超过有效期，或本机时间早于 `last_seen_ms` 超过 24 h |
 
-- 启动恢复钩子（order 10）由 CORE-51 的 Dart 安装点 `installPacks` 向 CORE-04 FeatureRegistry 登记：调用 `pack.recover`；bootstrap 包缺失时以随应用分发的签名 bootstrap 包调用 `pack.install`；再 `pack.list` 刷新 PackService 状态。CORE-36 只调度已登记回调；S2/S3 未登记时引擎只用 CORE-56 内置层。
-
-```rust
-pub struct PackMetaStore { /* root(StoreArea.packs)/pack_meta.db，设备级 SQLite，无用户内容 */ }
-impl PackMetaStore { pub fn open(root: &Path) -> Result<Self,FmlError>; }
-```
-installed_pack 与 SecurityState 归此库，全设备共用，账户切换不复制。首次离线且尚无账户时先用 CORE-56 的编译期数据；order 10 钩子打开此库，并在缺失时安装内置签名 bootstrap-pack。高水位：SecurityState 另以 `StoreArea.packs/security_state.json`（schema=1，字段同 SecurityState）镜像，先写临时文件、刷盘后原子替换，再事务更新 pack_meta.db 与 active.json；生效高水位 = 库中值、镜像与已验证安装目录中 manifest 最大 security_epoch 的逐字段 max。`security_state.json` 不进入任何备份或回滚集合（WIN-16 只回滚 pack_meta.db 及其 WAL/SHM），因此恢复旧库不会降低高水位；两处都丢失时由已安装 manifest 推出 epoch 下限，TUF 版本号重新从已信任 root 开始，仍须通过签名与有效期校验。威胁边界：防备份恢复与程序回滚造成的降级，不防能任意改写本机应用数据目录的攻击者。`recover` 依据完成标记与 active.json 修正 installed_pack：指向的目录不完整，或其 min_app_version/min_core_version 高于当前程序时，回退到 previous_version 的完整目录，都不可用时回退到内置 bootstrap；修正不降低高水位。active.json 临时文件写入并刷盘后原子替换；失败保留旧可用指针。
-
-安装只更新设备目录与 meta，不遍历账户库。PackCatalog（CORE-14）适配器由本卡安装点提供，账号库打开/首次查询时发现 catalog generation 变化，才按 CORE-14 规则刷新该账户的只读投影。
-
-TUF 适配核实状态（A-32）：当前 `verify_update_metadata(now_ms)` 与 tough 内部时钟/datastore 的可替换性没有完成验证；此函数不能作为已闭合 sans-I/O 签名编码。M0须锁定tough版本并用官方源码验证load/expiration/datastore/逐版root轮换，提交可运行适配fixture后修订签名；在此之前CORE-15在线更新部分为外部前提阻断，不得关过期检查或自研TUF绕过。离线包验签不受此未决项阻止。
+错误码全集唯一保留本卡（含生命周期与TUF触发语义）；CORE-95/96只引用透传，不重复定义。表installed_pack、SecurityState持久库/镜像的唯一所有者迁CORE-95；本卡无DDL。
 
 **实现约束**
 - 验签在解包之前完成；bootstrap 包虽随安装包内置，也经同一加载器验签。
 - 开发构建可加载未签名包，发布构建编译期移除该路径。
-- 激活后旧版本目录在无读者句柄时才删除；Windows 上重命名失败时保留旧指针，延迟到下次启动激活。
-- 外部前提：`ed25519-dalek`、`blake3`、`zip`（只用读取与存储/deflate）、`semver`、TUF 客户端 `tough` crate，版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`；TrustRoot 公钥与私钥保管流程由 CORE-16 与 CORE-43 提供，发布前须登记首个 `key_id`。
+- 包内资源读取时按logical_id映射并在EOF复验；InstalledPack共享类型不代表已执行激活，完成状态由CORE-95保证。PackCatalog只读内容访问适配与字段归本卡，账户目录打开/更新通知由CORE-95安装点衔接，CORE-14负责投影。
+- 外部前提：ed25519-dalek/blake3/zip（只读及store/deflate）/semver按ADR-V5-15锁入Cargo.lock；TrustRoot与私钥流程由CORE-16/43提供，发布前登记首个key_id。TUF未决门槛完整迁CORE-96，不在本卡宣告闭合。
 
-**验收标准**：测试方案全文见 [Test/core/S4_CORE-15_TEST.md](../Test/core/S4_CORE-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
+**验收标准**：测试方案全文见 [Test/core/S4_CORE-15_TEST.md](../Test/core/S4_CORE-15_TEST.md)；修改本卡功能时同步修改该文件。
 
-**规模**：约 500 行；主包 `crates/fml-pack/`（约 450 行），附属：领域表迁移 `crates/fml-pack/migrations/0001_pack_meta.sql` 与仓储 `crates/fml-pack/src/meta.rs`（约 20 行，DDL 不计）、op 处理与 Pack 层推送 `crates/fml-ffi/src/ops/pack.rs`（约 30 行）。
+**规模**：约450行；主包 `crates/fml-pack/src/{manifest,validate,extract,reader,catalog}.rs`：manifest120、版本/依赖/限额80、安全解包180、读取/catalog70；无本卡FFI附属。清单/公钥/DDL/资源/生成物/自测不计。单阶段以底层验证/安全读取独立构建测试交付。原1090行另520归CORE-95、120归CORE-96。
 

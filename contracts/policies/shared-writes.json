@@ -148,7 +148,7 @@
     {
       "kind": "error",
       "key": "PARSE_UNICODE_NOT_EXPORTABLE",
-      "owner": "CORE-06",
+      "owner": "CORE-92",
       "point": "contracts/errors/registry.yaml"
     },
     {
@@ -376,24 +376,12 @@
     {
       "kind": "error",
       "key": "STUDY_REVISION_NOT_VERIFIED",
-      "owner": "CORE-17",
+      "owner": "CORE-80",
       "point": "contracts/errors/registry.yaml"
     },
     {
       "kind": "error",
       "key": "STUDY_RETENTION_OUT_OF_RANGE",
-      "owner": "CORE-17",
-      "point": "contracts/errors/registry.yaml"
-    },
-    {
-      "kind": "error",
-      "key": "STUDY_OPTIMIZE_TOO_SOON",
-      "owner": "CORE-17",
-      "point": "contracts/errors/registry.yaml"
-    },
-    {
-      "kind": "error",
-      "key": "STUDY_INSUFFICIENT_REVIEWS",
       "owner": "CORE-17",
       "point": "contracts/errors/registry.yaml"
     },
@@ -586,7 +574,7 @@
     {
       "kind": "error",
       "key": "SYNC_MERGE_CONFLICT",
-      "owner": "CORE-24",
+      "owner": "CORE-83",
       "point": "contracts/errors/registry.yaml"
     },
     {
@@ -1138,7 +1126,7 @@
     {
       "kind": "startup",
       "key": "30",
-      "owner": "CORE-46",
+      "owner": "CORE-99",
       "point": "FeatureRegistry.startupHooks"
     },
     {
@@ -1288,7 +1276,7 @@
     {
       "kind": "installer",
       "key": "installFormulaCopy",
-      "owner": "CORE-52",
+      "owner": "CORE-91",
       "point": "own feature install.dart"
     },
     {
@@ -1335,8 +1323,8 @@
     },
     {
       "kind": "installer",
-      "key": "installWindowsImport",
-      "owner": "WIN-04",
+      "key": "installWindowsDrop",
+      "owner": "WIN-19",
       "point": "own feature install.dart"
     },
     {
@@ -1504,13 +1492,13 @@
     {
       "kind": "error",
       "key": "EVAL_NO_CONVERGE",
-      "owner": "CORE-10",
+      "owner": "CORE-93",
       "point": "contracts/errors/registry.yaml"
     },
     {
       "kind": "error",
       "key": "EVAL_NEEDS_INTERVAL",
-      "owner": "CORE-10",
+      "owner": "CORE-93",
       "point": "contracts/errors/registry.yaml"
     },
     {
@@ -1534,7 +1522,7 @@
     {
       "kind": "error",
       "key": "EVAL_MULTI_BRANCH",
-      "owner": "CORE-10",
+      "owner": "CORE-93",
       "point": "contracts/errors/registry.yaml"
     },
     {
@@ -1684,7 +1672,7 @@
     {
       "kind": "route",
       "key": "/study",
-      "owner": "CORE-39",
+      "owner": "CORE-89",
       "point": "app/lib/composition/routes.dart"
     },
     {
@@ -1696,19 +1684,19 @@
     {
       "kind": "route",
       "key": "/study/reminder",
-      "owner": "CORE-49",
+      "owner": "CORE-90",
       "point": "app/lib/composition/routes.dart"
     },
     {
       "kind": "route",
       "key": "/study/books/new",
-      "owner": "CORE-49",
+      "owner": "CORE-90",
       "point": "app/lib/composition/routes.dart"
     },
     {
       "kind": "route",
       "key": "/study/books/:bookId/edit",
-      "owner": "CORE-49",
+      "owner": "CORE-90",
       "point": "app/lib/composition/routes.dart"
     },
     {
@@ -1739,6 +1727,54 @@
       "kind": "route",
       "key": "/packs",
       "owner": "CORE-51",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installEditorInput",
+      "owner": "CORE-87",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installKeys",
+      "owner": "CORE-98",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
+      "key": "installUpgrade",
+      "owner": "CORE-99",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library/new",
+      "owner": "CORE-88",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/library/:itemId/edit",
+      "owner": "CORE-88",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/session/:id",
+      "owner": "CORE-39",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/books",
+      "owner": "CORE-89",
+      "point": "app/lib/composition/routes.dart"
+    },
+    {
+      "kind": "route",
+      "key": "/study/plan/:bookId",
+      "owner": "CORE-89",
       "point": "app/lib/composition/routes.dart"
     }
   ]

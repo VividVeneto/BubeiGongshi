@@ -4,9 +4,9 @@
 
 **范围**
 - 包含：代入候选排序、符号代入（变量换名防捕获、条件与分支）、推导链记录、脱离溯源、循环与深度检测、`CalculationPlan` 计算链与重放。
-- 不包含：候选的全文检索与持久化（CORE-14 提供候选集合）；界面（CORE-38）。
+- 不包含：候选的全文检索与持久化（CORE-79 提供候选集合；下游说明，非契约；本卡纯函数只接收调用方传入的 pool）；界面（CORE-38）。
 
-**依赖**：CORE-01、CORE-02、CORE-05、CORE-09、CORE-10、CORE-56、CORE-77
+**依赖**：CORE-01、CORE-02、CORE-05、CORE-09、CORE-10、CORE-56、CORE-77、CORE-93
 
 **接口契约**
 
@@ -33,7 +33,7 @@ pub struct PlanStep { pub revision: RevisionId, pub inputs: Vec<Assignment>, pub
 pub fn run_plan(plan: &CalculationPlan, revs: &dyn RevisionLookup, units: &dyn UnitRegistry, cancel: &CancelFlag) -> Result<Vec<CalcResult>, FmlError>;
 ```
 
-- FFI op：`derive.rank`、`derive.substitute`、`derive.run_plan`（同步；DTO 按 CORE-03 映射规则，`derive.rank` 的候选池由 CORE-14 `library.substitution_pool` 提供）。
+- FFI op：`derive.rank`、`derive.substitute`、`derive.run_plan`（同步；DTO 按 CORE-03 映射规则，`derive.rank` 的候选池由 CORE-79 `library.substitution_pool` 提供）。
 - 错误码（唯一定义；沿用原触发语义）：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -70,5 +70,5 @@ rank_candidates不返回业务Err；对每个候选新建 `Subst`，按 CORE-77 
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-11_TEST.md](../Test/core/S1_CORE-11_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 360 行；主包 `crates/fml-derive/`（算法/纯查询300；不含测试约120），附属 `crates/fml-ffi/src/ops/derive.rs`（快照注入及三个op60）；不含计划持久化。
+**规模**：约725行，分阶段：①本卡类型、候选排序、代入/防捕获/重校验和安全检查485行；②CalculationPlan重放130行及三个FFI op/数组Lookup110行，共240行；主包crates/fml-derive/615行，附属crates/fml-ffi/src/ops/derive.rs 110行；持久化与自测不计。 阶段独立构建/测试：①纯候选与代入（485行）：纯算法入口可直接构造Lookup验证，crate独立构建；不注册尚未交付op。；②计划与FFI（240行）：补计划重放并注册全部op，验证缺/重复ID、快照失败和透传诊断。
 

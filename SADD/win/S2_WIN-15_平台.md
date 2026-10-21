@@ -187,5 +187,5 @@ LibraryBatchCommands（CORE-58）只在库列表scope生效、编辑文本焦点
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-15_TEST.md](../Test/win/S2_WIN-15_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；`app/lib/platform/windows/interaction/`（约 260 行）、`app/windows/runner/interaction_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 120 行），同属 `app/` 构建单元；不含测试 `app/integration_test/windows/interaction_test.dart`（约 60 行）。
+**规模**：约 690 行；`app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/windows/runner/flutter_window.cpp`、`app/`、`app/integration_test/windows/interaction_test.dart`。组件估算：KeyChord规范编解码/值相等约 110 行，StudyKeymap/标签/唯一router与scope约 165 行，平台source/偏好/标题栏Dart约 140 行，DWM/最小尺寸/设置事件/诊断原生约 240 行，安装/runner接入/订阅清理约 35 行。分阶段：① KeyChord、router与接入约 310 行；② 源文件与原生适配约 380 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

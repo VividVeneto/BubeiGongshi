@@ -10,7 +10,8 @@
 
 **接口契约**
 
-`node tools/sadd/pack.mjs <卡号> [--out <目录>] [--sadd <SADD目录>] [--file <已有实现或契约文件>]`。
+`node tools/sadd/pack.mjs <卡号> [--out <目录>] [--sadd <SADD目录>] [--file <已有实现或契约文件>] [--with-tests] [--check-budget]`。
+测试方案（2026-10-21 起，README §8.1 第 7 项）：默认不收录 `Test/`，材料中所有卡的“验收标准”只保留引用行，头部说明目标卡测试方案路径，report.tests 为 `"excluded"`；`--with-tests` 时按引用把测试方案拼回各卡（report.tests 为 `"included"`），用于原卡变更或按卡写测试的编码会话。导出函数 `load(sadd, {tests})`、`pack(id, {withTests})` 同此语义。
 输出 `material.md`（总材料）、`report.json`（字符数、依赖闭包、每卡裁剪前后、保留标识符、闭包外引用、未创建文件、待人工核实标识符）、`part-N.md`（按段落、表格、完整代码块无损分段）。字符数按 Unicode code point；单段上限 80000；总材料超限报警，不能把单个分段视为完整材料。
 目标全文、直接依赖及 CORE-01/02 完整契约不裁剪。间接依赖只选择“定义”了所需标识符的完整代码块/表格/段落（struct/enum/class/trait/type/typedef/interface/mixin/union/mod 声明、impl/extension 块、const、表格首列、行首 op 名），新收块中的标识符继续传递，递归到不再增加符号；绝不剪开定义；只提到所需标识符而不定义它的块不收录，report.manifest[].mentionOnly 记其块数。目标显式引用的闭包外卡默认取完整契约并报警；只有每一处引用所在行均明确标“下游说明，非契约”或“只读样本”时，才保留目标原行而不反向展开该卡契约，report.classifiedReferences记录证据。同卡还有未分类引用时仍保守收全。README §5 需求行、§6 影响行/引用行、锁文件、`--file` 指定的现有实现一并收录；附录 A 只收录目标卡与直接依赖收录文本引用的 ADR 行、“模块卡”列含目标卡的 ADR 行（附表头）及引用目标卡或这些 ADR 的补充章节全文；缺文件明确列未创建。
 未定义标识符启发式扫描只给 warning：SDK 与第三方符号必须由复核人核实来源，不允许自动当成已定义。卡不存在、循环依赖、目录穿越、单个不可分块超过 80000 时非零退出。
@@ -28,5 +29,5 @@ P2材料控制：间接符号选择只连接类型/错误码/op身份，不用pr
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-57_TEST.md](../Test/S0/S0_CORE-57_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；主包 `tools/sadd/pack.mjs`（约420，按 2026-10-21 实际行数；不含测试 pack.test.mjs 约280）；current/stats/audit及其测试唯一归CORE-76（下游说明，非契约），本卡不重复实现。
+**规模**：约430行；tools/sadd/pack.mjs及本卡自行编写的打包辅助/调用接入行；不计自测、夹具、卡片/契约/schema数据和打包生成物；README §7.1列明的layout/split/split-tests/cardiff及tools/DTOcheck/不归本卡、不计本卡规模。
 

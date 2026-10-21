@@ -101,5 +101,5 @@ abstract interface class CloudRecognitionService implements ConsentVerifier {
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-34_TEST.md](../Test/core/S5_CORE-34_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行；`app/lib/recognition/cloud/`。
+**规模**：约650行，分阶段：①模型、政策/同意、预览令牌与提交400行；②watch/取消150、pending恢复60、安装/账户/生命周期接入40，共250行；主包app/lib/recognition/cloud/及本卡聚合接入，无跨构建单元附属；自测与生成DTO不计。 阶段独立构建/测试：①政策授权与显式提交（400行）：以FakeHttpTransport验证用户显式动作、单次令牌、幂等业务键；提交返回job后持久化pending，不声称自动恢复已完成。；②观察恢复与安装（250行）：加流/退避/前后台/恢复钩子，验证重启无POST、断网不结束、终态关闭。
 

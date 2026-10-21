@@ -42,7 +42,7 @@ String appDirFile(String name) => File(Platform.resolvedExecutable).parent.uri.r
 PlatformPorts buildWindowsPorts();
 // 每个端口字段一行：初始全部为 CORE-04 的 Unsupported 占位Xxx，并 debugPrint('port <字段名>: unsupported')；camera 恒为 WIN-04 的不支持实现（WIN-04 完成前用 UnsupportedCamera）。
 // platformInstallers 初始为 const []；后续卡按下文最终顺序表接入。
-// WIN-04～WIN-10 实现某端口时只替换该字段对应的一行；替换与追加行不计入该卡规模，也不视为跨构建单元。
+// WIN-04～WIN-10 实现某端口时只替换该字段对应的一行；替换与追加行计入对应功能卡规模，不重复计入本卡骨架；仍属同一构建单元。
 ```
 
 ```text
@@ -62,6 +62,7 @@ app/windows/
 - 本卡不新增错误码；核心加载失败与 ABI 不符由 CORE-04 `runPlatformApp` 处理。
 
 **runner 公共约定（ADR-V5-37）**
+- 下游接入说明（非本卡依赖）：WIN-04的RegisterFilesChannel唯一注册fml/windows/files；WIN-19的RegisterImageDropChannel唯一注册fml/windows/drop及可注销拖放delegate。聚合维护者合入OnCreate/CMake，接入行各计对应特性卡；不得在同一通道覆盖handler。
 - WIN-01 唯一维护 flutter_window.cpp；每卡只追加 `RegisterXxxChannel(messenger, topHwnd, viewHwnd)` 一行。topHwnd 是 Win32Window 顶层窗口；viewHwnd 取 `controller->view()->GetNativeWindow()`，不得混用。
 - 通道 handler、MethodResult 回复、EventSink/InvokeMethod 均在平台线程执行。工作线程仅计算/复制，把含 request_id 的结果放进互斥队列，再 PostMessage(topHwnd, WM_APP+1,0,0) 唤醒；唯一调度 delegate 在平台线程取结果并回复一次。PostMessage 失败须回收结果；窗口关闭后丢弃未回复请求，不访问 messenger。
 - 顶层消息每卡登记 RegisterTopLevelWindowProcDelegate，保存 token，关闭时注销。子视图消息须由本卡可移除的 SetWindowSubclass 转发到对应模块；不得替换引擎 WndProc，不在工作线程直接访问 HWND 对象所有者。消息只观察返回 nullopt，消费才返回 LRESULT。
@@ -76,7 +77,7 @@ app/windows/
 | 2 | installWindowsInteraction（WIN-15） | 取得prefs，唯一ShellKeyHandler |
 | 3 | installWindowsStorage（WIN-07） | SettingsSections |
 | 4 | installWindowsEditing（WIN-08） | attach到WIN-15 |
-| 5 | installWindowsImport（WIN-04） | 注册拖放 |
+| 5 | installWindowsDrop（WIN-19） | 注册拖放 |
 | 6 | installWindowsClipboard（WIN-05） | 注册公式复制 |
 | 7 | installWindowsTray（WIN-09） | 取得WIN-06 shell/prefs |
 | 8 | installWindowsKeymap（WIN-14） | 编辑/学习键位均已登记 |
@@ -95,5 +96,5 @@ app/windows/
 
 **验收标准**：测试方案全文见 [Test/S0/S0_WIN-01_TEST.md](../Test/S0/S0_WIN-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行（CMake、runner 修改、入口与组装）；`app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart`（同属 `app/` 构建单元）。
+**规模**：约 310 行；`app/windows/`、`app/lib/main_windows.dart`、`app/lib/composition/ports_windows.dart`、`app/`。组件估算：Cargo/CMake可执行构建规则约 70 行，runner模板补丁/DLL安全/调度与退出约 180 行，Dart入口/参数/聚合骨架约 60 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

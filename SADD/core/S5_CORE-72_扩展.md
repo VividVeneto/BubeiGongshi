@@ -13,10 +13,10 @@ psql --set=ON_ERROR_STOP=1 --set=provider_id=<已配置id> --set=day=YYYY-MM-DD 
 
 **实现约束**
 - 只供运维经数据库受控账号执行；不可写用户图片/识别文本；先核对UNKNOWN/迟到回执再解除。
-- 逐文件估算：SQL50、参数预检/受控调用50、PostgreSQL容器测试100、checklist20，合计220；文档不计代码行。
+- 逐文件估算：SQL50、参数预检/受控调用50，合计100；测试、checklist 与文档不计代码行。
 - 外部前提：CORE-33迁移与测试PostgreSQL；真实运维账号/供应商对账由甲方提供。
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-72_TEST.md](../Test/core/S5_CORE-72_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 220 行；主包 `server/`（ops/脚本与同构建单元数据库测试）。
+**规模**：约 100 行；主包 `server/ops/`（clear_recognition_breaker.sql 与参数预检/受控调用脚本）。
 

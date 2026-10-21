@@ -48,5 +48,5 @@ tools/release/windows/（PowerShell 7 与 Python 3；退出码约定同 CORE-42�
 
 **验收标准**：测试方案全文见 [Test/win/S7_WIN-12_TEST.md](../Test/win/S7_WIN-12_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 250 行；`tools/release/windows/`。
+**规模**：约 445 行；`tools/release/windows/`。组件估算：构建及Inno/签名编排约 85 行，签名与自有/依赖PE验证约 150 行，制品门禁约 115 行，PDB哈希归档约 45 行，更新清单与pin代码生成约 50 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

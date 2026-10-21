@@ -22,5 +22,5 @@ List<GoRoute> accountRoutes(AppDeps deps);
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-63_TEST.md](../Test/core/S2_CORE-63_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行；主包 `app/lib/account/pages/`、`app/lib/ui/account/`（含测试与必要的同构建单元接缝）。
+**规模**：约 420 行；主包 `app/lib/account/pages/`、`app/lib/ui/account/`。
 

@@ -6,7 +6,7 @@
 - 包含：导入四步向导、报告导出、用户单位增删与路由。
 - 不包含：依赖卡已定义的业务算法、存储与平台能力；不修改其契约。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-08、CORE-14、CORE-36、CORE-55、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-08、CORE-14、CORE-36、CORE-55、CORE-58、CORE-79
 
 **接口契约**
 
@@ -28,11 +28,11 @@ List<GoRoute> libraryToolsRoutes(AppDeps deps);
 静态路由 `/library/import`、`/library/units` 先于 `/library/:itemId` 注册。
 
 **实现约束**
-- 导入步骤为选择→前20行预览→可取消运行→报告；错误显示只复用 CORE-14/CORE-04/CORE-08。单位算法与持久化只经 CORE-14 op。
+- 导入步骤为选择→前20行预览→可取消运行→报告；错误显示只复用 CORE-79（导入）、CORE-14（单位持久化）、CORE-04/CORE-08。单位算法与持久化只经 CORE-14 op。
 - 控件取 CORE-58、令牌取 CORE-55；平台只经端口。
 - 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
 
 **验收标准**：测试方案全文见 [Test/core/S3_CORE-60_TEST.md](../Test/core/S3_CORE-60_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 320 行；主包 `app/lib/library/import/`、`app/lib/library/units/`、`app/lib/ui/library/import/`、`app/lib/ui/library/units/`（含测试与必要的同构建单元接缝）。
+**规模**：约 420 行；主包 `app/lib/library/import/`、`app/lib/library/units/`、`app/lib/ui/library/import/`、`app/lib/ui/library/units/`。
 

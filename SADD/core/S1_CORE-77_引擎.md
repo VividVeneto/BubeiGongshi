@@ -54,9 +54,9 @@ pub fn unify(a: &DimExpr, b: &DimExpr, s: &mut Subst) -> Result<(), UnifyError>;
 **实现约束**
 - 纯函数，无 I/O、无浮点；`#![forbid(unsafe_code)]`；依赖仅 `fml-ast`（`MathKind`）、`fml-units`（`Rational`、`DimensionFull`）与 `fml-error`（通用例外，CORE-01 规则 1）。
 - 代换内部结构不得出现在公共 API 或 DTO；`bindings()` 只读视图。
-- 外部前提：`serde`（derive 特性）；dev-dependency：属性测试库 `proptest`、`serde_json`、JSON Schema 2020-12 校验库（须能注册 CORE-67 的 `int128`/`positive-int128` 自定义 format）；版本均由首张使用卡按 ADR-V5-15 锁入 `Cargo.lock`；`rust-toolchain.toml` 由 CORE-01 锁定。
+- 外部前提：`serde`（derive 特性）；dev-dependency：属性测试库 `proptest`、`serde_json`、JSON Schema 2020-12 校验库（须能注册 CORE-100 的 `int128`/`positive-int128` 自定义 format）；版本均由首张使用卡按 ADR-V5-15 锁入 `Cargo.lock`；`rust-toolchain.toml` 由 CORE-01 锁定。
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-77_TEST.md](../Test/core/S1_CORE-77_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 230 行（不含测试约 170 行）；`crates/fml-type/src/dim.rs`（含 crate 骨架与测试，及必要的同构建单元接缝）。
+**规模**：约 335 行；主包 `crates/fml-type/`（`src/dim.rs` 与 crate 骨架 `Cargo.toml`、`src/lib.rs`）。
 

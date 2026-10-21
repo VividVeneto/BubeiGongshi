@@ -63,5 +63,5 @@ API34+系统不再承诺发送运行中RUNNING_LOW/CRITICAL；模型回收仍依
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-05_TEST.md](../Test/and/S2_AND-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 250 行；`app/lib/platform/android/lifecycle/` 与 MainActivity 中的通道代码（同属 `app/` 构建单元）。
+**规模**：约 190 行；`app/lib/platform/android/lifecycle/`、`app/`。组件估算：Dart生命周期与RuntimeInfo约 80 行，Kotlin事件、内存去重与诊断约 85 行，恢复配置和模块接入约 25 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

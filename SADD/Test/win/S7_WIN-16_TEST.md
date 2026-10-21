@@ -8,4 +8,5 @@
 - [R23][R27] N 崩溃/超时恢复后数据库哈希与快照一致；模拟 TerminateProcess 后句柄仍未结束不改库；5 次 rename 失败进入救援，保留 C 与唯一备份，不启动损坏库。
 - [R23][R27] 陈旧 healthy/opened、错误 nonce、错误版本均不能提交或清理；首帧完成后停在账户入口超过 120 s 不回滚；提交后档案始终未打开时备份与 app-C 保留，第 4 次启动出现恢复对话框，选择恢复后数据库哈希与快照一致；--minimized 同样通过。
 - [R23] 安装模式校验 PID 创建时间、armed 确认、30 s 超时与 Inno 非零退出（写 update-failed.txt 并提示，current/pending 不变）；只有旧进程结束后启动安装器；成功后不自动启动应用且 pending=N。
-- [R23] journal、manifest、healthy/opened、update-failed 与黄金文件逐字节一致；截断、含未知键或 schema=2 的 journal 进入救援且不改文件；其他进程抢先创建同名管道时客户端拒绝；verifying 期间 `--register-install` 返回 1 且文件不变。
+- [R23] 其他进程抢先创建同名管道时客户端拒绝；verifying期间 `--register-install` 返回1且文件不变。控制文件黄金向量/损坏拒绝归WIN-20测试，本卡仍验证端口失败转救援。
+- [R23] Fake LauncherStorage记录控制文件访问；idle/nullopt、缺失/陈旧healthy/opened、匹配N/nonce及转发10均经端口；StorageFailure按类型捕获触发救援，不出现绕开端口的控制文件I/O。

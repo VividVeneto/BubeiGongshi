@@ -117,7 +117,7 @@ core.log_init目标目录不可写或日志文件创建失败复用CORE-04 PLATF
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-28_TEST.md](../Test/core/S2_CORE-28_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 480 行；主包 `app/`（`app/lib/privacy/` 与测试，约 400 行）；附属：`crates/fml-error/src/log.rs`（约 80 行，Rust 侧日志写入与 `core.log_init`）。
+**规模**：约 600 行；主包 `app/lib/privacy/`（约 495），附属 `crates/fml-error/src/log.rs`（Rust 侧日志写入，约 85）与 `crates/fml-ffi/src/ops/log.rs`（core.log_init 薄适配，约 20）。分阶段：① 网络守卫与结构化日志（network_guard、安装点、AppLog、log.rs、core.log_init，约 425）；② 复现包与调试面板数据源（repro.dart、debug_info.dart，约 175）。
 
 ---
 

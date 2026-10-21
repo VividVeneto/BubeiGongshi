@@ -3,10 +3,10 @@
 **目标**：提供识别主页面与路由、候选选择与逐符号校正、保存到公式库、云识别功能级同意页与逐次上传预览页，以及识别历史页。
 
 **范围**
-- 包含：识别主页面（按 `RecognitionFlow.step` 切换子页面，入口选择手写 / 导入）；候选页（Top-3、逐符号替换、保存前完整校验、保存到公式库或复制公式（CORE-59 `FormulaCopyButton`））；云识别同意页（供应商、模型版本、地区、保留期、是否用于训练、年龄与监护人确认）；上传预览页（实际上传图片、尺寸与字节数、政策摘要、今日剩余额度）；识别历史页（分页列表、Pin、查看、删除、一键清空、“识别图片已清理”）。
+- 包含：识别主页面（按 `RecognitionFlow.step` 切换子页面，入口选择手写 / 导入）；候选页（Top-3、逐符号替换、保存前完整校验、保存到公式库或复制公式（CORE-87 `FormulaCopyButton`））；云识别同意页（供应商、模型版本、地区、保留期、是否用于训练、年龄与监护人确认）；上传预览页（实际上传图片、尺寸与字节数、政策摘要、今日剩余额度）；识别历史页（分页列表、Pin、查看、删除、一键清空、“识别图片已清理”）。
 - 不包含：流程编排、画布与裁剪（CORE-40）；历史保留设置（CORE-47）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-31、CORE-32、CORE-34、CORE-36、CORE-37、CORE-38、CORE-40、CORE-55、CORE-59、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-31、CORE-32、CORE-34、CORE-36、CORE-37、CORE-38、CORE-40、CORE-55、CORE-59、CORE-58、CORE-87、CORE-88
 
 **接口契约**
 
@@ -50,8 +50,8 @@ final class HistoryVm extends ChangeNotifier {
 }
 final class HistoryDetail { final SessionSummaryDto summary; final String? confirmedImagePath; final List<CandidateDto> candidates; final bool imageLost; }
 
-// app/lib/recognition/pages/drop.dart（接缝；WIN-04 实现时只 import 此文件）
-abstract interface class ImageDropSource {          // 平台卡经 platformInstallers 登记（WIN-04）；未登记时识别页不响应拖放
+// app/lib/recognition/pages/drop.dart（接缝；WIN-19 实现时只 import 此文件）
+abstract interface class ImageDropSource {          // 平台卡经 platformInstallers 登记（WIN-19）；未登记时识别页不响应拖放
   Stream<DroppedImages> drops({Future<bool> Function(int count, int bytes, int other)? confirmFolder}); }
 final class DroppedImages { final List<ImportedImage> images /* 0–10，0只提示跳过 */; final int skippedNotImage, skippedOverLimit; }
 
@@ -90,7 +90,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - 拖放：`RecognizePage` 可见时订阅 `features.get<ImageDropSource>()?.drops()`，通过confirmFolder回调显示共享确认框“将导入n张图片（约x MB），跳过m个其他文件”；拒绝不复制。收到非空images才 `flow.startImages(images, InputSourceDto.dragDrop)`，空批次只提示；`skippedNotImage` 或 `skippedOverLimit` 非 0 时提示“已导入 n 张，跳过 a 个非图片文件、b 张超出上限”。
 - 候选页显示 Top-3（不足 3 个按实际数），默认选中第 1 个；查找模式可显示置信度分档（高 / 中 / 低），作答模式不经过本页（CORE-40 自带转写确认）。
 - 逐符号校正：点公式中的符号显示 `alternatives` 与“自定义”输入；每次替换后重新 `final_check`，Error 级诊断阻止保存。
-- 保存：经 CORE-38 新建页（预填 LaTeX）完成，本卡不直接写公式库；新建页返回 `Saved` 后由本卡调用 `recog.adopt`（会话标记 Adopted，不受次数 GC）；返回 null 表示用户放弃。
+- 保存：经 CORE-88 新建页（预填 LaTeX）完成，本卡不直接写公式库；新建页返回 `Saved` 后由本卡调用 `recog.adopt`（会话标记 Adopted，不受次数 GC）；返回 null 表示用户放弃。
 - 同意页：未勾选年龄问题不可提交；选“未满 14 周岁”时必须勾选监护人同意；拒绝后返回后端选择且本次不再提示。
 - 预览页显示的图片就是 `UploadPreview.image` 文件（同一哈希）；剩余额度为 0 时“上传识别”禁用并说明次日重置。
 - 历史页：按序号倒序；Pinned 置顶标记；`has_images = false` 的项显示“识别图片已清理”；游客与注册用户界面一致，但游客永不出现云端标识。
@@ -99,5 +99,5 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-50_TEST.md](../Test/core/S5_CORE-50_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 480 行；用例/状态目录 `app/lib/recognition/pages/`；`app/lib/ui/recognition/pages/`。
+**规模**：约780行，分阶段（Ⅰ 来源流程/drop、候选VM/UI及接入约355行；Ⅱ 云同意/预览、历史VM/UI、存储压力保护及接入约425行；各阶段可独立构建与测试）；app/lib/recognition/pages/、app/lib/ui/recognition/pages/及本卡编写的composition接入行；不计自测、夹具、schema与生成物。
 
