@@ -41,7 +41,7 @@ pub trait RevisionAnalyzer {
 - FTS 能力依据 SQLite 官方 https://sqlite.org/fts5.html#the_trigram_tokenizer：少于3个标量的 MATCH 不命中，故必须有上述 LIKE 路径；两路径都参数化，不能把用户文本直接拼成 SQL。
 
 - 唯一登记op：`library.search`（SearchQuery→Page<ItemSummary>）、`library.diff`（两RevisionId→RevisionDiff）、`library.substitution_pool`（`{slot,limit}`，默认50、上限200，返回candidates_for结果供CORE-11排序）、`library.import`（ImportSource→ImportReport，长任务）。DTO字段与原结构同名，CORE-03映射；条目/历史/恢复op仍归CORE-14。
-- 导入与重解析只经RevisionAnalyzer。trait定义在本卡；实现位于本卡编写的`crates/fml-ffi/src/ops/library_analysis.rs`，取得CORE-56同一Arc快照后复用其parse→bind→check分析函数；snapshot()?、unavailable与expected_generation检查均在领域调用前。CORE-26的同步重解析复用该适配，不复制分析链路。fml-store只收trait对象，禁止依赖fml-ffi或全局EngineContext；本卡依赖字段写CORE-56而不直列CORE-06/07/09。
+- 导入与重解析只经RevisionAnalyzer。trait定义在本卡；实现位于本卡编写的`crates/fml-ffi/src/ops/library_analysis.rs`，取得CORE-56同一Arc快照后复用其parse→bind→check分析函数；snapshot()?、unavailable与expected_generation检查均在领域调用前。本适配在 Store.read 闭包中取得导入所需用户声明/方案/单位只读副本后释放读锁，再调用 CORE-56 的纯 analyze_source；不接收 WriteTx/Connection，不得在同步写事务内调用。CORE-26/66 的同步重解析改用 CORE-13 RemoteRevisionAnalyzer 接缝及各自 S6 事务适配；只共享 CORE-56 纯函数，不复用本 Store.read 适配，也不形成本卡对同步卡的依赖（下游说明，非契约）。fml-store只收trait对象，禁止依赖fml-ffi或全局EngineContext；本卡依赖字段写CORE-56而不直列CORE-06/07/09。
 - 导入把成功分析结果交CORE-14写入；失败行不写，rejected保留原行号/Diagnostic；Validation保存映射、标签校验、changed_fields/Store.write/enqueue_outbox全部复用CORE-14/13。重放与缓存不冒充用户编辑。源码/AST diff由本卡自行实现，未经锁版不引入第三方diff crate。
 - SQL触发器、FTS投影表与其他DDL继续留0014_library.sql，检索和导入代码归本卡，不重复预算DDL或CORE-14写仓储。
 

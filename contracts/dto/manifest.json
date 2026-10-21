@@ -23,6 +23,7 @@
       "schema": "account.create_guest.schema.json",
       "error_codes": [
         "AUTH_GUEST_EXISTS",
+        "CRYPTO_RNG_FAILED",
         "STORE_BUSY",
         "STORE_CORRUPT",
         "STORE_DISK_FULL"
@@ -40,6 +41,7 @@
       "schema": "account.create_registered.schema.json",
       "error_codes": [
         "AUTH_PROFILE_EXISTS",
+        "CRYPTO_RNG_FAILED",
         "STORE_BUSY",
         "STORE_CORRUPT",
         "STORE_DISK_FULL"
@@ -98,6 +100,7 @@
       "error_codes": [
         "AUTH_LOCKED",
         "AUTH_NO_PROFILE",
+        "CRYPTO_RNG_FAILED",
         "STORE_BUSY",
         "STORE_CORRUPT",
         "STORE_DISK_FULL",
@@ -1406,6 +1409,7 @@
       "scope": "device",
       "schema": "store.open.schema.json",
       "error_codes": [
+        "CRYPTO_RNG_FAILED",
         "STORE_BUSY",
         "STORE_CORRUPT",
         "STORE_DISK_FULL",

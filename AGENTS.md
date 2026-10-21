@@ -42,6 +42,8 @@
 5. Dart 分层：`app/lib/ui/<feature>/` 只放 Widget、绘制与路由视图，不 import `binding/`（仅 CORE-67 生成的纯数据 `binding/dto/*.g.dart` 可只读 import）、`platform/` 或发起 HTTP；`app/lib/<feature>/` 放 ViewModel、用例、Controller、Worker 与 DTO，可持有 CoreBinding；`composition/` 构造与注入服务，平台实现只经端口调用；共享界面不得判断平台。
 6. 平台层不得实现公式解析、量纲与单位换算、排版布局、FSRS 调度、同步合并、资源包验签。
 
+骨架与策略速查：CORE-01首次只建`crates/*`与最小fml-error文档/lint骨架，正式错误模型归CORE-02；server由CORE-22创建时追加workspace成员。CORE-01定义并交付dep-allow.yaml、dep6_symbols.txt、platform-check-patterns.json、network-construction.yaml四份架构policy，CORE-69消费，不另维护白名单。锁版查询日期统一在tools/toolchain.versions的queried_date记录，Flutter版本文件仍只有版本。
+
 ## 提交约定（CORE-01）
 
 - Conventional Commits：`<type>(<模块编号小写>): <摘要>`，如 `feat(core-05): 定义公式 AST 节点`；type 取 feat、fix、refactor、perf、test、docs、build、ci、chore。

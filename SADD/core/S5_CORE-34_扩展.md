@@ -6,7 +6,7 @@
 - 包含：拉取供应商政策与配额、功能级同意（按 backend 与 `policy_version` 各一次，含年龄自我声明与监护人确认）、远程后端描述符登记（`recog.register_remote`）、逐次上传预览与确认、`ConsentToken` 签发与校验（实现 CORE-28 `ConsentVerifier`）、调用 CORE-33 接口、状态映射与识别会话状态推进、取消、启动时恢复 `pending_cloud_job`、失败回退到手工或本地。
 - 不包含：HTTP 传输实现（AND-09、WIN-10）；同意页与预览页的界面（CORE-40，本卡只提供数据与动作）；监护人身份核验（V1 不做，见 README §6 Q14）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-22、CORE-23、CORE-28、CORE-30、CORE-32、CORE-33、CORE-62
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-22、CORE-23、CORE-28、CORE-30、CORE-32、CORE-33、CORE-36、CORE-62、CORE-65
 
 **接口契约**
 
@@ -46,11 +46,16 @@ abstract interface class CloudRecognitionService implements ConsentVerifier {
       // POST /v1/recognition/jobs，返回 job_id；随后 recog.pending_cloud.record，会话转 Running
   Stream<CloudJobState> watch(String jobId);           // 前台时轮询 GET /jobs/{id}：1 s 起，×2 退避，上限 10 s；终态后关闭流并推进会话状态
   Future<void> cancel(String jobId);
-  Future<int> resumePending();                         // 启动时对 recog.pending_cloud.list 逐个查询，只查询不重新提交；返回恢复的任务数
+  Future<void> stopAndDrain(ProfileSession session);   // 档案关闭：停止轮询并排空旧任务取消/清理
+  Future<int> resumePending();                         // 每个新 handle 的 ProfileHooks order 60，对 recog.pending_cloud.list 逐个查询，只查询不重新提交；返回恢复的任务数
   @override
   bool verify(String consentToken, Uint8List? body);   // 供 NetworkGuard 调用
 }
 // app/lib/recognition/cloud/cloud_recognition_service_impl.dart：唯一实现，经 ApiClient（CORE-62，其 transport 为 NetworkGuard）访问服务端
+final class DefaultCloudRecognitionService implements CloudRecognitionService {
+  DefaultCloudRecognitionService({required ApiClient api, required ProfileSessionSource sessions, required PlatformPorts ports});
+  // 实现上面全部接口；不持有 root CoreBinding，不另建 HttpTransport/NetworkGuard
+}
 ```
 
 - 幂等键：`Idempotency-Key = UUIDv5(NS_FML_CLOUD, sessionId + ":" + hex(imageHash))`，`NS_FML_CLOUD = UUIDv5(NAMESPACE_URL, UTF-8("urn:fml:cloud"))`；name为小写连字符sessionId + ASCII冒号 + imageHash的小写64位hex（无BOM/无尾换行），不得取系统本地编码。同一会话、同一张图的任何重试（含进程被杀后）都得到同一个键，服务端据此返回已有任务。
@@ -89,8 +94,11 @@ abstract interface class CloudRecognitionService implements ConsentVerifier {
 确定性幂等键黄金文件：`contracts/vectors/cloud-idempotency-v1.json`固定namespace派生值、name UTF-8与三个跨session/image期望；重试只重签授权令牌，不改变文件中的业务键。
 
 **实现约束**
-- 安装点：`app/lib/recognition/cloud/install.dart` 的 `installCloud(CompositionContext ctx)` 构造唯一实现，登记为 `CloudRecognitionService` 与 `ConsentVerifier` 两个类型，并以 order 60 登记 `resumePending` 启动钩子（游客跳过）；账户切换为注册用户解锁后调用一次 `fetchPolicy` 以登记远程后端。
-- 前后台：`installCloud` 订阅 `ports.lifecycle.events()`；`paused` 时暂停全部 `watch` 的轮询计时器（流不关闭、不发请求）；`resumed` 时对每个未终结任务立即查询一次再按退避继续；进程被杀后由启动钩子 `resumePending` 接续。两端行为相同，平台卡不参与。
+- 所有公开业务入口捕获 sessions.current；null 不开始 HTTP/FFI，resumePending 返回 0，其他业务入口在执行前以 StateError 拒绝未就绪（本地调用前置条件，不新增业务错误码），页面只进入账户入口；游客仍按既有 RECOG_BACKEND_NOT_ALLOWED 拒绝。一次政策/同意/预览/提交/查询/取消链固定使用捕获 session.core，缓存、preview、令牌表、jobId→sessionId 及 pending 所有权均绑定对象身份与 handle，不能凭相同 profileId 或 jobId 跨代复用。每个 HTTP/文件/FFI await 后与下一调用前复核；A 迟到的 job 仅在仍有效的 A 绑定完成必要清理，不能写 B 的 pending/后处理、改 B 政策或 UI。none 作用域图像结果也受相同代际栅栏。
+- confirmUpload 与 verify 同步检查当前会话是令牌所属的注册解锁 handle；closing/null 时立即废止全部未用令牌，verify=false，不允许新 POST 上传或以 refresh 重启业务。同图业务幂等键、单次令牌及自动重试 0 不变。
+- stopAndDrain 同步前缀先拒绝新动作、停止轮询计时器/恢复回调、取消在途请求；随后等待尚未返回的 submit/查询，处理已知旧 job 的取消控制调用并排空 pending 状态/暂存图清理，最后注销旧 watch；本服务持有的可变上传/授权敏感字节副本在成功/异常/取消/过代的 finally 清零，String只释放引用。控制调用只能使用 CORE-65 私有保留的旧会话有效 core/token，在原注册权限内走 CORE-28 cloudControl，不新增放行规则，不提交上传、不触发新 refresh。迟到 submit 若产生 job 也先取消/清理旧任务；远端结果未知则保留旧 pending 供以后 GET 恢复，不能伪称取消或改成重传。清理/取消失败上抛并维持 closing/null、旧句柄未释放，不开 B；重试只补未完成清理。所有 beforeClose 停止前缀先发出，再统一等待，避免等待 RecognitionFlow 取消的死锁。清理完成后释放旧政策/令牌/文件引用，生命周期全进程只一份订阅、null 不轮询。
+- 安装点：`app/lib/recognition/cloud/install.dart` 的 `installCloud(CompositionContext ctx)` 从 FeatureRegistry 取得 ApiClient、ProfileSessionSource，构造 DefaultCloudRecognitionService(api: api, sessions: sessions, ports: ctx.ports)，同一对象登记为 CloudRecognitionService 与 ConsentVerifier；CORE-28 已装延迟默认拒绝 _LazyConsent，仅注入此真实实现，不重复安装 guard。CORE-36 ProfileHooks.add(60, 'cloud.resume', hook) 回调对捕获的注册解锁 session 先 fetchPolicy 再 resumePending；游客/null 跳过，按对象身份+handle 各一次，不登记普通 StartupHook。sessions.addBeforeClose 以 cloud.recognition 登记 stopAndDrain。
+- 前后台：`installCloud` 订阅 `ports.lifecycle.events()`；`paused` 时暂停全部 `watch` 的轮询计时器（流不关闭、不发请求）；`resumed` 时对每个未终结任务立即查询一次再按退避继续；进程被杀后由新 handle 的 ProfileHooks order 60 `resumePending` 接续。两端行为相同，平台卡不参与。
 - 每次上传都需用户在预览页确认：预览显示实际上传的图（`UploadPreview.image`，已剥离元数据）、处理目的、网关与模型供应商、保留天数与是否用于训练、删除方式与今日剩余额度。只上传裁剪图或墨迹规范渲染图与最小上下文；不上传原图、相册、源路径、位置、完整笔记或设备标识。
 - 功能级同意展示供应商、模型、用途、数据范围、保留、训练、处理地域（V1 只有境内，见 README §6 Q8）、费用；政策版本变化后 `consentId` 为空，须重新同意。同意页要求用户声明是否未满 14 周岁；声明未满时须由监护人勾选确认，否则不调用接口、云识别不可用（README §6 Q7）。V1 只做自我声明，不做监护人身份核验。
 - 上传请求的 `HttpRequestDto` 用 `purpose: cloudRecognition` 并携带 `consentToken: token.tokenId`，经 ApiClient → NetworkGuard 发送；本卡不得直接使用平台 `HttpTransport`。
@@ -101,5 +109,5 @@ abstract interface class CloudRecognitionService implements ConsentVerifier {
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-34_TEST.md](../Test/core/S5_CORE-34_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约650行，分阶段：①模型、政策/同意、预览令牌与提交400行；②watch/取消150、pending恢复60、安装/账户/生命周期接入40，共250行；主包app/lib/recognition/cloud/及本卡聚合接入，无跨构建单元附属；自测与生成DTO不计。 阶段独立构建/测试：①政策授权与显式提交（400行）：以FakeHttpTransport验证用户显式动作、单次令牌、幂等业务键；提交返回job后持久化pending，不声称自动恢复已完成。；②观察恢复与安装（250行）：加流/退避/前后台/恢复钩子，验证重启无POST、断网不结束、终态关闭。
+**规模**：约730行，分阶段：①模型、政策/同意、预览令牌与提交400行；②watch/取消150、pending恢复60、安装/账户/生命周期接入120（新增会话栅栏/关闭排空80），共330行；主包app/lib/recognition/cloud/及本卡聚合接入，无跨构建单元附属；自测与生成DTO不计。 阶段独立构建/测试：①政策授权与显式提交（400行）：以FakeHttpTransport验证用户显式动作、单次令牌、幂等业务键；提交返回job后持久化pending，不声称自动恢复已完成。；②观察恢复与安装（330行）：加流/退避/前后台/恢复钩子，验证重启无POST、断网不结束、终态关闭。
 

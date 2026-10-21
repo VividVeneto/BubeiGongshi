@@ -44,7 +44,18 @@
 | `exam_frequency` | `{count, years: [YYYY], method}` 或省略 | 否 |
 
 - 命令退出码：`0` 通过；`1` 存在校验错误（逐条输出 `<文件>:<行> <错误码> <消息>`）；`2` 用法或 I/O 错误。`validate` 与 `coverage` 另写 `dist/<pack_id>.report.json`（`{pack_id, items, verified, errors[], coverage: {kp_total, kp_covered, by_exam_scope: {shu1, shu2, shu3}}}`）。
-- 内容错误码（`CONTENT_` 命名空间，登记到 CORE-02 注册表）：`CONTENT_FIELD_MISSING`、`CONTENT_FIELD_INVALID`、`CONTENT_DUPLICATE`、`CONTENT_LICENSE_FORBIDDEN`、`CONTENT_LICENSE_MISSING`、`CONTENT_REVIEW_INVALID`（缺审校人或 author = reviewer）、`CONTENT_NOT_VERIFIED`（CORE-09 结果非 Verified）；解析与量纲错误直接复用 `PARSE_`、`UNIT_`、`TYPE_` 码。
+- 内容错误码在下表唯一定义，owner=CORE-16，先登记 CORE-02 registry 后生成；CLI 退出码仍为上述 0/1/2，不把错误码另映射为进程返回值。解析与量纲错误复用 CORE-06/08/09 的 `PARSE_`、`UNIT_`、`TYPE_` 码并原样输出，不重定义级别/重试性。
+
+| 错误码 | 级别 | 可重试 | 触发条件 |
+| --- | --- | --- | --- |
+| `CONTENT_FIELD_MISSING` | error | 否 | 源条目或题目缺必填字段；审校人和许可缺失优先采用下列专用码 |
+| `CONTENT_FIELD_INVALID` | error | 否 | 字段类型、枚举、格式、取值或引用不满足本卡源模型约束 |
+| `CONTENT_DUPLICATE` | error | 否 | 同类条目跨文件 key 重复，或规范 AST 哈希 + 条件 + 符号映射去重键重复 |
+| `CONTENT_LICENSE_FORBIDDEN` | error | 否 | 存在本卡禁止的 CC BY-SA、GFDL、NC 等许可 |
+| `CONTENT_LICENSE_MISSING` | error | 否 | 缺来源许可登记或必要许可文件/字段 |
+| `CONTENT_REVIEW_INVALID` | error | 否 | 缺审校人或 author = reviewer |
+| `CONTENT_NOT_VERIFIED` | error | 否 | CORE-09 校验结果非 Verified，不得出卡 |
+
 - 签名：`sign` 读取 PKCS#8 PEM 格式的 Ed25519 私钥（路径由 `--key` 指定，不入库），写出 `manifest.sig` 并重新打包。
 
 命令：

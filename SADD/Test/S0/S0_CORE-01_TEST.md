@@ -3,7 +3,10 @@
 > 来源卡：[S0_CORE-01_基座.md](../../S0/S0_CORE-01_基座.md)（仓库骨架与工程约定）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（`S编号_卡号_TEST.md`）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。
 
 **验收标准**
-- [R18][R23] 干净检出后 仅对本卡仓库骨架运行`cargo build --workspace`和`flutter analyze`成功；平台构建由AND-01/WIN-01验收，依赖检查脚本由CORE-69验收，不是本卡交付前置。
-- [R18] 锁定文件齐全：上述 4 个文件存在、内容可解析且各含查询日期与版本；ADR-V5-15 已回填。CI 只读取这些文件版本的集成断言由 CORE-41 验收，不是本卡交付前置。
-- [R20] `cargo doc --workspace` 无 missing_docs 告警；`dart analyze` 无 `public_member_api_docs` 告警。
-- [R22] 核对main的 `Cargo.toml`、`pubspec.yaml`、`crates/`无YOLO实现、权重或依赖；CORE-42后续发布检查安装产物，脚本实现不计本卡。
+- [R18] 干净检出仅本卡产物：cargo metadata --no-deps 列出fml-error且无server；cargo build --workspace、cargo fmt --all --check、cargo clippy --workspace --all-targets -- -D warnings成功。fml-error仅文档/lint骨架，无伪造领域API；其他未实现crate不预列成员。app/内flutter analyze与flutter test可在无FFI/无平台工程下运行，空壳Widget用本卡测试启动，不能依赖后卡。
+- [R18] 配置交付清单逐项存在且可解析，目录骨架与说明齐全；rust-toolchain含rustfmt/clippy；analysis_options显式启用public_member_api_docs，临时负例验证缺文档确会失败；workspace lint被骨架继承。cargo deny check使用显式许可证策略，合成未知许可证/禁用依赖被拒；不以字体许可当Cargo许可白名单。
+- [R18] 四个核心锁版文件可解析且值为精确版本；tools/toolchain.versions额外有queried_date=YYYY-MM-DD，与ADR-V5-15查询记录一致；app/.flutter-version只含版本，requirements.txt固定依赖。尚未到各自首用卡的锁文件/平台版本明确未创建，不伪报齐全；CI读取版本的集成由CORE-41后续验收，不是本卡前置（下游说明，非契约）。
+- [R18][R26] 本卡四份policy按契约格式解析并与卡片初始值逐项一致：dep-allow包含所有预留包与错误/取消例外，pack→store和store→sync允许且反向不允许、全图无环，未知字段/版本/重复项被拒；dep6_symbols头/精确op/type行合法；platform-check-patterns含别名规则；network-construction只允许两个platform/net目录，不豁免composition/privacy。这里只验证策略输入；词法识别与真实源码反例由CORE-69后续验收，不能循环作为首卡前置（下游说明，非契约）。
+- [R20] RUSTDOCFLAGS=-D warnings cargo doc --workspace --no-deps无missing_docs告警；独立临时Rust负例缺公开文档触发拒绝，Dart负例验证public_member_api_docs；不得仅靠没有公开项的空库声称门禁有效。
+- [R22] 自动断言依赖清单/锁文件及tracked crates源码无YOLO专用依赖、权重或实验实现；本卡提供合成命中/普通公式反例，不扫描整个用户磁盘。CORE-42后续核对安装产物，不是本卡前置（下游说明，非契约）。
+- [R23] 本卡初始workspace.package.version与app/pubspec.yaml的版本满足SemVer且主体一致；PR手动checklist记录当前分支、约定提交格式与分支开始/结束时间，超过3天未合入标失败；人工项单列证据，不记为自动通过。

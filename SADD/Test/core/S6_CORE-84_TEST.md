@@ -15,3 +15,5 @@
 - [R19][R28] 导出后解析WrapRecord.key_version=1，backup.chunk/final AAD也为1；两种包装均可导入；任意改成0的包装按CORE-21拒绝，不生成自拒绝文件。
 - [R27] token30min超时、未知/过期token拒绝；prepare失败、commit成功/失败、discard/取消和启动cleanup_staging均无临时库遗留；commit仅事务开始前取消生效，开始后报告最终结果。
 - [R27][R19] schema只经CORE-13/PRAGMA，调度用CORE-17 replay；完整性/外键/未知列/旧列默认值检查按协议，RestorePreview显示missing_packs，重装包自动关联。
+- [R27][R18] 恢复与导出同消费 CORE-13 table_policies()：Immutable 分类不手列三张表，Replace 只删所选 scope 且满足固定行过滤的行，保留其他行/闭包已有本地行。加入迁移的默认值列/复合 FK 后无需改恢复列清单；缺当前必填无默认值、文件未知/重复列、未知/Never 表、伪造 scope/kind 或过滤外行拒绝 BACKUP_CORRUPT，原库不变。
+- [R27][R18] 分别测试未来未合入表和本构建必需表缺失：前者不创建，后者 STORE_CORRUPT 且清理 staging，不得漏恢复成功；静态策略不含设备库。PRAGMA 变化不改变五项范围、包稳定 ID 引用及 missing_packs 既有语义。

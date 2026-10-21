@@ -9,9 +9,9 @@
 **依赖**：CORE-01、CORE-02、CORE-03
 
 **接口契约**
-python tools/ci/check_deps.py --root . 与 check_privacy.py --root .：输入Cargo.toml、Dart import/源码和CORE-01两份policies，输出 Finding(path,line,rule,message)，终端为path:line: RULE message；0无违例、1有违例、2解析/配置错误。common.py提供Finding、emit(findings)、run(command)（数组参数、不经shell），source_scan.py提供tokens(path)→Token{text,line,kind}[]；去注释/字符串内容而保留import与字符串字面量边界，支持Rust/Dart/C++注释；无法解析的输入报2，不以正则误认完整AST。
+python tools/ci/check_deps.py --root . 与 check_privacy.py --root .：输入Cargo.toml、Dart import/源码和CORE-01定义的四份policies（dep-allow.yaml、dep6_symbols.txt、platform-check-patterns.json、network-construction.yaml），输出 Finding(path,line,rule,message)，终端为path:line: RULE message；0无违例、1有违例、2解析/配置错误。common.py提供Finding、emit(findings)、run(command)（数组参数、不经shell），source_scan.py提供tokens(path)→Token{text,line,kind}[]；去注释/字符串内容而保留import与字符串字面量边界，支持Rust/Dart/C++注释；无法解析的输入报2，不以正则误认完整AST。
 
-DEP-1/3/4查Cargo依赖图及extern C声明；DEP-2查领域crate中的std::fs/net/time::SystemTime路径（含use别名）；DEP-5查ui/导入binding（只豁免binding/dto/*.g.dart）、platform、HTTP包，以及构造参数/字段中AppDeps/CoreBinding/PlatformPorts标识符；composition外的ports.http访问须通过词法变量绑定追踪，无法判定类型的.http仅warning并登记人工checklist，不对ctx.http误报error。DEP-6按dep6_symbols.txt扫描平台目录的领域op字面量和类型token/Cargo领域依赖；清单唯一归CORE-01，不匹配普通说明字符串。PRIV-1只准network-construction.yaml指定platform/net构造网络对象；PRIV-2按platform-check-patterns.json的import alias与成员符号检测ui平台判断。别名/跨函数间接封装不能证明时输出warning及人工审查项，不声称静态检查保证所有路径。
+DEP-1按dep-allow.yaml逐包核对Cargo普通/build/dev/target直接路径依赖与环；包alias按package真名解析，未实现的预留包不要求存在，已实现但无策略条目的包拒绝。DEP-3/4查Cargo依赖图及extern C声明；DEP-2查领域crate中的std::fs/net/time::SystemTime路径（含use别名）；DEP-5查ui/导入binding（只豁免binding/dto/*.g.dart）、platform、HTTP包，以及构造参数/字段中AppDeps/CoreBinding/PlatformPorts标识符；composition外的ports.http访问须通过词法变量绑定追踪，无法判定类型的.http仅warning并登记人工checklist，不对ctx.http误报error。DEP-6按dep6_symbols.txt扫描平台目录的领域op字面量和类型token/Cargo领域依赖；清单唯一归CORE-01，不匹配普通说明字符串。PRIV-1只准network-construction.yaml指定platform/net构造网络对象；PRIV-2按platform-check-patterns.json的import alias与成员符号检测ui平台判断。别名/跨函数间接封装不能证明时输出warning及人工审查项，不声称静态检查保证所有路径。
 
 **实现约束**
 - Python标准库与锁定PyYAML；扫描器不用网络，不输出敏感源代码；与CORE-28的no_direct_http_test读同一白名单。

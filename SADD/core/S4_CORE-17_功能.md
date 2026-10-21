@@ -45,7 +45,7 @@ pub struct StudyDay { pub switch_hour: u8 /* 默认 4 */, pub tz: String }
 | 表 | 主要列（类型，约束） | 索引 |
 | --- | --- | --- |
 | `study_card` | `id TEXT PK`，`item_id TEXT NOT NULL`，`revision_id TEXT NOT NULL`，`card_type TEXT NOT NULL`，`siblings_key TEXT NOT NULL`，`suspended INTEGER NOT NULL`，`pending_choice INTEGER NOT NULL`（修订变化待选择），`reset_epoch INTEGER NOT NULL`，`created_at_ms`；派生列 `state TEXT`、`due_ms INTEGER` 为本地缓存，可由事件重算 | `(due_ms)`，`(siblings_key)`，`(revision_id)` |
-| `review_event` | `id TEXT PK`，`card_id TEXT NOT NULL`，`rating TEXT NOT NULL`，`source_attempt TEXT NOT NULL`，`algo_version TEXT NOT NULL`，`params_version INTEGER NOT NULL`，`rating_map_version INTEGER NOT NULL`，`reset_epoch INTEGER NOT NULL`，`device_id TEXT NOT NULL`，`device_seq INTEGER NOT NULL`，`tx_index INTEGER NOT NULL`，`at_ms INTEGER NOT NULL`，`flags_json TEXT NOT NULL`；`UNIQUE (device_id, device_seq, tx_index)`；只插入不更新 | `(card_id, at_ms)` |
+| `review_event` | `id TEXT PK`，`card_id TEXT NOT NULL`，`rating TEXT NOT NULL`，`source_attempt TEXT NOT NULL`，`algo_version TEXT NOT NULL`，`params_version INTEGER NOT NULL`，`rating_map_version INTEGER NOT NULL`，`reset_epoch INTEGER NOT NULL`，`device_id TEXT NOT NULL`，`device_seq INTEGER NOT NULL`，`tx_index INTEGER NOT NULL`，`at_ms INTEGER NOT NULL`，`flags_json TEXT NOT NULL`；只插入不更新（id唯一；三元仅重放索引，整库回退后的不同事件可能同三元） | `(card_id, at_ms)`，`(device_id, device_seq, tx_index)` 非唯一 |
 
 - 重放顺序：按 `(at_ms, device_id, device_seq, tx_index)` 升序；只取`event.reset_epoch == card.reset_epoch`的事件，不从事件max推导当前epoch；重放派生为重复的事件与 `skipped` 事件不进入调度；`correction_of` 事件替换被改判事件的评分。
 - 错误码（本卡唯一定义；级别与可重试为本次补全，待所有者确认）：
@@ -92,6 +92,12 @@ FSRS 构造从 params.weights 注入；首次 next_states(None, retention,0)，�
 
 官方 API：[fsrs 6.6.2](https://docs.rs/fsrs/6.6.2/fsrs/struct.FSRS.html)、[依赖](https://docs.rs/crate/fsrs/6.6.2)、[rs-fsrs 1.2.1 Scheduler对照](https://docs.rs/rs-fsrs/1.2.1/rs_fsrs/struct.Scheduler.html)。
 
+**本卡实体 codec/applier（CORE-13 接缝）**
+
+- study_card、review_event 的 codec/applier 位于 fml-store/src/study/cards.rs；srs_params 为本地参数，不注册同步实体。study_card 只同步权威字段（绑定修订/类型/同胞键/suspended/pending_choice/reset_epoch/created_at_ms），不把 state/due_ms/stability 等缓存上传；事件完整不可变，时钟仅 __entity。枚举按ID UTF-8稳定顺序，只列存活权威行；Delete 仍分派原类型。
+- applier 仅使用传入 WriteTx/ApplyContext：同事件ID同权威值 Duplicate，异值 Invalid；新事件追加后以当前 card.reset_epoch 的完整事件调用本卡 replay，按既有顺序和 now_ms/StudyDay 输入重建排程。时间/学习日上下文由调用方既有运行时上下文提供，不在纯crate读时钟；不在无上下文时伪造 now=0 缓存（只标失效，读取端按当前参数重算）。card reset_epoch 按字段时钟决胜，不取事件max。
+- study_card 字段按CORE13时钟合并，派生state/due只重算不当用户编辑；删除保留墓碑且不物理改写不可变事件。所有远端路径不调用 stamp/enqueue、不重写ReviewEvent原device信息，stats_generation失效hook唯一归CORE-20。S4测试注入Fake分派，S6只集成，不反向依赖26。
+
 **实现约束**
 - 参数写入/回退唯一归本卡；`srs_params`存version/weights/desired_retention/adopted_ms及previous_version，本卡0017_srs.sql同时定义数据DDL，不迁给优化算法卡。目标保留率[0.80,0.95]，默认0.90。
 - 低层仓储接缝由本卡拥有：`insert_generated(tx: &mut WriteTx, cards: &[Card]) -> Result<(), FmlError>`仅插入新卡；`adopt_params(store: &Store, params: &FsrsParams, expected_version: u32, optimized_ms: i64) -> Result<(), FmlError>`在单写者事务校验版本、保存上一版本并采用，更新月优化标记；`rollback_params(store: &Store) -> Result<FsrsParams, FmlError>`恢复上一参数版本。均遵循CORE-13写命令/changed_fields/outbox规则，本卡不调用CORE-80/81。
@@ -104,4 +110,4 @@ FSRS 构造从 params.weights 注入；首次 next_states(None, retention,0)，�
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-17_TEST.md](../Test/core/S4_CORE-17_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约525行；主包`crates/fml-srs/`，附属`crates/fml-store/src/study/cards.rs`、`params.rs`与`crates/fml-ffi/src/ops/srs.rs`本卡op处理/登记。分阶段：① 纯排程/重放/队列380行；② 卡片/事件/参数写入及回退145行；依赖替身分别独立构建验证。DDL/自测与CORE-80/81实现不计。
+**规模**：约525行；主包`crates/fml-srs/`，附属`crates/fml-store/src/study/cards.rs`、`params.rs`与`crates/fml-ffi/src/ops/srs.rs`本卡op处理/登记。分阶段：① 纯排程/重放/队列380行；② 卡片/事件/参数写入及回退、codec/applier145行；依赖替身分别独立构建验证。DDL/自测与CORE-80/81实现不计。

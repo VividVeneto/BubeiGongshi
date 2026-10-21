@@ -37,6 +37,7 @@ pub fn delete_plan(tx: &mut WriteTx, id: Uuid) -> Result<(), FmlError>;     // �
 - 本卡登记的 op：`library.plan_put`、`library.plan_list`（`{revision_id?}`）、`library.plan_delete`（同步）。
 library.plan_put body={plan:SavedPlan}、ok={id}；list body={revision_id?}、ok={plans:[SavedPlan]}；delete body={id}、ok={}，均call；新计划id由调用方生成UUIDv7并在重试保留，name为1..100Unicode标量、steps为1..20。例list空库 body={}→ok={"plans":[]}。Dart SavedPlanDto/PlanStepDto/CalcResultDto引用binding/dto生成类型。
 
+- calculation_plan codec/applier 使用 CORE-13 EntityRegistry 接缝：按ID UTF-8稳定枚举/回读本表SavedPlan，name/revision_id/plan/updated_at_ms按单字段FieldClock合并（plan是一个完整有序链字段，不按到达次序拼接步骤）。验证名称/步数/修订引用/链结构后写入；不在远端应用时重跑数值求值而产生副作用。Delete 保存原实体类型墓碑，较旧Upsert不能复活；同值同钟Duplicate，非法引用/结构Invalid，存储错误Err。仅使用传入WriteTx，不stamp/enqueue/新Store.write；本机put/delete仍按原本写命令入outbox。S3用Fake分派测试，无CORE26反向依赖。
 - 新表calculation_plan归本卡，DDL独立0086迁移，不再宣称0048所有权；实体codec/applier和墓碑删除分支在本卡，业务写用CORE-13 Store.write/enqueue_outbox与changed_fields，不自行分配Lamport。op处理在本卡编写的crates/fml-ffi/src/ops/library_plan.rs，不放UI或领域crate。
 - 调用CORE-11 derive.run_plan；上一步输出符号只能接到下一步量纲相同输入，规则由领域算法校验，保存前必须先成功运行一次。增删步骤、输入和feed映射属于PlanVm，页面不持CoreBinding。
 - PlanVm在app/lib/calc/plan_vm.dart，页面在app/lib/ui/calc/plan_page.dart，路由在plan_routes.dart；Widget只接状态/抽象/回调，不取裸绑定、CoreLibrarySpec或HttpTransport。CORE-36聚合维护者单写共享routes，详情页只发路由字符串，不反向import本卡VM。

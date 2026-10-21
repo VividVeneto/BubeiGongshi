@@ -93,9 +93,16 @@ pub trait PackCatalog {
 }
 ```
 - units.define_user/list_user/delete_user 的有 I/O 处理归本卡 fml-store/src/library/units.rs；CORE-08 只有定义校验纯函数。UnitRepo 只接收调用方传入的 `base` 快照，不依赖 fml-ffi；本卡附属的 `crates/fml-ffi/src/ops/units_user.rs` 适配负责 EngineContext 访问。修改先用 `base` 校验，再在单事务持久化 user_unit、标记待重校并 enqueue_outbox；提交后适配以返回的全部用户单位调用 CORE-56 `set_layer(User)`，失败时调用 `mark_unavailable`（此后引擎 op 返回 `ENGINE_UNAVAILABLE`，重试成功前拒绝求值），不回滚已提交数据。打开/切换档案先加载全部 user_unit，注销清除；启动加载失败不静默忽略非法定义。
+- UnitRepo 在同一 WriteTx 回读全部 UnitDefinition，以候选全集执行 MemRegistry::with_user_definitions(base, defs)，base 必须来自一次不含 User 层的引擎快照；重定义先替换候选记录，删除先移候选，引用缺失/环/非法offset/溢出均原样透传 CORE-08 错误且不改数据库/时钟/outbox。不得从扁平 Unit 反推引用图或克隆 dyn UnitRegistry。提交后先释放临时借用再 set_layer(User)，失败 mark_unavailable 的 Err 继续传播；不使用旧层假成功。
 - 只读投影：公式的 pack_id/content_hash/entry_key 写 formula_item 的 source_pack_id/source_content_hash/source_entry_key 三列（可空），缓存来源 revision ID = CORE-05 `pack_cache_revision_id(条目 ID, content_hash)`，content_hash 为条目级哈希；item 带 read_only=1/projection_generation=catalog generation，revision 带 is_pack_cache=1，保存 AST/符号/LaTeX 仅作可重建缓存。安装后按 catalog generation 懒刷新；借助延迟外键，先插 revision 再 upsert item/head（含 requirement_level 与 pack_extras_json），FTS 由 formula_item 触发器同事务维护；新增 item 的延迟外键在事务提交时满足；整个投影事务不发 outbox。更新不删除用户派生修订，旧引用依然钉住其内容哈希，包卸载前有引用则拒绝；用户确认长期保留时复制成普通用户修订。S3 用本卡 PackCatalog Fake 验收，S4 安装器只实现适配。
 
 
+
+**本卡实体 codec/applier（CORE-13 接缝；不依赖同步引擎）**
+
+- 本卡为 formula_item、formula_revision、user_unit、notation_profile、constant_set 提供 OutboxEntityCodec 与 EntityApplier，注册名称逐字一致；list_entity_ids 只列用户权威行，排除 read_only 预置 item 与 is_pack_cache revision。symbol_binding/derivation/FTS 是派生表，不另注册。S3 用本卡/FakeRegistry 与 FakeAnalyzer 验收，不等 S6。
+- formula_revision 线上实体保留 ID/item/parents、source_latex、symbols 的声明、notation_profile_id、conditions、confirm、derived_from、detached、provenance、draft、created_at_ms、ast_schema；不上传 ast_json/ast_hash/validation/cache。应用先验证 IDs/父引用/大小/确认/conditions，再用 ctx.analyzer.analyze_revision(tx.conn(), input, ctx.cancel)；user_decls=接收 symbols.decls.clone()，empirical=false（修订线上未定义经验模式字段，不从对端 Validation 推断或新增线上字段），禁止信任对端 Validation。返回 ast=None 则 Invalid；有 AST 的 Invalid 仅能保留为 draft，不把无效正式修订升为可用。新 AST/符号/Validation 与 ast_hash、symbol_binding、derivation、筛选列和FTS同事务重建；重放已有同 ID 同权威负载为 Duplicate，异负载为 Invalid，不拿缓存差异判篡改。
+- formula_item 与其余可变实体按 CORE-13 FieldClock 逐字段合并，tags_json 是一个规范化数组字段（排序UTF-8、去重、≤20；不是隐藏OR-set）。只变化胜出字段及其时钟，远端合并不 stamp/enqueue；新用户单位在同事务全定义图校验通过后才写入。无业务变化不失效缓存。缺引用/非法实体 Invalid，存储故障 Err；删除分支保存原类型墓碑，拒绝更旧复活、维护派生索引/待重校，不调用本地编辑型公共仓储方法。
 
 错误码唯一定义（业务保存规则以上方 Validation 映射为准；界面只解释结果）：
 

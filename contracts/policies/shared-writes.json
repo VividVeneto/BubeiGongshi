@@ -3,6 +3,102 @@
   "entries": [
     {
       "kind": "error",
+      "key": "FFI_BAD_ARG",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "FFI_UNKNOWN_OP",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "FFI_VERSION_MISMATCH",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "FFI_STALE_HANDLE",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "FFI_PANIC",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "FFI_BUSY",
+      "owner": "CORE-03",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_FIELD_MISSING",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_FIELD_INVALID",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_DUPLICATE",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_LICENSE_FORBIDDEN",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_LICENSE_MISSING",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_REVIEW_INVALID",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "CONTENT_NOT_VERIFIED",
+      "owner": "CORE-16",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "GRADE_PARSE_FAILED",
+      "owner": "CORE-18",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "GRADE_TIMEOUT",
+      "owner": "CORE-18",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "GRADE_UNSUPPORTED",
+      "owner": "CORE-18",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "PLATFORM_UNSUPPORTED",
       "owner": "CORE-04",
       "point": "contracts/errors/registry.yaml"
@@ -1124,10 +1220,10 @@
       "point": "FeatureRegistry.startupHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "30",
       "owner": "CORE-99",
-      "point": "FeatureRegistry.startupHooks"
+      "point": "ProfileHooks"
     },
     {
       "kind": "startup",
@@ -1136,34 +1232,34 @@
       "point": "FeatureRegistry.startupHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "50",
       "owner": "CORE-40",
-      "point": "FeatureRegistry.startupHooks"
+      "point": "ProfileHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "55",
-      "owner": "CORE-50",
-      "point": "FeatureRegistry.startupHooks"
+      "owner": "CORE-101",
+      "point": "ProfileHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "60",
       "owner": "CORE-34",
-      "point": "FeatureRegistry.startupHooks"
+      "point": "ProfileHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "70",
       "owner": "CORE-46",
-      "point": "FeatureRegistry.startupHooks"
+      "point": "ProfileHooks"
     },
     {
-      "kind": "startup",
+      "kind": "profile",
       "key": "80",
       "owner": "CORE-20",
-      "point": "FeatureRegistry.startupHooks"
+      "point": "ProfileHooks"
     },
     {
       "kind": "startup",
@@ -1264,7 +1360,7 @@
     {
       "kind": "installer",
       "key": "installStorageGuard",
-      "owner": "CORE-50",
+      "owner": "CORE-101",
       "point": "own feature install.dart"
     },
     {

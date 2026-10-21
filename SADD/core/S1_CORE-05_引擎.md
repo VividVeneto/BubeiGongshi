@@ -3,8 +3,8 @@
 **目标**：定义公式的唯一权威数据结构——不可变 AST、公式条目与修订、推导与来源记录，以及规范序列化和哈希。
 
 **范围**
-- 包含：`fml-ast` crate 的类型、NodePath、规范 JSON 序列化与 BLAKE3 规范哈希、全局复杂度上限常量、取消标志 `CancelFlag`、AST JSON schema；各引擎卡共用的存储形数据类型（`SymbolEnv`、`SymbolDecl`、`TypeDecl`、`MathKind`、`Validation`、`ConfirmRecord`）只在本卡定义，由 CORE-07、CORE-09 填充与判定。
-- 不包含：解析（CORE-06）、符号绑定（CORE-07）、类型推断（CORE-09）、持久化（CORE-13/14）。渲染树不作为权威数据保存。
+- 包含：`fml-ast` crate 的类型、NodePath、规范 JSON 序列化与 BLAKE3 规范哈希、全局复杂度上限常量、取消标志 `CancelFlag`、AST JSON schema；各引擎卡共用的存储形数据类型（`SymbolEnv`、`SymbolDecl`、`TypeDecl`、`MathKind`、`Validation`、`ConfirmRecord`）只在本卡定义，由 CORE-07（下游说明，非契约）、CORE-09（下游说明，非契约） 填充与判定。
+- 不包含：解析（CORE-06（下游说明，非契约））、符号绑定（CORE-07（下游说明，非契约））、类型推断（CORE-09（下游说明，非契约））、持久化（CORE-13（下游说明，非契约）/14）。渲染树不作为权威数据保存。
 
 **依赖**：CORE-01、CORE-02、CORE-03
 
@@ -41,7 +41,7 @@ pub enum FormulaNode {
     Hole(u16),                          // 编辑器空位 `\fmlhole`，按出现顺序从 0 编号；只存在于草稿，含 Hole 的 AST 不得写入正式修订（ADR-V5-17）
 }
 pub struct NumberLiteral { pub text: String /* 十进制原文，如 "6.674e-11"、"9.8" */, pub sig_digits: Option<u8> }
-pub struct UnitRef(pub String);         // CORE-08 单位 ID，如 "si:m"、"common:km"、"user:<uuid>"
+pub struct UnitRef(pub String);         // CORE-08（下游说明，非契约）单位 ID，如 "si:m"、"common:km"、"user:<名称>"
 pub enum BinaryOp { Add, Sub, Mul, Div, Pow, Dot, Cross }  // \frac 与 / 同为 Div，隐式乘与 \cdot 同为 Mul（写法不进 AST）
 pub enum UnaryOp { Neg, Plus, Factorial, Transpose, Conjugate, Adjugate }
 pub struct FunctionId(pub String);      // 规范名：sin cos tan cot sec csc arcsin arccos arctan sinh cosh tanh exp ln lg log
@@ -52,12 +52,12 @@ pub enum IntegralKind { Indefinite, Definite, Multiple(u8), Line, Surface, Close
 pub enum LimitKind { Sum, Product, Limit }
 pub enum RelOp { Eq, Ne, Lt, Le, Gt, Ge, Approx, Equiv }
 
-// 符号环境：由 CORE-06 分配 SymbolId，CORE-07 填充含义，CORE-09 读取 declared_type
+// 符号环境：由 CORE-06（下游说明，非契约） 分配 SymbolId，CORE-07（下游说明，非契约） 填充含义，CORE-09（下游说明，非契约） 读取 declared_type
 pub enum SymbolRole { Variable, Constant, Function, Unit, BoundVar /* 积分/求和变量 */, Parameter }
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]   // serde：蛇形外部标签，无载荷为字符串（"scalar"），有载荷为单键对象（{"vector": null|n}、{"matrix": [a, b]}、{"function": n}），与 types.schema.json MathKind 一致
 pub enum MathKind { Scalar, Complex, Vector(Option<u16>), Matrix(Option<u16>, Option<u16>), ScalarField,
                     VectorField, Function(u8), Sequence, Series, Operator, Distribution, Density, Unknown }
-pub struct TypeDecl { pub dimension: Option<String> /* 量纲式文本，语法见 CORE-08 */, pub quantity_kind: Option<String>,
+pub struct TypeDecl { pub dimension: Option<String> /* 量纲式文本，语法见 CORE-08（下游说明，非契约） */, pub quantity_kind: Option<String>,
                       pub math_kind: Option<MathKind> }
 pub struct SymbolDecl {
     pub id: SymbolId, pub glyph: String,             // 显示字形，如 "ν"
@@ -66,7 +66,7 @@ pub struct SymbolDecl {
 }
 pub struct SymbolEnv { pub decls: Vec<SymbolDecl> }   // 按 id 升序，id 唯一
 pub enum Validation { Draft, Unresolved, Invalid, Verified,
-                      VerifiedPolymorphic { vars: Vec<u32> /* 该修订多态的 DimVar 编号，只作标识；跨修订使用前必须经 CORE-77 Subst::instantiate 换成新变量 */, constraints: Vec<String> } }
+                      VerifiedPolymorphic { vars: Vec<u32> /* 该修订多态的 DimVar 编号，只作标识；跨修订使用前必须经 CORE-77（下游说明，非契约）Subst::instantiate_all/instantiate_types 换成新变量 */, constraints: Vec<String> } }
 pub struct ConfirmRecord { pub confirmed_at_ms: i64, pub from_kind: String, pub to_kind: String, pub reason_key: String }
 
 pub enum Provenance { UserInput, Handwriting { session: Uuid }, Photo { session: Uuid },
@@ -75,12 +75,12 @@ pub enum Provenance { UserInput, Handwriting { session: Uuid }, Photo { session:
 pub struct FormulaRevision {
     pub id: RevisionId, pub item: FormulaItemId, pub parents: Vec<RevisionId>,
     pub ast_schema: u16, pub source_latex: String,      // 原文按字节保留
-    pub ast: FormulaNode, pub symbols: SymbolEnv,        // SymbolEnv 由 CORE-07 填充
+    pub ast: FormulaNode, pub symbols: SymbolEnv,        // SymbolEnv 由 CORE-07（下游说明，非契约） 填充
     pub notation_profile_id: String, pub conditions: Vec<FormulaNode>,
-    pub validation: Validation,                          // CORE-09 写入
+    pub validation: Validation,                          // CORE-09（下游说明，非契约） 写入
     pub derived_from: Option<Derivation>, pub detached: bool,
     pub provenance: Provenance, pub created_at_ms: i64,
-    pub draft: bool,                                     // 未通过校验时只能存为草稿（CORE-14）
+    pub draft: bool,                                     // 未通过校验时只能存为草稿（CORE-14（下游说明，非契约））
 }
 pub struct FormulaItem {
     pub id: FormulaItemId, pub title: String, pub subject: String, pub course: Option<String>, pub tags: Vec<String>,
@@ -107,17 +107,35 @@ pub mod limits {   // 全部模块共用的硬上限
 }
 
 pub enum LimitViolation { SourceBytes(usize), Nodes(usize), Depth(usize), MatrixDim(usize, usize), MatrixElems(usize) }
-pub fn check_limits(node: &FormulaNode) -> Result<(), LimitViolation>;   // 调用方映射为 PARSE_LIMIT_EXCEEDED
+pub fn check_source_len(source_bytes: usize) -> Result<(), LimitViolation>; // 只检查 UTF-8 字节数，超限 SourceBytes(actual)
+pub fn check_limits(node: &FormulaNode) -> Result<(), LimitViolation>;   // 只检查树，根深度为 1；调用方映射为 PARSE_LIMIT_EXCEEDED
 pub fn canonical_json(node: &FormulaNode) -> String;     // 键序固定、无多余空白
-pub fn from_canonical_json(s: &str) -> Result<FormulaNode, FmlError>;  // 不合 schema 返回 AST_JSON_INVALID
+pub fn from_canonical_json(s: &str) -> Result<FormulaNode, FmlError>;  // 不合 schema/结构语义返回 AST_JSON_INVALID；资源上限返回 PARSE_LIMIT_EXCEEDED
 pub fn canonical_hash(node: &FormulaNode) -> [u8; 32];   // BLAKE3(canonical_json)
-pub fn node_at(node: &FormulaNode, path: &NodePath) -> Option<&FormulaNode>;
+pub fn node_at<'a>(node: &'a FormulaNode, path: &NodePath) -> Option<&'a FormulaNode>;
 pub fn walk(node: &FormulaNode, f: &mut dyn FnMut(&NodePath, &FormulaNode));
 ```
 
-- schema：`contracts/dto/ast.schema.json`（AST JSON），版本号 `ast_schema = 1`；读到更高主版本时返回 `STORE_SCHEMA_TOO_NEW`（由 CORE-13 使用）。
+公共 trait 与 serde 能力（本表也是实现要求，不以未标注的示意 struct 省略 derives）：
+
+| 类型 | 必须提供的能力与线表示 |
+| --- | --- |
+| FormulaItemId、RevisionId、SymbolId | Clone + Copy + Debug + PartialEq + Eq + Hash + PartialOrd + Ord；Serialize/Deserialize 透明映射为 UUID 小写带连字符字符串、UUID 字符串、u32；不得输出单元素数组 |
+| NodePath | Clone + Debug + PartialEq + Eq + Hash + Default；自定义 Serialize/Deserialize 为点分十进制字符串，根为 `""`，禁止空段、负数、非十进制和超 u16；不是 Vec 的 JSON 数组 |
+| UnitRef、FunctionId | Clone + Debug + PartialEq + Eq + Hash；透明 serde 字符串 |
+| FormulaNode、NumberLiteral、BinaryOp、UnaryOp、DerivKind、IntegralKind、LimitKind、RelOp | Clone + Debug + PartialEq + Eq + Serialize + Deserialize；FormulaNode 必须实现本卡 k 标记/扁平字段和对象分支 codec，不能直接 derive 默认外部标签或把 Piecewise tuple 序列化成数组；无载荷 op/kind 为 snake_case，Multiple 为单键对象 |
+| ConstantSource、SymbolRole、MathKind、Validation、Provenance | Clone + Debug + PartialEq + Eq + Serialize + Deserialize；无载荷为 snake_case 字符串；有载荷为 snake_case 单键对象，内部字段同 struct；MathKind 另具 Hash，Vector(None) 保留 null，Matrix 为恰两项数组 |
+| ConstantValue、TypeDecl、SymbolDecl、SymbolEnv、ConfirmRecord、FormulaRevision、FormulaItem、Derivation | Clone + Debug + PartialEq + Eq + Serialize + Deserialize；snake_case struct 对象，拒绝未知/重复字段；Option 为 None 省略，Some 不得为 null；Derivation.var_map 为恰两元素的 u32 数组 |
+| CancelFlag | Clone + Debug；克隆共享同一 Arc，new 初值 false、cancel 幂等；不提供值相等、Hash 或 serde，不持久化原子标志 |
+| LimitViolation | Clone + Copy + Debug + PartialEq + Eq；运行时错误值，不作为 DTO 序列化 |
+
+Serde 解码必须执行整数位宽与本卡语义检查；i64 时间戳直接从 JSON 整数 token 精确读取，禁止先过 f64。source_latex 原样保存 UTF-8 字节，不被 AST 字符串 NFC 规则改写。FormulaItem 虽尚无单独机器 schema，也遵守上述 struct 映射，不在本次扩大机器 schema。跨修订多态的实例化由 CORE-77（下游说明，非契约）的 instantiate_all/instantiate_types 完成，不把本 crate 反向依赖类型引擎。
+
+遍历与限额：walk 为前序遍历，先回调根空路径，每个存在的节点恰一次；node_at 对不存在的子槽返回 None。子槽固定为 Binary/Relation 的 left=0,right=1；Unary.operand/Derivative.target=0；Function.args/Vector.items 按下标；Integral.integrand=0,lower=1,upper=2；SumOrLimit.lower=0,upper=1,body=2；可选槽缺失仍保留编号，不压缩；Matrix 按行优先展平（r*列数+c）；Piecewise 第 i 支 value=2i,condition=2i+1。SymbolId 等元数据不算子节点。根深度1、节点数含根，恰等于上限通过，超过才失败；check_limits 不产生 SourceBytes，源长度由构造边界调用 check_source_len(source.as_bytes().len()) 单独检查。多违例按前序首次遇到的深度、累计节点、矩阵维度、元素数顺序返回，不递归到超过深度上限之后；空/非矩形 Matrix、Piecewise 非末支缺条件等结构错误由 codec 返回 AST_JSON_INVALID，不假冒 LimitViolation。
+
+- schema：`contracts/dto/ast.schema.json`（AST JSON），版本号 `ast_schema = 1`；读到更高主版本时返回 `STORE_SCHEMA_TOO_NEW`（由 CORE-13（下游说明，非契约） 使用）。
 - 规范 JSON 规则：每个节点是对象，变体名放在键 `"k"`（snake_case，如 `"binary"`、`"sum_or_limit"`）；字段名 snake_case；枚举值 snake_case 字符串（`Multiple(n)` 写作 `{"multiple":n}`）；对象键按 UTF-8 字节序升序；`None` 字段省略，空数组保留；`SymbolId`、`order` 为 JSON 整数，数值字面量只存 `text` 字符串；无空白、无尾随换行；字符串按 RFC 8259 最短转义。
-- 规范 JSON 测试向量（`contracts/vectors/ast-canonical.yaml`，哈希值由首次实现生成后冻结）：
+- 规范 JSON 测试向量（编码时交付 `contracts/vectors/ast-canonical.yaml`；下表字节为固定期望，哈希必须由独立参考 BLAKE3 对这些固定字节计算并经非作者核验，禁止由被测 canonical_json/canonical_hash 回填期望）：
 
 | 编号 | 输入（AST 描述） | 规范 JSON |
 | --- | --- | --- |
@@ -132,7 +150,7 @@ pub fn walk(node: &FormulaNode, f: &mut dyn FnMut(&NodePath, &FormulaNode));
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
 | `AST_JSON_INVALID` | error | 否 | `from_canonical_json` 输入不合 schema、未知变体或字段类型错误 |
-| `PARSE_LIMIT_EXCEEDED` | error | 否 | `check_limits` 返回违例（由 CORE-06 及其他构造方返回） |
+| `PARSE_LIMIT_EXCEEDED` | error | 否 | `check_source_len` 或 `check_limits` 返回违例（由 CORE-06（下游说明，非契约） 及其他构造方返回）；AST JSON 解码的树节点/深度/矩阵尺寸超限亦使用此码 |
 
 AST schema=1 的穷举字段表（每行额外必含 k；未标 ? 的必填；不允许 null、额外字段、重复对象键或未知枚举；递归 Node 是本表联合）：
 
@@ -159,9 +177,23 @@ op/kind 取上方对应枚举的 snake_case 值；IntegralKind::Multiple(n) 唯�
 
 - NS_PACK = UUIDv5(NAMESPACE_URL, "urn:fml:pack")；条目 ID = UUIDv5(NS_PACK, pack_id + NUL + entry_key)，无尾 NUL，不含版本或 template。模板实例 ID 使用相同 namespace，name 追加 NUL+template_id，供升级去重，不能代替条目 ID。
 - NS_CARD = UUIDv5(NAMESPACE_URL, "urn:fml:card")；卡 ID = UUIDv5(NS_CARD, revision_id 的16字节 + card_type 的 snake_case UTF-8 + NUL + template_id UTF-8)。同修订同题型同模板仅一张卡；不来自模板的题型 template_id 取空串（NUL 仍写入）。
-- 包缓存修订 ID = UUIDv5(条目 ID 作 namespace, content_hash 的小写十六进制 ASCII)；content_hash 为CORE-16明确排除content_hash及派生revision.id后的条目规范JSON投影的BLAKE3，按条目而非整包计算。CORE-14 投影只调用本函数。
+- 包缓存修订 ID = UUIDv5(条目 ID 作 namespace, content_hash 的小写十六进制 ASCII)；content_hash 为CORE-16（下游说明，非契约）明确排除content_hash及派生revision.id后的条目规范JSON投影的BLAKE3，按条目而非整包计算。CORE-14（下游说明，非契约） 投影只调用本函数。
 - NS_MERGE = UUIDv5(NAMESPACE_URL, "urn:fml:merge")；merge_choice ID = UUIDv5(NS_MERGE, item_id16 + 按16字节升序去重的 head UUID 拼接)。至少两头，无字符串分隔。
 - seed = SHA-256(ASCII "fml/seed/v1" + NUL + session_id16 + card_id16 + question_index u32 大端) 的首8字节按小端 u64 解释；ChaCha8Rng::seed_from_u64 用锁定 rand_chacha 版本。其他用途必须另取 domain，不能复用本 seed。
+
+ID helper 的前置条件：pack_id/entry_key/template_id 均先 NFC，除 card_id 的空 template_id 外不得为空，均不得含 NUL；card_type 须匹配 snake_case 标识并由调用者确认是其现有 CardType；content_hash_hex 恰64个小写十六进制字符；merge_choice_id 的去重后 heads 至少2个。ID helper 保持上列无 Result 签名；违反前置条件是内部编程错误，可 assert/panic，不是常规业务拒绝路径。对用户/FFI/文件边界必须在调用前检查：FFI 字段非法直接 FFI_BAD_ARG；内容工具的包字段/哈希非法直接 CONTENT_FIELD_INVALID（CORE-16（下游说明，非契约），下游说明，非契约）。持久化消费者先验证 DTO 与其来源字段，不把坏数据传入 helper；不得用 catch_unwind 把输入错误掩盖为 FFI_PANIC。merge_choice 的单头集合在消费者处判为“无需合并”且不调用 helper。canonical_json 同样只接收已满足本卡结构语义的 AST，外来 JSON 一律经 from_canonical_json。
+
+ID/seed 固定向量（编码时原样收录 contracts/vectors/ids-v1.json；本表由独立 Node crypto SHA-1/UUIDv5 与 SHA-256 参考计算，不调用产品实现；UUID bytes 均网络序）：令 R1=00000000-0000-0000-0000-000000000001、R2=00000000-0000-0000-0000-000000000002、P=pack_item_id("content-hs-math","gs.newton2")。
+
+| 输入 | 固定期望 |
+| --- | --- |
+| NS_PACK / NS_CARD / NS_MERGE | 93aad4c2-016f-5e4e-bdfd-b6ad35d1b673 / c98a333d-3c6d-5a54-92c9-119e37373a3b / 301dc041-d749-575c-9e3c-bb038a0bb71d |
+| P | 8dd741f6-e268-5561-8914-1f6f1a38d3f9 |
+| pack_template_id("content-hs-math","gs.newton2","base") | 7a75c5a1-0f2a-586c-99bd-4696fb6ac8f9 |
+| card_id(R1,"name_to_formula","") = C | 260a21ed-f30a-548c-a4a6-d7827fc4da76 |
+| pack_cache_revision_id(P,64个ASCII字符0) | 659c5492-53b9-551d-8672-e181fc75befb |
+| merge_choice_id(P,[R2,R1,R2]) | 48bdf7ac-286f-592b-b7d0-1936b923f045 |
+| question_seed(R1,C,1) | 14916561557260356800；完整 SHA-256=c04cc07ab44502cffa77421de5f550ed3f3dd67ad8411f6071451c2d4ca32032，首8字节 c04cc07ab44502cf 按小端解释 |
 
 上述规范化与编码依据 [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) 与 [RFC 9562 UUIDv5](https://www.rfc-editor.org/rfc/rfc9562#section-5.5)。
 
@@ -191,14 +223,15 @@ pub fn question_seed(session: Uuid, card: Uuid, question_index: u32) -> u64;
 
 ```rust
 // crates/fml-ast/src/page.rs，纯数据，无I/O；page从0起，page_size 1..=200
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)] // 泛型能力按 T 的同名 trait 条件成立；snake_case、deny_unknown_fields
 pub struct Page<T> { pub items: Vec<T>, pub total: u32, pub page: u32, pub page_size: u32 }
 ```
 
 **实现约束**
 - 修订不可变：任何内容变化生成新 `FormulaRevision`，旧修订保留；条目只移动 `head`。
 - 规范哈希只依赖 AST 语义（不含符号绑定，见上方规范 JSON 规则），不依赖源码空白与 LaTeX 写法，用于“语义往返不变”的判定。
-- 纯数据 crate：无 I/O、无时钟（时间戳由调用方传入）。
-- 外部前提：`uuid`、`blake3`、`serde`、`serde_json`、`proptest`（开发依赖）crate，版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`。
+- 纯数据 crate：无 I/O、无时钟、无 OS 随机源；用户条目/修订 UUIDv7 与所有时间戳由调用方传入，本 crate 不调用 now_v7 或随机 UUID 构造器。
+- 外部前提：运行依赖 `uuid`（v5、serde；禁用未使用的 v4/v7/RNG 功能）、`blake3`、`sha2`（question_seed 的 SHA-256，不替代 AST 的 BLAKE3）、`unicode-normalization`（NFC）、`serde`（derive）、`serde_json`（保持精确整数 token）；开发依赖 `proptest` 与支持 JSON Schema 2020-12 的 `jsonschema`（format 断言须显式开启）。版本按 ADR-V5-15 开工时锁入 `Cargo.lock`；schema 验证 i64 边界必须使用精确整数路径，不允许 JS Number/f64 的舍入掩盖越界。`rand_chacha` 属 seed 消费方而非 fml-ast 运行依赖。
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-05_TEST.md](../Test/core/S1_CORE-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 

@@ -3,6 +3,7 @@
 > 来源卡：[S0_CORE-03_基座.md](../../S0/S0_CORE-03_基座.md)（C ABI 与 Dart 绑定）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（`S编号_卡号_TEST.md`）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。
 
 **验收标准**
+- [R19] Trace 矩阵（阶段①/②先 Rust Fake op，阶段③再 Dart）：同步/异步成功回传请求 trace；领域零 trace 错误填入请求 trace，已有非零 trace 原样保留且外层相等；panic 与异步失败回调都带捕获的非零 trace。缺失、全零、大写、长度错误或非十六进制请求 trace 返回 FFI_BAD_ARG，能写 out 时备用 trace 非零。无 out/模拟分配失败仍按负状态报告、不得新增 ABI，Dart 无错误缓冲时 traceId 可空，有缓冲时拒绝内外不一致/零 trace。Dart 每次调用生成非零32位小写hex，scoped视图不二次改写；六个 FFI 码 severity/retryable 与 registry 投影相同。
 - [R01] 契约测试（`crates/fml-ffi/tests/abi.rs` 与 `app/test/binding_test.dart`）：同一组 fixtures 在 Android 与 Windows 上得到逐字节相同的输出。
 - [R19] 故障注入：过期句柄、重复释放、空指针、超限 DTO、未知 op、未知 DTO 主版本、op 内 panic 均返回上表约定的返回码与错误码，进程不崩溃；第 65 个并发长任务返回 `-6`。
 - [R01] 取消测试：提交长任务后立即 `fml_cancel`，回调至多触发一次，`fml_cancel` 返回0后该 job 的任务资源归零；已投递回调经 Dart 消费后未释放缓冲区归零；Store 句柄按 close 单独计数。

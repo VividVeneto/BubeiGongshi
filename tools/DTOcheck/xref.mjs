@@ -13,10 +13,19 @@ const MULTI_HUMP = /^[A-Z][a-z0-9]+(?:[A-Z][A-Za-z0-9]*)+$/;
 // 常见语言/SDK 标识：不当作“未定义的项目类型”
 const KNOWN = new Set(['Option', 'Result', 'String', 'Vec', 'HashMap', 'BTreeMap', 'BTreeSet', 'HashSet', 'PathBuf', 'Uuid', 'Zeroizing', 'FmlError',
   'Future', 'FutureOr', 'Stream', 'Uint8List', 'DateTime', 'Duration', 'BuildContext', 'Widget', 'StatelessWidget', 'StatefulWidget',
-  'ChangeNotifier', 'ValueNotifier', 'Navigator', 'GoRoute', 'MaterialApp', 'ThemeData', 'ThemeExtension', 'TextStyle', 'EdgeInsets',
+  'ChangeNotifier', 'ValueNotifier', 'ValueListenable', 'Navigator', 'GoRoute', 'MaterialApp', 'ThemeData', 'ThemeExtension', 'TextStyle', 'EdgeInsets',
   'AtomicBool', 'RwLock', 'Mutex', 'SystemTime', 'NaN', 'PostgreSQL', 'SQLite', 'SQLCipher', 'LaTeX', 'MathML', 'GitHub']);
 
 const bodyBlocks = body => [...body.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].map(m => m[1]);
+
+// 仅移除可完整识别的Rust纯单元枚举声明中的成员名；不注册成全局类型。
+// 载荷类型、普通使用位置或复杂/未知语法仍交原启发式报告。
+const withoutUnitEnumMembers = block => block.replace(/\benum\s+[A-Za-z_]\w*\s*\{([^{}]*)\}/g, (whole, body) => {
+  const plain = body.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, ' ');
+  const members = plain.split(',').map(s => s.trim()).filter(Boolean);
+  if (!members.length || !members.every(s => /^[A-Za-z_]\w*(?:\s*=\s*[0-9]+)?$/.test(s))) return whole;
+  return whole.slice(0, whole.indexOf('{') + 1) + ' }';
+});
 
 export function collectXref({sadd = path.join(ROOT, 'SADD'), root = ROOT} = {}) {
   const cards = loadCards(sadd);
@@ -33,7 +42,7 @@ export function collectXref({sadd = path.join(ROOT, 'SADD'), root = ROOT} = {}) 
     }
     const deps = closureOf(cards, c.id);
     // 已定义的类型（含单词类型名如 Rational）在代码块中被使用才算引用；未定义的只统计多驼峰候选
-    const used = new Set(bodyBlocks(c.body).flatMap(b => b.match(/\b[A-Z][A-Za-z0-9]{2,}\b/g) ?? []));
+    const used = new Set(bodyBlocks(c.body).flatMap(b => withoutUnitEnumMembers(b).match(/\b[A-Z][A-Za-z0-9]{2,}\b/g) ?? []));
     for (const t of used) {
       if (KNOWN.has(t)) continue;
       const owners = tDefs.get(t);

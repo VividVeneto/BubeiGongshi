@@ -81,6 +81,20 @@ test('最小校验器：oneOf、prefixItems、items:false、数组长度、patte
   assert.ok(validate({type: 'string', pattern: '^\\d+$'}, 'ab', ctx).length);
 });
 
+test('共享 Diagnostic.code 与 CORE-02 大写命名空间规则一致', () => {
+  const shared = JSON.parse(fs.readFileSync(new URL('../../contracts/dto/types.schema.json', import.meta.url), 'utf8'));
+  const schema = shared.$defs.Diagnostic;
+  const ctx = {files: new Map(), file: 'types.schema.json'};
+  const diagnostic = code => ({code, severity: 'error', args: {}, needs_confirm: false});
+  assert.equal(schema.properties.code.pattern, '^[A-Z]+(_[A-Z0-9]+)+$');
+  for (const code of ['TYPE_DIM_CONFLICT', 'FFI_BAD_ARG', 'GRADE_TIMEOUT', 'TYPE_X2']) {
+    assert.deepEqual(validate(schema, diagnostic(code), ctx), [], code);
+  }
+  for (const code of ['TYPE', 'A', 'TYPE_', 'TYPE__DIM', '_TYPE_DIM', 'TYPE_dim', 'T9_X']) {
+    assert.ok(validate(schema, diagnostic(code), ctx).length, code);
+  }
+});
+
 test('格式：int128 / uint64 / base64 / decimal 边界', () => {
   assert.ok(FORMATS.int128('170141183460469231731687303715884105727'));
   assert.ok(!FORMATS.int128('170141183460469231731687303715884105728'));

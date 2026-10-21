@@ -3,6 +3,10 @@
 > 来源卡：[S6_CORE-46_扩展.md](../../core/S6_CORE-46_扩展.md)（同步网络协调与快照）。本文件是该卡“验收标准”字段的全文，按卡片编程时直接引用；修改卡片功能时同步修改本文件，卡片因阶段变化改名时本文件同步改名（`S编号_卡号_TEST.md`）。工具按卡片中的引用把本文件自“**验收标准**”行起的内容原样拼回卡片，本行以上不拼回。
 
 **验收标准**
+
+- [R24][R28] pull HTTP/prepare/push HTTP/ack/snapshot下载及apply逐项暂停后关闭A：null立即disabled取消，drain前不native close/openB；迟到A响应不进入B的apply/ack/状态。相同handle多触发同singleflight，新handle新Future。attach两次一订阅，paused取消网络/FFI/退避并排空，A计时器不触发B；档案70每handle一次。
+- [R26][R28] null/guest/off每种SyncTrigger均disabled且HTTP/profile同步op零次，不抛SYNC_NOT_AVAILABLE；显式低层SYNC_DISABLED仅收敛disabled。setEnabled(false)排空后只写原仍有效handle，竞争切换不写B。
+- [R28] SYNC_BATCH_UNKNOWN断言warning/不可重试诊断一次，下一步prepare_push而非重试ack；failed/lastErrorCode/弹窗/失败计数/退避不变且仍计50往返。日志无key/token/恢复码。
 - [R28] 两台设备（同一进程内两个档案 + `fake_sync_server`）：设备 A 升级为注册并开启同步，设备 B 登录后用恢复码 `restoreOnNewDevice`，同步后公式与复习事件一致；服务端替身中只有包装记录与密文。
 - [R28] 中断：推送响应丢失后重试同一批次，服务端返回原 `server_seq`，本地无重复；`SYNC_EPOCH_STALE` 后自动全量重传并成功。
 - [R28] KeyService轮换/恢复由CORE-98验收；本卡对sync.ack返回SYNC_BATCH_UNKNOWN继续prepare_push重建，状态不变为failed、不退避、不计失败。

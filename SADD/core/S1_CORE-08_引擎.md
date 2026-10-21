@@ -1,10 +1,10 @@
 ### CORE-08 量纲与单位
 
-**目标**：提供七个 SI 基本量纲的有理指数代数、单位注册表、精确换算、仿射温度与角度语义，以及用户自定义单位。
+**目标**：提供七个 SI 基本量纲的有理指数代数、可直接构造的内存注册表、有理换算、仿射温度与角度语义，以及用户单位定义图。
 
 **范围**
-- 包含：`Dimension`、`Unit`、`UnitRegistry`、`QuantityKind` 注册表、精确有理换算、仿射单位、伪量纲 Angle/Count、自定义单位的定义与环检测。
-- 不包含：表达式类型推断（CORE-09）。
+- 包含：Rational、Dimension/DimensionFull、Unit/QuantityKind、UnitRegistry/UnitRegistryMut、MemRegistry、有理换算、伪量纲 Angle/Count、用户单位定义及环检测。
+- 不包含：表达式类型推断与温度点算术（CORE-09（下游说明，非契约），下游说明，非契约）、文件/数据库/引擎快照 I/O。
 
 **依赖**：CORE-01、CORE-02、CORE-05
 
@@ -12,33 +12,38 @@
 
 ```rust
 // crates/fml-units/src/lib.rs
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)] // 不 derive PartialOrd/Ord：分子/分母字典序不代表数值大小
+pub struct Rational { pub num: i128, pub den: i128 } // 已约分、den>0、零唯一0/1
+impl Rational {
+    pub fn new(num: i128, den: i128) -> Result<Self, FmlError>;
+    pub fn checked_add(self, o: Self) -> Result<Self, FmlError>;
+    pub fn checked_mul(self, o: Self) -> Result<Self, FmlError>;
+    pub fn checked_neg(self) -> Result<Self, FmlError>;
+    pub fn checked_recip(self) -> Result<Self, FmlError>;
+    pub fn is_zero(self) -> bool;
+    pub fn is_one(self) -> bool;
+}
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Dimension { pub exps: [Rational; 7] } // L M T I Θ N J
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Rational { pub num: i128, pub den: i128 }        // 已约分，den > 0；零唯一为 0/1；溢出返回 UNIT_OVERFLOW
-impl Rational { pub fn new(num: i128, den: i128) -> Result<Self, FmlError>;   // 约分并规范符号；den = 0 或 i128::MIN 取反溢出 → UNIT_OVERFLOW（不引入新错误码）
-                pub fn checked_add(self, o: Self) -> Result<Self, FmlError>; pub fn checked_mul(self, o: Self) -> Result<Self, FmlError>; // 先交叉约分再 checked 运算
-                pub fn checked_neg(self) -> Result<Self, FmlError>; pub fn checked_recip(self) -> Result<Self, FmlError>; // 零的倒数 → UNIT_OVERFLOW
-                pub fn is_zero(self) -> bool; pub fn is_one(self) -> bool; }   // CORE-77 等下游只经这些函数做指数运算（T1-F02）
+pub enum PseudoDim { Angle, Count } // 固定顺序 Angle < Count，serde为angle/count
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Dimension { pub exps: [Rational; 7] }           // 顺序 [L, M, T, I, Θ, N, J]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]   // serde 蛇形："angle"、"count"；排序 Angle < Count
-pub enum PseudoDim { Angle, Count }                         // 库级固定策略，不做用户开关
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct DimensionFull { pub base: Dimension, pub pseudo: Vec<(PseudoDim, Rational)> }   // 规范形：pseudo 去掉零指数、按 Angle < Count 排序；所有构造与运算结果都是规范形
-impl DimensionFull { pub fn one() -> Self;                                     // 单位元（全零指数、pseudo 为空）
-                     pub fn checked_mul(&self, o: &Self) -> Result<Self, FmlError>;   // 指数逐项相加，溢出 UNIT_OVERFLOW（取代原无溢出通道的 mul）
-                     pub fn inverse(&self) -> Result<Self, FmlError>;                  // 指数取负
-                     pub fn pow(&self, q: Rational) -> Result<Self, FmlError>;
-                     pub fn is_dimensionless(&self) -> bool;   // 仅当 base 全零且 pseudo 为空；Angle、Count 不等价于无量纲（CORE-09 的“Angle 或无量纲”规则对应两个判断）
-                     pub fn parse(text: &str) -> Result<Self, FmlError>;   // CORE-05 TypeDecl.dimension 的文本形式
-                     pub fn to_text(&self) -> String; }                    // 规范文本，parse(to_text(d)) == d
-
-pub enum UnitKind { Absolute, AffinePoint /* ℃ 温度点 */, Difference /* 温差 */ }
-pub struct Unit { pub id: String, pub namespace: String /* "si" | "common" | "user" | 扩展名 */,
-                  pub dimension: DimensionFull, pub scale: Rational, pub offset: Option<Rational>,
-                  pub kind: UnitKind, pub version: u32 }
-pub struct QuantityKind { pub id: String /* "Energy" */, pub dimension: DimensionFull,
-                          pub compatible_with: Vec<String> /* Energy ↔ Heat */ }
-
+pub struct DimensionFull { pub base: Dimension, pub pseudo: Vec<(PseudoDim, Rational)> }
+impl DimensionFull {
+    pub fn one() -> Self;
+    pub fn checked_mul(&self, o: &Self) -> Result<Self, FmlError>;
+    pub fn inverse(&self) -> Result<Self, FmlError>;
+    pub fn pow(&self, q: Rational) -> Result<Self, FmlError>;
+    pub fn is_dimensionless(&self) -> bool;
+    pub fn parse(text: &str) -> Result<Self, FmlError>;
+    pub fn to_text(&self) -> String;
+}
+pub enum UnitKind { Absolute, AffinePoint, Difference }
+pub struct Unit { pub id: String, pub namespace: String, pub dimension: DimensionFull,
+                  pub scale: Rational, pub offset: Option<Rational>, pub kind: UnitKind, pub version: u32 }
+pub struct QuantityKind { pub id: String, pub dimension: DimensionFull, pub compatible_with: Vec<String> }
+pub struct UnitDefinition { pub id: String, pub symbol: String, pub expr: String,
+                            pub offset: Option<String>, pub kind: UnitKind }
 pub trait UnitRegistry {
     fn lookup(&self, id: &str) -> Option<&Unit>;
     fn compatible_units(&self, dim: &DimensionFull) -> Vec<&Unit>;
@@ -47,64 +52,90 @@ pub trait UnitRegistry {
 }
 pub trait UnitRegistryMut: UnitRegistry {
     fn insert(&mut self, unit: Unit) -> Result<(), FmlError>;
-    fn remove(&mut self, id: &str) -> Result<(), FmlError>;     // 被其他用户单位引用时返回 UNIT_IN_USE
+    fn remove(&mut self, id: &str) -> Result<(), FmlError>;
+    fn insert_definition(&mut self, def: UnitDefinition) -> Result<(), FmlError>; // 新增，原子保留定义与依赖图
 }
-pub struct UnitDefinition {
-    pub id: String,                 // "user:<名称>"，名称匹配 ^[A-Za-z][A-Za-z0-9_]{0,31}$
-    pub symbol: String,             // 显示符号，≤ 16 字符
-    pub expr: String,               // 以已有单位表示的定义，如 "1000 si:m"、"1/60 si:s"、"si:kg si:m^2 si:s^-2"
-    pub offset: Option<String>,     // 仅 AffinePoint；有理数文本
-    pub kind: UnitKind,
+#[derive(Clone)]
+pub struct MemRegistry<'a> { /* 私有 owned units/kinds/definitions/dependencies；可选只读 borrowed base */ }
+impl MemRegistry<'static> {
+    pub fn from_parts(units: Vec<Unit>, kinds: Vec<QuantityKind>) -> Result<Self, FmlError>;
 }
+impl<'a> MemRegistry<'a> {
+    pub fn with_user_definitions(base: &'a dyn UnitRegistry, defs: &[UnitDefinition]) -> Result<Self, FmlError>;
+}
+// MemRegistry<'a> 实现 UnitRegistry、UnitRegistryMut；不要求 dyn UnitRegistry 可 Clone 或可枚举
 pub fn define_user_unit(reg: &mut dyn UnitRegistryMut, def: UnitDefinition) -> Result<(), FmlError>;
 ```
 
-- FFI op：`units.compatible`（给量纲返回可选单位，供计算器下拉）、`units.convert`（同步；DTO 按 CORE-03 映射规则，处理适配在 CORE-56 的 `crates/fml-ffi/src/ops/units.rs`，读取引擎快照的合成单位表）；`units.define_user`、`units.list_user`（返回全部用户单位定义）、`units.delete_user`（仍被引用时 `UNIT_IN_USE`）的持久化与处理归 CORE-14，本卡只提供定义校验纯函数与 `UNIT_*` 错误码。
-- 量纲文本语法：以空格分隔的因子 `<基>^<指数>`，基为 `L M T I Θ N J` 与伪量纲 `Angle Count`，指数为整数或 `p/q`，指数 1 省略；无量纲写 `1`。规范文本按 `L M T I Θ N J Angle Count` 顺序、省略零指数，如力为 `L M T^-2`，频率为 `T^-1`。
-- 内置 QuantityKind（最少）：Energy/Heat（可显式兼容）、Torque、Frequency、AngularFrequency（与 Frequency 换算含 2π）、Temperature、TemperatureDifference、SpecificHeat、SpecificEntropy、Probability、Correlation、Count、Angle。
-- 错误码（唯一定义；沿用原触发语义）：
+公共能力与 serde（类型声明中未重复写 derives 不代表可省略）：
 
-| 错误码 | 级别 | 可重试 | 触发条件 |
-| --- | --- | --- | --- |
-| `UNIT_UNKNOWN` | error | 否 | 单位ID不存在 |
-| `UNIT_INCOMPATIBLE` | error | 否 | 换算两端量纲不同 |
-| `UNIT_AFFINE_MISUSE` | error | 否 | 温度点相加、乘除或取幂 |
-| `UNIT_CYCLE` | error | 否 | 用户单位定义相互引用 |
-| `UNIT_INVALID_OFFSET` | error | 否 | 非AffinePoint带offset或offset非有理数 |
-| `UNIT_OVERFLOW` | error | 否 | 有理数约分后分子、分母或checked中间值超i128；分母为0或对零取倒数（不可表示） |
-| `UNIT_DIM_SYNTAX` | error | 否 | 量纲文本不合语法 |
-| `UNIT_IN_USE` | error | 否 | 删除仍被引用的用户单位 |
-| `UNIT_DUPLICATE` | error | 否 | 单位ID已存在 |
+| 类型 | 必须能力/唯一线表示 |
+| --- | --- |
+| Rational | 上列能力 + Serialize/Deserialize；`{"num":"<i128十进制>","den":"<正i128十进制>"}`，规范整数拼写，无+、前导零、-0；必须已约分，零0/1；不经JSON number/f64 |
+| Dimension、DimensionFull、PseudoDim | 上列能力 + Serialize/Deserialize；Dimension对象exps恰7项；Full为base与pseudo，pseudo为恰两项数组[蛇形PseudoDim,Rational]的数组，Angle<Count，无重复、无零项；反序/重复/零项输入拒绝而非静默合并 |
+| UnitKind | Clone + Copy + Debug + PartialEq + Eq + Hash + Serialize + Deserialize；absolute/affine_point/difference |
+| Unit、QuantityKind、UnitDefinition | Clone + Debug + PartialEq + Eq + Serialize + Deserialize；同名snake_case struct字段，拒绝未知/重复字段；offset=None省略，显式null拒绝；QuantityKind兼容ID数组无重复、按UTF-8字节序 |
+| MemRegistry | Clone；拥有的集合/定义图深拷贝，base只拷贝借用引用；不提供serde，不冒充持久化模型 |
 
-Rational 的跨语言 JSON 为 {"num":"<i128十进制>","den":"<正i128十进制>"}，数值必须为已约分形式，零唯一为 0/1；不能作为 JSON number 传给 Dart。CORE-03 通用整数规则对本类型以此为准。乘除先交叉约分再 checked_mul；不能用 f64 掩盖溢出。
+所有 serde 结构匹配现有 contracts/dto/types.schema.json、units.compatible/convert.schema.json；本次不新增机器字段。坏 wire 在 FFI 进入领域前返回 CORE-03 的 FFI_BAD_ARG；serde 自身返回解码错误，不在 Deserialize 中 panic。公开字段的直接构造者也必须满足规范形，注册表构造与插入再次验证，不能把无效 Rational 传给算法。
 
-| 向量 | 输入 | 期望 |
+**数值与量纲文本**
+- Rational::new 先按无符号幅值求gcd、约分再规范符号；den=0、规范后不能放入i128、零取倒数或checked中间值溢出均 UNIT_OVERFLOW。乘法先交叉约分，加法先用分母gcd减少中间值；不靠 f64 或 lexicographic Ord 比较大小。MIN/MIN 应可约成1/1，MIN/-1不可表示。
+- DimensionFull运算只作用于指数：checked_mul逐项加，inverse取负，pow乘有理指数，不对Unit.scale开方；结果去零、排序。one为七个0/1且pseudo=[]；Angle/Count不是无量纲。pow(1/2)对L得到L^1/2，不因不能整除而失败。
+- DimensionFull::parse文本：输入仅以ASCII空格分隔因子 `基[^有符号整数或p/q]`；基为 L M T I Θ N J Angle Count，q为正整数。允许无序/重复因子并合并指数，指数0消去、1省略；单独`1`为无量纲，不和其他因子混写。to_text按上述基顺序，以单个空格连接；L^x、空文本、未知基、零分母、尾随垃圾为UNIT_DIM_SYNTAX；词法合法但指数超i128或运算溢出为UNIT_OVERFLOW。parse(to_text(d))==d。
+
+**具体注册表与接线**
+- from_parts拥有给定Unit/QuantityKind，按ID建索引；只接受可验证的原子单位：id为NFC的`namespace:local`，namespace匹配`[a-z][a-z0-9_-]*`且与字段一致，local非空、无空白/控制字符或`:^*/`；scale规范且num>0，dimension规范；AffinePoint仅允许纯Θ一阶、可有offset，其余kind不得有offset。QuantityKind.id非空，compatible_with必须指向现有kind且互相声明。重复ID UNIT_DUPLICATE，坏结构 UNIT_DIM_SYNTAX，未知kind引用 UNIT_UNKNOWN，offset误用 UNIT_INVALID_OFFSET，数值不可表示 UNIT_OVERFLOW。它不从Unit.scale猜测UnitDefinition、来源引用或恢复User依赖图。
+- lookup与quantity_kind精确匹配ID，不存在返回None。compatible_units只按完整量纲相等筛选、按ID UTF-8字节序、每ID一次；与量的种类/点差算术不是同一判定。with_user_definitions先查自己拥有的用户结果再回落base；compatible_units合并自己与base.compatible_units结果并排序，quantity_kind回落base，不需要枚举任意trait对象。
+- with_user_definitions借用“不含User层”的稳定base快照，拥有defs副本与用户引用图；只接收user:单位定义。先解析完整集合，建立边（定义→被引用user ID），检查自环/间接环，再拓扑求值；允许集合内前向引用，非环未知引用UNIT_UNKNOWN。base借用不得超出该快照，Clone不延长生命周期。CORE-56（下游说明，非契约）将快照已合成units/kinds传from_parts；CORE-14（下游说明，非契约）用base+全部已持久化UnitDefinition构造临时用户registry，在同一Store事务完成候选检查/写入，之后才发布引擎层，不能依赖dyn trait可clone。
+- insert(Unit)只加入独立原子单位，不能伪造定义依赖；ID冲突拒绝、不覆盖。insert_definition先在副本解析、闭包/环/offset/数值检查，成功才同时写Unit、UnitDefinition及引用图；define_user_unit仅调用该原子入口。remove不存在返回UNIT_UNKNOWN，已有其他owned定义引用时UNIT_IN_USE；失败时所有索引/定义图不变。借用base只读，remove只操作owned条目，只有base中存在的ID视为无owned条目而返回UNIT_UNKNOWN。普通from_parts/insert不能代替以定义图为依据的User删除安全检查。
+- 引用图是用户定义的事实来源，不能从Unit的扁平量纲/比例反推。删除/重定义由CORE-14（下游说明，非契约）在事务内以持久化全集构造候选图，先校验再替换；调用者保存原定义记录，不从Unit回造symbol/expr。
+
+**用户单位冻结语法**
+- id=`user:<名称>`，名称匹配`^[A-Za-z][A-Za-z0-9_]{0,31}$`；symbol为NFC、1..16个Unicode标量、不含空白/控制字符。symbol仅显示元数据，不创建lookup别名。
+- expr=`[系数 空格] 单位因子 (空格 单位因子)*`，首系数缺省1；系数为有符号十进制整数、有限小数或`p/q`（q正整数），不支持科学记数法；单位因子为已存在或集合内ID，可追加`^有符号整数`，如`1000 si:m`、`1/60 si:s`、`si:kg si:m^2 si:s^-2`。只以一个或多个ASCII空格分隔，可去首尾空格；不支持括号、乘除运算符、相加、分数幂或把符号别名当ID。因子指数重复相加；scale按整数幂有理运算后乘首系数且最终必须>0；生成Unit的namespace=user、version=1，后续定义版本由持久化消费者管理，不从时钟生成。
+- AffinePoint定义必须只含一个非AffinePoint的纯Θ单位、指数1，offset用上述有理文本表示“SI基准加数”：`base_value=value*scale+offset`，缺省0；不得把带offset的点当乘积因子。Difference/Absolute带offset返回UNIT_INVALID_OFFSET；引用AffinePoint作为因子返回UNIT_AFFINE_MISUSE；offset词法错误为UNIT_INVALID_OFFSET、合法数字超i128为UNIT_OVERFLOW。格式/id/symbol/不支持幂/非正scale等为UNIT_DIM_SYNTAX；单个插入不能引用未知ID，完整集合允许前向引用。
+
+**换算、近似π与数据所有权**
+- convert先检查from/to存在（UNIT_UNKNOWN），再检查完整量纲相等（UNIT_INCOMPATIBLE），再检查仿射kind。si:K为纯Θ、scale1、无offset的Absolute中性SI基准；允许AffinePoint↔si:K与Difference↔si:K，保证20℃→K和Δ20℃→K均有明确入口。直接AffinePoint↔Difference返回UNIT_AFFINE_MISUSE。其他Absolute温度单位按零offset线性基准处理；普通非温度单位不允许AffinePoint定义。K的中性仅是此单位换算API的桥接，不抹除表达式的温度点/温差QuantityKind，也不授权CORE-09（下游说明，非契约）把点当普通量相加或相乘。点→点与点→温度基准使用`(v*scale_from+offset_from-offset_to)/scale_to`；Difference/普通线性单位用`v*scale_from/scale_to`；全部先约分再checked计算。
+- 温度点加法/乘除/指数不由本卡的convert执行：CORE-09（下游说明，非契约）报TYPE_AFFINE_MISUSE；点−点=差、点+差=点，绝对温度进入热力学公式时按开尔文语义参与。本卡不添加不存在的Quantity算术API。
+- 固定近似`PI_RAT=245850922/78256779`，不是数学π精确值；common:deg.scale=PI_RAT/180=122925461/7043110110，si:rad.scale=1，均带Angle伪量纲。180deg→rad精确为245850922/78256779，1rad→deg精确为7043110110/122925461，往返精确；数学π误差另验`|PI_RAT-π|<1e-15`，不把浮点π当有理黄金值。Frequency与AngularFrequency之2π因子用491701844/78256779，不把两种QuantityKind隐式标为兼容；显式ω=2πf/错误ω=f的表达式规则在CORE-09（下游说明，非契约）。
+- 最少种类：Energy/Heat显式双向兼容、Torque、Frequency、AngularFrequency、Temperature、TemperatureDifference、SpecificHeat、SpecificEntropy、Probability、Correlation、Count、Angle。具体units/kinds数据、版本与来源只由CORE-56（下游说明，非契约）交付`crates/fml-ffi/assets/engine-v1/units.json`、`kinds.json`；本crate不读文件、不自带第二份数据表。测试用最小内存fixture而非偷读未交付资产。
+
+| 向量 | 输入 | 固定期望 |
 | --- | --- | --- |
-| UNIT-X1 | 1 eV → J | 精确 801088317 / 5000000000000000000000000000 |
-| UNIT-X2 | N_A | 精确整数 602214076000000000000000 mol^-1 |
-| UNIT-X3 | 原子质量单位 u → kg | CODATA 2022 近似值 1.66053906892e-27，对记录的十进制值精确保存为有理数；不得标 SI 定义精确值 |
+| UNIT-X1 | 1eV→J | 801088317/5000000000000000000000000000，SI定义精确 |
+| UNIT-X2 | N_A | 602214076000000000000000 mol^-1，SI定义精确 |
+| UNIT-X3 | u→kg | 41513476723/25000000000000000000000000000000000000，即记录十进制1.66053906892e-27的精确存储；CODATA2022近似，非SI定义精确值 |
 
 来源：[BIPM SI Brochure](https://www.bipm.org/en/publications/si-brochure)、[NIST atomic mass constant](https://physics.nist.gov/cgi-bin/cuu/Value?u)。
 
-DimensionFull跨语言JSON唯一采用结构体映射：base.exps恰7项，顺序L/M/T/I/Θ/N/J；每项Rational的num/den为十进制字符串，pseudo是[伪量纲蛇形枚举,Rational]数组，无重复且按angle/count顺序、省略零指数。无量纲例base.exps全为{"num":"0","den":"1"}且pseudo=[]；L量纲仅首项为1/1，其余0/1。文本parse/to_text仅用于TypeDecl声明和展示，不是DimensionFull线类型。
+**错误码（本卡唯一定义，均error/不可重试）**
 
-units.compatible的body={dimension:DimensionFull}、ok={units:Unit[]}；units.convert的body={value:Rational,from:string,to:string}、ok={value:Rational}，均call/none scope。字段全部必填，units按id字节序。例convert 1 si:m→si:m返回1/1；compatible允许无匹配时units=[]。持久化用户单位仍归CORE-14。
+| 错误码 | 级别 | 可重试 | 触发条件 |
+| --- | --- | --- | --- |
+| `UNIT_UNKNOWN` | error | 否 | 单位ID或kind兼容引用不存在；remove无owned目标 |
+| `UNIT_INCOMPATIBLE` | error | 否 | convert两端完整量纲不同 |
+| `UNIT_AFFINE_MISUSE` | error | 否 | convert直接点↔差；用户定义将AffinePoint作为乘积因子；不是表达式算术错误码 |
+| `UNIT_CYCLE` | error | 否 | 用户定义集合含自环或间接引用环 |
+| `UNIT_INVALID_OFFSET` | error | 否 | 非AffinePoint携offset、AffinePoint非纯Θ或非法offset词法 |
+| `UNIT_OVERFLOW` | error | 否 | 规范/checked中间值超i128、分母0、零取倒数 |
+| `UNIT_DIM_SYNTAX` | error | 否 | 量纲/定义语法、ID/symbol、非正scale或注册表结构不满足本卡约束 |
+| `UNIT_IN_USE` | error | 否 | 删除仍被其他owned用户定义引用的单位 |
+| `UNIT_DUPLICATE` | error | 否 | 单位或种类ID重复；insert/insert_definition冲突 |
 
-FFI错误镜像（不重定义代码；通用信封错误见CORE-03；读取快照的适配另由CORE-56（下游说明，非契约）统一返回ENGINE_UNAVAILABLE）：
+**FFI接缝**：units.compatible的body={dimension:DimensionFull}、ok={units:Unit[]}；units.convert的body={value:Rational,from:string,to:string}、ok={value:Rational}，均call/none，body字段全必填；compatible无匹配返回[]。适配由CORE-56（下游说明，非契约）的`crates/fml-ffi/src/ops/units.rs`构造同快照from_parts并调用纯trait；snapshot不可用统一ENGINE_UNAVAILABLE，不混入Unit错误。用户units.define_user/list_user/delete_user持久化由CORE-14（下游说明，非契约）负责，返回原UnitDefinition集合。
 
-| op | 本卡业务/诊断代码及依赖透传 |
+| op | 本卡业务/诊断代码及依赖透传（通用信封错误见CORE-03） |
 | --- | --- |
-| units.compatible | 无业务错误；通用信封错误仍适用 |
+| units.compatible | 无业务错误；调用前规范DTO/快照验证，空结果不是错误 |
 | units.convert | UNIT_UNKNOWN、UNIT_INCOMPATIBLE、UNIT_AFFINE_MISUSE、UNIT_OVERFLOW |
 
 **实现约束**
-- 换算用精确有理系数，只在输出阶段转浮点；π 相关换算给出精度说明。
-- 温度：20 ℃ 存储为 293.15 K 的温度点；Δ20 ℃ 存储为 20 K 温差；点 − 点 = 差，点 + 差 = 点，点 + 点拒绝；温度点不得参与乘除、指数与约分，热力学公式（如 pV = νRT）中的绝对温度以开尔文参与。
-- 角度在三角函数内按库策略转弧度，外部显示保留用户单位。
-- `pow(q)` 的失败条件只有数值溢出或超出策略限制，不因“不能整除”失败。
-- 自定义单位位于 `user` 命名空间，定义集合闭合、无环；非 SI 量纲只能经带版本的扩展命名空间引入。
+- 无I/O/时钟/随机源；不依赖fml-ffi/store/type/parser。serde与用户表达式只做本卡语法，不借解析器。
+- 外部前提：serde（derive）、serde_json、unicode-normalization（NFC）；proptest与支持2020-12的jsonschema为开发依赖；按ADR-V5-15开工锁Cargo.lock。整数路径必须精确，测试不能先JSON.parse成Number再验证i128。无num-bigint运行依赖，不以浮点掩盖溢出。
+- 所有新增trait能力、借用生命周期与下游接线须非作者复核；测试方案是编码验收计划，不声称尚未实现的Rust测试已通过。
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-08_TEST.md](../Test/core/S1_CORE-08_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 440 行；`crates/fml-units/`（Rational 与量纲运算/文本/serde 约 180、类型与注册表实现约 140、自定义单位约 70、数据加载与角度约 35）；单位与种类数据表为数据不计；units.* 的 fml-ffi 处理由 CORE-56 编写。
-
+**规模**：约620行，分阶段；均`crates/fml-units/`，不计测试/fixture、机器schema与他卡资产/FFI代码。阶段①约310行：lib.rs公开类型/traits、rational.rs、dimension.rs、serde.rs、registry.rs的from_parts/基础lookup/compatible/convert与原子Unit插入删除；可独立构建，最小内存SI/温度/角度fixture验证数值/serde/换算/排序，不依赖尚未交付用户图。新增insert_definition/with_user_definitions只随阶段②发布，①不暴露伪实现。阶段②约310行：user_units.rs及registry.rs的定义图/with_user_definitions/insert_definition与闭包/原子更新；复用①数值和原子基表，独立构建并运行用户前向引用/环/删除/失败回滚测试；不改变①from_parts签名。数据资产与units.*适配由CORE-56（下游说明，非契约）交付，用户持久化由CORE-14（下游说明，非契约）交付，不重复预算。

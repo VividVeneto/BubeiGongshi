@@ -8,3 +8,5 @@
 - [R26] 升级开始前游客期间无任何上传（Fake `HttpTransport` 审计）。
 
 - [R28] 档案提交前/后、注册表投影前/后、registry_pending 清除前分别崩溃并重开：最终档案/注册表一致、首次 outbox 各一次，无已提交数据丢失；平台密钥不可用、档案未打开或ProfileSession无效时业务路由不开放；密钥可用即自动打开，不弹应用认证。
+- [R28] load_account_keys/load_account_keys_tx读取相同account_id/epoch/版本升序全集；后者可见同事务未提交轮换，不另开快照、不跨档案/请求缓存，缺钥SYNC_KEY_MISSING；结束密钥清零。
+- [R28] Commit注入registry枚举全部已注册存活实体及墓碑，现有ID/field_clock逐字不变；device设置/会话/参数/缓存/识别历史不入队。中途codec或入队故障回滚account_state/日志/outbox，重入LocalCommitted不重复首次队列；registry为原生参数，JSON不增字段。

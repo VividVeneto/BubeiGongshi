@@ -1,6 +1,6 @@
 ### CORE-78 同步推送批次持久化
 
-**目标**：把已加密、待推送的批次连同密文字节持久化，使崩溃、超时或重启后重发的始终是同一批字节，并以原子方式结算与作废。本卡自 CORE-26 拆出（CORE-26 估算超 500 行）。
+**目标**：把已加密、待推送的批次连同密文字节持久化，使崩溃、超时或重启后重发的始终是同一批字节，并以原子方式结算与作废。本卡自 CORE-26 拆出（原卡规模说明及下游说明，非契约；原估算超 500 行）。
 
 **范围**
 - 包含：`push_batch` 表与迁移、`StoredBatch`、批次保存/读取/结算/作废函数（均在调用方的同一写事务内执行）、结算时对 `sync_outbox` 行的同事务删除。
@@ -35,7 +35,7 @@ pub fn invalidate_all(tx: &mut WriteTx, reason: InvalidateReason) -> Result<u32 
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
-| `SYNC_BATCH_UNKNOWN` | error | 否 | `settle` 的 `batch_id` 不存在，且 `settled` 中仍有 op_id 留在 `sync_outbox`（批次已被作废） |
+| `SYNC_BATCH_UNKNOWN` | warning | 否 | `settle` 的 `batch_id` 不存在，且 `settled` 中仍有 op_id 留在 `sync_outbox`（批次已被作废） |
 | `SYNC_BATCH_INVALID` | error | 否 | `save_batch` 违反上列任一条件（长度、数量、元素字节和、批内重复、op_id 不在 outbox、epoch/key_version 为 0、batch_id 重复或已有未结算批次） |
 
 **实现约束**
