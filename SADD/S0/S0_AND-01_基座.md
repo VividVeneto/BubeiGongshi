@@ -27,8 +27,8 @@ void main() => runPlatformApp(const CoreLibrarySpec('libfmlcore.so'), buildAndro
 // app/lib/composition/ports_android.dart
 PlatformPorts buildAndroidPorts();
 // 每个端口字段一行：初始全部为 CORE-04 的 UnsupportedXxx（lib/ports/unsupported/），并 debugPrint('port <字段名>: unsupported')；
-// platformInstallers 初始为 const []；最终顺序AND-13交互→AND-07输入→AND-14剪贴板→AND-08提醒，各追加一项（追加行同样不计入规模）。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
-// AND-03～AND-09 实现某端口时只替换该字段对应的一行（替换行不计入该卡规模，也不视为跨构建单元）。
+// platformInstallers 初始为 const []；最终顺序AND-13交互→AND-07输入→AND-14剪贴板→AND-08提醒，各追加一项（追加行计入对应功能卡规模，本卡仅计聚合骨架）。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
+// AND-03～AND-09 实现某端口时只替换该字段对应的一行（替换行计入对应端口实现卡规模，不重复计入本卡；仍属同一构建单元）。
 ```
 
 ```text
@@ -81,5 +81,5 @@ AndroidChannelModule生命周期补充：唯一MainActivity在onCreate中构造�
 
 **验收标准**：测试方案全文见 [Test/S0/S0_AND-01_TEST.md](../Test/S0/S0_AND-01_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行（Gradle 脚本、MainActivity、入口与组装）；`app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart`（同属 `app/` 构建单元）。
+**规模**：约 240 行；`app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart`、`app/`。组件估算：Gradle执行任务与Cargo失败传播约 85 行，MainActivity/模块生命周期骨架约 105 行，Dart入口与端口聚合骨架约 50 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

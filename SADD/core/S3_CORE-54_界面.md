@@ -4,9 +4,9 @@
 
 **范围**
 - 包含：选择模型（按 ID 选择，或“当前筛选的全部结果减去排除项”）；列表修饰与选择工具栏；键盘、鼠标与触控交互；编辑标签对话框；移入回收站后的撤销提示条；附属的 Rust 批量操作与 op `library.batch`；安装点 `installLibraryBatch`（登记 CORE-38 `LibraryListDecorator`）。
-- 不包含：列表、筛选与搜索（CORE-38、CORE-14）；单条编辑与单条元数据修改（CORE-38、CORE-14 `library.update_meta`）；批量导入（CORE-14、CORE-38）；批量导出与批量复制公式（V1 不做）；手动永久删除（回收站条目 30 天后由 CORE-14 清理）。
+- 不包含：列表、筛选与搜索（CORE-38、CORE-79）；单条编辑与单条元数据修改（CORE-88、CORE-14 `library.update_meta`）；批量导入（CORE-79、CORE-60）；批量导出与批量复制公式（V1 不做）；手动永久删除（回收站条目 30 天后由 CORE-14 清理）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-13、CORE-14、CORE-36、CORE-38、CORE-55、CORE-58
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-13、CORE-14、CORE-36、CORE-38、CORE-79、CORE-55、CORE-58
 
 **接口契约**
 
@@ -85,5 +85,5 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/l
 
 **验收标准**：测试方案全文见 [Test/core/S3_CORE-54_TEST.md](../Test/core/S3_CORE-54_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；用例/状态目录 `app/lib/library/batch/`（选择模型、BatchVm、修饰器与安装点，约 200）；`app/lib/ui/library/batch/`（选择工具栏、复选框与编辑标签对话框，约 130）；附属 `crates/fml-store/src/library/batch.rs` 与 FFI 处理函数 `crates/fml-ffi/src/ops/library_batch.rs`（约 130）。
+**规模**：约710行，分阶段（Ⅰ SelectionController/批VM、存储事务与FFI/op约440行；Ⅱ 列表装饰、批选择界面/撤销与接入约270行；各阶段可独立构建与测试）；app/lib/library/batch/、app/lib/ui/library/batch/、crates/fml-store/、crates/fml-ffi/及本卡编写的binding/library/composition接入行；不计自测、夹具、DDL/schema与生成物。
 

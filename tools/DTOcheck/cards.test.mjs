@@ -26,12 +26,16 @@ test('构建单元：多个 crate / 跨 app 与 server 才算多单元，裸文�
   assert.equal(buildUnits('主包 `crates/fml-ffi/`，`app/lib/binding/`').size, 2);
 });
 
-test('规模：与索引不一致、超过 500、含“另计”、多构建单元无附属', () => {
+test('规模：与索引不一致、超过 800 或超过 500 未分阶段、含“另计”、多构建单元无附属', () => {
   let root = fresh(); mutate(root, CORE, '**规模**：约 150 行', '**规模**：约 160 行');
   assert.ok(ids(run(root)).includes('CARD-05'));
   root = fresh(); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 150 行（规则表另计约 50 行）；`crates/fml-type/`。');
   assert.ok(ids(run(root)).includes('CARD-07'));
   root = fresh(); mutate(root, CORE, '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 150 |', '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 600 |'); mutate(root, CORE, '**规模**：约 150 行', '**规模**：约 600 行');
+  assert.ok(ids(run(root)).includes('CARD-06'));
+  root = fresh(); mutate(root, CORE, '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 150 |', '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 600 |'); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 600 行；`crates/fml-type/`；分阶段：① 规则 300；② 推断 300。');
+  assert.ok(!ids(run(root)).includes('CARD-06'));
+  root = fresh(); mutate(root, CORE, '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 150 |', '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 900 |'); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 900 行；`crates/fml-type/`；分阶段：① 400；② 500。');
   assert.ok(ids(run(root)).includes('CARD-06'));
   root = fresh(); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 150 行；`crates/fml-type/`、`app/lib/x/`。');
   assert.ok(ids(run(root)).includes('CARD-08'));

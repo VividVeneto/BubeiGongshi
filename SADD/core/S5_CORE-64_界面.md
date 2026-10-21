@@ -40,5 +40,5 @@ InkStrokesDto 为 CORE-29 InkStrokes 的 CORE-03 生成映射（跨语言消费�
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-64_TEST.md](../Test/core/S5_CORE-64_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 320 行；主包 `app/lib/recognition/ink/`、`app/lib/ui/recognition/ink/`（含测试与必要的同构建单元接缝）。
+**规模**：约 230 行；主包 `app/lib/recognition/ink/`、`app/lib/ui/recognition/ink/`。
 

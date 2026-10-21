@@ -49,5 +49,5 @@ final class ReauthenticationRequired extends NetEvent {}
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-62_TEST.md](../Test/core/S2_CORE-62_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 220 行；主包 `app/lib/net/`（含测试与必要的同构建单元接缝）。
+**规模**：约 200 行；主包 `app/lib/net/`。
 

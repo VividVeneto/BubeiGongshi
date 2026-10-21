@@ -66,7 +66,7 @@ securityLevel==software仅报告能力，不在Kotlin或端口弹界面；CORE-6
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-06_TEST.md](../Test/and/S2_AND-06_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；`app/lib/platform/android/storage/` 与 `app/android/.../KeystoreBridge.kt`、两个备份规则 XML（同属 `app/` 构建单元）。
+**规模**：约 355 行；`app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt`、`app/`。组件估算：Dart端口与别名/路径校验约 100 行，Kotlin Keystore/版本/安全等级/降级约 205 行，目录/空间/通道与接入约 50 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 
 ---
 

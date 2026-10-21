@@ -109,5 +109,5 @@ PR3预分配机器表contracts/policies/shared-writes.json中的error项由本�
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-02_TEST.md](../Test/S0/S0_CORE-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 370 行；主包 `crates/fml-error/`（约 170 行，含构造函数与 serde），附属：注册表 `contracts/errors/` 与其生成器 `tools/ci/gen_errors.py`（约 150 行）、跨语言另一侧 `app/lib/binding/error_codes.g.dart` 与 `app/lib/l10n/errors_zh.arb`（约 50 行；生成物不计手写行）。
+**规模**：约455行；主包 crates/fml-error/ 165行；附属 tools/ci/gen_errors.py及本卡CI接入230行、app/lib/binding/errors.dart手写异常桥60行；registry/ownership/消息资源与生成物不计。 单阶段可独立构建测试；只计本卡实现及本卡编写的附属接入，不计数据/生成物/自测。
 

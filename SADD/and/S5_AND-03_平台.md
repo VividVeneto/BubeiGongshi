@@ -20,7 +20,7 @@ abstract interface class ImagePicker {
 abstract interface class FileExporter {
   Future<bool> saveAs(String suggestedName, Stream<List<int>> bytes); // 由用户选择保存位置；用户取消返回 false
 }
-/// 非图片文件选择（备份恢复 CORE-27、公式批量导入 CORE-14）：由系统选择器选取后复制到 StoreArea.staging。
+/// 非图片文件选择（备份恢复 CORE-84、公式批量导入 CORE-79）：由系统选择器选取后复制到 StoreArea.staging。
 abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
@@ -69,5 +69,5 @@ Photo Picker数量分支在返回结果后统一截断至maxCount并去重；即
 
 **验收标准**：测试方案全文见 [Test/and/S5_AND-03_TEST.md](../Test/and/S5_AND-03_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 360 行；`app/lib/platform/android/picker/` 与 `app/android/.../ImportBridge.kt`（同属 `app/` 构建单元），附属：`tools/ci/check_android_manifest.py` 白名单一行。
+**规模**：约 570 行；`app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt`、`app/`、`tools/ci/check_android_manifest.py`。组件估算：Dart三端口封装与参数校验约 120 行，原生选择器与回调约 95 行，流式复制/限额/文档校验约 100 行，HEIC降采样转码约 50 行，导出分块/失败清理约 65 行，临时批次生命周期约 135 行，模块/端口/审计接入约 5 行。分阶段：① 选择器与文档复制约 300 行；② 导出、HEIC与生命周期约 270 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

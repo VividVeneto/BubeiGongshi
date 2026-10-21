@@ -17,10 +17,10 @@ PR6现行等级/就绪证据核对调用CORE-76，本卡只检查发布验收清
 
 **实现约束**
 - 卡解析复用CORE-57 load，就绪证据与统计复用CORE-76 current/stats；保留错误行号；DDL/DTO字段缺陷只能人工语义复核。
-- 逐文件估算：结构/阶段/追踪180、op及记录规则80、验收清单60、测试100，附属Python转发20，合计440；temp版check.mjs只作迁移参考，不能不经测试直接宣称全部规则已实现。
+- 逐组件实现估算：结构/阶段/追踪210、op及记录规则70、验收清单75、CORE-57/76证据适配65、附属Python转发/CI调用20，合计440；测试不计。temp版check.mjs只作迁移参考，不能不经测试直接宣称全部规则已实现。
 - 外部前提：锁定Node/Python；不要求产品crate/设备先实现。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-70_TEST.md](../Test/S0/S0_CORE-70_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 340 行；主包 `tools/sadd/`（不含测试约100行），附属 `tools/ci/check_sadd.py`（20行转发）。
+**规模**：约440行；tools/sadd/structure.mjs及本卡编写的证据适配、tools/ci/check_sadd.py与CI调用行；复用CORE-57/76输出而不重复计其实现；不计自测、夹具、验收方案/schema数据与生成物，亦不计README §7.1排除的DTOcheck工具实现。
 

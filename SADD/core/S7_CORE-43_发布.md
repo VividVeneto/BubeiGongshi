@@ -55,5 +55,5 @@ server/src/ops/
 
 **验收标准**：测试方案全文见 [Test/core/S7_CORE-43_TEST.md](../Test/core/S7_CORE-43_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；主包 `server/deploy/`（配置与脚本约 260 行），附属：`server/src/ops/`（指标与健康检查约 160 行，与 `server/` 同一 Cargo 构建单元）。
+**规模**：约560行，分阶段（Ⅰ 部署前检、容器命令、指标/健康检查及接入约425行；Ⅱ 备份恢复与TUF离线刷新工具约135行；各阶段可独立构建与测试）；server/deploy/、server/src/ops/及本卡编写的服务端/CI接入行；不计自测、夹具、Compose/配置声明数据、备份与报告生成物。
 

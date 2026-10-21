@@ -6,7 +6,7 @@
 - 包含：RecognitionFlow、图片裁剪增强页面、作答输入适配与识别安装点。
 - 不包含：墨迹控制器与画布，迁至 CORE-64；结果/历史页面由 CORE-50（下游说明，非契约）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-29、CORE-30、CORE-31、CORE-32、CORE-34、CORE-35、CORE-37、CORE-39、CORE-55、CORE-64、CORE-58、CORE-59
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-29、CORE-30、CORE-31、CORE-32、CORE-34、CORE-35、CORE-37、CORE-39、CORE-55、CORE-64、CORE-58、CORE-59、CORE-95、CORE-87
 
 **接口契约**
 
@@ -91,14 +91,14 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - 增强选项或裁剪变化后旧 `previewPath` 作废；在 `CloudPreviewing` 返回裁剪必须重新 `preparePreview` 与确认（同一哈希原则见 CORE-34）。
 - 后端列表：游客只列 `networked = false`；作答模式只列 `faithful_transcription = true`；`cloud` 为 null 时不出现任何云端项。本地失败不得自动切换后端。
 - 墨迹采样、擦除、增量绘制及延迟唯一归CORE-64；本卡只接收其 `InkController.strokes`（`InkStrokesDto`）快照并驱动识别，不重复实现。
-- 手写作答：`HandwritingAnswerInput` 以 `RecognitionModeDto.answer`、`notationProfileId = 期望修订的 notation_profile_id` 运行流程；展示 Top-1 转写到 CORE-59 编辑器（LaTeX 模式）供用户修改，点“确认作答”后才调用 `AnswerSink`（`answer_mode = handwriting`、`Graded(Latex)`）；不显示识别置信度。
-- 安装点：`installRecognition(ctx)` 构造 CORE-32 `HistoryKeyUnlocker` 并登记到 `ctx.features`；`RecognitionFlow` 在档案解锁后首次调用 `recog.session.*` 前 `ensure()`，返回 true 时提示一次“本机密钥失效，识别历史已清空”；以 order 40 登记“本地模型注册”（`pack.list` 中 `model-` 开头的包逐个 `recog.local.register`，失败只记录）、order 50 登记 `recog.recover`；向 `ctx.features` 中的 `AnswerInputRegistry`（CORE-39）注册 `HandwritingAnswerInput`；订阅 `ports.lifecycle.events()`，`paused` 持续 30 s 或 `lowMemory` 时调用 `recog.local.unload_all`。在 CORE-36 `installers.dart` 追加一行，位于 `installStudy` 之后。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
+- 手写作答：`HandwritingAnswerInput` 以 `RecognitionModeDto.answer`、`notationProfileId = 期望修订的 notation_profile_id` 运行流程；展示 Top-1 转写到 CORE-87 编辑器（LaTeX 模式，控制器契约 CORE-59）供用户修改，点“确认作答”后才调用 `AnswerSink`（`answer_mode = handwriting`、`Graded(Latex)`）；不显示识别置信度。
+- 安装点：`installRecognition(ctx)` 构造 CORE-32 `HistoryKeyUnlocker` 并登记到 `ctx.features`；`RecognitionFlow` 在档案解锁后首次调用 `recog.session.*` 前 `ensure()`，返回 true 时提示一次“本机密钥失效，识别历史已清空”；以 order 40 登记“本地模型注册”（CORE-95 `pack.list` 中 `model-` 开头的包逐个 `recog.local.register`，失败只记录）、order 50 登记 `recog.recover`；向 `ctx.features` 中的 `AnswerInputRegistry`（CORE-39）注册 `HandwritingAnswerInput`；订阅 `ports.lifecycle.events()`，`paused` 持续 30 s 或 `lowMemory` 时调用 `recog.local.unload_all`。在 CORE-36 `installers.dart` 追加一行，位于 `installStudy` 之后。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 不把图片写入系统相册或公共目录。
 - 外部前提：无新增第三方库（裁剪手势用 Flutter 内置 `InteractiveViewer` 与自绘裁剪框）。
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-40_TEST.md](../Test/core/S5_CORE-40_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 370 行；主包 `app/lib/recognition/flow/`、`app/lib/recognition/answer_input.dart`、`app/lib/recognition/install.dart`、`app/lib/ui/recognition/crop/`。
+**规模**：约 695 行；主包 `app/lib/recognition/flow/`、`app/lib/recognition/answer_input.dart`、`app/lib/recognition/install.dart`、`app/lib/ui/recognition/crop/`。分阶段：① 识别流程编排、作答输入与安装点（RecognitionStep、RecognitionFlow、HandwritingAnswerInput、installRecognition，约 480）；② 图片裁剪增强页（CropEnhancePage、裁剪框状态 crop_state.dart 与路由登记，约 215）。
 
 ---
 

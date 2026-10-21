@@ -12,7 +12,7 @@ test('fences and tables remain atomic', () => {
   assert.equal(result.length,2); assert.match(result[0],/x: u8/); assert.match(result[1],/1 \| 2/);
 });
 test('all cards retain full direct contracts and target, bounded segments lose no text', () => {
-  const cards=load();
+  const cards=load(undefined,{tests:false});
   const contractFiles=[];
   const walk=d=>{for(const n of fs.readdirSync(d)){const p=d+'/'+n; if(fs.statSync(p).isDirectory())walk(p); else contractFiles.push(p);}};
   walk('contracts');
@@ -25,6 +25,19 @@ test('all cards retain full direct contracts and target, bounded segments lose n
     const accounted=new Set([...result.report.files,...result.report.filteredFiles.map(f=>f.path)]);
     for(const f of contractFiles) assert.ok(accounted.has(f),id+' accounts for '+f);
   }
+});
+test('test plans are excluded by default and included only with withTests', () => {
+  const withTests=load(); const plain=load(undefined,{tests:false});
+  const id=[...withTests.keys()].find(k=>withTests.get(k).testFile);
+  assert.ok(id,'some card references a test plan');
+  const plan=fs.readFileSync(path.join('SADD',withTests.get(id).testFile),'utf8');
+  assert.equal(plain.get(id).testFile,withTests.get(id).testFile);
+  assert.ok(!plain.get(id).body.includes(plan.split('\n').slice(2).join('\n').trim().slice(0,200)),'plain body keeps only the reference line');
+  const def=pack(id); const full=pack(id,{withTests:true});
+  assert.equal(def.report.tests,'excluded'); assert.equal(full.report.tests,'included');
+  assert.ok(def.text.includes(plain.get(id).body.trim()));
+  assert.ok(full.text.includes(withTests.get(id).body.trim()));
+  assert.ok(def.text.includes('测试方案默认不收录'));
 });
 test('unknown cards and paths outside workspace are rejected', () => {
   assert.throws(()=>pack('CORE-999'),/Unknown card/);

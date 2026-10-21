@@ -1,16 +1,16 @@
 ### WIN-08 编辑器快捷键、输入法与笔输入
 
-**目标**：通过 CORE-36、CORE-59、CORE-64 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔、外接数位板、触屏的手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
+**目标**：通过 CORE-36、CORE-59、CORE-87、CORE-64 预留的接缝，为 Windows 提供编辑器快捷键、全局快捷键与触控笔、外接数位板、触屏的手写输入策略；默认键位尽量贴近 Word 与常见 LaTeX 编辑器，键位表可由 WIN-14 自定义（README §6 Q11）。
 
 **范围**
-- 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-59 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-64 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
+- 包含：快捷键模型 `ShortcutCommand`、`Keymap`（组合键 `KeyChord` 定义见 WIN-15），默认键位表 `defaultKeymap`，保留键判定 `isReservedChord`，当前键位持有者 `KeymapHolder`；`WindowsEditorBindings`（实现 CORE-87 `EditorPlatformBindings`）；`WindowsShellKeys`（实现 CORE-36 `ShellKeyHandler`，挂入 WIN-15 `WindowsKeyRouter`，不直接登记）；`WindowsInkPolicy`（实现 CORE-64 `InkInputPolicy`）；笔设备检测 `WindowsPenStatus` 与设置区“笔与数位板”（order 65）；runner 侧通道 `fml/windows/pen`（笔设备枚举、关闭系统长按右键与笔势）；安装点 `installWindowsEditing`。
 - 不包含：编辑器逻辑、撤销与模板（CORE-59）；画布与笔画模型（CORE-64）；快捷键设置界面、录制、冲突处理与持久化（WIN-14）；学习流程键盘命令与全应用按键入口（WIN-15）；LaTeX 命令补全（CORE-53）与公式库批量操作（CORE-54）的按键，二者在共享界面实现，键位固定，本卡只把 Ctrl+T、Shift+F10 列为保留键，避免被自定义占用（README §6 Q16）；数位板快捷键按钮、触控环、压感曲线与板面映射区域（由厂商驱动设置）；WinTab 接口（见 README §6 Q31）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28、WIN-17
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-36、CORE-37、CORE-40、WIN-15、CORE-59、CORE-64、CORE-28、WIN-17、CORE-87
 
 **接口契约**
 
-实现的接缝（逐字摘录，定义见 CORE-36、CORE-59、CORE-64）：
+实现的接缝（逐字摘录，定义见 CORE-36、CORE-87、CORE-64）：
 
 ```dart
 abstract interface class EditorPlatformBindings {   // 平台卡经 PlatformPorts.platformInstallers 登记；未登记时用 DefaultEditorBindings
@@ -66,7 +66,7 @@ void installWindowsEditing(CompositionContext ctx);
 // 不作为 ShellKeyHandler 登记；追加到 ports_windows.dart 的 platformInstallers（在 installWindowsInteraction 之后）（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 ```
 
-默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-59）：
+默认键位（只处理 `KeyDownEvent` 与 `KeyRepeatEvent`；未命中的按键交给 `const DefaultEditorBindings()`，其行为见 CORE-87）：
 
 | 范围 | 命令 | 默认按键 | 动作 | 依据 |
 | --- | --- | --- | --- | --- |
@@ -137,5 +137,5 @@ WindowsInkPolicy：
 
 **验收标准**：测试方案全文见 [Test/win/S5_WIN-08_TEST.md](../Test/win/S5_WIN-08_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；`app/lib/platform/windows/editing/`（约 380 行，含笔设备检测与设置区）、`app/windows/runner/pen_channel.cpp` 与 `app/windows/runner/flutter_window.cpp` 的一行注册（约 80 行），同属 `app/` 构建单元。
+**规模**：约 590 行；`app/lib/platform/windows/editing/`、`app/windows/runner/pen_channel.cpp`、`app/windows/runner/flutter_window.cpp`、`app/`。组件估算：模型/查键/保留键/编辑与全局处理约 220 行，InkPolicy约 35 行，PenStatus Dart/设置与安装约 150 行，原生枚举/子视图子类化/消息撤销约 185 行。分阶段：① 快捷键与Ink策略约 255 行；② 笔设备与压力适配约 335 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

@@ -75,7 +75,7 @@ Explorer恢复：注册`RegisterWindowMessageW(L"TaskbarCreated")`，WIN-01平�
 
 **验收标准**：测试方案全文见 [Test/win/S4_WIN-09_TEST.md](../Test/win/S4_WIN-09_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；`app/lib/platform/windows/notify/` 与 `app/windows/runner/tray_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 545 行；`app/lib/platform/windows/notify/`、`app/windows/runner/tray_channel.cpp`、`app/`。组件估算：Dart排程/补发/去重/偏好约 150 行，TrayPresence/设置区/安装约 120 行，原生图标/菜单/通知/Explorer重建约 180 行，自启注册表/事件与退出接入约 95 行。分阶段：① 日程与偏好约 275 行；② 原生托盘与恢复约 270 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 
 ---
 

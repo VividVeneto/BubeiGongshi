@@ -92,8 +92,12 @@ export function listCardFiles(sadd) {
   return {cards, issues};
 }
 
-/** 读取三份文档的完整文本（拆分布局按标记拼回）。 */
-export function readDocs(sadd) {
+/**
+ * 读取三份文档的完整文本（拆分布局按标记拼回）。
+ * tests=true（默认）时卡片的“验收标准”引用行换回 Test/ 测试方案全文，供往返校验与 cardiff 使用；
+ * tests=false 时保留卡片原文（只含引用行），供会话材料默认不收录测试方案（README §8.1）。
+ */
+export function readDocs(sadd, {tests = true} = {}) {
   const layout = layoutOf(sadd);
   if (layout === 'legacy') return {layout, texts: Object.fromEntries(FILES.map(f => [f, fs.readFileSync(path.join(sadd, f), 'utf8')])), cardFiles: new Map(), issues: []};
   const {cards, issues} = listCardFiles(sadd);
@@ -108,7 +112,7 @@ export function readDocs(sadd) {
       if (used.has(m[1])) throw new Error(`${m[1]}: 在总览中被标记了多次`);
       if (docOf(m[1]) !== d) issues.push({id: 'LAYOUT-05', msg: `${m[1]}: 标记应在 ${docOf(m[1]).dir}/${OVERVIEW}，实际在 ${d.dir}/${OVERVIEW}`});
       used.add(m[1]);
-      return card.text;
+      return tests ? card.text : card.raw;
     }).join('');
   }
   for (const id of cards.keys()) if (!used.has(id)) issues.push({id: 'LAYOUT-05', msg: `${cards.get(id).rel}: 没有任何总览标记引用该卡片`});

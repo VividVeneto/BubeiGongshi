@@ -65,5 +65,5 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-29_TEST.md](../Test/core/S5_CORE-29_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 320 行；`crates/fml-recognize/src/{lib.rs, registry.rs, ink.rs}`。
+**规模**：约435行；主包crates/fml-recognize/src/{lib,registry,ink,validate}.rs 360行，附属crates/fml-ffi/src/ops/recognize.rs三op及staging读取75行；无分阶段；schema/向量、自测和具体后端不计。 单阶段可独立构建测试；只计本卡实现及本卡编写的附属接入，不计数据/生成物/自测。
 

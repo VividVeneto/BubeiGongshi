@@ -55,5 +55,5 @@ pub fn grade(req: &GradeRequest, profile: &NotationProfile, units: &dyn UnitRegi
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-18_TEST.md](../Test/core/S4_CORE-18_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；`crates/fml-grade/`。
+**规模**：约 480 行；主包 `crates/fml-grade/`（约 460：类型、分派与预算、作答绑定、规范化比较、数值抽样、必须形式、数值与单位判定），附属 `crates/fml-ffi/src/ops/grade.rs`（grade.answer 处理约 20）。二级分界：数值有效数字与单位换算（约 45），编码超出时移出。
 

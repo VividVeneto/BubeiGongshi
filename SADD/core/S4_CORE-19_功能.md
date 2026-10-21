@@ -1,12 +1,12 @@
-### CORE-19 学习会话与组学习循环
+### CORE-19 纯组学习循环与选卡
 
-**目标**：实现“以不背单词为原型、功能近似”的背诵闭环：选书定计划、分组多轮、错题重现、组后默写、客观结果映射评分、跳过暂停与改判。
+**目标**：以sans-I/O纯函数与纯数据模型实现组循环、出题、评分映射和确定性选卡，供处理层持久化与界面投影。
 
 **范围**
-- 包含：`Book`、`StudyPlan`、`StudySession`、`Attempt` 实体与仓储；组循环状态机（sans-I/O）；出题（含干扰项与易混组）；评分映射；续学；多设备同组；“记错了”申诉。
-- 不包含：卡片排程（CORE-17）；判分（CORE-18）；统计（CORE-20）；界面（CORE-39）。不做组队打卡与社交功能。
+- 包含：Book/StudyPlan/Attempt及组循环/边界DTO的纯数据定义；step/build_question/select_cards、组内重现、组后默写、评分映射与确定性输入规则。
+- 不包含：仓储、续学/多设备持久化、codec/applier及12个study.* op（CORE-82，下游说明，非契约）；卡片排程、判分、统计与界面；不做组队打卡与社交。
 
-**依赖**：CORE-01、CORE-02、CORE-13、CORE-14、CORE-17、CORE-18、CORE-16
+**依赖**：CORE-01、CORE-02、CORE-05、CORE-16、CORE-17、CORE-18
 
 **接口契约**
 
@@ -70,46 +70,7 @@ pub fn build_question(card: &Card, content: &QuestionSource, seed: u64) -> Resul
 
 - 组循环：出题 → 作答 → 判定（CORE-18 `grade`，`seed` 调 CORE-05 question_seed，包含session/card/question_index）；判错、或 Undetermined 后自评“不会”插回本组靠后（当前位置之后第 3 个位置，不足则末尾）并清零连续计数；正确则计数 +1，达到 K 次即该卡完成；全组完成后进入组后默写（可选只默写错题）；默写错误使该卡本组判失败，次日进入错题复习。
 - 评分映射（`RatingMap`，带版本，初值）：判错或放弃 → Again；用提示或经组内重现后判对 → Hard；首次判对且无提示 → Good；首次判对、无提示且用时 ≤ 本人该题型最近 30 次判对用时中位数的 50%（判对少于 10 次时不判 Easy）→ Easy；Undetermined → 先返回 `NeedSelfRate`，界面显示标准答案请用户自评，收到 `SelfRated` 后才生成 Attempt（`self_knew` 有值）并推进状态机：自评“会” → Hard 且计入连续计数，自评“不会” → Again；自评不能单独使公式进入 Mastered（CORE-20）。
-- 申诉“记错了”：生成引用原 Attempt 的纠正事件并重算排程，原事件保留。
-- FFI op（DTO 按 CORE-03 映射规则）：
-
-| op | 入参 → 出参 | 说明 |
-| --- | --- | --- |
-| `study.books.list` | `{}` → `[BookSummary]` | 不含章节条目以减小体积 |
-| `study.books.get` | `{id}` → `Book` | 含章节与条目 |
-| `study.books.create` | `BookDraft` → `{id}` | 只允许 `BookSource::User` |
-| `study.books.update` | `Book` → `{id}` | id 必须存在，且为用户书 |
-| `study.books.delete` | `{id}` → `{}` | 只删书，不删条目；有计划引用时一并停用计划 |
-| `study.plan.get` | `{}` → `{plan_id, plan: StudyPlan}` 或 `null` | 当前 active 计划 |
-| `study.plan.set` | `StudyPlan` → `{plan_id}` | 新建并设为 active，旧计划 active = 0 |
-| `study.today` | `{now_ms}` → `TodayInfo` | 首页数字；复习优先于新学 |
-| `study.session.start` | `{plan_id, kind: SessionKind, source_session_id?: Uuid}` → `{session_id, commands: [UiCommand]}` | |
-| `study.session.step` | `{session_id, input: SessionInput}` → `{commands: [UiCommand]}` | 处理函数：判分 → 组装 Attempt → 纯函数 `step` → 执行 `PersistAttempt`、`EmitReview` → 映射为 `UiCommand` |
-| `study.session.resume` | `{session_id, now_ms}` → `{commands}` | 重发当前题 |
-| `study.appeal` | `{attempt_id}` → `{}` | “记错了” |
-
-- 表（本卡 `migrations/0019_study.sql`）：
-
-| 表 | 主要列（类型，约束） | 索引 |
-| --- | --- | --- |
-| `book` | `id TEXT PK`，`title TEXT NOT NULL`，`source_json TEXT NOT NULL`，`chapters_json TEXT NOT NULL`，`updated_at_ms` | — |
-| `study_plan` | `id TEXT PK`，`book_id TEXT NOT NULL REFERENCES book(id)`，`plan_json TEXT NOT NULL`，`active INTEGER NOT NULL`，`updated_at_ms` | `(active)` |
-| `study_session` | `id TEXT PK`，`plan_id TEXT NOT NULL`，`kind TEXT NOT NULL`，`state_json TEXT NOT NULL`（GroupState），`started_at_ms`，`last_active_at_ms`，`finished_at_ms INTEGER` | `(plan_id, last_active_at_ms)` |
-| `attempt` | Attempt 各字段一列（`verdict_json TEXT`），`session_id TEXT NOT NULL`，`UNIQUE (device_id, device_seq, tx_index)`；只插入不更新 | `(card, at_ms)`，`(session_id)` |
-| `confusable_group` | `id TEXT PK`，`source TEXT NOT NULL`（pack 或 user），`items_json TEXT NOT NULL`（2–8 个条目 ID），`note TEXT` | — |
-
-- 错误码（本卡唯一定义）：
-
-| 错误码 | 级别 | 可重试 | 触发条件 |
-| --- | --- | --- | --- |
-| `STUDY_SESSION_EXPIRED` | warning | 否 | last_active_at_ms 距 now_ms 超过 24 h 仍 resume，结束会话并保留完成部分 |
-| `STUDY_K_OUT_OF_RANGE` | error | 否 | k_new 不在 1..=5 或 k_review 不在 1..=3 |
-| `STUDY_PLAN_INVALID` | error | 否 | 计划其他字段越界、书不存在、exam_subject 非法 |
-| `STUDY_NO_CARDS` | info | 否 | 按计划过滤后无可出卡片 |
-| `STUDY_BOOK_READ_ONLY` | error | 否 | 更新或删除内容包书 |
-| `STUDY_INPUT_INVALID` | error | 否 | 卡片非当前题、attempt_id 不待自评、UiAnswer 不匹配 answer_mode 或题源审校字段无效 |
-
-- 每个业务写命令必须使用 CORE-13 Store.write/enqueue_outbox，显式 changed_fields；不得自行分配 Lamport 或直接写 outbox。重放与缓存更新不当成用户编辑。
+- 申诉/会话续学、持久化与全部study.* op由CORE-82（下游说明，非契约）消费本卡纯类型与函数；本卡不做I/O，不包含op处理函数。DDL结构见下“迁移元数据”，保留原序号而不形成仓储实现依赖。
 
 选卡纯函数所需输入与算法（见 README §6 Q33（待确认），暂行默认）：
 
@@ -132,7 +93,7 @@ pub fn select_cards(input: &SessionSelectionInput, plan: &StudyPlan, kind: Sessi
 
 select_cards 的 Dictation 输入由处理层用来源组成员裁剪 schedules/book，kind与source_session_id均校验；session.start DTO附 source_session_id?（只在dictation必填），既有未结束同计划同kind会话优先续接，不能重开绕过额度。
 
-RecentStats 由op层在提交前查询本人同题型最近30条客观Correct、未跳过/自评/改判作答的duration，按(at_ms,device_id,seq)逆序截30，再按duration排序；偶数中位取两中间均值向下取整，samples是实际条数。step不查库，samples<10或median=None不判Easy；当前题不算历史。
+RecentStats由调用方提供；提交前查询的30条历史筛选/排序协议由CORE-82处理层执行。本卡step不查库，samples<10或median=None不判Easy，当前题不算历史；评分纯函数边界仍按上表。
 
 | 向量 | 输入 | 期望 |
 | --- | --- | --- |
@@ -143,17 +104,41 @@ RecentStats 由op层在提交前查询本人同题型最近30条客观Correct、
 
 build_question 的输入包括已人工审校的QuestionSource（reviewed_by,reviewed_at来自CORE-16，非空）；干扰项只能取其中Distractor并带error_type，不现场合成未审校选项；reviewed_by 空或 reviewed_at_ms≤0 返回 STUDY_INPUT_INVALID（复用本卡错误），不抛无定义异常；用seed洗牌去重，同seed复现，干扰项不足时改Input，不伪造干扰项。`QuestionSource.confusable`（内容包易混组与用户自建易混组，后者未经审校）只用于反馈 `related`，不进入 options；因此用户建组不影响 [R04.c] 的审校要求。
 
-BookSummary `{id:Uuid,title:string,source:BookSource,chapter_count:u32,item_count:u32}`；BookDraft `{title:string,chapters:[Chapter]}`，source固定User、id由仓储生成。QuestionSource由CORE-16包读取适配提供revision/distractors/confusable和审校信息；exam_tags/hint_latex来自条目templates字段；RelatedFormula的派生关系从CORE-14 derivation表读取，反馈不依赖CORE-48界面。seed只调用CORE-05 question_seed(session_id,card_id,question_index)，禁止另写“卡片+作答序号”拼接。
+BookSummary `{id:Uuid,title:string,source:BookSource,chapter_count:u32,item_count:u32}`；BookDraft `{title:string,chapters:[Chapter]}`，source固定User、id由上层仓储生成。QuestionSource及QuestionView/RelatedFormula纯类型在本卡；调用方提供包来源/审校与关系数据，seed只调用CORE-05 question_seed(session_id,card_id,question_index)，禁止另写拼接。
 
 产品约束追踪：见README §6 Q34；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
+**迁移元数据**
+
+- 表（DDL仍随原序号 `migrations/0019_study.sql`）：
+
+| 表 | 主要列（类型，约束） | 索引 |
+| --- | --- | --- |
+| `book` | `id TEXT PK`，`title TEXT NOT NULL`，`source_json TEXT NOT NULL`，`chapters_json TEXT NOT NULL`，`updated_at_ms` | — |
+| `study_plan` | `id TEXT PK`，`book_id TEXT NOT NULL REFERENCES book(id)`，`plan_json TEXT NOT NULL`，`active INTEGER NOT NULL`，`updated_at_ms` | `(active)` |
+| `study_session` | `id TEXT PK`，`plan_id TEXT NOT NULL`，`kind TEXT NOT NULL`，`state_json TEXT NOT NULL`（GroupState），`started_at_ms`，`last_active_at_ms`，`finished_at_ms INTEGER` | `(plan_id, last_active_at_ms)` |
+| `attempt` | Attempt 各字段一列（`verdict_json TEXT`），`session_id TEXT NOT NULL`，`UNIQUE (device_id, device_seq, tx_index)`；只插入不更新 | `(card, at_ms)`，`(session_id)` |
+| `confusable_group` | `id TEXT PK`，`source TEXT NOT NULL`（pack 或 user），`items_json TEXT NOT NULL`（2–8 个条目 ID），`note TEXT` | — |
+
+这些DDL不计代码规模；对应仓储、codec/applier和删除分支归CORE-82（下游说明，非契约），本卡领域crate不依赖Store。
+
+**错误码唯一定义**
+
+| 错误码 | 级别 | 可重试 | 触发条件 |
+| --- | --- | --- | --- |
+| `STUDY_SESSION_EXPIRED` | warning | 否 | last_active_at_ms 距 now_ms 超过 24 h 仍 resume，结束会话并保留完成部分 |
+| `STUDY_K_OUT_OF_RANGE` | error | 否 | k_new 不在 1..=5 或 k_review 不在 1..=3 |
+| `STUDY_PLAN_INVALID` | error | 否 | 计划其他字段越界、书不存在、exam_subject 非法 |
+| `STUDY_NO_CARDS` | info | 否 | 按计划过滤后无可出卡片 |
+| `STUDY_BOOK_READ_ONLY` | error | 否 | 更新或删除内容包书 |
+| `STUDY_INPUT_INVALID` | error | 否 | 卡片非当前题、attempt_id 不待自评、UiAnswer 不匹配 answer_mode 或题源审校字段无效 |
+
 **实现约束**
-- 状态机是纯函数，组内顺序与重现位置由事件确定性重放；每次作答与评分只落库一次。
-- 跳过当次不计；暂停挂起到手动恢复；关闭的题型不再出卡；会话游标持久化，24 h 内可续学。
-- 两台设备同学一组时保留全部 Attempt，按 `(device_id, device_seq)` 与时间重放。
-- 用户可自建公式书，书中只引用公式条目 ID。
+- 状态机是纯函数，组内顺序与重现位置由事件确定性重放；通过PersistAttempt/EmitReview命令表达效果，不直接读写数据库。
+- 跳过当次不计，暂停到手动恢复，关闭题型不出卡；游标数据可序列化，续学期限和幂等持久化由CORE-82（下游说明，非契约）执行。
+- 两设备事件作为调用方提供的确定性输入，纯循环不构造Store或自行分配device_seq。
+- Book只引用公式条目ID，用户自建书的业务写入由上层仓储执行。
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-19_TEST.md](../Test/core/S4_CORE-19_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；主包 `crates/fml-study/`（约 400 行，含边界 DTO 与 op 处理函数），附属：领域表仓储 `crates/fml-store/src/study/sessions.rs` 与迁移 `0019_study.sql`（约 100 行，DDL 不计）。
-
+**规模**：约455行；crates/fml-study/（纯类型、组循环、出题、评分映射与选卡）；不含仓储、codec/applier或op处理函数，不计自测、夹具、schema与生成物。

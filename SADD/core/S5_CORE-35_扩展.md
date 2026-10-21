@@ -4,9 +4,9 @@
 
 **范围**
 - 包含：模型包内容约定（在 CORE-15 包格式内用 `Model` 与 `Metadata` 条目承载）、推理运行时的内部抽象 `InferenceEngine` 与测试替身 `FakeEngine`、预处理与贪心/束搜索解码、`LocalModel` 后端（实现 CORE-29 `Recognizer`）、懒加载与内存释放、模型包安装后的注册与卸载时注销、FFI op。
-- 不包含：真实推理运行时（ort 或 mnn）的绑定实现——ADR-V5-13 定案后作为本卡的 cargo feature 追加，不阻塞本卡编码完成；模型训练、导出与数据集（附录 B、附录 C）；YOLO 检测器（只在实验分支）；模型包的下载与安装入口（CORE-51，经 CORE-15 安装）。
+- 不包含：真实推理运行时（ort 或 mnn）的绑定实现——ADR-V5-13 定案后作为本卡的 cargo feature 追加，不阻塞本卡编码完成；模型训练、导出与数据集（附录 B、附录 C）；YOLO 检测器（只在实验分支）；模型包的下载与安装入口（CORE-51，经 CORE-95 安装）。
 
-**依赖**：CORE-01、CORE-02、CORE-15、CORE-29
+**依赖**：CORE-01、CORE-02、CORE-15、CORE-29、CORE-95
 
 **接口契约**
 
@@ -53,7 +53,7 @@ pub fn decode_tokens(ids: &[i64], vocab: &[String]) -> Result<String, FmlError>;
 - InputSpec 与 model.json.input 逐字段同名；不另引 height/max_width 第二套字段。预处理先等比例缩放使长边≤long_edge、短边≤max_short_edge且放大≤2倍，尺寸向下取整且最少1；灰度值除255，invert时用1-v，然后(v-mean)/std。补白至长边long_edge、短边max_short_edge的画布（横图H=max_short_edge/W=long_edge，竖图相反），左上对齐，白色同样归一化，Tensor形状[1,1,H,W]，F32行优先。非法配置在from_pack报RECOG_MODEL_INCOMPATIBLE；夹具包含横/竖/单像素与std=0拒绝。
 - 识别流程：`preprocess` → encoder 一次 → decoder 逐步束搜索（`beam_width` 条，`max_tokens` 上限，每步检查 `CancelFlag`）→ 每条束得到 `RawCandidate { latex, confidence: Some(exp(平均对数概率)), align: [] }`，按置信度降序。
 - FFI op：`recog.local.register`（同步）`{ pack_id }` → `BackendCaps`（`from_pack` 后调 CORE-29 `Registry::register`；同 id 重复注册替换）；`recog.local.unregister` `{ pack_id }` → `{}`（`pack.uninstall` 前由调用方先调）；`recog.local.unload_all`（同步）`{}` → `{ freed: u32 }`。识别本身走 CORE-29 `recog.run`。启动时由组装层对 `pack.list` 中 `model-` 开头的包逐个调 `register`。
-- 卸载联动：首次执行 `recog.local.register` 时向 CORE-15 `add_uninstall_hook` 登记一次钩子：卸载 `model-` 开头的包前先 `unload` 并从 CORE-29 注册表移除对应后端（Windows 上释放文件句柄，保证目录可删）；资源包管理页（CORE-51）因此无需依赖本卡。
+- 卸载联动：首次执行 `recog.local.register` 时向 CORE-95 `add_uninstall_hook` 登记一次钩子：卸载 `model-` 开头的包前先 `unload` 并从 CORE-29 注册表移除对应后端（Windows 上释放文件句柄，保证目录可删）；资源包管理页（CORE-51）因此无需依赖本卡。
 - 错误码：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -82,7 +82,7 @@ pub fn decode_tokens(ids: &[i64], vocab: &[String]) -> Result<String, FmlError>;
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-35_TEST.md](../Test/core/S5_CORE-35_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；`crates/fml-recognize-local/`（不含测试夹具）。
+**规模**：约700行，分阶段：①抽象配置/模型包、预处理与LocalModel生命周期430行；②解码/束搜索180及三个op/卸载联动90，共270行；主包crates/fml-recognize-local/610行，附属fml-ffi及fml-recognize移除接入90行；测试替身、模型数据和真实运行时绑定不计。 阶段独立构建/测试：①包与生命周期基础（430行）：cfg(test) FakeEngine验证加载/卸载/预处理；可构建但真实runtime未选择时明确不可用，不伪装能识别。；②解码与op联动（270行）：用假runtime token序列验证束搜索、超时/取消、OOM卸载与pack hook；不把假识别当真实模型性能验收。
 
 ---
 

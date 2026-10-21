@@ -1,12 +1,12 @@
-### CORE-52 公式复制格式与富格式导出
+### CORE-52 公式导出内核与剪贴板负载契约
 
-**目标**：复制公式时一次写入多种常见剪贴板格式，由粘贴目标自动选用（纯文本编辑器得到 LaTeX，Office 得到可编辑公式，绘图与聊天软件得到图片）；另提供“复制为”菜单单独复制某一种格式。
+**目标**：提供Rust MathML/SVG导出、export.formula处理和跨平台剪贴板负载/写入端口的低层稳定契约。
 
 **范围**
-- 包含：Rust 导出 crate `fml-export`（MathML、SVG；Unicode 文本复用 CORE-06）；FFI op `export.formula`；Dart 用例 `DefaultFormulaCopier`（实现 CORE-59 `FormulaCopier`：按格式组装剪贴板负载、渲染 PNG、生成 HTML 片段、缓存、无平台写入器时降级为纯文本）；平台接缝 `FormulaClipboardWriter`；安装点 `installFormulaCopy`。
-- 不包含：各平台把负载写入系统剪贴板（WIN-05、AND-14）；复制按钮与“复制为”菜单（CORE-59 `FormulaCopyButton`）；公式绘制函数本身（CORE-37 `paintDisplayList`）；粘贴与粘贴图片（CORE-59、CORE-50）；应用私有剪贴板格式与复制后自动清空（README §6 Q12 不采用）。
+- 包含：fml-export MathML/SVG，Unicode复用CORE-92；FFI长任务export.formula；纯Dart FormulaClipboardPayload与FormulaClipboardWriter端口，供平台实现与上层复制用例共同消费；EXPORT_*错误唯一定义。
+- 不包含：DefaultFormulaCopier、多格式负载编排、PNG/HTML/缓存与安装（CORE-91，下游说明，非契约）；平台剪贴板实现（WIN-05、AND-14，下游说明，非契约）；复制按钮/菜单（CORE-87，下游说明，非契约）；粘贴/识别（CORE-59、CORE-50，下游说明，非契约）；私有格式与自动清空（Q12不采用）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-05、CORE-06、CORE-07、CORE-12、CORE-37、CORE-55、CORE-59、CORE-58、CORE-73
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-05、CORE-06、CORE-07、CORE-12、CORE-73、CORE-92、CORE-94
 
 **接口契约**
 
@@ -21,11 +21,11 @@ pub fn export_svg(dl: &DisplayList, fonts: &[FontData], opts: &SvgOptions) -> Re
 
 - FFI op（长任务，经 CORE-03 `submit` 调用）：`export.formula`
   - 请求 `{"source": string（≤ 64 KiB）, "notation_profile_id": string（默认 "cn-default"）, "user_decls": [SymbolDecl]（默认 []）, "formats": ["unicode"|"mathml"|"svg"|"display"]}`。
-  - 处理：CORE-06 `parse`（`budget_ms = 200`）→ CORE-07 `bind`（与 `engine.check` 相同的方案与声明规则，不做量纲校验）→ CORE-12 `layout`（`font_size_px = 20`、`display_style = true`、`WrapMode::Scroll`）→ 按 `formats` 导出。
+  - 处理：CORE-06 `parse`（`budget_ms = 200`）→ CORE-07 `bind`（与 `engine.check` 相同的方案与声明规则，不做量纲校验）→ CORE-94 `layout`（`font_size_px = 20`、`display_style = true`、`WrapMode::Scroll`）→ 按 `formats` 导出。
   - 响应 `{"unicode"?: string, "mathml"?: string, "svg"?: string, "display"?: DisplayList, "omitted": [{"format": string, "code": string}]}`；某一格式失败只记入 `omitted`，不影响其他格式。
 
 ```dart
-// app/lib/export/formula_copy.dart
+// app/lib/export/formula_copy.dart —— 纯负载/端口，无Widget、复制用例或安装依赖
 final class FormulaClipboardPayload {             // null 字段不写入剪贴板
   const FormulaClipboardPayload({this.text, this.latex, this.mathml, this.html, this.svg, this.png, this.pngWidth = 0, this.pngHeight = 0});
   final String? text;                              // 纯文本（auto 与 latex 时为 LaTeX 源码；unicode / mathml 时为对应文本）
@@ -35,23 +35,9 @@ final class FormulaClipboardPayload {             // null 字段不写入剪贴�
 abstract interface class FormulaClipboardWriter {  // 平台卡经 PlatformPorts.platformInstallers 登记（WIN-05、AND-14）
   Future<bool> write(FormulaClipboardPayload payload);   // 平台不支持的字段忽略；返回 true 表示系统已显示复制反馈（如 Android 13+）
 }
-// FormulaCopyFormat、FormulaCopier 定义见 CORE-59
-final class DefaultFormulaCopier implements FormulaCopier {
-  DefaultFormulaCopier({required CoreBinding core, required FeatureRegistry features, required ClipboardAdapter clipboard});
-}
-String formulaHtmlFragment({required String latex, required Uint8List png, required double width, required double height});
-void installFormulaCopy(CompositionContext ctx);   // ctx.features.register<FormulaCopier>(DefaultFormulaCopier(...))
 ```
 
-- 格式组合（`FormulaCopier.copy` 生成的负载）：
-
-| 选择 | text | latex | mathml | html | svg | png |
-| --- | --- | --- | --- | --- | --- | --- |
-| 自动（默认点击） | LaTeX 源码 | LaTeX 源码 | MathML | 内嵌 PNG 的 HTML 片段 | SVG | PNG |
-| 复制为 LaTeX | LaTeX 源码 | LaTeX 源码 | — | — | — | — |
-| 复制为 Unicode 文本 | Unicode 文本 | — | — | — | — | — |
-| 复制为 MathML | MathML 文本 | — | — | — | — | — |
-| 复制为图片 | — | — | — | — | SVG | PNG |
+- FormulaClipboardPayload与FormulaClipboardWriter只由本卡定义；平台写入器继续直接依赖本卡，在PlatformPorts.platformInstallers登记。上层复制服务只消费端口，不把平台接缝搬到UI子卡。
 
 - 错误码（本卡登记）：
 
@@ -60,27 +46,17 @@ void installFormulaCopy(CompositionContext ctx);   // ctx.features.register<Form
 | `EXPORT_NOT_RENDERABLE` | warning | 否 | 源码无法解析（`ast` 为 null）或含空位 `\fmlhole`；此时只能复制 LaTeX |
 | `EXPORT_TOO_LARGE` | warning | 否 | MathML 超过 1 MiB、SVG 超过 4 MiB，或 PNG 在 1 倍缩放下仍超过 8192 像素边长；该格式被省略 |
 
-- 界面行为：由 CORE-59 `FormulaCopyButton` 呈现；本卡以 `formatsFor` 告知不可用格式（`EXPORT_NOT_RENDERABLE` → 只有 auto 与 latex；Unicode 导出失败 → 无 unicode；`EXPORT_TOO_LARGE` → 无对应格式）。
-
-paintDisplayList从CORE-37所有的app/lib/render/display_list_painter.dart导入，不从ui/editor导入；它只依赖dart:ui及生成DTO。
-
-DefaultFormulaCopier的formatsFor/copy完整实现CORE-59声明：userDecls是当前修订/会话的不可变声明快照，逐次原样传给export.formula；缓存键用其规范序列化内容，不用对象identity。formatsFor与copy使用同一声明输入，不读取隐式当前公式。
+- EXPORT_TOO_LARGE的PNG边长条件由上层复制用例执行时引用同一错误码；错误语义/级别/可重试性仍只在本卡定义，不因发生位置而再登记。
 
 EngineContext.snapshot返回Result；FFI适配先用snapshot()?取得Arc再检查unavailable/expected_generation，任一失败不调用领域算法。层提交后mark_unavailable的Err向调用方传播，不忽略。
 
 **实现约束**
-- 视觉与交互遵守 CORE-55：颜色、字号、间距、圆角与动效只取 `FmlTheme` 令牌，控件用 CORE-58 核心组件，页面按 CORE-55 g「关键页面布局」在各宽度分档与矮高度下呈现，触控目标与密度取 `InputModalityScope`；不判断运行平台。
-- 本卡出现的界面元素（复制结果提示、导出预览与错误提示）用 CORE-55 `showFmlToast` 与组件，不新增颜色与动效。
 - MathML：输出 MathML Core（`<math xmlns="http://www.w3.org/1998/Math/MathML">`），`annotate_latex` 时外包 `<semantics>` 并附 `<annotation encoding="application/x-tex">`。映射：Symbol → `mi`（正体或斜体按 CORE-07 `display_glyph` 与方案），Number → `mn`，Unit → `mi mathvariant="normal"`，分式 → `mfrac`，根式 → `msqrt/mroot`，上下标 → `msup/msub/msubsup`，求和与极限 → `munderover`，矩阵与向量 → `mtable`，分段 → 左大括号加 `mtable`。AST 不记写法时按 `source_map` 取运算符所在源码片段决定显示：`\cdot` → ·，`\times` → ×，并列 → `<mo>&#x2062;</mo>`（不可见乘号）；`\frac` → `mfrac`，`/` → `<mo>/</mo>`；函数名后加 `<mo>&#x2061;</mo>`。含 `Hole` 时不导出。
 - SVG：`viewBox` 取 DisplayList `bounds` 外扩 `padding_px`；`Glyph` 用 CORE-12 `glyph_outline` 取轮廓、按 `size / units_per_em` 缩放并翻转 y 轴后写成 `<path>`；`Rule` → `<rect>`；`Path` 按描边或填充写出；填充 `#000000`、背景透明；只含 `svg/title/g/path/rect` 元素，不含 `text`、字体、脚本、样式表、外部引用与 `foreignObject`。
-- PNG 在 Dart 侧生成：以 `display` 调用 CORE-37 `paintDisplayList`（`scale = 3`，四周 8 逻辑像素留白，透明背景）→ `toImage` → PNG；任一边超过 8192 像素时依次降到 2、1 倍，仍超过则省略图片并记 `EXPORT_TOO_LARGE`。与界面同一绘制函数，两端图片与屏幕显示一致。
-- HTML 片段：`<span class="fml-formula"><img src="data:image/png;base64,…" alt="<转义后的 LaTeX>" style="width:Wpx;height:Hpx;vertical-align:middle"></span>`（W、H 为逻辑尺寸），不含脚本、样式表与外部链接；富文本编辑器、邮件与网页编辑框据此粘贴为图片。
-- `DefaultFormulaCopier`：每次复制时才从 `features` 取 `FormulaClipboardWriter`（平台安装点在功能安装点之后执行）；取不到时任何选择都退化为 `clipboard.writeText(text)`（“复制为图片”置灰）。导出结果按 `(latex, notationProfileId, engineGeneration)` 做 16 项 LRU 缓存；按CORE-73命中前refresh与expectedGeneration校验；键还必须含userDecls、formats，通知清旧代数；失败不缓存，复制过程中代数改变丢弃旧结果并至多重试一次；`EXPORT_NOT_RENDERABLE` 时“自动”只写 text 与 latex。
-- 只在用户点击复制时调用；公式源码与导出内容不写日志（CORE-28）。
-- 组装：`installFormulaCopy` 追加到 CORE-36 `installers.dart` 的 `featureInstallers`，紧随 `installEditorInput`；各页面的复制入口为 CORE-59 `FormulaCopyButton`，本卡不提供界面。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
-- 外部前提：Rust 侧无新增第三方库（XML 转义自写，测试用 dev-dependency `roxmltree` 解析输出，版本按 ADR-V5-15 锁入 `Cargo.lock`）；Dart 侧只用 Flutter SDK。
+- FFI处理仅按请求formats执行导出，每种失败进入omitted，不令其他格式丢失；使用同一EngineContext快照，绑定规则与engine.check一致；不做量纲校验。
+- 本卡纯负载/端口不依赖Flutter Widget、CORE-59编辑器或CORE-91复制实现；领域crate无I/O，导出源码和结果不得写日志。
+- 外部前提：Rust侧无新增第三方库，XML转义自写；测试dev-dependency roxmltree按ADR-V5-15锁入Cargo.lock。Dart负载仅用SDK Uint8List类型。
 
 **验收标准**：测试方案全文见 [Test/core/S3_CORE-52_TEST.md](../Test/core/S3_CORE-52_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行；主包 `crates/fml-export/`（约 260 行），附属：FFI 处理函数 `crates/fml-ffi/src/ops/export.rs`（约 30 行）与跨语言另一侧 `app/lib/export/`（约 160 行）。
-
+**规模**：约645行，分阶段（Ⅰ MathML全AST导出约360行；Ⅱ SVG、FFI/op处理绑定与纯负载/写入端口约285行；各阶段可独立构建与测试）；crates/fml-export/、crates/fml-ffi/src/ops/export.rs、本卡编写的dispatch/binding接入行及app/lib/export/formula_copy.dart的低层负载/端口；不计自测、夹具、schema/资源数据与生成物；完整复制服务归CORE-91，不重复计。

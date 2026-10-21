@@ -3,10 +3,10 @@
 **目标**：LaTeX 源码模式下键入 `\` 加字母或 `\begin{` 时弹出候选命令列表，用键盘或点按插入白名单命令与带空位的模板；按键与 TeXstudio、Overleaf 等 LaTeX 编辑器一致，但不占用输入法切换键 Ctrl+Space（README §6 Q16）。
 
 **范围**
-- 包含：补全数据 `app/assets/editor/latex_commands.json`；前缀识别与候选排序（纯函数）；候选弹层与按键处理；接受候选后的源码替换与空位选中；安装点 `installLatexCompletion`（登记 CORE-59 `LatexSourceAssist`）。
+- 包含：补全数据 `app/assets/editor/latex_commands.json`；前缀识别与候选排序（纯函数）；候选弹层与按键处理；接受候选后的源码替换与空位选中；安装点 `installLatexCompletion`（登记 CORE-87 `LatexSourceAssist`）。
 - 不包含：结构化模式的输入（符号面板与模板，CORE-37）；命令白名单本身（CORE-06，本卡数据只能是其子集）；语法诊断与排版（CORE-37 `EditorWorker`）；用户自定义宏与片段（CORE-06 禁止宏定义）；补全按键自定义（键位固定，WIN-08 列为保留键）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-06、CORE-37、CORE-55、CORE-59、CORE-58、CORE-28
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-06、CORE-37、CORE-55、CORE-59、CORE-58、CORE-28、CORE-87
 
 **接口契约**
 
@@ -44,7 +44,7 @@ Future<void> installLatexCompletion(CompositionContext ctx);   // 读取资产�
 - 前缀识别（`contextAt`）：光标前紧邻 `\` 加 0 个或多个 ASCII 字母，且该 `\` 前连续反斜杠个数为偶数（`\\` 换行不触发）→ `CommandPrefix`；光标位于 `\begin{` 之后、尚无 `}` 且其间只有字母 → `EnvironmentPrefix`；其余返回 null。光标位于单词中间时，`typed` 只取光标前部分，替换时连同光标后紧邻的字母一并替换。
 - 排序（`rankCandidates`）：只取与上下文同类的项；分三档——区分大小写的前缀匹配、不区分大小写的前缀匹配、按字母顺序的子序列匹配；同档内依次按本次运行的使用次数 `recent`、`rank` 降序，再按名称长度与字典序升序；最多 `limit` 项。`typed` 为空时按 `rank` 取前 50 项。
 - 接受（`applyCandidate`）：命令项用 `insert` 替换 `[start, 光标后单词末尾)`；环境项替换 `\begin{typed` 及其后紧邻的 `}`（如有），`insert` 为完整环境（如 `\begin{pmatrix}\fmlhole & \fmlhole \\ \fmlhole & \fmlhole\end{pmatrix}`）。插入内容含 `\fmlhole` 时选中第一个空位的整段文字，否则光标置于插入内容末尾。
-- 补全数据：覆盖 CORE-06 白名单中的全部命令与环境、希腊字母、关系符与常用运算符；CORE-37 `palette.json` 中出现的每个命令都必须有对应项；不得出现禁止清单中的名称（`def`、`newcommand`、`input`、`include`、`write` 等）。
+- 补全数据：覆盖 CORE-06 白名单中的全部命令与环境、希腊字母、关系符与常用运算符；CORE-87 `palette.json` 中出现的每个命令都必须有对应项；不得出现禁止清单中的名称（`def`、`newcommand`、`input`、`include`、`write` 等）。
 - 按键（弹层可见时；不可见时一律交回源码框）：
 
 | 按键 | 动作 | 依据 |
@@ -74,5 +74,5 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/e
 
 **验收标准**：测试方案全文见 [Test/core/S3_CORE-53_TEST.md](../Test/core/S3_CORE-53_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行；用例/状态目录 `app/lib/editor/completion/`；`app/lib/ui/editor/completion/`（数据文件 `app/assets/editor/latex_commands.json` 不计行数）。
+**规模**：约470行；app/lib/editor/completion/、app/lib/ui/editor/completion/及本卡编写的编辑器/composition接入行；不计自测、夹具、候选/模板JSON资源数据与生成物。
 

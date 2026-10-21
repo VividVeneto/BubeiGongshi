@@ -13,3 +13,5 @@
 - [R18] 真实材料对CORE-67的34份ready schema及types.schema.json、CORE-75的shared-writes.json均在 files 或 filteredFiles 中有记录，--file 可取回全文；无关 schema 只列名（大小与 SHA-256）、相关 schema 完整；manifest/shared-writes 过滤结果为合法 JSON 且条目与原文件逐字节一致；types 切片含内部引用闭包；旧 part-*.md 被清理；删除引用文件时列入missing；额外引用/$ref越界失败，所有分段拼接逐字节等于 material.md。
 
 - [R18] 间接依赖夹具：定义所需符号的 struct、impl、const、错误码表行、op 行及其传递定义被收录，只提及符号的说明块与无关定义不收录，mentionOnly 计数正确。
+
+- [R18] 测试方案默认不收录：默认材料中有测试方案的卡只保留“验收标准”引用行、头部说明目标卡测试方案路径且 report.tests 为 "excluded"；`--with-tests`（withTests）时目标卡正文含测试方案全文、report.tests 为 "included"；两种方式 testFile 路径相同。

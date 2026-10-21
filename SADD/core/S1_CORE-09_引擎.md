@@ -55,5 +55,5 @@ CheckResult DTO 唯一形状为 `{typed?: {types:[[NodePath,TypeExpr],...]}, val
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-09_TEST.md](../Test/core/S1_CORE-09_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 360 行（规则表 150、推断与 check 编排 210；不含测试约 120 行）；`crates/fml-type/src/{rules.rs,infer.rs}`（crate 骨架与量纲变量/合一归 CORE-77，本卡只追加模块声明）。
+**规模**：约590行，分阶段：①类型/声明、基础规则及递归推断320行；②扩展规则与多态/经验公式判定270行；主包crates/fml-type/src/{rules,infer,check}.rs及lib.rs接入；合一引擎与FFI编排分别归CORE-77/56，不计本卡。 阶段独立构建/测试：①基础推断（320行）：复用CORE-77，对基础表达式产生typed/诊断；扩展节点明确未实现，crate与基础用例可独立构建测试。；②完整规则与校验状态（270行）：补齐复杂节点、状态/经验建议，验证所有已声明规则和resolve自由变量不泄漏。
 

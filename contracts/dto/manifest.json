@@ -243,14 +243,14 @@
     },
     {
       "op": "account.upgrade_merge",
-      "owner": "CORE-24",
+      "owner": "CORE-83",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-24：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-83：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "account.upgrade_status",
@@ -276,25 +276,25 @@
     },
     {
       "op": "backup.commit_restore",
-      "owner": "CORE-27",
+      "owner": "CORE-84",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-27：mode=submit（取消仅在提交事务前）已由CORE-27定义，开工前补schema与向量后转ready，禁止注册。"
+      "blocked_reason": "CORE-84：mode=submit（取消仅在提交事务前）已由CORE-84定义，开工前补schema与向量后转ready，禁止注册。"
     },
     {
       "op": "backup.discard_restore",
-      "owner": "CORE-27",
+      "owner": "CORE-84",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-84：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "backup.export",
@@ -309,14 +309,14 @@
     },
     {
       "op": "backup.prepare_restore",
-      "owner": "CORE-27",
+      "owner": "CORE-84",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-27：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-84：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "backup.verify",
@@ -555,7 +555,7 @@
     },
     {
       "op": "engine.export",
-      "owner": "CORE-06",
+      "owner": "CORE-92",
       "status": "ready",
       "mode": "call",
       "scope": "none",
@@ -673,14 +673,14 @@
     },
     {
       "op": "library.diff",
-      "owner": "CORE-14",
+      "owner": "CORE-79",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-79：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.draft_delete",
@@ -739,47 +739,47 @@
     },
     {
       "op": "library.import",
-      "owner": "CORE-14",
+      "owner": "CORE-79",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-79：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.plan_delete",
-      "owner": "CORE-48",
+      "owner": "CORE-86",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-86：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.plan_list",
-      "owner": "CORE-48",
+      "owner": "CORE-86",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-86：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.plan_put",
-      "owner": "CORE-48",
+      "owner": "CORE-86",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-48：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-86：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.restore",
@@ -805,25 +805,25 @@
     },
     {
       "op": "library.search",
-      "owner": "CORE-14",
+      "owner": "CORE-79",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-79：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.substitution_pool",
-      "owner": "CORE-14",
+      "owner": "CORE-79",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-14：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-79：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "library.trash",
@@ -901,58 +901,58 @@
     },
     {
       "op": "pack.check_updates",
-      "owner": "CORE-15",
+      "owner": "CORE-96",
       "status": "pending",
       "mode": null,
       "scope": "device",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-96：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "pack.install",
-      "owner": "CORE-15",
+      "owner": "CORE-95",
       "status": "pending",
       "mode": null,
       "scope": "device",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-95：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "pack.list",
-      "owner": "CORE-15",
+      "owner": "CORE-95",
       "status": "pending",
       "mode": null,
       "scope": "device",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-95：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "pack.recover",
-      "owner": "CORE-15",
+      "owner": "CORE-95",
       "status": "pending",
       "mode": null,
       "scope": "device",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-95：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "pack.uninstall",
-      "owner": "CORE-15",
+      "owner": "CORE-95",
       "status": "pending",
       "mode": null,
       "scope": "device",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-15：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-95：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "recog.adopt",
@@ -1242,25 +1242,25 @@
     },
     {
       "op": "srs.generate",
-      "owner": "CORE-17",
+      "owner": "CORE-80",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-80：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "srs.optimize",
-      "owner": "CORE-17",
+      "owner": "CORE-81",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-17：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-81：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "srs.record_event",
@@ -1319,14 +1319,14 @@
     },
     {
       "op": "stats.calibration",
-      "owner": "CORE-20",
+      "owner": "CORE-97",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-20：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-97：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "stats.due_count",
@@ -1419,135 +1419,135 @@
     },
     {
       "op": "study.appeal",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.books.create",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.books.delete",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.books.get",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.books.list",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.books.update",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.plan.get",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.plan.set",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.session.resume",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.session.start",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.session.step",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "study.today",
-      "owner": "CORE-19",
+      "owner": "CORE-82",
       "status": "pending",
       "mode": null,
       "scope": "profile",
       "schema": null,
       "error_codes": [],
       "sensitive_paths": [],
-      "blocked_reason": "CORE-19：schema及mode核对待提交，禁止注册。"
+      "blocked_reason": "CORE-82：schema及mode核对待提交，禁止注册。"
     },
     {
       "op": "sync.ack",

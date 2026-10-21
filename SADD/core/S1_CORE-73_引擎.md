@@ -27,10 +27,10 @@ CORE-56 mark_unavailable返回Result<u64,FmlError>；只有Ok才唤醒代数变�
 engine.generation/wait_generation读取CORE-56 generation_status，exhausted或unavailable时available=false；相同generation也必须应用available变化，refresh不可仅比较代数字符串。耗尽不通知代数变化，最长等待超时后查询得到available=false。
 
 **实现约束**
-- 逐文件估算：原生查询/等待90、CORE-56发布通知附属20、Dart源90、测试120，合计320；不得为通知新增C导出或全局活动账户。
+- 逐文件估算：原生查询/等待95、CORE-56发布通知附属20、Dart源与接线120，合计235；不得为通知新增C导出或全局活动账户。
 - 外部前提：CORE-01锁Rust/Dart；无网络/新第三方库；profile切换先移除旧User层并发布代数，再注入新层。
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-73_TEST.md](../Test/core/S1_CORE-73_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 240 行；主包 `crates/fml-ffi/`（原生110；不含测试约80），附属 `app/lib/binding/engine_generation.dart`及测试（130行，其中测试未单列，按上界计），向量不计代码。
+**规模**：约 235 行；主包 `crates/fml-ffi/`（generation/wait_generation op 与 CORE-56 发布通知接点，约 115 行），附属 `app/lib/binding/engine_generation.dart` 与主绑定接线（约 120 行）；向量为数据。
 

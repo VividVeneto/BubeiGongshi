@@ -75,5 +75,5 @@ WindowsClipboard：readText、writeText 用 Flutter Clipboard.getData/setData('t
 
 **验收标准**：测试方案全文见 [Test/win/S5_WIN-05_TEST.md](../Test/win/S5_WIN-05_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 320 行；`app/lib/platform/windows/clipboard/` 与 `app/windows/runner/clipboard_channel.cpp`（同属 `app/` 构建单元）。
+**规模**：约 610 行；`app/lib/platform/windows/clipboard/`、`app/windows/runner/clipboard_channel.cpp`、`app/`。组件估算：Dart包装与批次约 90 行，PNG/DIB读取与WIC编码/边界约 150 行，多格式写入与所有权/错误回收约 130 行，CF_HTML字节偏移与DIB生成约 110 行，线程/通道/重试/关闭与安装约 130 行。分阶段：① 原生格式与图片约 370 行；② Dart适配与清理集成约 240 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

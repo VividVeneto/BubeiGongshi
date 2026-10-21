@@ -76,5 +76,5 @@ b. MainActivity 窗口属性（唯一定义；AND-05/13 引用）
 
 **验收标准**：测试方案全文见 [Test/and/S2_AND-02_TEST.md](../Test/and/S2_AND-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 285 行；主包 `app/`（清单/permissions/handler约175），附属 `tools/ci/check_android_manifest.py`（解析/规则110；不含正反fixtures测试约95）；窗口属性同表唯一。
+**规模**：约 300 行；`app/`、`tools/ci/check_android_manifest.py`。组件估算：Dart权限封装、用途说明约 85 行，Kotlin请求、曾请求状态与设置页约 100 行，合并清单审计约 110 行，CI/模块接入行约 5 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

@@ -106,5 +106,5 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03；读取快�
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-08_TEST.md](../Test/core/S1_CORE-08_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行（不含单位数据表；含 Rational/DimensionFull 的 checked 运算与规范形及其单测约 40 行）；`crates/fml-units/`。
+**规模**：约 440 行；`crates/fml-units/`（Rational 与量纲运算/文本/serde 约 180、类型与注册表实现约 140、自定义单位约 70、数据加载与角度约 35）；单位与种类数据表为数据不计；units.* 的 fml-ffi 处理由 CORE-56 编写。
 

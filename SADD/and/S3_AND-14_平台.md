@@ -45,5 +45,5 @@ MethodChannel fml/android/clipboard（ClipboardBridge.kt，实现AND-01 AndroidC
 
 **验收标准**：测试方案全文见 [Test/and/S3_AND-14_TEST.md](../Test/and/S3_AND-14_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 240 行；app/lib/platform/android/clipboard/、app/android/.../ClipboardBridge.kt与res/xml/clip_paths.xml（同app构建单元），附属清单与审计白名单追加行。
+**规模**：约 305 行；。组件估算：Dart剪贴板/批次ImportedImage约 80 行，原生图文写入与FileProvider URI约 85 行，原生格式识别/限额复制与自有清理约 130 行，安装/模块/审计接入约 10 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

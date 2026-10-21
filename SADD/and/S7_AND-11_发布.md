@@ -49,5 +49,5 @@ store_materials.md：隐私政策链接、权限用途说明（对应 AND-02 白
 
 **验收标准**：测试方案全文见 [Test/and/S7_AND-11_TEST.md](../Test/and/S7_AND-11_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 260 行；主包 `tools/release/android/`（约 220 行），附属：`app/android/app/build.gradle.kts` release 段与 `proguard-rules.pro`（约 40 行）。
+**规模**：约 325 行；`tools/release/android/`、`app/android/app/build.gradle.kts`、`proguard-rules.pro`。组件估算：构建与密钥临时文件清理约 80 行，制品签名/对齐/清单/一致性校验约 165 行，符号来源核验与归档约 55 行，Gradle可执行签名/构建逻辑约 25 行。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

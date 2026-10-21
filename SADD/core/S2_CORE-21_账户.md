@@ -118,5 +118,5 @@ pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &Secre
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-21_TEST.md](../Test/core/S2_CORE-21_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；`crates/fml-crypto/`。
+**规模**：约 475 行；`crates/fml-crypto/`（密钥/AEAD/HKDF/随机端口约 150、确定性 CBOR 与 WrapRecord/AAD 约 200、恢复码约 70、Argon2id 与口令策略约 55）；测试向量与常见口令表为数据不计。二级分界：RecoveryCode（约 70）。
 

@@ -4,7 +4,7 @@
 
 **范围**
 - 包含：日/周/月学习量与时长、连续天数、客观正确率、平均用时、题型与章节掌握分布、章节完成率、复习积压、到期预测、易错公式榜；掌握度判据；统计缓存与全量重算；每日提醒用例。
-- 不包含：统计界面（CORE-49）；通知的平台实现（AND-08、WIN-09）。
+- 不包含：预测偏差监测/stats.calibration（CORE-97）；统计界面（CORE-49）；通知的平台实现（AND-08、WIN-09）。
 
 **依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-17、CORE-19
 
@@ -65,6 +65,8 @@ abstract interface class ReminderSelfCheck {
 
 复用 CORE-04 `PLATFORM_PERMISSION_DENIED`：提醒权限拒绝时保持关闭并提示系统设置。
 
+stats_generation更新所有权：跨attempt/review_event/study_card/book/study_plan各仓储/applier的派生接入25行全部由本卡计入，其他卡只提供事务骨架、不再重复计这25行；每次实质变更同事务恰好+1，重复拉取不增加。
+
 缓存只采用全量重算策略：档案 local_setting 键 stats_generation 是 u64 字符串，初始0；任一 attempt/review_event/study_card/book/study_plan 的本地或远端变更同事务 +1；读取 cache.generation≠当前值、查询范围/学习日/时区/schema 改变时丢缓存，读取同一快照全部输入重算，发布结果附该快照 generation。在计算期间新写入则下次读再次失效，不能把旧报告标成新水位；不再使用 through_event_seq。
 
 compute所需输入为StatsQuery、完整Attempts/ReviewEvents及StatsInput；处理层在同一数据库快照读取书章节、卡片到期/状态、计划、StudyDay；now_ms 由 Dart 用例在调用边界取一次 UTC 毫秒，经请求体 `now_ms` 传入（CORE-01 时间注入规则），处理层据此计算 today，不读系统时钟。today必须等于study_day覆盖now_ms的日期，不一致返回处理层STUDY_STATS_RANGE_INVALID，不偷偷读系统时钟。章节完成率分母=过滤后章节唯一条目数，分子=Mastered条目数，空章节为0；积压=未挂起且due_ms≤now的唯一卡数；预测按卡due_ms所属学习日计数，跨天再分桶；连续天数从today（今天未学习则从昨日）逐日回溯至少一条有效学习事件的天数，自评/突击是否计时沿用本卡既有规则。
@@ -75,7 +77,7 @@ compute所需输入为StatsQuery、完整Attempts/ReviewEvents及StatsInput；�
 | STATS-X2 | StudyDay04:00，today=10-20，事件10-20 03:59与04:00 | 分到10-19与10-20，streak_days=2 |
 
 
-ReminderService.reschedule(at:)先成功申请权限并重排，再写device.reminder_time（HH:MM，syncable=0），失败保留原设置；resume()读取该键，有值则重排、None则取消；cancel()取消并写null。None不启用通知（界面默认展示20:00但需用户开启）。预测偏差口径：最近30×24h内非self_rated/非skipped的首个每日复习，按复习前memory state与elapsed_days算预测回忆概率p，actual=rating!=Again；样本≥200且abs(mean(p)-mean(actual))>0.05才建议回退；不自动回退。stats.calibration body={now_ms}，ok={samples,mean_predicted?,mean_observed?,suggest_rollback}，不足样本两均值省略、false；call。输入来自同一快照的历史重放，不用复习后状态预测自身。
+ReminderService.reschedule(at:)先成功申请权限并重排，再写device.reminder_time（HH:MM，syncable=0），失败保留原设置；resume()读取该键，有值则重排、None则取消；cancel()取消并写null。None不启用通知（界面默认展示20:00但需用户开启）。
 
 ReminderCheckState为本卡公共枚举{ok,warn,unknown}（Dart同名；通道wire为ok/warn/unknown）；可确定正常=ok，可确定问题=warn，不可检测=unknown。CORE-49（下游说明，非契约）按正常/警示/中性信息图标显示，unknown不计入问题数；不再用bool ok制造红项。
 
@@ -84,11 +86,11 @@ ReminderCheckState为本卡公共枚举{ok,warn,unknown}（Dart同名；通道wi
 - 重排时机：启动钩子、应用每次进入后台（`installReminders` 订阅 `ports.lifecycle.events()` 的 `paused`，与上次重排间隔 ≥ 1 分钟）与提醒时刻修改后各一次，因此学完一组后退出即按新的到期数安排；应用长期未打开时平台按 AND-08、WIN-09 的规则沿用上次正文。
 - 正确率只计客观判定，自评与 Undetermined 不计。掌握度与统计缓存不同步，各端从同步后的事件重算。
 - 提醒：每日一次，本地调度，不依赖网络；不做组队打卡。
-- 最近 30 天有效复习 ≥ 200 次时，若预测回忆率与实际回忆率之差超过 5 个百分点，提示用户回退个性化参数（调用 CORE-17 `srs.rollback_params`）。
+- 预测偏差监测与stats.calibration迁CORE-97；正常统计/提醒不调用或反向依赖该监测实现。
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-20_TEST.md](../Test/core/S4_CORE-20_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 450 行；主包 `crates/fml-study/src/stats/`（约 380 行，另含迁移 `0020_stats.sql`），附属：跨语言另一侧 `app/lib/study/reminder_service.dart`（约 70 行）。
+**规模**：约700行，分阶段：①统计模型/计算360及同快照cache仓储120，共480行；②四op65、Dart提醒与安装130、跨表stats_generation接入25，共220行。主包 `crates/fml-study/src/stats/` 360；附属 `crates/fml-store/src/stats.rs`120、`crates/fml-ffi/src/ops/stats.rs`65、`app/lib/study/{reminder_service,install}.dart`及聚合130、各表仓储/applier接入25；DDL/生成物/自测不计。①独立构建测全量统计/cache水位，②独立构建测四op/提醒/跨表失效。原815行另115归CORE-97。
 
 ---
 

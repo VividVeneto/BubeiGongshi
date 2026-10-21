@@ -21,5 +21,5 @@ route key允许根/及带:param的规范段；参数名以字母起始，参数�
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-75_TEST.md](../Test/S0/S0_CORE-75_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 100 行；主包tools/sadd/（验证器100；不含正反例测试约120），contracts/policies/shared-writes.json为数据。
+**规模**：约115行；tools/sadd/reservations.mjs及本卡编写的CI调用行；不计自测、夹具、policy/schema/声明数据与生成报告。
 

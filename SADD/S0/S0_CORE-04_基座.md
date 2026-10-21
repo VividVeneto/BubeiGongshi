@@ -192,7 +192,7 @@ HttpTransport流式续传统一协议：rangeStart>=0且仅saveTo可用；>0时�
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-04_TEST.md](../Test/S0/S0_CORE-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 300 行；主包 `app/`：`app/lib/ports/` 与 `app/lib/composition/{composition,entry}.dart`（约 300 行）；不含测试（`app/test/fakes/` 与 `app/test/ports/contract/` 约 180 行）。无跨构建单元附属。CORE-36 只消费 composition.dart，另拥有其余壳/聚合文件；entry.dart 仅按本卡约定切换 appEntry 一行，不能重写这些原语。
+**规模**：约410行；主包 app/：app/lib/ports/ 180行、app/lib/ports/unsupported/ 70行、app/lib/composition/{composition,entry}.dart 160行；无跨构建单元附属；测试替身与端口契约测试不计。 单阶段可独立构建测试；只计本卡实现及本卡编写的附属接入，不计数据/生成物/自测。
 
 ---
 

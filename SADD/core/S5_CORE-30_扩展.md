@@ -57,5 +57,5 @@ deskew：灰度缩至长边1024，阈值化后扫描-15°..15°步长0.5°，最
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-30_TEST.md](../Test/core/S5_CORE-30_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行（含取消检查点与扩展名比较约 25 行；实作超出须先拆卡）；`crates/fml-imgproc/`。
+**规模**：约 615 行；主包 `crates/fml-imgproc/`（约 535，含取消检查点与扩展名比较），附属 `crates/fml-ffi/src/ops/img.rs`（img.probe、img.fit_for_upload、img.prepare 处理与暂存区路径/临时文件工具，约 80）；thresholds.yaml 为数据不计。分阶段：① 解码、几何与上传规整（探测与解码、方向、裁剪旋转、长边规整、PNG 编码与哈希、上传规整及两个 op，约 360）；② 图像增强与质量评分（prepare 编排、光照/去噪/局部对比度/二值化、deskew、质量评分与阈值加载、img.prepare，约 255）。
 

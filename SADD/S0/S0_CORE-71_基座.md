@@ -15,10 +15,10 @@ python tools/ci/maint_report.py --root . --out <maint.md> [--previous <maint.jso
 
 **实现约束**
 - 不向PR发评论；PR checks运行本脚本，weekly只归档周报；lizard写tools/requirements.txt并供两作业使用。
-- 逐文件估算：聚合/阈值80、Dart近似70、LCOV与核心集合100、报告50、正反例160，合计460。
+- 逐组件实现估算：tracked集合/配置65、行数/复杂度及unsafe/FFI计数95、LCOV协议/覆盖率160、报告/注释85、周报对比35、附属CI调用20，合计460；正反例测试与夹具不计。
 - 外部前提：锁定Python、PyYAML/lizard；不读或上传公式内容。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-71_TEST.md](../Test/S0/S0_CORE-71_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；主包 `tools/ci/maint_report.py`与`tools/ci/tests/test_maint.py`。
+**规模**：约460行；tools/ci/maint_report.py、周报比较辅助及本卡编写的CI聚合调用行；不计本卡自测、夹具、tracked集合/阈值等纯数据、LCOV/报告生成物。
 

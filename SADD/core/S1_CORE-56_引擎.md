@@ -4,9 +4,9 @@
 
 **范围**
 - 包含：`fml-ffi` 的 `EngineContext` 与纯函数叠加 `compose`；内置只读数据 `assets/engine-v1/` 及引擎数据 JSON 格式；`engine.check`、`calc.evaluate`、`calc.solvable_targets`、`typeset.layout`、`typeset.glyph_outlines` 五个 op 的 DTO 与处理编排（`crates/fml-ffi/src/ops/{engine,calc,typeset}.rs`）；CORE-07 `notation.*`、`constants.resolve` 与 CORE-08 `units.compatible`、`units.convert` 的快照读取适配（`ops/{notation,units}.rs`，DTO 由领域卡定义）；字体字节的哈希与 MATH 表校验及向 CORE-12 注入。
-- 不包含：领域算法（CORE-06～12）；用户单位持久化与 `units.*_user` op（CORE-14，推送 User 层）；资源包验签、安装与 `pack.*` op（CORE-15，推送 Pack 层）。
+- 不包含：领域算法（CORE-06～12）；用户单位持久化与 `units.*_user` op（CORE-14，推送 User 层）；资源包验签、安装与 `pack.*` op（CORE-95/96，下游说明，推送 Pack 层）。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-05、CORE-06、CORE-07、CORE-08、CORE-09、CORE-10、CORE-12
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-05、CORE-06、CORE-07、CORE-08、CORE-09、CORE-10、CORE-12、CORE-92、CORE-93、CORE-94
 
 **接口契约**
 
@@ -35,14 +35,14 @@ impl EngineContext {
 - 叠加规则（`compose`）：层序固定为 Embedded → Pack（按 pack_id 字节序）→ User（至多一层）；Embedded 只在构造时给出，`set_layer`/`remove_layer` 指向 Embedded 返回 `ENGINE_DATA_INVALID`。后层同 ID 覆盖前层：Pack 可替换内置单位但量纲与量的种类必须不变，方案与常数集整体替换，同 ID 字体替换字节并保留原位置；两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID 时，后设置的层被拒绝（`ENGINE_DATA_CONFLICT`）；User 层只允许 `user:` 前缀单位，否则 `ENGINE_DATA_INVALID`，同 ID 重复按 CORE-08 `UNIT_DUPLICATE`。合成后整体校验引用、重复 ID、量纲、字体哈希与 MATH 表，且至少有一个含 MATH 表的字体，失败为 `ENGINE_DATA_INVALID`。字体顺序：内置字体在前，再按层序与 `fonts.json` 顺序；`Glyph.font` 下标与 `DisplayList.font_ids`（CORE-12）据此确定。
 - 层身份不含Pack.pack_version；同pack_id升级先在副本替换整层再compose，不能保留新旧两层。remove_layer对Pack只匹配pack_id（忽略调用者携带版本），User只匹配profile_id；不存在时返回当前generation不发布。
 - 发布：写者持 Mutex 在副本上 `compose`，成功后在写锁内替换 Arc 并令 generation + 1；失败不改变快照与层集合。在途任务持旧 Arc，后续请求取新快照；读者只在读锁内克隆 Arc。`mark_unavailable` 发布 `unavailable = Some(reason)` 的快照，此后五个 op 均返回 `ENGINE_UNAVAILABLE`，直到下一次 `set_layer`/`remove_layer` 成功。
-- 推送者：CORE-15 的 `pack.*` 处理（`crates/fml-ffi/src/ops/pack.rs`）在恢复、安装、卸载后设置或移除 Pack 层；CORE-14 的 `units.*_user` 处理（`crates/fml-ffi/src/ops/units_user.rs`）在打开档案和用户单位提交后设置 User 层，关闭档案时移除，提交后设置失败调用 `mark_unavailable`。bootstrap 包的引擎数据由 CORE-16 工具从同一 `assets/engine-v1/` 生成，CI 比对两者 BLAKE3；安装它只使 generation + 1，结果与内置一致。
+- 推送者：CORE-95 的安装/恢复/卸载 `pack.*` 处理（`crates/fml-ffi/src/ops/pack.rs`）在恢复、安装、卸载后设置或移除 Pack 层；CORE-14 的 `units.*_user` 处理（`crates/fml-ffi/src/ops/units_user.rs`）在打开档案和用户单位提交后设置 User 层，关闭档案时移除，提交后设置失败调用 `mark_unavailable`。bootstrap 包的引擎数据由 CORE-16 工具从同一 `assets/engine-v1/` 生成，CI 比对两者 BLAKE3；安装它只使 generation + 1，结果与内置一致。
 - FFI op（本表为五个 op 的唯一登记；DTO 未列字段按 CORE-03 映射规则，坐标为 JSON 数值，保留 2 位小数）：
 
 | op | 入参 → 出参 | 长任务？ |
 | --- | --- | --- |
 | `engine.check` | {source, notation_profile_id, user_decls, empirical} → {ast, source_map, symbols, check_result}（CORE-06/07/09 的 DTO） | 否 |
 | `calc.evaluate` | {source, notation_profile_id, user_decls, empirical, assignments, target, output_unit?, interval?, given_constants, display} → CalcResult（CORE-10）；支持 `budget_ms`，默认 200 | 否 |
-| `calc.solvable_targets` | {source, notation_profile_id, user_decls, empirical} → {targets: [{symbol, capability}]}（CORE-10 SolveCapability） | 否 |
+| `calc.solvable_targets` | {source, notation_profile_id, user_decls, empirical} → {targets: [{symbol, capability}]}（CORE-93 SolveCapability） | 否 |
 | `typeset.layout` | {ast, symbols, options: LayoutOptions} → DisplayList（CORE-12） | 否 |
 | `typeset.glyph_outlines` | {font_id, glyph_ids: [u16]} → {units_per_em, outlines: [{glyph_id, segs: [PathSeg]}]}，字体设计单位、y 轴向上 | 否 |
 
@@ -54,7 +54,7 @@ impl EngineContext {
 | `ENGINE_DATA_CONFLICT` | error | 否 | 两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID；后设置的层被拒绝 |
 | `ENGINE_UNAVAILABLE` | error | 是 | 快照已被mark_unavailable标记、generation耗尽，或请求expected_generation与所取快照不一致；前两者恢复前拒绝，代数不一致由调用者重新查询后重试 |
 
-快照通知接缝：每次成功set_layer/remove_layer/mark_unavailable在写锁外唤醒CORE-73（下游说明，非契约）的等待者；无变化不唤醒。快照发布和代数递增在同一锁内原子完成，u64耗尽返回ENGINE_UNAVAILABLE且不发布。CORE-03 expected_generation比对发生在取得Arc后、执行算法前，不匹配不运行；响应engine_generation来自该Arc。通知适配及Dart源的实现归CORE-73，发布接缝的20行预算和测试归CORE-73附属，本卡既有500行不重复计入。
+快照通知接缝：每次成功set_layer/remove_layer/mark_unavailable在写锁外唤醒CORE-73（下游说明，非契约）的等待者；无变化不唤醒。快照发布和代数递增在同一锁内原子完成，u64耗尽返回ENGINE_UNAVAILABLE且不发布。CORE-03 expected_generation比对发生在取得Arc后、执行算法前，不匹配不运行；响应engine_generation来自该Arc。通知适配及Dart源的实现归CORE-73，发布接缝的20行预算和测试归CORE-73附属，本卡规模不重复计入。
 
 FFI错误镜像（不重定义代码；通用信封错误见CORE-03；读取快照的适配另由CORE-56（下游说明，非契约）统一返回ENGINE_UNAVAILABLE）：
 
@@ -77,5 +77,5 @@ generation耗尽的故障语义：所有发布入口均返回Result，mark_unava
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-56_TEST.md](../Test/core/S1_CORE-56_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；主包 `crates/fml-ffi/`（`engine_context.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；附属同包 assets/engine-v1/ 数据与字体不计代码行。
+**规模**：约 535 行；主包 `crates/fml-ffi/`（`engine_context.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；assets/engine-v1/ 数据与字体不计，发布接缝由 CORE-73 计。分阶段：① 引擎数据与上下文（类型、compose、字体校验、数据加载、EngineContext、可用性检查、notation/constants/units 六个 op、错误，约 390）；② 引擎编排 op（engine.check、calc.*、typeset.* 五个 op，含可复用的 parse→bind→check 分析函数，约 145）。
 

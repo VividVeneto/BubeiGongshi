@@ -70,5 +70,5 @@ MethodChannel "fml/android/camera"（CameraBridge.kt）
 
 **验收标准**：测试方案全文见 [Test/and/S5_AND-04_TEST.md](../Test/and/S5_AND-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 420 行；`app/lib/platform/android/camera/` 与 `app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt`（同属 `app/` 构建单元）。
+**规模**：约 690 行；`app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt`、`app/`。组件估算：Dart权限与ImportedImage封装约 45 行，CameraBridge请求管理约 65 行，Activity/CameraX预览与拍照约 180 行，Y平面质量/传感器节流约 100 行，方向与EXIF处理约 65 行，pending日志/恢复预览/清理约 220 行，模块/入口接入约 15 行。分阶段：① Activity、预览与拍摄约 355 行；② 质量分析与崩溃恢复约 335 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。
 

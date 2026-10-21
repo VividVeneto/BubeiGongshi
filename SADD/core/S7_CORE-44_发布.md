@@ -54,5 +54,5 @@ tools/ohos-smoke/
 
 **验收标准**：测试方案全文见 [Test/core/S7_CORE-44_TEST.md](../Test/core/S7_CORE-44_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 180 行；主包 `tools/ohos-smoke/`（约 160 行），附属：`.github/workflows/ci.yml` 中追加的 ohos-smoke 作业（约 20 行）。
+**规模**：约200行；tools/ohos-smoke/及本卡编写的CI命令接入行（含作为交付物的consumer.c验证代码）；不计自测、夹具、说明文档、纯CI配置及生成库/报告。
 

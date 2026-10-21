@@ -30,9 +30,9 @@ pub fn resolve_choice(store: &Store, choice_id: Uuid, chosen: RevisionId) -> Res
 | `entity_type` | 来源表（归属卡） | `KeyPurpose` |
 | --- | --- | --- |
 | `formula_item`、`formula_revision`（含其 `symbol_binding`）、`user_unit`、`notation_profile`、`constant_set` | CORE-14 | `UserFormula` |
-| `calculation_plan` | CORE-48 | `UserFormula` |
+| `calculation_plan` | CORE-86（仓储、codec/applier 与删除） | `UserFormula` |
 | `study_card`、`review_event` | CORE-17 | `StudyData` |
-| `book`、`study_plan`、`attempt`、`confusable_group` | CORE-19 | `StudyData` |
+| `book`、`study_plan`、`attempt`、`confusable_group` | CORE-19（纯模型与 DDL）；CORE-82（仓储、codec/applier 与删除） | `StudyData` |
 | `merge_choice` | 本卡 | `UserFormula` |
 | `setting`（`local_setting.syncable = 1` 的键） | CORE-13 | `UserSettings` |
 | `tombstone` | CORE-13 | 与被删实体相同 |
@@ -98,5 +98,5 @@ Store读写/加密批次编排和上述接收Store的API归fml-store::sync；纯
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-26_TEST.md](../Test/core/S6_CORE-26_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `crates/fml-store/src/sync/`（push70、pull100、payload60、merge编排50；测试约60行，按README §8.4不计入规模），附属 `crates/fml-sync/src/merge.rs`（纯合并60）、`crates/fml-ffi/src/ops/sync.rs`（40）。不含CORE-66的snapshot/rotation；实作超估算必须先拆卡；批次持久化已拆出为 CORE-78。
+**规模**：约 655 行；主包 `crates/fml-store/src/sync/`（约 510），附属 `crates/fml-sync/src/merge.rs`（纯字段合并，约 70）、`crates/fml-ffi/src/ops/sync.rs`（8 个 sync.* op，约 75）。不含 CORE-66 的 snapshot/rotation、CORE-78 的批次持久化，各实体 applier 本体计入所有者卡。分阶段：① 推送、负载与加密（类型、确定性 CBOR、加解密、prepare_push、ack、on_epoch_changed、cursor/status 与 5 个 op，约 320）；② 拉取合并、隔离与待选择（apply_pull 与 EntityApplier 分派、字段合并编排、merge_choice/隔离区与 codec/applier、fml-sync 纯合并、3 个 op，约 335）。
 

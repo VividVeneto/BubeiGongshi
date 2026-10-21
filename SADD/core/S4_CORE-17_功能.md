@@ -1,12 +1,12 @@
-### CORE-17 卡片生成与 FSRS 排程
+### CORE-17 FSRS排程、复习事件与参数仓储
 
-**目标**：从已校验的公式修订生成学习卡片，用成熟的 FSRS 实现排程，卡片状态始终由追加式复习事件重算。
+**目标**：封装确定性FSRS排程、追加式复习事件、卡片与参数仓储；生成与优化算法由CORE-80/81单向调用。
 
 **范围**
-- 包含：卡片与题型生成、`study_card`/`review_event` 仓储、FSRS 调度封装、确定性重放、参数与评分映射版本、个性化参数优化规则、同胞卡隐藏、积压平滑、公式修订后卡片的“保持/重建”选择、学习日切换。
+- 包含：Card等基础类型、study_card/review_event/srs_params仓储、FSRS确定性重放、同胞隐藏、积压平滑、学习日、修订保持/重建、参数采用/回退事务。
 - 不包含：组学习循环（CORE-19）；判分（CORE-18）；统计（CORE-20）。
 
-**依赖**：CORE-01、CORE-02、CORE-05、CORE-09、CORE-13、CORE-14
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-05、CORE-09、CORE-13、CORE-14
 
 **接口契约**
 
@@ -33,18 +33,12 @@ pub struct CardSchedule { pub card: Card, pub stability: f32, pub difficulty: f3
 pub struct DailyCaps { pub new_limit: u32 /* 默认 10 */, pub review_limit: u32 /* 默认 200 */, pub backlog_threshold: u32 /* 默认 = review_limit */ }
 pub struct DueQueue { pub reviews: Vec<Uuid>, pub new_cards: Vec<Uuid>, pub hidden_siblings: Vec<Uuid>,
                       pub new_limit_effective: u32 /* 积压降级后的新学上限 */, pub backlog: u32 }
-pub enum OptimizeOutcome { Adopted { params: FsrsParams, holdout_logloss: f64, default_logloss: f64 },
-                           Rejected { holdout_logloss: f64, default_logloss: f64 }, TooSoon { next_allowed_ms: i64 },
-                           Insufficient { valid_reviews: u32 } }
-pub fn generate_cards(rev: &FormulaRevision, enabled: &[CardType], requirement_level: RequirementLevel) -> Vec<Card>;
-// 要求层级“掌握/会用”生成回忆与应用题型；“了解/理解”只生成辨识题型；未 Verified 的修订不出卡
 pub fn replay(card: &Card, events: &[ReviewEvent], params: &FsrsParams, now_ms: i64, day: &StudyDay) -> CardSchedule; // 纯函数，确定性
 pub fn due_queue(cards: &[CardSchedule], day: &StudyDay, caps: &DailyCaps, now_ms: i64) -> DueQueue;     // 复习优先，同胞卡同日最多一张
 pub struct StudyDay { pub switch_hour: u8 /* 默认 4 */, pub tz: String }
-pub fn optimize_params(events: &[ReviewEvent], current: &FsrsParams, last_opt_ms: Option<i64>, now_ms: i64) -> OptimizeOutcome;
 ```
 
-- FFI op（DTO 按 CORE-03 映射规则）：`srs.generate`（`{revision_id, requirement_level?, enabled_types?}` → `[Card]`；`requirement_level` 缺省时取 CORE-14 `formula_item.requirement_level`，该列为空（用户自建条目）时按“掌握”，见 README §6 Q35（待确认））、`srs.due_queue`（`{now_ms, day: StudyDay, caps: DailyCaps}` → DueQueue；不接收后续卡的plan_id）、`srs.record_event`（ReviewEvent → CardSchedule）、`srs.reset_card`（`{card_id}`）、`srs.suspend`（`{card_id, suspended}`）、`srs.optimize`（长任务 → OptimizeOutcome）、`srs.rollback_params`（回到上一参数版本）、`srs.resolve_revision_change`（`{card_id, choice: keep | rebuild}`）。
+- FFI op（DTO按CORE-03）：`srs.due_queue`（`{now_ms, day:StudyDay,caps:DailyCaps}`→DueQueue，无plan_id）、`srs.record_event`（ReviewEvent→CardSchedule）、`srs.reset_card`（`{card_id}`）、`srs.suspend`（`{card_id,suspended}`）、`srs.rollback_params`（上一参数版本）、`srs.resolve_revision_change`（`{card_id,choice:keep|rebuild}`）。srs.generate唯一迁CORE-80，srs.optimize唯一迁CORE-81。
 - 评分由调用方的映射策略产生（下游说明，非契约）并写入 `rating_map_version`；本卡只接收 `Rating`，不做映射。
 - 表（本卡 `migrations/0017_srs.sql`）：
 
@@ -59,10 +53,7 @@ pub fn optimize_params(events: &[ReviewEvent], current: &FsrsParams, last_opt_ms
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
 | `STUDY_CARD_NOT_FOUND` | error | 否 | 卡片 ID 不存在 |
-| `STUDY_REVISION_NOT_VERIFIED` | error | 否 | 对非 Verified 修订调用 `srs.generate` |
 | `STUDY_RETENTION_OUT_OF_RANGE` | error | 否 | 目标保留率不在 [0.80, 0.95] |
-| `STUDY_OPTIMIZE_TOO_SOON` | warning | 否 | 本自然月已优化过，`next_allowed_ms` 为下月 1 日学习日起点 |
-| `STUDY_INSUFFICIENT_REVIEWS` | warning | 否 | 有效复习 < 400 |
 | `STUDY_CARD_PENDING_CHOICE` | warning | 否 | 对待选择“保持/重建”的卡片记录事件 |
 
 FSRS 样例（crates/fml-srs/tests/fixtures/fs.yaml）：仅 stability/difficulty/next_states 的算法输出直接取 fsrs=6.6.2；CardState/due_ms/lapses 用本卡显式状态表的独立参照组合，不能宣称 fsrs 自带学习状态机；默认 weights 与 API 固定见 ADR-V5-29。
@@ -82,7 +73,7 @@ FSRS 样例（crates/fml-srs/tests/fixtures/fs.yaml）：仅 stability/difficult
 
 所需输入：revision+enabled_types+requirement_level 决定出卡，Card.id调用 CORE-05 card_id；replay 需初始卡、完整事件、参数、now_ms、StudyDay；due_queue 需全部卡排程、caps、now_ms、StudyDay。时间差由相邻有效 at_ms 算，不由事件到达时间算；未来事件不参与 now_ms 前的重放。同学习日重复标记只在重放结果中派生，不回写不可变事件。
 
-学习状态包装表（见 README §6 Q34（待确认），暂行默认）：同卡同学习日只接受首个完成事件；学习/重学仅一个跨学习日步长，不做分钟内重复；day_start 是传入 StudyDay 对 next日期计算的 UTC 边界。
+学习状态包装表（见 README §6 Q34（已确认））：同卡同学习日只接受首个完成事件；学习/重学仅一个跨学习日步长，不做分钟内重复；day_start 是传入 StudyDay 对 next日期计算的 UTC 边界。
 
 | 当前 | Again / Hard | Good | Easy |
 | --- | --- | --- | --- |
@@ -102,15 +93,15 @@ FSRS 构造从 params.weights 注入；首次 next_states(None, retention,0)，�
 官方 API：[fsrs 6.6.2](https://docs.rs/fsrs/6.6.2/fsrs/struct.FSRS.html)、[依赖](https://docs.rs/crate/fsrs/6.6.2)、[rs-fsrs 1.2.1 Scheduler对照](https://docs.rs/rs-fsrs/1.2.1/rs_fsrs/struct.Scheduler.html)。
 
 **实现约束**
+- 参数写入/回退唯一归本卡；`srs_params`存version/weights/desired_retention/adopted_ms及previous_version，本卡0017_srs.sql同时定义数据DDL，不迁给优化算法卡。目标保留率[0.80,0.95]，默认0.90。
+- 低层仓储接缝由本卡拥有：`insert_generated(tx: &mut WriteTx, cards: &[Card]) -> Result<(), FmlError>`仅插入新卡；`adopt_params(store: &Store, params: &FsrsParams, expected_version: u32, optimized_ms: i64) -> Result<(), FmlError>`在单写者事务校验版本、保存上一版本并采用，更新月优化标记；`rollback_params(store: &Store) -> Result<FsrsParams, FmlError>`恢复上一参数版本。均遵循CORE-13写命令/changed_fields/outbox规则，本卡不调用CORE-80/81。
 - 使用 crates.io fsrs=6.6.2（ADR-V5-29）；只调用 `FSRS::new(&[f32])`（空切片为默认参数）、`FSRS::next_states`、`FSRS::memory_state`、自由函数 `fsrs::compute_parameters(ComputeParametersInput)` 与 `FSRS::evaluate`（留出集 log-loss）。该版本正常依赖为 itertools、log、ndarray、priority-queue、rand、rayon、serde、snafu、strum，burn 只是开发依赖；仍须在真实产物过包体门禁；不引入 rs-fsrs 的另套状态机。
 - 复习事件追加不可变；卡片状态只由事件重算，不直接合并状态；重置生成新 `reset_epoch`。
 - 同卡同学习日多条事件只取先完成的一次，其余在重放结果 `duplicate_events` 中列出；事件原样保留供审计，不改写。
 - 新学量不超过当日复习量；积压时逐级降低新学直至暂停，并按逾期程度分摊到后续几天。
-- 个性化：有效复习少于 400 次使用默认参数；只有留出集 log-loss 优于默认时启用，每月最多一次，可一键回退；突击、跳过与自评兜底事件不进优化集；目标保留率限定 0.80–0.95，默认 0.90。
 - 学习日按计划的切换时刻（默认 04:00）与时区计算；时钟异常只标记，不改写事件。
 - 公式修订变化时，卡片暂停到用户选择“保持进度”或“重建”。
 
 **验收标准**：测试方案全文见 [Test/core/S4_CORE-17_TEST.md](../Test/core/S4_CORE-17_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 500 行；主包 `crates/fml-srs/`（约 380 行），附属：领域表仓储 `crates/fml-store/src/study/cards.rs` 与迁移 `0017_srs.sql`（约 120 行，DDL 不计）。
-
+**规模**：约525行；主包`crates/fml-srs/`，附属`crates/fml-store/src/study/cards.rs`、`params.rs`与`crates/fml-ffi/src/ops/srs.rs`本卡op处理/登记。分阶段：① 纯排程/重放/队列380行；② 卡片/事件/参数写入及回退145行；依赖替身分别独立构建验证。DDL/自测与CORE-80/81实现不计。

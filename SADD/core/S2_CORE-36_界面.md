@@ -17,8 +17,8 @@ Future<AppDeps> composeApp({required CoreBinding core, required PlatformPorts po
     // → ④ 逐项await featureInstallers，再逐项await ports.platformInstallers；任一失败即停止、清理已创建资源并抛错，不发布AppDeps → ⑤ 生成 AppDeps（ports.http 替换为 ctx.http；sync/upgrade 取不到时用 Disabled 实现）
 // app/lib/composition/installers.dart —— CORE-36维护者单写；特性卡只提交自己的installXxx登记片段，不直接修改本文件
 final List<Installer> transportInstallers = [ /* CORE-28: installPrivacy */ ];
-final List<Installer> featureInstallers = [ /* 顺序固定：installDesign（CORE-55，第一项）、installDesignComponents（CORE-58）、installEditor（CORE-37）、installEditorInput（CORE-59）、installFormulaCopy（CORE-52）、installLatexCompletion（CORE-53）、installLibraryBatch（CORE-54）、installStudy（CORE-39）、installRecognition（CORE-40）、installStorageGuard（CORE-50）、
-                                                 installCloud（CORE-34）、installReminders（CORE-20）、installSync（CORE-46）、installPacks（CORE-51） */ ];
+final List<Installer> featureInstallers = [ /* 顺序固定：installDesign（CORE-55，第一项）、installDesignComponents（CORE-58）、installEditor（CORE-37）、installEditorInput（CORE-87）、installFormulaCopy（CORE-91）、installLatexCompletion（CORE-53）、installLibraryBatch（CORE-54）、installStudy（CORE-39）、installRecognition（CORE-40）、installStorageGuard（CORE-50）、
+                                                 installCloud（CORE-34）、installReminders（CORE-20）、installKeys（CORE-98）、installSync（CORE-46）、installUpgrade（CORE-99）、installPacks（CORE-51） */ ];
 
 final class AppDeps {   // 只给组装层与特性目录（app/lib/<feature>/，含各卡 routes.dart）使用；app/lib/ui/ 不得接收或保存
   final CoreBinding core; final PlatformPorts ports; final AccountController account; final FeatureRegistry features;
@@ -29,7 +29,7 @@ final class UiDeps {    // app/lib/ui/ 中 Widget 允许接收的唯一依赖对
   final AccountController account; final FeatureRegistry features; final SyncFacade sync; final UpgradeFacade upgrade;
 }
 
-// app/lib/composition/facades.dart —— 界面只依赖这些类型；实现由 CORE-46 提供
+// app/lib/composition/facades.dart —— 界面只依赖这些类型；同步实现由 CORE-46 提供，升级实现由 CORE-99 提供；低层接口仍归本卡
 enum SyncTrigger { appStart, resumed, manual, afterUpgrade }
 enum SyncPhase { disabled, idle, syncing, offline, needsKey, clientTooOld, failed }
 final class SyncStatus { final SyncPhase phase; final DateTime? lastSuccessAt; final int outboxLen, quarantined, openChoices; final String? lastErrorCode; }
@@ -73,28 +73,31 @@ Future<void> mainCommon(PlatformPorts ports, CoreBinding core);   // 平台 main
 | 路由前缀 | 提供函数 | 卡片 |
 | --- | --- | --- |
 | `/settings/appearance` | `designComponentRoutes(AppearanceController)` | CORE-58 |
-| `/library`、`/library/new`、`/library/:itemId` | `libraryRoutes` | CORE-38 |
+| `/library`、`/library/trash`、`/library/:itemId` | `libraryRoutes` | CORE-38 |
+| `/library/new`、`/library/:itemId/edit` | `libraryEditRoutes` | CORE-88 |
 | `/library/import`、`/library/units` | `libraryToolsRoutes` | CORE-60 |
 | `/`、`/account`、`/privacy` | `accountRoutes` | CORE-63 |
 | `/calc` | `calcRoutes` | CORE-48 |
-| `/study`、`/study/books`、`/study/books/:bookId`、`/study/plan/:bookId`、`/study/session/:id` | `studyRoutes` | CORE-39 |
-| `/study/stats`、`/study/reminder`、`/study/books/new`、`/study/books/:bookId/edit` | `statsRoutes` | CORE-49 |
+| `/study/session/:id` | `studyRoutes` | CORE-39 |
+| `/study`、`/study/books`、`/study/books/:bookId`、`/study/plan/:bookId` | `studyHomeRoutes` | CORE-89 |
+| `/study/stats` | `statsRoutes` | CORE-49 |
+| `/study/reminder`、`/study/books/new`、`/study/books/:bookId/edit` | `bookReminderRoutes` | CORE-90 |
 | `/recognize`、`/recognize/history`、`/recognize/history/:sessionId` | `recognitionRoutes` | CORE-50 |
 | `/settings` 及其子路由 | `settingsRoutes` | CORE-47 |
 | `/packs` | `packRoutes` | CORE-51 |
 
-- 汇总顺序：静态路径先于带参数路径（CORE-60静态导入/单位路由排在libraryRoutes的参数项之前，`statsRoutes` 排在 `studyRoutes` 之前，使 `/study/books/new` 不被 `/study/books/:bookId` 吞掉）；主导航四个入口依次指向 `/study`（首页）、`/library`、`/recognize`、`/settings`，由 CORE-55 `AdaptiveScaffold` 按宽度分档呈现为底部导航栏、导航轨或侧栏；完成账户入口后落在 `/study`；对应路由尚未追加时入口置灰。
+- 汇总顺序：静态路径先于带参数路径（CORE-60静态导入/单位路由排在libraryRoutes的参数项之前，`libraryEditRoutes` 中的静态新建项及 `libraryRoutes` 的回收站项排在动态 itemId 前，`bookReminderRoutes` 的静态新建项排在 `studyHomeRoutes` 的动态 bookId 前，使 `/study/books/new` 不被 `/study/books/:bookId` 吞掉）；主导航四个入口依次指向 `/study`（首页）、`/library`、`/recognize`、`/settings`，由 CORE-55 `AdaptiveScaffold` 按宽度分档呈现为底部导航栏、导航轨或侧栏；完成账户入口后落在 `/study`；对应路由尚未追加时入口置灰。
 - 入口接缝：本卡完成时把 CORE-04 `entry.dart` 中的 `appEntry` 由 `smokeEntry` 改为 `mainCommon`（只改这一行）。
 - 首帧协议：路由器已创建且账户入口页（或已自动打开档案的首页）已渲染后，`mainCommon` 的 post-frame 回调先依次 await `firstFrameHooks`，再启动下面的顺序钩子。第一组只含本地短操作（托盘 order 10、最小化兜底显示 order 15、健康确认 order 20），每项以 2 s 为上限 await，超时或失败都记录 `AppLog` 并继续下一项（超时的 Future 不再等待，其结果被忽略）；失败的健康确认不得伪造标记。它不等待档案打开、同步或网络。`--minimized` 不影响路由创建与首帧渲染。
 - 启动钩子（首帧协议完成后按 order 依次 await，单个钩子失败只记 `AppLog` 并继续）：
 
 | order | 钩子 | 登记者 |
 | --- | --- | --- |
-| 10 | 资源包恢复与 bootstrap 安装（契约见 CORE-15；S2/S3 为空） | CORE-51 的安装点 `installPacks`（S4） |
+| 10 | 资源包恢复与 bootstrap 安装（格式/验签见 CORE-15，恢复/安装见 CORE-95；S2/S3 为空） | CORE-51 的安装点 `installPacks`（S4） |
 | 12 | Windows自定义键位加载 | WIN-14平台安装点（下游说明，非契约） |
 | 15 | 资源包更新检查（后台进行，不阻塞后续钩子，只检查不下载） | CORE-51 的安装点 |
 | 20 | `account.profiles` → 恢复账户状态 → 打开档案（系统级解包 DbKey，不弹认证） | CORE-65账户安装点（宿主只调度） |
-| 30 | 预留升级恢复区间，S2 为空 | CORE-46 自己的安装点（S6） |
+| 30 | 预留升级恢复区间，S2 为空 | CORE-99 的独立安装点 installUpgrade（S6；安装顺序 CORE-98 → CORE-46 → CORE-99，CORE-46 不反向依赖升级实现） |
 | 40 | 本地模型注册（对 `model-` 开头的包调 `recog.local.register`） | CORE-40 的安装点 |
 | 50 | 识别历史恢复（`recog.recover`） | CORE-40 的安装点 |
 | 55 | 存储空间检查（可用空间 < 500 MiB 时 `recog.gc`） | CORE-50 的安装点 |
@@ -112,7 +115,7 @@ Future<void> mainCommon(PlatformPorts ports, CoreBinding core);   // 平台 main
 | --- | --- | --- | --- |
 | `SYNC_NOT_AVAILABLE` | info | 否 | 同步模块未安装或当前为游客时调用门面方法 |
 
-规模复核：composition/安装聚合130、路由/壳90、启动钩子60，共280（测试约100行，按README §8.4不计入规模）；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
+规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：组装层/门面/外壳接缝约 310、外壳/路由守卫/启动钩子约 260，共约 570，测试与特性接入行不计；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
 
 启动order 95保留不登记：旧托盘创建已迁firstFrameHooks 10，最小化兜底15、健康确认20均属于首帧钩子独立序列，不得重新塞入顺序队列。startup12/85分别归Windows键位/更新，平台未安装时空缺；同号跨序列允许，同序列不同所有者冲突需CORE-36维护者分配，不靠登记先后碰运气。
 
@@ -125,7 +128,7 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 - 视觉与交互遵守 CORE-55：颜色、字号、间距、圆角与动效只取 `FmlTheme` 令牌，控件用 CORE-58 核心组件，页面按 CORE-55 g「关键页面布局」在各宽度分档与矮高度下呈现，触控目标与密度取 `InputModalityScope`；不判断运行平台。
 - 组装 CORE-55：`installDesign` 为 `featureInstallers` 第一项；`main_common.dart` 在 `composeApp` 之后、`runApp` 之前 `await AppearanceController.load()`；`AppShell` 以 `themeFor` 生成 `theme`/`darkTheme` 并按外观模式设 `themeMode`，在 `builder` 中包裹 `InputModalityScope`；主导航外壳用 `AdaptiveScaffold`。主题、深色模式、主题色与字体缩放规则只在 CORE-55 定义，本卡不另建 `ThemeData`。
 - Uninitialized 状态下路由守卫只放行 `/`、`/account/*` 与 `/privacy`；游客隐藏云识别与同步入口（以 `FeatureRegistry` 取不到或 `account.state` 为游客判断，不写平台分支）。
-- `composeApp` 与 `installers.dart` 之外的代码不得构造服务实现；`app/lib/ui/` 中的 Widget 构造参数与字段只能是 `UiDeps`、VM、DTO 与回调，不得出现 `AppDeps`、`CoreBinding`、`PlatformPorts`（CORE-69 DEP-5 检测，CORE-41 编排）。`installers.dart` 与 `routes.dart` 的合入行计入聚合所有者预算，消费方片段与自己的安装实现计入本卡规模，也不视为跨构建单元。
+- `composeApp` 与 `installers.dart` 之外的代码不得构造服务实现；`app/lib/ui/` 中的 Widget 构造参数与字段只能是 `UiDeps`、VM、DTO 与回调，不得出现 `AppDeps`、`CoreBinding`、`PlatformPorts`（CORE-69 DEP-5 检测，CORE-41 编排）。`installers.dart` 与 `routes.dart` 中各特性的合入行、消费方片段与其安装实现计入接入的特性卡规模（README §8.4），本卡只计聚合骨架；这些合入不视为跨构建单元。
 - 状态恢复：`MaterialApp.router` 设 `restorationScopeId: 'fml'`，`GoRouter` 设 `restorationScopeId: 'router'`，使 Android 进程被回收重建后回到原路由（平台侧见 AND-05）；需要恢复的页面状态以路由参数表达，不依赖内存对象。
 - 外壳扩展：`composeApp` ③ 同时登记 `AppNavigator`（实现 `_QueuedNavigator`）与空的 `SettingsSections`；`AppShell` 挂载时通过 `FocusManager.instance.addEarlyKeyEventHandler` 登记唯一回调，先调用 `features.get<ShellKeyHandler>()`，卸载时用同一回调 remove；handled 阻断焦点链，ignored 才交给 primaryFocus。不得用根 Focus 或 HardwareKeyboard.addHandler 代替：后者会广播全部 handler，不保证短路。平台窗口、托盘、快捷键与平台设置项（WIN-03、WIN-06、WIN-08、WIN-09）只经这三个接缝接入。
 - 提醒点击：`mainCommon` 在路由器创建后订阅 `ports.notifications.taps()`，每次收到即 `router.go('/study')`（未完成账户入口时先完成入口再跳转）。
@@ -136,5 +139,5 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-36_TEST.md](../Test/core/S2_CORE-36_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 280 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`。
+**规模**：约 570 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`（含 `entry.dart` 一行接缝）。各特性在聚合文件中的接入行计入特性卡。分阶段：① 组装层、门面与外壳接缝（compose_app、AppDeps/UiDeps、installers、facades、shell_ext 与登记回执，约 310）；② 应用外壳、路由守卫与启动钩子（routes.dart、app_shell.dart、main_common.dart，约 260）。
 

@@ -13,10 +13,10 @@
 
 **实现约束**
 - 不维护第二前缀表，ABI解析只支持公共头所用语法；版本主变更仍需BREAKING CHANGE及ADR。
-- 逐文件估算：unsafe50、ABI110、errors90、正反例150，合计400；词法层复用CORE-69。
+- 逐组件实现估算：unsafe70、ABI175、errors135、公共入口接入20，合计400；正反例测试与夹具不计，词法层复用CORE-69且不重复计。
 - 外部前提：锁定Python/PyYAML，基准Git标签；尚无标签时只有自包含基准fixture通过，不声称历史ABI兼容。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-74_TEST.md](../Test/S0/S0_CORE-74_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 250 行；主包 `tools/ci/`（不含测试约150行）。
+**规模**：约400行；tools/ci/check_unsafe.py、check_abi.py、check_errors.py及本卡编写的公共入口接入行；不计自测、夹具、registry/schema数据、生成头文件与报告；复用CORE-69公共词法而不重复计。
 

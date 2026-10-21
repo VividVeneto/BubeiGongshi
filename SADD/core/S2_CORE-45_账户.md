@@ -50,5 +50,5 @@ pub trait EmailSender: Send + Sync {
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-45_TEST.md](../Test/core/S2_CORE-45_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `server/`（`server/src/email/` 与 `server/src/auth/email_codes_route.rs`）。
+**规模**：约620行，分阶段：①端口模型、验证码/仓储/限流与端点340行；②两供应商签名适配220、主备切换40、指标/配置接入20，共280行；主包server/src/email/及auth路由/入口接入；DDL、模板数据、Fake与自测不计。 阶段独立构建/测试：①验证码业务和端点（340行）：通过Sender接口注入Fake，构建/测试事务、限流、一次性与统一HTTP响应；未配置供应商明确发送不可用。；②真实供应商与主备接入（280行）：录制请求契约测试官方签名/错误归类和fallback；域名/凭据/实发前提不报自动通过。
 

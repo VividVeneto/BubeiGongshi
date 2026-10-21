@@ -33,5 +33,5 @@ library.draft_put body=FormulaDraft，ok={}；get body={draft_key}、ok={draft?:
 
 **验收标准**：测试方案全文见 [Test/core/S3_CORE-61_TEST.md](../Test/core/S3_CORE-61_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 160 行；主包 `crates/fml-store/src/library/draft.rs`、`crates/fml-store/migrations/0061_formula_draft.sql`（含测试与必要的同构建单元接缝）；附属 `crates/fml-ffi/src/ops/library_draft.rs`（FFI 薄适配，约 30 行）。
+**规模**：约 120 行；主包 `crates/fml-store/src/library/draft.rs`（约 85 行），迁移 `crates/fml-store/migrations/0061_formula_draft.sql`（DDL 不计）；附属 `crates/fml-ffi/src/ops/library_draft.rs`（FFI 薄适配，约 35 行）。
 

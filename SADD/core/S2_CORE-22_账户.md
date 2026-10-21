@@ -63,7 +63,7 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 
 验证码相关错误码（`AUTH_EMAIL_CODE_*`）由 CORE-45 定义；客户端网络错误为 CORE-04 的 `NET_*`。
 
-规模复核：auth路由/令牌校验160、devices70、meta/config/main50，共280（测试约180行，按README §8.4不计入规模）；邮件与注册门户归CORE-45，不在本卡重复实现。
+规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：骨架与令牌校验约 380、认证流程/令牌族/设备约 395，共约 775，测试不计；邮件与注册门户归CORE-45，不在本卡重复实现。
 
 **实现约束**
 - 技术选型：Rust（axum）+ PostgreSQL + 对象存储；与客户端核心共享 `contracts/` 中的错误码与 DTO 定义（ADR-V5-03，见附录 A）。
@@ -77,5 +77,5 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-22_TEST.md](../Test/core/S2_CORE-22_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 280 行；主包 `server/src/{main.rs,config.rs,auth/,devices/,meta/}`、`server/migrations/0022_auth.sql`。
+**规模**：约 775 行；主包 `server/src/{main.rs,config.rs,middleware/,auth/,devices/,meta/}`；迁移 `server/migrations/0022_auth.sql`（DDL 不计）。分阶段：① 服务端骨架与令牌校验（main/config/公共中间件/meta/email_code trait/JWT 校验与账户映射/限流/audit，约 380）；② 认证流程、令牌族与设备（authorize、token 代理与令牌族、logout、注册/找回门面、devices，约 395）。
 
