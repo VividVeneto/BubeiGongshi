@@ -94,7 +94,7 @@ pub const SCHEMA_VERSION: u32;   // 由 build.rs 取 migrations/ 中最大序号
 | store.open | `{config: StoreConfig, db_key_b64: string}`（解码恰32字节） | `{handle: string, schema_version: u32}` |
 | store.close | `{handle: string}` | `{}` |
 | store.integrity_check | `{handle: string}` | `IntegrityReport` |
-例：open body=`{"config":{"db_path":"/fixture/profile.db","backup_dir":"/fixture/backup","read_pool":2},"db_key_b64":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="}`，ok=`{"handle":"281474976710657","schema_version":13}`；close body=`{"handle":"281474976710657"}`，ok=`{}`；integrity同body，ok=`{"ok":true,"sqlite_messages":["ok"],"foreign_key_violations":0,"schema_version":13}`。零密钥仅fixture，生产由调用方生成；错误见本卡表及 CORE-03 句柄错误。store.open为device scope，close/integrity为profile scope（body.handle保留，信封profile_handle同值）；其他仓储op统一继承CORE-03信封路由。Store::close先等待租约和actor队列排空；不能同时保留account.open_profile和store.open产生的两个同库写者。交互档案只由CORE-23的open_profile入口打开，store.open供无账户仓储fixture/工具使用；进程内以规范路径去重，重复打开返回STORE_BUSY。
+例：open body=`{"config":{"db_path":"/fixture/profile.db","backup_dir":"/fixture/backup","read_pool":2},"db_key_b64":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="}`，ok=`{"handle":"281474976710657","schema_version":13}`（13 是仅含 0013 迁移的夹具值；完整构建返回当时最新的迁移序号，契约测试对该字段只断言 ≥ 13）；close body=`{"handle":"281474976710657"}`，ok=`{}`；integrity同body，ok=`{"ok":true,"sqlite_messages":["ok"],"foreign_key_violations":0,"schema_version":13}`。零密钥仅fixture，生产由调用方生成；错误见本卡表及 CORE-03 句柄错误。store.open为device scope，close/integrity为profile scope（body.handle保留，信封profile_handle同值）；其他仓储op统一继承CORE-03信封路由。Store::close先等待租约和actor队列排空；不能同时保留account.open_profile和store.open产生的两个同库写者。交互档案只由CORE-23的open_profile入口打开，store.open供无账户仓储fixture/工具使用；进程内以规范路径去重，重复打开返回STORE_BUSY。
 
 FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 

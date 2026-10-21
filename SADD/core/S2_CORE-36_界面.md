@@ -112,7 +112,7 @@ Future<void> mainCommon(PlatformPorts ports, CoreBinding core);   // 平台 main
 | --- | --- | --- | --- |
 | `SYNC_NOT_AVAILABLE` | info | 否 | 同步模块未安装或当前为游客时调用门面方法 |
 
-规模复核：composition/安装聚合130、路由/壳90、启动钩子60、测试100，共380；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
+规模复核：composition/安装聚合130、路由/壳90、启动钩子60，共280（测试约100行，按README §8.4不计入规模）；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
 
 启动order 95保留不登记：旧托盘创建已迁firstFrameHooks 10，最小化兜底15、健康确认20均属于首帧钩子独立序列，不得重新塞入顺序队列。startup12/85分别归Windows键位/更新，平台未安装时空缺；同号跨序列允许，同序列不同所有者冲突需CORE-36维护者分配，不靠登记先后碰运气。
 
@@ -125,7 +125,7 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 - 视觉与交互遵守 CORE-55：颜色、字号、间距、圆角与动效只取 `FmlTheme` 令牌，控件用 CORE-58 核心组件，页面按 CORE-55 g「关键页面布局」在各宽度分档与矮高度下呈现，触控目标与密度取 `InputModalityScope`；不判断运行平台。
 - 组装 CORE-55：`installDesign` 为 `featureInstallers` 第一项；`main_common.dart` 在 `composeApp` 之后、`runApp` 之前 `await AppearanceController.load()`；`AppShell` 以 `themeFor` 生成 `theme`/`darkTheme` 并按外观模式设 `themeMode`，在 `builder` 中包裹 `InputModalityScope`；主导航外壳用 `AdaptiveScaffold`。主题、深色模式、主题色与字体缩放规则只在 CORE-55 定义，本卡不另建 `ThemeData`。
 - Uninitialized 状态下路由守卫只放行 `/`、`/account/*` 与 `/privacy`；游客隐藏云识别与同步入口（以 `FeatureRegistry` 取不到或 `account.state` 为游客判断，不写平台分支）。
-- `composeApp` 与 `installers.dart` 之外的代码不得构造服务实现；`app/lib/ui/` 中的 Widget 构造参数与字段只能是 `UiDeps`、VM、DTO 与回调，不得出现 `AppDeps`、`CoreBinding`、`PlatformPorts`（CORE-41 DEP-5 检测）。`installers.dart` 与 `routes.dart` 的合入行计入聚合所有者预算，消费方片段与自己的安装实现计入本卡规模，也不视为跨构建单元。
+- `composeApp` 与 `installers.dart` 之外的代码不得构造服务实现；`app/lib/ui/` 中的 Widget 构造参数与字段只能是 `UiDeps`、VM、DTO 与回调，不得出现 `AppDeps`、`CoreBinding`、`PlatformPorts`（CORE-69 DEP-5 检测，CORE-41 编排）。`installers.dart` 与 `routes.dart` 的合入行计入聚合所有者预算，消费方片段与自己的安装实现计入本卡规模，也不视为跨构建单元。
 - 状态恢复：`MaterialApp.router` 设 `restorationScopeId: 'fml'`，`GoRouter` 设 `restorationScopeId: 'router'`，使 Android 进程被回收重建后回到原路由（平台侧见 AND-05）；需要恢复的页面状态以路由参数表达，不依赖内存对象。
 - 外壳扩展：`composeApp` ③ 同时登记 `AppNavigator`（实现 `_QueuedNavigator`）与空的 `SettingsSections`；`AppShell` 挂载时通过 `FocusManager.instance.addEarlyKeyEventHandler` 登记唯一回调，先调用 `features.get<ShellKeyHandler>()`，卸载时用同一回调 remove；handled 阻断焦点链，ignored 才交给 primaryFocus。不得用根 Focus 或 HardwareKeyboard.addHandler 代替：后者会广播全部 handler，不保证短路。平台窗口、托盘、快捷键与平台设置项（WIN-03、WIN-06、WIN-08、WIN-09）只经这三个接缝接入。
 - 提醒点击：`mainCommon` 在路由器创建后订阅 `ports.notifications.taps()`，每次收到即 `router.go('/study')`（未完成账户入口时先完成入口再跳转）。
@@ -136,5 +136,5 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-36_TEST.md](../Test/core/S2_CORE-36_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`。
+**规模**：约 280 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`。
 

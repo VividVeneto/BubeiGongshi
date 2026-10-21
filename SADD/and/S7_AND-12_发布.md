@@ -20,7 +20,7 @@
 | 手写墨迹上屏 | 手写墨迹上屏 | `ink_latency_test.dart` |
 | 公式库搜索首屏 | 公式库搜索首屏（10000 条） | `search_test.dart` |
 | 单张图片预处理、连续导入 20 张 1200 万像素图片 | 图片预处理、连续 20 张 12 MP 图片 | `import_20_images_test.dart` |
-| 本地模型识别（模型已加载）、首次加载 | 本地模型识别、本地模型首次加载 | `local_model_test.dart`（无模型包时跳过并在报告注明） |
+| 本地模型识别（模型已加载）、首次加载 | 本地模型识别（单式，模型已加载）、本地模型首次加载 | `local_model_test.dart`（无模型包时跳过并在报告注明） |
 | 常驻内存 | 常驻内存 | 各测试结束时采样 `dumpsys meminfo` |
 | 点击到按压态出现 | 点击到可见反馈（按压态出现） | `ui_feedback_latency_test.dart`（`PointerDownEvent` 时间戳到按压态首帧的 `FrameTiming`） |
 | 提交作答到判定条出现 | 作答到判定反馈（提交到判定条出现，含判分） | `verdict_latency_test.dart` |

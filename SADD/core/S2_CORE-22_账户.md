@@ -63,7 +63,7 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 
 验证码相关错误码（`AUTH_EMAIL_CODE_*`）由 CORE-45 定义；客户端网络错误为 CORE-04 的 `NET_*`。
 
-规模复核：auth路由/令牌校验160、devices70、meta/config/main50、测试180，共460；邮件与注册门户归CORE-45，不在本卡重复实现。
+规模复核：auth路由/令牌校验160、devices70、meta/config/main50，共280（测试约180行，按README §8.4不计入规模）；邮件与注册门户归CORE-45，不在本卡重复实现。
 
 **实现约束**
 - 技术选型：Rust（axum）+ PostgreSQL + 对象存储；与客户端核心共享 `contracts/` 中的错误码与 DTO 定义（ADR-V5-03，见附录 A）。
@@ -77,5 +77,5 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-22_TEST.md](../Test/core/S2_CORE-22_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 460 行；主包 `server/src/{main.rs,config.rs,auth/,devices/,meta/}`、`server/migrations/0022_auth.sql`。
+**规模**：约 280 行；主包 `server/src/{main.rs,config.rs,auth/,devices/,meta/}`、`server/migrations/0022_auth.sql`。
 

@@ -20,7 +20,7 @@
 AccountDataKey（仅注册账户；256 位随机数，不由口令派生）
   ├─ 由 RecoveryKey 包装（恢复码 → HKDF）
   ├─ 由 SyncPassphraseKey 包装（同步密语 → Argon2id；可选）
-  └─ 派生 UserFormulaKey / StudyDataKey / UserSettingsKey / BackupKey（HKDF，info 区分用途）
+  └─ 派生 UserFormulaKey / StudyDataKey / UserSettingsKey / BackupKey，以及 KeyPurpose::SyncSnapshot 用途的快照密钥（HKDF，info 区分用途）
 ```
 
 ```rust
@@ -91,7 +91,7 @@ WrapRecord wire v1（≤4096 B，严格 RFC 8949 确定性 CBOR；读入非最�
 | 6 | sealed | bstr：CORE-21 Sealed::to_bytes（version1+nonce24+ciphertext含tag16）；被包装明文固定32 B，实际长度73 B |
 | 7 | created_at_ms | int64，UTC 毫秒 |
 
-字段键按1..7递增，缺省4/5省略、不编码 null。unwrap 的 AAD 为 aad_cbor，domain="key.wrap/v1/<wrap_kind线上名>"，account/entity字段省略，key_version 与记录一致、format_version=1，防替换 kind/version；口令包装先由调用方 CSPRNG 提供 salt，passphrase_key 派生后，wrap_with_params(kek,key,kind,version,kdf,salt,now_ms) 写入全部参数；非口令 wrap 明确 kdf/salt=None。所有者提供此受测函数，不允许外卡手工补字段。
+字段键按1..7递增，缺省4/5省略、不编码 null。unwrap 的 AAD 为 aad_cbor，domain="key.wrap/v1/<wrap_kind线上名>"，account/entity字段省略，key_version 与记录一致、format_version=1，防替换 kind/version；口令包装先由调用方 CSPRNG 提供 salt，passphrase_key 派生后，wrap_with_params(rng,kek,key,kind,version,kdf,salt,now_ms) 写入全部参数；非口令 wrap 明确 kdf/salt=None。所有者提供此受测函数，不允许外卡手工补字段。
 
 WR-NEG-01 最小语法向量（sealed 为41 B空明文，故 from_bytes 必须拒绝长度，给解码器反例）：`a501010201030106582901000000000000000000000000000000000000000000000000000000000000000000000000000000000700`。
 WR-01 正例 = map(5): 1→1,2→1,3→1,6→bstr(0x01+24个0x00+48个0x00),7→0；其确切十六进制为 `a5010102010301065849010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700`。这里只验格式往返，不声称全零密文通过 AEAD 验证。WR-02 在 WR-01 加4→{1:65536,2:3,3:4}、5→16个0x01且kind=2；测编码字节与独立 RFC 编码器一致、解码再编码相同。

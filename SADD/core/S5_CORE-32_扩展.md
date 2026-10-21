@@ -6,7 +6,7 @@
 - 包含：识别会话状态机、序号与计数、`recognition_counter`、`recognition_session`、`recognition_asset`、`cleanup_job`、`pending_cloud_job` 五张表与仓储、会话文件加密存储、两阶段 GC、磁盘配额、Pin、采纳关联与“识别图片已清理”提示、历史密钥的平台包装与装入（含 Dart 附属 `HistoryKeyUnlocker`）、一键清空、启动恢复、FFI op。
 - 不包含：云端调用（CORE-34）；界面（CORE-40）；平台目录（AND-06、WIN-07 经 CORE-04 `LocalFileStore` 提供 `StoreArea.recognition` 与 `StoreArea.staging` 的实际位置）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-13、CORE-21、CORE-23、CORE-29、CORE-30、CORE-31
+**依赖**：CORE-01、CORE-02、CORE-04、CORE-05、CORE-13、CORE-21、CORE-23、CORE-29、CORE-30、CORE-31
 
 **接口契约**
 

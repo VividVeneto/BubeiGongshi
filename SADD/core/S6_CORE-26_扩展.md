@@ -6,7 +6,7 @@
 - 包含：outbox 取批与 ACK 处理、实体负载编码、加密与 AAD、拉取结果的校验与按实体合并、隔离区、待选择记录、字段逻辑时钟、纪元变化处理；快照与轮换已迁至CORE-66（下游说明，非契约）；对应 FFI op。
 - 不包含：HTTP 收发、触发时机与重试（CORE-46）；服务端（CORE-25）；同步界面（CORE-36）。
 
-**依赖**：CORE-01、CORE-02、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-78
+**依赖**：CORE-01、CORE-02、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-68、CORE-78
 
 **接口契约**
 
@@ -98,5 +98,5 @@ Store读写/加密批次编排和上述接收Store的API归fml-store::sync；纯
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-26_TEST.md](../Test/core/S6_CORE-26_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 380 行；主包 `crates/fml-store/src/sync/`（push70、pull100、payload60、merge编排50；不含测试约60），附属 `crates/fml-sync/src/merge.rs`（纯合并60）、`crates/fml-ffi/src/ops/sync.rs`（40）。不含CORE-66的snapshot/rotation；实作超估算必须先拆卡；批次持久化已拆出为 CORE-78。
+**规模**：约 380 行；主包 `crates/fml-store/src/sync/`（push70、pull100、payload60、merge编排50；测试约60行，按README §8.4不计入规模），附属 `crates/fml-sync/src/merge.rs`（纯合并60）、`crates/fml-ffi/src/ops/sync.rs`（40）。不含CORE-66的snapshot/rotation；实作超估算必须先拆卡；批次持久化已拆出为 CORE-78。
 

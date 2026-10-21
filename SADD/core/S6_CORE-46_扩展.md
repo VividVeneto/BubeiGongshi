@@ -6,7 +6,7 @@
 - 包含：`SyncApi`（CORE-25 端点的 Dart 封装，经 CORE-62 `ApiClient`）、`SyncCoordinator`（拉取 → 推送循环、触发、退避）、`UpgradeCoordinator`（驱动 CORE-24 步骤）、`KeyService`（包装记录上传下载、新设备导入密钥、同步密语、设备吊销后的密钥轮换），并实现 CORE-36 定义的 `SyncFacade` 与 `UpgradeFacade`。
 - 不包含：加密、合并与本地状态（CORE-24、CORE-26）；界面（CORE-36）；服务端（CORE-25）。
 
-**依赖**：CORE-01、CORE-02、CORE-04、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-36、CORE-62、CORE-66
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-36、CORE-62、CORE-66、CORE-78
 
 **接口契约**
 
