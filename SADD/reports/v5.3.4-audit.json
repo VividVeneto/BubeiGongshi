@@ -1058,6 +1058,16 @@
           ]
         },
         {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
+              "line": 1
+            }
+          ]
+        },
+        {
           "symbol": "DimensionFull",
           "sources": [
             {
@@ -3421,6 +3431,16 @@
           ]
         },
         {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
+              "line": 1
+            }
+          ]
+        },
+        {
           "symbol": "AccountKeys",
           "sources": [
             {
@@ -4468,6 +4488,16 @@
             {
               "card": "CORE-11",
               "file": "core/S1_CORE-11_引擎.md",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
               "line": 1
             }
           ]
@@ -6865,6 +6895,16 @@
             {
               "card": "CORE-59",
               "file": "core/S2_CORE-59_界面.md",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
               "line": 1
             }
           ]
@@ -11505,12 +11545,14 @@
         "AccountStateSchema",
         "AffinePoint",
         "ArgumentError",
+        "AstSchema",
         "AtomicBool",
         "AuthTime",
         "BackupKey",
         "BoundVar",
         "BuildContext",
         "CameraX",
+        "ChaCha8Rng",
         "CheckResponse",
         "CoreUnavailableScreen",
         "DateTime",
@@ -11557,6 +11599,7 @@
         "MergeChoice",
         "MergeInto",
         "MiB",
+        "NaN",
         "NativeCallable",
         "NewAccount",
         "NewKey",
@@ -11713,6 +11756,16 @@
             {
               "card": "CORE-78",
               "file": "core/S6_CORE-78_扩展.md",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
               "line": 1
             }
           ]
@@ -12474,76 +12527,6 @@
               "line": 1
             }
           ]
-        },
-        {
-          "symbol": "SourceMap",
-          "sources": [
-            {
-              "card": "CORE-06",
-              "file": "core/S1_CORE-06_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "RawSymbol",
-          "sources": [
-            {
-              "card": "CORE-06",
-              "file": "core/S1_CORE-06_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "NotationProfile",
-          "sources": [
-            {
-              "card": "CORE-07",
-              "file": "core/S1_CORE-07_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "PathSeg",
-          "sources": [
-            {
-              "card": "CORE-12",
-              "file": "core/S1_CORE-12_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "DrawCmd",
-          "sources": [
-            {
-              "card": "CORE-12",
-              "file": "core/S1_CORE-12_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "LayoutOptions",
-          "sources": [
-            {
-              "card": "CORE-12",
-              "file": "core/S1_CORE-12_引擎.md",
-              "line": 1
-            }
-          ]
-        },
-        {
-          "symbol": "DisplayList",
-          "sources": [
-            {
-              "card": "CORE-12",
-              "file": "core/S1_CORE-12_引擎.md",
-              "line": 1
-            }
-          ]
         }
       ]
     },
@@ -12595,6 +12578,7 @@
         "ArgumentError",
         "AtomicBool",
         "AuthTime",
+        "BoundIndex",
         "BoundVar",
         "BuildContext",
         "CalcResultDto",
@@ -12605,6 +12589,7 @@
         "ConfirmRecordDto",
         "CoreUnavailableScreen",
         "CrossKind",
+        "CubicTo",
         "DartProject",
         "DateTime",
         "DiagnosticDto",
@@ -12628,9 +12613,12 @@
         "FakeSecureKeyValueStore",
         "FakeXxx",
         "FfiCoreBinding",
+        "FmlBuf",
         "FmlColors",
+        "FmlCompletion",
         "FmlDensity",
         "FmlElevation",
+        "FmlHandle",
         "FmlMotion",
         "FmlRadii",
         "FmlSemanticColors",
@@ -12641,6 +12629,7 @@
         "FocusManager",
         "FontFeature",
         "FormulaStage",
+        "FunctionHead",
         "FutureOr",
         "GetCommandLineArguments",
         "GlobalKey",
@@ -12659,6 +12648,7 @@
         "KeyUploaded",
         "KiB",
         "LeastSigFigs",
+        "LineTo",
         "LocalCommitted",
         "MatrixDim",
         "MatrixElems",
@@ -12667,6 +12657,8 @@
         "MergeInto",
         "MiB",
         "MoveFileExW",
+        "MoveTo",
+        "NativeCallable",
         "NeedsRecheck",
         "NeedsReinforce",
         "NewAccount",
@@ -12676,12 +12668,14 @@
         "NotLearned",
         "NumericOnly",
         "OpenMutexW",
+        "OpenType",
         "PartialEq",
         "PartialOrd",
         "PathBuf",
         "PictureRecorder",
         "PlanStepDto",
         "PostgreSQL",
+        "QuadTo",
         "QuantityKindExact",
         "RankedCandidateDto",
         "RefreshExpireInHours",
@@ -12690,6 +12684,7 @@
         "RegisteredUnlocked",
         "ResetPassword",
         "RouteBase",
+        "RwLock",
         "SavedPlanDto",
         "ScalarField",
         "SemVer",
@@ -12712,6 +12707,7 @@
         "ThemeData",
         "ThemeExtension",
         "TokenFormat",
+        "UnitPosition",
         "UnsupportedXxx",
         "UpgradingGuest",
         "UpperCamelCase",
@@ -13659,6 +13655,16 @@
             {
               "card": "CORE-21",
               "file": "core/S2_CORE-21_账户.md",
+              "line": 1
+            }
+          ]
+        },
+        {
+          "symbol": "RecognitionModeWire",
+          "sources": [
+            {
+              "card": "CORE-33",
+              "file": "core/S5_CORE-33_扩展.md",
               "line": 1
             }
           ]
@@ -15245,6 +15251,7 @@
         "AndroidFileStore",
         "AndroidKeyStore",
         "ArgumentError",
+        "AstSchema",
         "AtomicBool",
         "AuthTime",
         "BackendCapsDto",
@@ -15256,6 +15263,7 @@
         "BuildContext",
         "CameraX",
         "CandidateDto",
+        "ChaCha8Rng",
         "ChangeNotifier",
         "CheckResponse",
         "CoreUnavailableScreen",
@@ -15308,6 +15316,7 @@
         "MethodChannel",
         "MiB",
         "MoveTo",
+        "NaN",
         "NativeCallable",
         "NewFormulaArgs",
         "NotComputable",
@@ -16445,6 +16454,11 @@
     {
       "id": "CORE-36",
       "rule": "SADD-9/10",
+      "warning": "Outside dependency closure: CORE-69; classify as downstream explanation or add dependency"
+    },
+    {
+      "id": "CORE-36",
+      "rule": "SADD-9/10",
       "warning": "Outside dependency closure: CORE-41; classify as downstream explanation or add dependency"
     },
     {
@@ -17014,6 +17028,7 @@
         "SyncSnapshot",
         "SystemParametersInfo",
         "SystemRoot",
+        "SystemTime",
         "TabletMode",
         "TaskbarCreated",
         "TeXstudio",
@@ -18246,16 +18261,6 @@
           ]
         },
         {
-          "symbol": "UnitOptions",
-          "sources": [
-            {
-              "card": "CORE-59",
-              "file": "core/S2_CORE-59_界面.md",
-              "line": 1
-            }
-          ]
-        },
-        {
           "symbol": "AccountKeys",
           "sources": [
             {
@@ -18311,6 +18316,7 @@
         "DiagnosticDto",
         "DictationDone",
         "DimConflict",
+        "DimensionFullDto",
         "DimensionUnified",
         "DisableRefreshRotation",
         "DisplayListDto",
@@ -18373,7 +18379,6 @@
         "IconData",
         "ImageInfoDto",
         "InTermsOf",
-        "InkDocument",
         "InkStrokesDto",
         "IntegrationConstant",
         "InteractiveViewer",
@@ -18468,6 +18473,7 @@
         "TooSoon",
         "UiCommandDto",
         "UnitDimension",
+        "UnitDto",
         "UnitPosition",
         "UnknownRemote",
         "UnsupportedXxx",
@@ -27272,6 +27278,7 @@
         "AffinePoint",
         "AliyunDirectMail",
         "AndroidX",
+        "AppMutex",
         "ArgumentError",
         "AtomicBool",
         "AuthTime",
@@ -27282,10 +27289,12 @@
         "BuildContext",
         "CameraX",
         "ChangeNotifier",
+        "CheckForMutexes",
         "CheckResponse",
         "CoreUnavailableScreen",
         "CryptoObject",
         "CubicTo",
+        "DartProject",
         "DateTime",
         "DeviceDto",
         "DiagnosticDto",
@@ -27318,6 +27327,7 @@
         "FocusManager",
         "FunctionHead",
         "FutureOr",
+        "GetCommandLineArguments",
         "GoRoute",
         "GoRouter",
         "GuestLocked",
@@ -27339,12 +27349,14 @@
         "MatrixElems",
         "MergeInto",
         "MiB",
+        "MoveFileExW",
         "MoveTo",
         "NativeCallable",
         "NewAccount",
         "NewKey",
         "NotComputable",
         "NumericOnly",
+        "OpenMutexW",
         "OpenType",
         "PartialEq",
         "PartialOrd",
@@ -27367,6 +27379,7 @@
         "SemVer",
         "SessionId",
         "SharedTypes",
+        "SingleInstance",
         "SourceBytes",
         "SourceSpan",
         "StateError",
@@ -27376,6 +27389,7 @@
         "SyncPassphrase",
         "SyncSnapshot",
         "TencentSes",
+        "TerminateProcess",
         "TokenFormat",
         "UnitPosition",
         "UnlockTier",
@@ -46144,177 +46158,182 @@
   "materials": [
     {
       "id": "CORE-36",
-      "chars": 334650,
+      "chars": 335869,
       "segments": 5
     },
     {
       "id": "CORE-49",
-      "chars": 249151,
+      "chars": 249237,
       "segments": 4
     },
     {
       "id": "CORE-40",
-      "chars": 239823,
+      "chars": 241154,
       "segments": 4
     },
     {
       "id": "CORE-50",
-      "chars": 236766,
+      "chars": 236984,
       "segments": 3
     },
     {
       "id": "CORE-26",
-      "chars": 231566,
+      "chars": 232890,
       "segments": 3
     },
     {
       "id": "CORE-39",
-      "chars": 228584,
+      "chars": 228732,
       "segments": 3
     },
     {
       "id": "CORE-38",
-      "chars": 224798,
+      "chars": 224884,
       "segments": 3
     },
     {
       "id": "WIN-08",
-      "chars": 223948,
+      "chars": 224043,
       "segments": 3
     },
     {
       "id": "CORE-48",
-      "chars": 216044,
+      "chars": 216130,
       "segments": 3
     },
     {
       "id": "CORE-47",
-      "chars": 213173,
+      "chars": 213329,
       "segments": 3
     },
     {
       "id": "CORE-14",
-      "chars": 207636,
+      "chars": 207730,
       "segments": 3
     },
     {
       "id": "CORE-54",
-      "chars": 205497,
+      "chars": 205593,
       "segments": 3
     },
     {
       "id": "WIN-13",
-      "chars": 202051,
+      "chars": 202134,
       "segments": 3
     },
     {
       "id": "WIN-14",
-      "chars": 199962,
-      "segments": 3
-    },
-    {
-      "id": "WIN-15",
-      "chars": 193275,
-      "segments": 3
-    },
-    {
-      "id": "CORE-52",
-      "chars": 190390,
-      "segments": 3
-    },
-    {
-      "id": "CORE-27",
-      "chars": 188943,
-      "segments": 3
-    },
-    {
-      "id": "CORE-15",
-      "chars": 186143,
-      "segments": 3
-    },
-    {
-      "id": "CORE-32",
-      "chars": 185304,
-      "segments": 3
-    },
-    {
-      "id": "CORE-51",
-      "chars": 185095,
-      "segments": 3
-    },
-    {
-      "id": "CORE-23",
-      "chars": 185032,
-      "segments": 3
-    },
-    {
-      "id": "CORE-13",
-      "chars": 184475,
-      "segments": 3
-    },
-    {
-      "id": "CORE-34",
-      "chars": 178196,
-      "segments": 3
-    },
-    {
-      "id": "CORE-37",
-      "chars": 173031,
+      "chars": 200057,
       "segments": 3
     },
     {
       "id": "CORE-46",
-      "chars": 170711,
+      "chars": 196935,
+      "segments": 3
+    },
+    {
+      "id": "CORE-32",
+      "chars": 195224,
+      "segments": 3
+    },
+    {
+      "id": "WIN-15",
+      "chars": 193308,
+      "segments": 3
+    },
+    {
+      "id": "CORE-52",
+      "chars": 190421,
+      "segments": 3
+    },
+    {
+      "id": "CORE-27",
+      "chars": 189138,
+      "segments": 3
+    },
+    {
+      "id": "CORE-15",
+      "chars": 186217,
+      "segments": 3
+    },
+    {
+      "id": "CORE-51",
+      "chars": 185181,
+      "segments": 3
+    },
+    {
+      "id": "CORE-23",
+      "chars": 185178,
+      "segments": 3
+    },
+    {
+      "id": "CORE-13",
+      "chars": 184637,
+      "segments": 3
+    },
+    {
+      "id": "CORE-34",
+      "chars": 178279,
+      "segments": 3
+    },
+    {
+      "id": "CORE-37",
+      "chars": 173041,
       "segments": 3
     },
     {
       "id": "CORE-19",
-      "chars": 170003,
+      "chars": 170056,
       "segments": 3
     },
     {
       "id": "CORE-60",
-      "chars": 169930,
+      "chars": 170016,
       "segments": 3
     },
     {
       "id": "AND-13",
-      "chars": 169768,
-      "segments": 3
-    },
-    {
-      "id": "CORE-17",
-      "chars": 168268,
+      "chars": 169811,
       "segments": 3
     },
     {
       "id": "CORE-66",
-      "chars": 167514,
+      "chars": 168800,
+      "segments": 3
+    },
+    {
+      "id": "CORE-17",
+      "chars": 168321,
       "segments": 3
     },
     {
       "id": "CORE-16",
-      "chars": 166809,
+      "chars": 166819,
       "segments": 3
     },
     {
       "id": "CORE-53",
-      "chars": 166701,
+      "chars": 166732,
       "segments": 3
     },
     {
       "id": "AND-07",
-      "chars": 165062,
+      "chars": 165134,
       "segments": 3
     },
     {
       "id": "WIN-03",
-      "chars": 163669,
+      "chars": 163713,
+      "segments": 3
+    },
+    {
+      "id": "CORE-24",
+      "chars": 163667,
       "segments": 3
     },
     {
       "id": "WIN-06",
-      "chars": 162939,
+      "chars": 162983,
       "segments": 3
     },
     {
@@ -46329,52 +46348,47 @@
     },
     {
       "id": "AND-12",
-      "chars": 157254,
+      "chars": 157326,
       "segments": 2
     },
     {
       "id": "WIN-07",
-      "chars": 154247,
-      "segments": 2
-    },
-    {
-      "id": "CORE-55",
-      "chars": 153074,
-      "segments": 2
-    },
-    {
-      "id": "CORE-31",
-      "chars": 152653,
+      "chars": 154373,
       "segments": 2
     },
     {
       "id": "CORE-65",
-      "chars": 151810,
+      "chars": 154271,
+      "segments": 2
+    },
+    {
+      "id": "CORE-55",
+      "chars": 153105,
+      "segments": 2
+    },
+    {
+      "id": "CORE-31",
+      "chars": 152715,
       "segments": 2
     },
     {
       "id": "WIN-04",
-      "chars": 151442,
+      "chars": 151504,
       "segments": 2
     },
     {
       "id": "CORE-58",
-      "chars": 151089,
+      "chars": 151190,
       "segments": 2
     },
     {
       "id": "WIN-05",
-      "chars": 150605,
+      "chars": 150667,
       "segments": 2
     },
     {
       "id": "CORE-20",
-      "chars": 146713,
-      "segments": 2
-    },
-    {
-      "id": "CORE-24",
-      "chars": 146636,
+      "chars": 146787,
       "segments": 2
     },
     {
@@ -46384,7 +46398,7 @@
     },
     {
       "id": "WIN-09",
-      "chars": 139781,
+      "chars": 139825,
       "segments": 2
     },
     {
@@ -46394,22 +46408,22 @@
     },
     {
       "id": "AND-05",
-      "chars": 138056,
+      "chars": 138161,
       "segments": 2
     },
     {
       "id": "WIN-01",
-      "chars": 132492,
+      "chars": 132524,
       "segments": 2
     },
     {
       "id": "CORE-61",
-      "chars": 129136,
+      "chars": 129189,
       "segments": 2
     },
     {
       "id": "AND-06",
-      "chars": 120313,
+      "chars": 120476,
       "segments": 2
     },
     {
@@ -46419,27 +46433,27 @@
     },
     {
       "id": "WIN-16",
-      "chars": 114642,
+      "chars": 114653,
       "segments": 2
     },
     {
       "id": "CORE-04",
-      "chars": 113712,
+      "chars": 113744,
       "segments": 2
     },
     {
       "id": "CORE-64",
-      "chars": 112779,
+      "chars": 112789,
       "segments": 2
     },
     {
       "id": "AND-09",
-      "chars": 110144,
+      "chars": 110165,
       "segments": 2
     },
     {
       "id": "CORE-63",
-      "chars": 109812,
+      "chars": 109845,
       "segments": 2
     },
     {
@@ -46454,12 +46468,12 @@
     },
     {
       "id": "CORE-05",
-      "chars": 105761,
+      "chars": 105855,
       "segments": 2
     },
     {
       "id": "WIN-02",
-      "chars": 105322,
+      "chars": 105333,
       "segments": 2
     },
     {
@@ -46484,12 +46498,12 @@
     },
     {
       "id": "WIN-12",
-      "chars": 95989,
+      "chars": 96000,
       "segments": 2
     },
     {
       "id": "CORE-29",
-      "chars": 91182,
+      "chars": 91500,
       "segments": 2
     },
     {
@@ -46499,27 +46513,27 @@
     },
     {
       "id": "CORE-08",
-      "chars": 88553,
+      "chars": 88594,
       "segments": 2
     },
     {
       "id": "CORE-01",
-      "chars": 88102,
+      "chars": 88133,
       "segments": 2
     },
     {
       "id": "AND-01",
-      "chars": 87053,
+      "chars": 87063,
       "segments": 2
     },
     {
       "id": "CORE-42",
-      "chars": 86817,
+      "chars": 86870,
       "segments": 2
     },
     {
       "id": "CORE-43",
-      "chars": 86675,
+      "chars": 86696,
       "segments": 2
     },
     {
@@ -46529,17 +46543,17 @@
     },
     {
       "id": "CORE-21",
-      "chars": 84884,
+      "chars": 85018,
       "segments": 2
     },
     {
       "id": "AND-03",
-      "chars": 82537,
+      "chars": 82599,
       "segments": 2
     },
     {
       "id": "CORE-68",
-      "chars": 80920,
+      "chars": 80960,
       "segments": 2
     },
     {
@@ -46549,12 +46563,12 @@
     },
     {
       "id": "CORE-25",
-      "chars": 79126,
+      "chars": 79228,
       "segments": 1
     },
     {
       "id": "CORE-30",
-      "chars": 77885,
+      "chars": 77957,
       "segments": 1
     },
     {
@@ -46564,7 +46578,7 @@
     },
     {
       "id": "CORE-33",
-      "chars": 72032,
+      "chars": 72094,
       "segments": 1
     },
     {
@@ -46574,7 +46588,7 @@
     },
     {
       "id": "CORE-78",
-      "chars": 71039,
+      "chars": 71207,
       "segments": 1
     },
     {
@@ -46589,27 +46603,27 @@
     },
     {
       "id": "CORE-22",
-      "chars": 67576,
+      "chars": 67597,
       "segments": 1
     },
     {
       "id": "CORE-41",
-      "chars": 64805,
+      "chars": 64827,
       "segments": 1
     },
     {
       "id": "AND-11",
-      "chars": 64208,
+      "chars": 64218,
       "segments": 1
     },
     {
       "id": "AND-04",
-      "chars": 63812,
+      "chars": 63884,
       "segments": 1
     },
     {
       "id": "CORE-02",
-      "chars": 63027,
+      "chars": 63108,
       "segments": 1
     },
     {
@@ -46619,7 +46633,7 @@
     },
     {
       "id": "CORE-62",
-      "chars": 58351,
+      "chars": 58372,
       "segments": 1
     },
     {
@@ -46629,17 +46643,17 @@
     },
     {
       "id": "CORE-57",
-      "chars": 53230,
+      "chars": 53240,
       "segments": 1
     },
     {
       "id": "CORE-72",
-      "chars": 52303,
+      "chars": 52324,
       "segments": 1
     },
     {
       "id": "CORE-45",
-      "chars": 50308,
+      "chars": 50329,
       "segments": 1
     },
     {
@@ -46649,7 +46663,7 @@
     },
     {
       "id": "AND-15",
-      "chars": 48232,
+      "chars": 48242,
       "segments": 1
     },
     {
