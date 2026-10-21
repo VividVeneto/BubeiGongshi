@@ -40,10 +40,10 @@ abstract interface class CloudRecognitionService implements ConsentVerifier {
       // input_kinds = [image]，model_version 取自政策），对其余 provider 不登记
   Future<String> grantFeatureConsent(ProviderPolicy p, FeatureConsentInput input);   // POST /v1/recognition/consents → consentId；之后登记远程后端
   Future<UploadPreview> preparePreview(String sessionId, String backendId);
-      // 取会话的裁剪增强图（CORE-32 recog.session.get）→ img.fit_for_upload（CORE-30）→ 计算哈希；会话转 Preview
+      // 取会话的裁剪增强图（CORE-32 recog.session.get）→ img.fit_for_upload {prepared_path, out_path, staging_root}（CORE-30）→ 计算哈希；会话转 Preview
   ConsentToken confirmUpload(UploadPreview preview);   // 用户在预览页点“上传识别”后调用；会话转 Authorized
   Future<String> submit(UploadPreview preview, ConsentToken token, {String? subject, List<String> symbolHints = const []});
-      // POST /v1/recognition/jobs，返回 job_id；随后 recog.pending_cloud.record，会话转 Running
+      // POST /v1/recognition/jobs，返回 job_id；随后 recog.pending_cloud.record {id, job_id, image_hash, now_ms}，会话转 Running
   Stream<CloudJobState> watch(String jobId);           // 前台时轮询 GET /jobs/{id}：1 s 起，×2 退避，上限 10 s；终态后关闭流并推进会话状态
   Future<void> cancel(String jobId);
   Future<void> stopAndDrain(ProfileSession session);   // 档案关闭：停止轮询并排空旧任务取消/清理

@@ -12,6 +12,7 @@
 - [R28] 升级向导：Fake `UpgradeFacade` 下“新建账户”经过显示恢复码 → 勾选已保存 → 完成；未勾选时无法继续；“并入已有账户”要求输入恢复码或同步密语。
 - [R25] 游客设置页显示“游客：无内容上传”，不出现同步、设备与云识别项。
 - [R27] 导出 → 选择文件恢复（Fake 端口）走完预览与确认；在预览页返回后 `discard_restore` 被调用，原库不变。
+- [R27] 保护与模式（Fake CoreBinding）：游客不显示恢复码保护，已注册账户可选恢复码并发出 protection 为恢复码的 backup.export；恢复时 mode 随 prepare_restore 发出、commit_restore 只带 token/now_ms/day；预览后改选模式先 discard 再重新 prepare。
 - [R34] 设置 `keep_last` 时输入 101 被拒绝并提示范围；设为 0 后调用 `recog.settings.set` 且 `keep_last` 为 0。
 - [R42.f] Widget 测试：设置首页第一组显示“外观”项和当前预设/模式，点击后路由到 `/settings/appearance`（页面由 CORE-58 提供，本卡用占位页断言路由名）；游客模式同样可见。
 

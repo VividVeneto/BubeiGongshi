@@ -14,3 +14,4 @@
 - [R04] 参数采用expected_version校验、原子更新与上一版本回退，取消/写失败不部分提交，保留率边界拒绝。
 - [R28] study_card/review_event两个owner codec/applier用FakeRegistry独立验证；参数不注册，card派生state/due不上传；重复UUID同负载零写、同UUID异负载拒绝，乱序新事件全部保留且完整重放一致，无本地stamp/outbox；Delete旧Upsert不复活。
 - [R04][R28] card.reset_epoch按字段时钟同步，不取远端事件max；无now_ms/StudyDay上下文只标缓存失效，读取再按注入上下文重算，不写伪造now=0排程；stats hook不重复实现。
+- [R27] `load_params_tx`：无 srs_params 行时返回默认参数；adopt_params 后在同一写事务内读到新参数；rollback 后读到上一版本；调用不改变任何行。

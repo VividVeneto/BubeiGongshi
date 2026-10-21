@@ -62,7 +62,7 @@ final class DroppedImages { final List<ImportedImage> images /* 0–10，0只提
 // CORE-101 唯一定义 StorageStatus 与 installStorageGuard；本卡只读消费状态，不复制声明。
 ```
 
-- 调用的 op：`recog.correct / final_check`（CORE-31）；`recog.history.list / pin / adopt / session.get / transition`（CORE-32，删除单条走 `transition` 到 `Deleting` 由 GC 完成；一键清空经 `HistoryKeyUnlocker.clearAll()`，首次列出前 `ensure()`）；云端经 `RecognitionFlow` 转调 CORE-34。
+- 调用的 op：`recog.correct / final_check`（CORE-31）；`recog.history.list / pin / adopt / session.get / session.delete`（CORE-32，删除单条走 `recog.session.delete {id, now_ms}`，仅终态会话可删、含 Pinned/Adopted，文件由下一次 `recog.gc` 清除；一键清空经 `HistoryKeyUnlocker.clearAll()`，首次列出前 `ensure()`）；云端经 `RecognitionFlow` 转调 CORE-34。
 - 组装：recognitionRoutes 的路由片段由 CORE-36 聚合维护者单写合入；StorageStatus 由 CORE-101 安装并从 deps.features 读取，routes 只把 ValueListenable<bool>/回调传给页面。本卡不再登记 installStorageGuard/order55 或执行 GC。
 - 错误码与界面行为：
 

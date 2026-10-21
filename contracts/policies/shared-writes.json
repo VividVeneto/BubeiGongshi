@@ -849,6 +849,12 @@
     },
     {
       "kind": "error",
+      "key": "BACKUP_CANCELLED",
+      "owner": "CORE-27",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "PRIVACY_REQUEST_BLOCKED",
       "owner": "CORE-28",
       "point": "contracts/errors/registry.yaml"

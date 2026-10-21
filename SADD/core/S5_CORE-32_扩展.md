@@ -22,12 +22,14 @@ pub struct RecognitionSession { pub id: Uuid, pub seq: u64 /* 每 (设备, 账�
                                 pub source: InputSource /* Ink | Camera | Gallery | File | Clipboard | DragDrop */,
                                 pub backend_id: String, pub model_version: String, pub mode: RecognitionMode,
                                 pub pinned: bool, pub adopted_revision: Option<RevisionId>, pub quality: Option<QualityReport>, pub created_ms: i64 }
-// HistoryRepo 的实现在构造时注入 `Box<dyn SecureRandom + Send>`（生产为 CORE-23 OsRandom，测试为 FixedRandom）；start 生成会话密钥、begin_rotation 生成历史密钥时使用，trait 方法签名不增加 rng 参数（ADR-V5-41）
+// HistoryRepo 的实现在构造时注入 `Box<dyn SecureRandom + Send>`（生产为 CORE-23 OsRandom，测试为 FixedRandom），因方法为 &self，实现内部以 Mutex<Box<dyn SecureRandom + Send>> 持有；
+// start 生成会话密钥、begin_rotation 生成历史密钥、各次 seal 取 nonce 时使用，trait 方法签名不增加 rng 参数（ADR-V5-41）。时钟只来自参数 now_ms（毫秒 UTC，由 Dart 调用方在调用边界取一次），实现不读时钟
 pub fn validate_transition(from: SessionState, to: SessionState, networked: bool) -> Result<(), FmlError>; // 只检验下述合法状态表，无I/O
 pub trait HistoryRepo {
-    fn start(&self, source: InputSource, mode: RecognitionMode) -> Result<RecognitionSession, FmlError>;
-    fn transition(&self, id: Uuid, to: SessionState, payload: TransitionPayload) -> Result<(), FmlError>;
-    fn record_pending_cloud(&self, id: Uuid, job_id: &str, image_hash: [u8; 32]) -> Result<(), FmlError>;
+    fn start(&self, source: InputSource, mode: RecognitionMode, now_ms: i64) -> Result<RecognitionSession, FmlError>; // created_ms = now_ms
+    fn transition(&self, id: Uuid, to: SessionState, payload: TransitionPayload, now_ms: i64) -> Result<(), FmlError>; // 进入终态时 finished_ms = now_ms；to = Deleting/Purged 一律 RECOG_TRANSITION_INVALID
+    fn delete(&self, id: Uuid, now_ms: i64) -> Result<(), FmlError>;   // 用户单条删除：仅终态会话（含 Pinned/Adopted），同一事务执行 GC 阶段一；非终态 → RECOG_TRANSITION_INVALID
+    fn record_pending_cloud(&self, id: Uuid, job_id: &str, image_hash: [u8; 32], now_ms: i64) -> Result<(), FmlError>; // submitted_ms = now_ms，expires_ms = now_ms + 86 400 000
     fn pending_cloud_jobs(&self) -> Result<Vec<PendingCloudJob>, FmlError>;   // 启动时由 CORE-34 查询状态，不重新提交
     fn pin(&self, id: Uuid, on: bool) -> Result<(), FmlError>;
     fn adopt(&self, id: Uuid, rev: RevisionId) -> Result<(), FmlError>;      // 公式库中保存文本 + 来源会话 ID
@@ -42,10 +44,15 @@ pub enum SessionState { Imported, Preview, Authorized, Running, Succeeded, Faile
 pub enum InputSource { Ink, Camera, Gallery, File, Clipboard, DragDrop }
 pub enum AssetKind { Confirmed /* 确认输入图（降采样） */, Original /* 仅“保存原图”开启时 */, Upload, Thumbnail, Ink }
 pub struct TransitionPayload { pub assets: Vec<(AssetKind, PathBuf /* 暂存区明文文件，写入后删除 */)>, pub candidates: Option<Vec<Candidate>>,
-                               pub error_code: Option<String>, pub quality: Option<QualityReport>, pub backend_id: Option<String>, pub model_version: Option<String> }
+                               pub error_code: Option<String>, pub quality: Option<QualityReport>, pub backend_id: Option<String>, pub model_version: Option<String>,
+                               pub networked: Option<bool> /* backend_id 对应 CORE-29 后端是否联网，由调用方按 recog.backends 描述填写；None 视为 false */ }
+// payload 中为 None 的 backend_id / model_version / quality 保留会话原值；candidates 为 Some 时整体替换 result_sealed
+pub struct SessionResult { pub format_version: u16 /* 1 */, pub candidates: Vec<Candidate> }   // result_sealed 的明文模型
+pub fn encode_result(r: &SessionResult) -> Vec<u8>;                  // 纯函数，编码见下文“密文格式”
+pub fn decode_result(bytes: &[u8]) -> Result<SessionResult, FmlError>; // 格式/版本不符 → RECOG_IMAGE_LOST
 pub struct PendingCloudJob { pub session_id: Uuid, pub job_id: String, pub image_hash: [u8; 32], pub submitted_ms: i64, pub expires_ms: i64 }
 pub struct SessionSummary { pub id: Uuid, pub seq: u64, pub state: SessionState, pub source: InputSource, pub backend_id: String,
-                            pub created_ms: i64, pub pinned: bool, pub adopted: bool, pub has_images: bool }
+                            pub created_ms: i64, pub pinned: bool, pub adopted: bool, pub has_images: bool /* 存在 recognition_asset 行；不探测文件，文件缺失只在 get 时报 RECOG_IMAGE_LOST */ }
 pub struct GcPlan { pub sessions: Vec<Uuid>, pub job_ids: Vec<i64> }
 pub struct GcReport { pub purged: u32, pub retry_later: u32, pub bytes_freed: u64 }
 pub struct RecoveryReport { pub staging_cleared: u32, pub jobs_resumed: u32, pub orphans_removed: u32, pub pending_cloud: u32 }
@@ -59,8 +66,10 @@ pub trait HistoryFs {                       // 平台目录由 StoreArea.recogni
 ```
 
 
-- 状态转换合法表：`Imported → Preview | Cancelled`；`Preview → Authorized | Running | Cancelled`（`Authorized` 仅当 `backend_id` 为 networked）；`Authorized → Running | Cancelled`；`Running → Succeeded | Failed | Cancelled | UnknownRemote`；`UnknownRemote → Succeeded | Failed | Cancelled | ExpiredUnknown`；终态 → `Deleting`（仅 GC 或清空）；`Deleting → Purged`。其余转换 → `RECOG_TRANSITION_INVALID`。
-- FFI op：`recog.session.start` `{ source, mode }` → `{ session }`；`recog.session.transition` `{ id, to, payload }` → `{}`；`recog.session.get` `{ id }` → `{ session, candidates?, assets }`（图片以解密到暂存区的路径返回，界面用完删除）；`recog.pending_cloud.record / list`；`recog.pin`、`recog.adopt`、`recog.history.list` `{ page }`、`recog.key.status` `{}` → `{ key_version, wrapped?, loaded }`、`recog.key.provide` `{ key_version, history_key }` → `{}`、`recog.key.rotate_begin` `{}` → `{ key_version, history_key }`、`recog.key.rotate_commit` `{ key_version, wrapped, clear }` → `{}`（一键清空即 `clear = true`；`history_key` 只在 FFI 缓冲区中传递，Rust 侧放入 `Zeroizing`，档案关闭时随 Store 清零）、`recog.gc` `{ now_ms }` → `{ purged, retry_later, bytes_freed }`（长任务，`gc_plan` + `gc_execute`；`now_ms` 由 Dart 调用方传入）、`recog.recover`（长任务，启动时调用）；`recog.settings.get` `{}` → `{ keep_last, history_disk_cap_mb }`；`recog.settings.set` `{ keep_last?, history_disk_cap_mb? }` → `{}`（`keep_last` 越界 → `RECOG_KEEP_LAST_OUT_OF_RANGE`；`history_disk_cap_mb` 取值 50–2000，越界同样拒绝；值存 `recognition_counter`，设置变小后立即触发一次 `recog.gc`）。
+- 状态转换合法表：`Imported → Preview | Cancelled`；`Preview → Authorized | Running | Cancelled`（`Authorized` 仅当 `backend_id` 为 networked）；`Authorized → Running | Cancelled`；`Running → Succeeded | Failed | Cancelled | UnknownRemote`；`UnknownRemote → Succeeded | Failed | Cancelled | ExpiredUnknown`；终态 → `Deleting`（仅由 GC 阶段一、`delete` 单条删除或 `rotate_commit(clear = true)` 执行，不经 `transition`）；`Deleting → Purged`（仅 GC 阶段二）。终态 = Succeeded、Failed、Cancelled、ExpiredUnknown。其余转换 → `RECOG_TRANSITION_INVALID`；`validate_transition` 判定上述全表（含 Deleting/Purged 边），`transition` 另拒绝目标为 Deleting/Purged。
+- 原子性与默认：`start` 在同一写事务内判定活动任务（`RECOG_ACTIVE_TASK_EXISTS`）并分配 `seq = next_seq` 后递增；`Authorized` 校验用 `payload.networked`（None 为 false）；`recog.history.list` 的 `page` 从 0 起，固定每页 20 条（`Page.page_size = 20`），按 `seq` 降序，`total` 为非 Deleting/Purged 会话数，越过末页返回空 items；cleanup_job 退避 `next_try_ms = now_ms + min(60 000 × 2^attempts, 86 400 000)`。
+- 删除与采纳：`delete` 允许 Pinned/Adopted 会话（用户显式操作）；Adopted 会话删除后公式库仍保留文本与来源会话 ID，来源显示“识别图片已清理”。
+- FFI op：`recog.session.start` `{ source, mode, now_ms }` → `{ session }`；`recog.session.transition` `{ id, to, payload, now_ms, staging_root }` → `{}`（payload.assets 的路径须位于 `staging_root` 之下，ADR-V5-53）；`recog.session.delete` `{ id, now_ms }` → `{}`（call；阶段二由下一次 `recog.gc` 完成）；`recog.session.get` `{ id, staging_root }` → `{ session, candidates?, assets }`（图片解密到 `staging_root` 下以路径返回，界面用完删除）；`recog.pending_cloud.record / list`；`recog.pin`、`recog.adopt`、`recog.history.list` `{ page }`、`recog.key.status` `{}` → `{ key_version, wrapped?, loaded }`、`recog.key.provide` `{ key_version, history_key }` → `{}`、`recog.key.rotate_begin` `{}` → `{ key_version, history_key }`、`recog.key.rotate_commit` `{ key_version, wrapped, clear }` → `{}`（一键清空即 `clear = true`；`history_key` 只在 FFI 缓冲区中传递，Rust 侧放入 `Zeroizing`，档案关闭时随 Store 清零）、`recog.gc` `{ now_ms }` → `{ purged, retry_later, bytes_freed }`（长任务，`gc_plan` + `gc_execute`；`now_ms` 由 Dart 调用方传入）、`recog.recover` `{ now_ms }` → `{ staging_cleared, jobs_resumed, orphans_removed, pending_cloud }`（长任务，启动时调用；24 h 过期按 now_ms 判定）；`recog.settings.get` `{}` → `{ keep_last, history_disk_cap_mb }`；`recog.settings.set` `{ keep_last?, history_disk_cap_mb? }` → `{}`（`keep_last` 越界 → `RECOG_KEEP_LAST_OUT_OF_RANGE`；`history_disk_cap_mb` 取值 50–2000，越界同样拒绝；值存 `recognition_counter`，设置变小后立即触发一次 `recog.gc`）。
 - 错误码：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -75,6 +84,17 @@ pub trait HistoryFs {                       // 平台目录由 StoreArea.recogni
 
 
 历史密钥唯一存放规则：`RecognitionHistoryKey` 由 `begin_rotation` 生成，经 CORE-04 `SecureKeyValueStore.wrap` 用档案已有别名 `fml.<profile_id>.db`（CORE-23）包装后存入 `recognition_counter.history_key_wrapped`；不新建平台别名（与 AND-06、WIN-07 的别名清单一致）。档案打开后由 Dart 附属 `HistoryKeyUnlocker` 解包并经 `recog.key.provide` 装入当前 Store 实例的 `Zeroizing` 内存；档案锁定或关闭（CORE-23 `close_profile`）时随 Store 清零。数据库只存包装值、`key_check` 与版本。SessionKey 每会话调用 CORE-21 random_key 独立生成，seal 的 AAD 为 aad_cbor(domain="recognition.session",account_id=None,entity_type="session",entity_id=session_id小写UUID,key_version=history_key_version,format_version=1)，不从 AccountDataKey/KeyPurpose 派生，不定义新 WrapKind。会话资产/候选再用 SessionKey 分域 seal，id、kind必入AAD，防跨会话/资产替换。
+
+密文格式（全部用 CORE-21 `seal_with_rng`，`Sealed::to_bytes` 落盘；`Zeroizing<[u8;32]>` 经 `SecretKey::from_bytes` 构造，取值用 `as_bytes`）：
+
+| 对象 | 密钥 | AAD（CORE-21 aad_cbor，account_id 恒为 None，format_version = 1） | 明文 |
+| --- | --- | --- | --- |
+| `history_key_check` | 历史密钥 | domain `recognition.keycheck`，entity_type `history_key`，entity_id 省略，key_version = 历史密钥版本 | 空 |
+| `session_key_wrap` | 历史密钥 | domain `recognition.session`，entity_type `session`，entity_id = 会话小写 UUID，key_version = 历史密钥版本 | SessionKey 32 字节 |
+| 资产文件 `<session_id>/<kind>.bin` | SessionKey | domain `recognition.asset`，entity_type = AssetKind 蛇形小写（confirmed/original/upload/thumbnail/ink），entity_id = 会话小写 UUID，key_version = 历史密钥版本 | 资产原字节 |
+| `result_sealed` | SessionKey | domain `recognition.result`，entity_type `result`，entity_id = 会话小写 UUID，key_version = 历史密钥版本 | `encode_result` 输出 |
+
+`encode_result`：UTF-8 JSON 对象 `{"format_version":1,"candidates":[…]}`，每个 Candidate 按 CORE-31 公共字段同名为键（latex；ast 为 CORE-08 serde 表示或 null；validation 为变体名字符串或 null；score 为有限 f32 最短往返十进制；diagnostics 按 CORE-02 Diagnostic 字段同名、枚举为变体名；symbol_spans 的 node_path 用 CORE-05 文本形式、source_range 为两元素数组），键序按字段声明顺序，无多余空白；由 fml-recognize 私有镜像结构 + serde_json 实现，不要求 CORE-31/02 类型派生 serde。`decode_result(encode_result(r)) == r`。
 
 ```dart
 // app/lib/recognition/history_key.dart（本卡附属；CORE-40 安装点构造并登记到 ctx.features，CORE-47、CORE-50 从 features 取用）
@@ -104,4 +124,4 @@ final class HistoryKeyUnlocker {
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-32_TEST.md](../Test/core/S5_CORE-32_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约320行；主包`crates/fml-recognize/src/session.rs`纯模型/转换校验，附属`app/lib/recognition/history_key.dart`解锁编排与接入。接口及错误/op协议仍在本卡定义，由CORE-85实现存储；不计其I/O实现、DDL、自测及生成DTO。
+**规模**：约350行；主包`crates/fml-recognize/src/session.rs`纯模型/转换校验/结果编解码（约30行），附属`app/lib/recognition/history_key.dart`解锁编排与接入。接口及错误/op协议仍在本卡定义，由CORE-85实现存储；不计其I/O实现、DDL、自测及生成DTO。

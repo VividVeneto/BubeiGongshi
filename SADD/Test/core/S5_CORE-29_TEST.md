@@ -9,3 +9,4 @@
 - [R06] 墨迹规范渲染：`crates/fml-recognize/tests/fixtures/ink/` 中 20 组笔迹在 Android 与 Windows 上渲染的 PNG 字节一致，与提交的期望哈希相同。
 - [R19] 识别模式向量：`contracts/vectors/recognition-mode.json` 的 values 与 RecognitionMode serde 双向逐项一致、invalid 全部反序列化失败；与 CORE-33 的 RecognitionModeWire 由同一文件测试。
 - [R19] 错误表逐行测试：空墨迹、超限墨迹、暂存区外路径、未注册 id 各返回约定错误码。
+- [R31] recog.run 图片输入：image_path 在 staging_root 外、经符号链接指向外部或缺 staging_root 均报 RECOG_INPUT_INVALID；墨迹输入不需要 staging_root。

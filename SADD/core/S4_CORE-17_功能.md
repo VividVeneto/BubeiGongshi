@@ -100,7 +100,7 @@ FSRS 构造从 params.weights 注入；首次 next_states(None, retention,0)，�
 
 **实现约束**
 - 参数写入/回退唯一归本卡；`srs_params`存version/weights/desired_retention/adopted_ms及previous_version，本卡0017_srs.sql同时定义数据DDL，不迁给优化算法卡。目标保留率[0.80,0.95]，默认0.90。
-- 低层仓储接缝由本卡拥有：`insert_generated(tx: &mut WriteTx, cards: &[Card]) -> Result<(), FmlError>`仅插入新卡；`adopt_params(store: &Store, params: &FsrsParams, expected_version: u32, optimized_ms: i64) -> Result<(), FmlError>`在单写者事务校验版本、保存上一版本并采用，更新月优化标记；`rollback_params(store: &Store) -> Result<FsrsParams, FmlError>`恢复上一参数版本。均遵循CORE-13写命令/changed_fields/outbox规则，本卡不调用CORE-80/81。
+- 低层仓储接缝由本卡拥有：`insert_generated(tx: &mut WriteTx, cards: &[Card]) -> Result<(), FmlError>`仅插入新卡；`adopt_params(store: &Store, params: &FsrsParams, expected_version: u32, optimized_ms: i64) -> Result<(), FmlError>`在单写者事务校验版本、保存上一版本并采用，更新月优化标记；`rollback_params(store: &Store) -> Result<FsrsParams, FmlError>`恢复上一参数版本；`load_params_tx(tx: &WriteTx) -> Result<FsrsParams, FmlError>`在调用方写事务内只读当前采用的参数（无行时返回默认参数，供 CORE-84（下游说明，非契约）恢复重放与同事务重算使用，不写入）。均遵循CORE-13写命令/changed_fields/outbox规则，本卡不调用CORE-80/81。
 - 使用 crates.io fsrs=6.6.2（ADR-V5-29）；只调用 `FSRS::new(&[f32])`（空切片为默认参数）、`FSRS::next_states`、`FSRS::memory_state`、自由函数 `fsrs::compute_parameters(ComputeParametersInput)` 与 `FSRS::evaluate`（留出集 log-loss）。该版本正常依赖为 itertools、log、ndarray、priority-queue、rand、rayon、serde、snafu、strum，burn 只是开发依赖；仍须在真实产物过包体门禁；不引入 rs-fsrs 的另套状态机。
 - 复习事件追加不可变；卡片状态只由事件重算，不直接合并状态；重置生成新 `reset_epoch`。
 - 同卡同学习日多条事件只取先完成的一次，其余在重放结果 `duplicate_events` 中列出；事件原样保留供审计，不改写。

@@ -17,13 +17,13 @@ List<GoRoute> settingsRoutes(AppDeps deps);                 // 追加到 CORE-36
 final class SyncSettingsVm    { SyncSettingsVm(SyncFacade sync, AccountController account); SyncStatus get status; Future<void> toggle(bool on); Future<void> syncNow(); }
 final class UpgradeWizardVm   { UpgradeWizardVm(UpgradeFacade upgrade); UpgradeStep get step; String? get recoveryCode; Future<void> start(UpgradeChoice c); Future<void> confirmSaved(); }
 enum UpgradeStep { choose, credentials, showRecoveryCode, askSecret, running, done, failed }
-final class BackupVm          { BackupVm(ProfileSessionSource sessions, PlatformPorts ports); Future<void> export(BackupScopeDto scope, String password);
-                                Future<RestorePreviewDto> pickAndPrepare(String secret); Future<void> commit(RestoreModeDto mode); Future<void> discard(); Future<void> stopAndDrain(ProfileSession session); Future<void> disposeAsync(); }
+final class BackupVm          { BackupVm(ProfileSessionSource sessions, PlatformPorts ports); Future<void> export(BackupScopeDto scope, ExportProtectionDto protection);
+                                Future<RestorePreviewDto> pickAndPrepare(ExportProtectionDto protection, RestoreModeDto mode); Future<void> commit(); Future<void> discard(); Future<void> stopAndDrain(ProfileSession session); Future<void> disposeAsync(); }
 final class HistorySettingsVm { HistorySettingsVm(ProfileSessionSource sessions, HistoryKeyUnlocker keys); int get keepLast; Future<void> setKeepLast(int n); Future<void> clearAll(); Future<void> stopAndDrain(ProfileSession session); Future<void> disposeAsync(); }
 final class DevicesVm         { DevicesVm(ApiClient api, SyncFacade sync); Future<List<DeviceDto>> load(); Future<String> revoke(String deviceId); }
 ```
 
-- op 与端点：备份 `backup.export`（CORE-27）、`backup.prepare_restore / commit_restore / discard_restore`（CORE-84）；识别历史 `recog.settings.get / set` 与 `HistoryKeyUnlocker.clearAll()`（CORE-32，`HistoryKeyUnlocker` 从 `AppDeps.features` 取）；设备 `GET /v1/devices`（CORE-22）与 `SyncFacade.revokeDeviceAndRotate`。`BackupScopeDto`、`RestorePreviewDto`、`RestoreModeDto`、`DeviceDto` 为 `contracts/` 生成类型。
+- op 与端点：备份 `backup.export`（CORE-27）、`backup.prepare_restore / commit_restore / discard_restore`（CORE-84）；识别历史 `recog.settings.get / set` 与 `HistoryKeyUnlocker.clearAll()`（CORE-32，`HistoryKeyUnlocker` 从 `AppDeps.features` 取）；设备 `GET /v1/devices`（CORE-22）与 `SyncFacade.revokeDeviceAndRotate`。`BackupScopeDto`、`ExportProtectionDto`、`RestorePreviewDto`、`RestoreModeDto`、`DeviceDto` 为 `contracts/` 生成类型。
 - 错误码：不新增；只按 CORE-02 的统一 FmlException.code 消息映射展示，来源为已依赖的 CORE-04（`PLATFORM_*`）、CORE-27、CORE-84（含其透传的 CORE-21 `CRYPTO_PASSPHRASE_WEAK`、`CRYPTO_RECOVERY_CODE_FORMAT`）、CORE-32、CORE-36、CORE-65。同步/升级页面经 SyncFacade 提供状态与回调，状态含错误码时也用同一映射，不消费 CORE-46 私有错误表。
 
 Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/settings/`（由安装点构造 CoreBinding/端口依赖）；Widget、绘制、页面与路由视图在 `app/lib/ui/settings/`。Widget 只接收前者的抽象/状态和回调，不接收 CoreBinding/CoreLibrarySpec，不从 FeatureRegistry 取裸绑定或 HttpTransport。两个目录仍属同一 app/ 构建单元。
@@ -36,7 +36,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/s
 - 平台设置项：设置首页在“关于”之前按 `order` 渲染 `deps.features.require<SettingsSections>().items`（CORE-36）的 `build` 结果，标题取 `titleKey`；本卡不认识具体平台项。
 - 恢复码只在 `showRecoveryCode` 步骤显示一次，离开页面后从内存清除；用户须勾选“已保存”才能继续。不设防截屏（README §6 Q41）。
 - 备份范围与闭包（CORE-27，ADR-V5-44）：范围选择处固定提示“所选范围引用到的公式/单位会一并导出”；导出完成后用 `manifest.closure_added` 显示实际带出的条数；恢复预览显示 `manifest.closure_added`，并说明“被带出的公式/单位只补充缺失项，不会覆盖或删除本机已有内容”。`backup.commit_restore` 是长任务：提交事务开始前可取消，开始后“取消”按钮置灰并显示进行中，结果以报告展示。
-- 导出口令须经两次输入一致并调用backup.export，由CORE-27在写文件之前执行CORE-21 check_passphrase_policy；CRYPTO_PASSPHRASE_WEAK回显在口令框，不在Dart复制策略；恢复先 `prepare_restore` 显示预览（条目数、时间、范围），用户确认后才 `commit_restore`；离开页面自动 `discard_restore`。
+- 导出口令须经两次输入一致并调用backup.export，由CORE-27在写文件之前执行CORE-21 check_passphrase_policy；CRYPTO_PASSPHRASE_WEAK回显在口令框，不在Dart复制策略；恢复先选择 Merge/Replace 再 `prepare_restore`（预览按所选模式计算），显示预览（条目数、时间、范围、replaced/kept_local），用户确认后才 `commit_restore`，改选模式须 discard 后重新 prepare；离开页面自动 `discard_restore`。导出保护可选口令或恢复码：恢复码入口仅对已注册账户显示，游客隐藏（`BACKUP_PROTECTION_UNAVAILABLE` 作为后备映射）。请求体的 now_ms 取 PlatformPorts 时钟，staging_root 取 CORE-04 StoreArea.staging，commit 的 day 取当前档案学习设置中的 StudyDay（与 srs.due_queue 调用方同源）。
 - `keep_last` 控件限制在 0–100，并说明“0 表示识别完成后不保留历史”。
 - settingsRoutes 在特性层以 deps.sessions 构造 BackupVm/HistorySettingsVm，监听 changes 及 beforeClose，VM key 用 session identity/handle；null 立即禁用操作、清掉口令/恢复码/预览，再排空旧操作并重建新 VM；不能仅按 profileId 复用。Sync/Upgrade/Devices 等 VM 同样隔离旧回调，Widget 不取裸 source/core。
 - 每次 backup/history 调用捕获当前 session.core；null 不调用 profile op，返回账户入口。文件选择、导出、prepare、commit、设置及 keys.ensure 后均核对世代再发下一调用/显示结果；restore_token 与预览私有绑定原 handle。切换/离页时等待 prepare 返回，若得到 token 仅用原 core discard；不能把 A token 交给 B。commit/discard 同一 token 串行且互斥，commit 已进事务不可取消时必须等待完成再允许 close；结果过期不发布到 B。disposeAsync/stopAndDrain await 长任务取消、token discard、临时文件清理，失败阻止释放旧句柄而不吞掉；普通 ChangeNotifier.dispose 仅做同步UI解绑，不替代异步资源关闭。
