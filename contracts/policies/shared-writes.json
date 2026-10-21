@@ -489,6 +489,24 @@
     },
     {
       "kind": "error",
+      "key": "STUDY_PARAMS_VERSION_STALE",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_PARAMS_NO_PREVIOUS",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "STUDY_DAY_INVALID",
+      "owner": "CORE-17",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "CRYPTO_DECRYPT_FAILED",
       "owner": "CORE-21",
       "point": "contracts/errors/registry.yaml"
