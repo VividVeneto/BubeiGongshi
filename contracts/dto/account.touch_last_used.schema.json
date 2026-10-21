@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountTouchLastUsedSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountTouchLastUsedRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "now_ms": {
+          "type": "integer",
+          "minimum": -9223372036854776000,
+          "maximum": 9223372036854776000
+        }
+      },
+      "required": [
+        "profile_id",
+        "now_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountTouchLastUsedOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001",
+        "now_ms": 1767225600000
+      },
+      "ok": {}
+    }
+  ]
+}

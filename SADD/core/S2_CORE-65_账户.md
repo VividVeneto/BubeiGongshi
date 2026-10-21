@@ -65,6 +65,8 @@ CORE-36 composition 创建唯一 ProfileSessionHost 并以 ProfileSessionSource 
 
 addBeforeClose 的 id 全局唯一，重复抛 StateError；按登记顺序启动回调，不等前一项 drain 才启动下一项，以免档案钩子等待特性任务、特性取消却尚未启动的死锁；所有返回 Future 均收集结果（含同步抛错），等待已启动项全部 settle 后按登记顺序确定失败（不按完成竞态）再报告，不用 Future.wait 的提前失败释放句柄。返回函数只注销本次登记。调用 close 时冻结回调列表；注销不取消已启动的 drain。同一关闭中的并发 close 返回同一 Future，成功后幂等；失败后新的 close 重试未完成阶段，已完成回调不重复执行。账户切换/login/logout/启动恢复共用串行队列，禁止两个 open 或 open 与 close 交错。logout 在此队列内先 set_logged_out(true)，并立即进入上述 closing；该本地标志写失败则不伪造登出，成功排空关闭后才发布 registeredLocked。异常/退出也走 close；崩溃由 OS 释放，启动重新解包不复用 handle。
 
+logout(deleteLocalData: true) 只在界面二次确认后调用，同一串行队列内依次：set_logged_out(true) → 上述 closing 与 close_profile(lock: true) → CORE-23 account.delete_profile(profile_id) → ports.keys.delete('fml.<profile_id>.db')（CORE-04，别名不存在静默成功）→ 清空令牌缓存并发布 uninitialized。delete_profile 失败（STORE_BUSY 等）保持 registeredLocked、别名不删，可显式重试；别名只在该 op 成功后删除。每次 account.open_profile 成功后调用 account.touch_last_used(profile_id, now_ms)（now_ms 取 DateTime.now().millisecondsSinceEpoch）；该调用失败只记录诊断，不回滚已打开的档案。
+
 SecureTokenStore 的异步 unwrap/save/refresh 在开始捕获档案与世代，完成后再验证；过期结果清零丢弃，绝不能写入另一个档案。关闭 drain 期间只允许已捕获旧任务的取消控制使用原有访问令牌，不启动刷新或新业务；关闭后 clear 不得误删下一档案令牌。DbKey、刷新令牌可变字节缓冲在成功/失败/过期各路径 finally 清零；不可变字符串只短暂持有并释放，不声称可原地擦除。平台软件密钥警告交账户页状态，由 CORE-47（下游说明，非契约）展示。
 
 | 生命周期 | 句柄所有者 | 密钥处理 | 对外快照 |
@@ -79,9 +81,9 @@ SecureTokenStore 的异步 unwrap/save/refresh 在开始捕获档案与世代，
 **实现约束**
 - 当前交互档案仍只打开一个；升级迁移专用双库句柄由 CORE-24（下游说明，非契约）持有，不暴露到界面。
 - 明文 DbKey 只在端口/FFI 调用期间存活，使用后清零；异常路径同样清理。
-- 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；未获得的真机/供应商能力保留外部门槛。
+- 外部前提：沿用原卡已登记的工具链与依赖，按 ADR-V5-15 锁定；登录的系统浏览器回调用 AND-03 / WIN-04 提供的深链处理（`fml://auth/callback`）；未获得的真机/供应商能力保留外部门槛。
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-65_TEST.md](../Test/core/S2_CORE-65_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 590 行；主包 `app/lib/account/`。分阶段：① 账户控制器与档案会话（接口、状态流与启动恢复、游客与注册账户落地、logout、SecureTokenStore、ProfileSession/Source 与串行切换及档案钩子、清零与安装点，约 480）；② OIDC 授权与邮箱验证码客户端流程（`app/lib/account/auth/`：PKCE 与 state/nonce、系统浏览器授权与回调校验、令牌交换、注册/验证码/找回请求，约 110）。
+**规模**：约 605 行；主包 `app/lib/account/`。分阶段：① 账户控制器与档案会话（接口、状态流与启动恢复、游客与注册账户落地、logout、SecureTokenStore、ProfileSession/Source 与串行切换及档案钩子、清零与安装点，约 495，含删除档案与 touch_last_used 接线）；② OIDC 授权与邮箱验证码客户端流程（`app/lib/account/auth/`：PKCE 与 state/nonce、系统浏览器授权与回调校验、令牌交换、注册/验证码/找回请求，约 110）。
 
