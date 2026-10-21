@@ -183,7 +183,7 @@ op/kind 取上方对应枚举的 snake_case 值；IntegralKind::Multiple(n) 唯�
 
 ID helper 的前置条件：pack_id/entry_key/template_id 均先 NFC，除 card_id 的空 template_id 外不得为空，均不得含 NUL；card_type 须匹配 snake_case 标识并由调用者确认是其现有 CardType；content_hash_hex 恰64个小写十六进制字符；merge_choice_id 的去重后 heads 至少2个。ID helper 保持上列无 Result 签名；违反前置条件是内部编程错误，可 assert/panic，不是常规业务拒绝路径。对用户/FFI/文件边界必须在调用前检查：FFI 字段非法直接 FFI_BAD_ARG；内容工具的包字段/哈希非法直接 CONTENT_FIELD_INVALID（CORE-16（下游说明，非契约），下游说明，非契约）。持久化消费者先验证 DTO 与其来源字段，不把坏数据传入 helper；不得用 catch_unwind 把输入错误掩盖为 FFI_PANIC。merge_choice 的单头集合在消费者处判为“无需合并”且不调用 helper。canonical_json 同样只接收已满足本卡结构语义的 AST，外来 JSON 一律经 from_canonical_json。
 
-ID/seed 固定向量（编码时原样收录 contracts/vectors/ids-v1.json；本表由独立 Node crypto SHA-1/UUIDv5 与 SHA-256 参考计算，不调用产品实现；UUID bytes 均网络序）：令 R1=00000000-0000-0000-0000-000000000001、R2=00000000-0000-0000-0000-000000000002、P=pack_item_id("content-hs-math","gs.newton2")。
+ID/seed 固定向量（版本标签 id-v1，任何拼接、namespace 或 seed domain 变化须升为 id-v2 并新建向量文件；编码时原样收录 contracts/vectors/ids-v1.json，顶层 `{"schema":1,"id_version":"id-v1","vectors":[...]}`；本表由独立 Node crypto SHA-1/UUIDv5 与 SHA-256 参考计算，不调用产品实现；UUID bytes 均网络序）：令 R1=00000000-0000-0000-0000-000000000001、R2=00000000-0000-0000-0000-000000000002、P=pack_item_id("content-hs-math","gs.newton2")。
 
 | 输入 | 固定期望 |
 | --- | --- |

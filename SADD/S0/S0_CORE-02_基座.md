@@ -68,7 +68,7 @@ impl FmlError {
 
 生成的 `ErrorCode` 变体按 code 的下划线分段：每段 ASCII 小写后仅首字母大写并连接（缩写段 AST、JSON 分别转换为 Ast、Json，数字段如 429 保持不变）；首段为字母，结果总是合法 Rust 标识符，生成器检测转换后名称碰撞并拒绝。实现 `FromStr` 与 `TryFrom<&str>`，失败返回公开的 `UnknownErrorCode`（实现 Debug/Display/Error），不得 panic、回退到其他码或丢失未知值错误。`ErrorCode` 的 Display 等于 `as_str()`；`FmlError` 实现 Display（仅 code 与 trace_id，不打印 diagnostics/args）与 `std::error::Error`（source 为 None），`From<ErrorCode>` 等价于 `new`。
 
-serde：`FmlError`、`Diagnostic`、`Severity`（蛇形小写）与 `TraceId`（32 位小写十六进制字符串）按下例 JSON 形式实现 Serialize/Deserialize；`ErrorCode` 序列化为注册表 code 原文，反序列化拒绝未知码。保留公开字段，但序列化与反序列化均校验 `domain == code.domain()`、`retryable == code.retryable()`；每条 Diagnostic 的 severity 必须等于自身 code.severity()，不随外层错误级别改变。`input_range` 是 UTF-8 半开字节区间 `[start,end)`，两端 u32 且 start ≤ end；越界、倒序、未知字段与错误类型均报序列化错误，不悄悄修复。领域内零 trace 可往返；传输边界另行拒绝零值。
+serde：`FmlError`、`Diagnostic`、`Severity`（蛇形小写）与 `TraceId`（32 位小写十六进制字符串）按下例 JSON 形式实现 Serialize/Deserialize；`ErrorCode` 序列化为注册表 code 原文，反序列化拒绝未知码。保留公开字段，但序列化与反序列化均校验 `domain == code.domain()`、`retryable == code.retryable()`；每条 Diagnostic 的 severity 必须等于自身 code.severity()，不随外层错误级别改变。`input_range` 是 UTF-8 半开字节区间 `[start,end)`，两端 u32 且 start ≤ end；越界、倒序、未知字段与错误类型均报序列化错误，不悄悄修复。领域内零 trace 可往返；传输边界另行拒绝零值。`retryable` 与 `domain` 只由注册表按 code 决定：不提供调用点覆盖的构造或方法（无 with_retryable/with_domain 等），客户端、服务端与 FFI 也不得按调用点改写；同一失败需要不同重试语义时，登记不同 code。
 
 Dart：`class FmlException implements Exception { final String code; final List<DiagnosticDto> diagnostics; final String traceId; final bool retryable; factory FmlException.fromJson(Map<String, Object?> json); }`；工厂读取根对象 `{error:{...}}`（CORE-03 先剥除 v/外层 trace_id 等信封元数据），校验必填字段、已知 code、domain/retryable 与生成表相符、诊断 severity、区间与非零 32 位小写十六进制 trace_id；拒绝未知字段/类型或不一致值，抛 FormatException，不显示原始载荷。`DiagnosticDto` 唯一实现由 CORE-67 从共享 Diagnostic schema 生成到 `app/lib/binding/dto/`，字段与 Rust 一一对应（`code, severity, nodePath?, inputRange?, args, recovery?, needsConfirm`）；本卡只手写异常桥，不复制诊断序列化类。消息在 `app/lib/l10n/errors_zh.arb`；初次由本卡为全部基线已登记码建立简中消息，业务所有者审核文字，后续新增由所有者随登记片段提供。
 
@@ -97,7 +97,8 @@ Dart：`class FmlException implements Exception { final String code; final List<
 | WrapRecord、wrap_kind 与 AAD CBOR | CORE-21 | wrap=1、aad=1 | contracts/vectors/wrap-v1.json |
 | Envelope | CORE-68 | envelope_version=2 | contracts/vectors/envelope-v2.json |
 | merge_choice ID | CORE-05 | id-v1 | contracts/vectors/ids-v1.json |
-| RecognitionMode 的 Rust/HTTP 取值 | CORE-29 | API v1 | contracts/vectors/recognition-mode.json |
+| RecognitionMode 的 Rust/HTTP 取值 | CORE-29 | recognition_mode=1 | contracts/vectors/recognition-mode.json（CORE-29 创建与维护，CORE-33 镜像只读消费） |
+| `.fmlbackup` 备份容器（头、块、清单、末块） | CORE-27 | format_version=1 | crates/fml-store/tests/vectors/backup_v1.hex（BK-V1；CORE-84 恢复只读消费） |
 | 引擎数据 JSON（units/kinds/profiles/constants/fonts/manifest）与层叠加规则 | CORE-56 | schema=1 | contracts/vectors/engine-data-v1/ |
 
 错误码只在首个所有者卡的标准表中登记；消费者写“复用 + 处理”，不得复制 severity/retryable。新增代码先登记 contracts/errors/registry.yaml，生成器拒绝重复 code。
