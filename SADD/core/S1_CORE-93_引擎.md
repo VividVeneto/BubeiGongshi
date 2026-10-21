@@ -14,7 +14,11 @@
 // crates/fml-eval/src/lib.rs；共享CalcRequest/CalcResult/SolveCapability等仍定义在CORE-10
 pub fn evaluate(req: &CalcRequest, units: &dyn UnitRegistry, cancel: &CancelFlag) -> Result<CalcResult, FmlError>;
 pub fn solvable_targets(ast: &FormulaNode, typed: &TypedAst) -> Vec<(SymbolId, SolveCapability)>;
+// CO-28 新增（CORE-11 R11-01 变更单）：公开 evaluate 内部的同一符号反解步骤，不含数值
+pub fn isolate(ast: &FormulaNode, typed: &TypedAst, target: SymbolId, cancel: &CancelFlag) -> Result<Vec<FormulaNode>, FmlError>;
 ```
+
+`isolate`：ast 须为根 `Relation{op: Eq}`；target 单独构成一侧时返回 `[另一侧]`；否则沿与 evaluate 相同的可逆运算链（Add/Sub/Neg/Mul/Div、整数字面量指数的 Pow、sqrt/root、exp↔ln）把 target 化为单独一侧，返回各分支表达式：偶次幂/偶次根产生两支，顺序固定为“正支（主值）在前、负支（外包一层 Neg）在后”，与 `CalcResult.branches` 次序一致；结果只做构造、不做代数化简，target 不出现在返回式中。target 在等式两侧都出现、不在可逆链上或 `solvable_targets` 对它不是 Symbolic 时返回 `EVAL_NOT_COMPUTABLE`；取消返回 `EVAL_TIMEOUT`；节点超限返回 `EVAL_LIMIT_EXCEEDED`。evaluate 的符号步骤必须调用同一函数，不得两套实现。
 
 本卡单向调用CORE-10 evaluate_direct/direct_targets。完整门面供CORE-56 calc.evaluate/calc.solvable_targets和CORE-11消费；CORE-10不得反向调用本卡。calc.*的DTO与FFI处理仍属CORE-56，不在此重复登记。
 
@@ -51,4 +55,4 @@ pub fn solvable_targets(ast: &FormulaNode, typed: &TypedAst) -> Vec<(SymbolId, S
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-93_TEST.md](../Test/core/S1_CORE-93_TEST.md)；修改本卡功能时同步修改该文件。
 
-**规模**：约330行；主包 `crates/fml-eval/src/{symbolic,solve}.rs`（反解/能力180、bracket/Brent150，含完整分派接入）；无本卡FFI附属。向量/生成物/自测不计；单阶段以直接内核+求解层独立构建、全部CX集成测试交付。
+**规模**：约345行；主包 `crates/fml-eval/src/{symbolic,solve}.rs`（反解/能力180、公开 isolate 封装15、bracket/Brent150，含完整分派接入）；无本卡FFI附属。向量/生成物/自测不计；单阶段以直接内核+求解层独立构建、全部CX集成测试交付。

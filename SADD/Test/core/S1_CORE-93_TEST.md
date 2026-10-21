@@ -9,3 +9,4 @@
 - [R12] 注入常数后结果逐项保留其值、来源与版本；优先级编排由 CORE-56 验收。
 - [R19] 属性测试：随机赋值不 panic；超时 100 ms 内可取消。
 - [R12] 完整evaluate/solvable_targets门面单向调用CORE-10直接内核；Direct/Symbolic/NumericOnly/NotComputable能力与实际行为一致，CORE-10不依赖本卡。
+- [R16] `isolate`（CO-28）：`F = ma` 对 a 返回一支 `F/m`；`v = s/t` 对 t 返回一支 `s/v`；`x^2 = a` 对 x 返回两支 `\sqrt{a}`、`-\sqrt{a}` 且次序固定；`x = x + 1` 对 x、`\int x\,dx = y` 对 x 返回 `EVAL_NOT_COMPUTABLE`；预置取消返回 `EVAL_TIMEOUT`；CX-03/CX-04 的 evaluate 符号步骤与 isolate 结果逐节点相等（同一实现）。

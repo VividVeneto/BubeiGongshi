@@ -12,6 +12,7 @@
 
 ```rust
 // crates/fml-ffi/src/engine_context.rs；仅本 crate 做领域编排与数据注入
+#[derive(Clone, Debug)]   // EngineData/LayerSource/DataLayer/EngineSnapshot 均 Clone+Debug（写者在副本上 compose）；LayerSource 另 PartialEq+Eq；不派生 serde（不是 DTO）
 pub struct EngineData { pub units: Vec<Unit>, pub kinds: Vec<QuantityKind>, pub profiles: Vec<NotationProfile>,
                         pub constants: Vec<ConstantSet>, pub fonts: Vec<FontData> }
 pub enum LayerSource { Embedded, Pack { pack_id: String, pack_version: String }, User { profile_id: String } }
@@ -19,6 +20,10 @@ pub struct DataLayer { pub source: LayerSource, pub data: EngineData }
 pub struct EngineSnapshot { pub generation: u64, pub unavailable: Option<ErrorCode>, pub data: EngineData,
     pub base_units: Vec<Unit>, pub base_kinds: Vec<QuantityKind> } // 同代Embedded+Pack投影，严格排除User层
 pub fn compose(layers: &[DataLayer]) -> Result<EngineData, FmlError>;   // 纯函数，规则见下
+impl EngineData {   // CO-28：引擎数据格式只由本卡解析，CORE-15/16/95 与测试不得自写
+    pub fn from_files(files: &[(&str, &[u8])]) -> Result<EngineData, FmlError>; // 输入为 (相对路径, 字节)；校验见下“加载”
+}
+pub fn user_layer(profile_id: &str, base: &dyn UnitRegistry, defs: &[UnitDefinition]) -> Result<DataLayer, FmlError>; // CORE-14 的 User 层构造
 // crates/fml-ffi/src/analysis.rs；Rust 内部复用，不新增 FFI DTO 或存储依赖
 pub struct AnalysisResult { pub ast: Option<FormulaNode>, pub source_map: SourceMap,
     pub raw_symbols: Vec<RawSymbol>, pub symbols: SymbolEnv, pub check_result: CheckResult }
@@ -27,7 +32,10 @@ pub fn analyze_source(source: &str, opts: &ParseOptions, profile: &NotationProfi
     cancel: &CancelFlag) -> AnalysisResult;
 pub struct EngineContext { /* RwLock<Arc<EngineSnapshot>> + 写者 Mutex<Vec<DataLayer>> */ }
 impl EngineContext {
-    pub fn global() -> &'static EngineContext;                         // 首次调用以 Embedded 层构造，generation = 0
+    pub fn new(embedded: EngineData) -> Result<EngineContext, FmlError>;    // 非全局实例：只含 Embedded 层，generation = 0；校验同 compose
+    pub fn global() -> &'static EngineContext;                         // 首次调用以 EngineData::from_files(内置 include_bytes! 清单) 经 new 构造；内置数据损坏为构建期测试失败，运行期 panic 不可达
+    #[cfg(any(test, feature = "test-fixtures"))]
+    pub fn with_generation(embedded: EngineData, start: u64) -> Result<EngineContext, FmlError>; // 仅测试：以给定起始代数构造（代数耗尽夹具）
     pub fn snapshot(&self) -> Result<Arc<EngineSnapshot>, FmlError>; // exhausted时拒绝；可用性由Arc.unavailable判断
     pub fn generation_status(&self) -> (u64, bool); // 最后代数与available；同锁读取exhausted/unavailable
     pub fn set_layer(&self, layer: DataLayer) -> Result<u64, FmlError>;   // 按逻辑身份新增/替换层：Embedded单例、Pack只按pack_id、User只按profile_id；version仅元数据，返回新 generation
@@ -37,13 +45,15 @@ impl EngineContext {
 ```
 
 - 引擎数据 JSON（schema=1，未知字段拒绝，字段按 CORE-03 snake_case 映射）：`units.json`、`kinds.json`、`profiles.json`、`constants.json` 均为 `{"schema": 1, "entries": [...]}`，元素为上面对应类型；`fonts.json` 为 `{"schema": 1, "entries": [{"id", "file", "blake3", "spdx", "license_file"}]}`，字体为同目录二进制文件，`blake3` 为小写十六进制；`manifest.json` 为 `{"schema": 1, "files": [{"path", "blake3"}]}`，列出除自身外的全部文件。内置数据在 `crates/fml-ffi/assets/engine-v1/`，编译期 `include_bytes!` 注入，不依赖账户、时钟或磁盘；资源包中的引擎数据（CORE-16 `engine` 目录）用同一格式。向量 `contracts/vectors/engine-data-v1/`。
+- 加载（`EngineData::from_files`）：必须恰含 manifest.json、units.json、kinds.json、profiles.json、constants.json、fonts.json 及 fonts.json 列出的字体文件，路径为不含 `..`、不以 `/` 开头的正斜杠相对路径，重复路径拒绝；manifest 的 files 与输入（除 manifest 自身）一一对应且 BLAKE3 小写十六进制逐个相等；各 JSON 的 schema 必须为 1、未知字段拒绝；fonts.json 每项 file 必须在输入中且其 BLAKE3 与条目一致，许可文件 license_file 也须列在 manifest；任一失败返回 `ENGINE_DATA_INVALID`（details.path 指出文件）。本函数只解析与逐文件校验，跨文件引用与 MATH 表在 `compose`/`new` 时校验。
+- User 层（`user_layer`）：以 CORE-08 `MemRegistry::with_user_definitions(base, defs)` 解析全部定义（base 必须是同一快照的 `base_units/base_kinds` 投影），再按定义 id 升序 `lookup` 取出 `Unit` 组成 `DataLayer{source: User{profile_id}, data: {units, 其余为空}}`；CORE-08 的 `UNIT_UNKNOWN`、`UNIT_DUPLICATE`、环与 offset 错误原样返回，非 `user:` 前缀返回 `ENGINE_DATA_INVALID`。
 - 最小单位：SI 七基本单位 m/kg/s/A/K/mol/cd，加 Hz/N/Pa/J/W/C/V/Ω、rad/deg、℃、温差 Δ℃、g、cm、km、min、h、eV；scale/offset 用 CORE-08 表示。cn-default/iso 的全部已声明别名及 Exact/Textbook 各一集合，至少 c、h、e、k_B、N_A 与教材 g=9.8；确切数值源与取得日期写数据记录，教材近似值不得标 Exact。
 - 数学字体采用 Latin Modern Math（GUST Font License），固定文件与许可哈希；本卡校验字体字节的 BLAKE3 与 MATH 表后放入 `EngineData.fonts` 交 CORE-12，领域层不读文件；发行许可证核对见附录 C。字体不作为用户数据上传。
-- 叠加规则（`compose`）：层序固定为 Embedded → Pack（按 pack_id 字节序）→ User（至多一层）；Embedded 只在构造时给出，`set_layer`/`remove_layer` 指向 Embedded 返回 `ENGINE_DATA_INVALID`。后层同 ID 覆盖前层：Pack 可替换内置单位但量纲与量的种类必须不变，方案与常数集整体替换，同 ID 字体替换字节并保留原位置；两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID 时，后设置的层被拒绝（`ENGINE_DATA_CONFLICT`）；User 层只允许 `user:` 前缀单位，否则 `ENGINE_DATA_INVALID`，同 ID 重复按 CORE-08 `UNIT_DUPLICATE`。合成后整体校验引用、重复 ID、量纲、字体哈希与 MATH 表，且至少有一个含 MATH 表的字体，失败为 `ENGINE_DATA_INVALID`。字体顺序：内置字体在前，再按层序与 `fonts.json` 顺序；`Glyph.font` 下标与 `DisplayList.font_ids`（CORE-12）据此确定。
+- 叠加规则（`compose`）：层序固定为 Embedded → Pack（按 pack_id 字节序）→ User（至多一层）；Embedded 只在构造时给出，`set_layer`/`remove_layer` 指向 Embedded 返回 `ENGINE_DATA_INVALID`。后层同 ID 覆盖前层：Pack 可替换内置单位但量纲与量的种类必须不变，方案与常数集整体替换，同 ID 字体替换字节并保留原位置；两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID 时，后设置的层被拒绝（`ENGINE_DATA_CONFLICT`）；User 层只允许 `user:` 前缀单位，否则 `ENGINE_DATA_INVALID`，同 ID 重复按 CORE-08 `UNIT_DUPLICATE`。合成后整体校验：重复 ID；引用关系逐项为 ① 每个 `ConstantValue.unit` 可由合成单位表解析为单位式（CORE-08 规则）、② 每个 `QuantityKind.compatible_with` 中的 id 存在于合成种类表、③ 每个 `SymbolAlias.meaning_key` 为非空且在同一方案内不与另一别名的 (glyph, context) 重复（CORE-07 歧义规则在 bind 时另报，此处只拒绝数据层的完全重复项）、④ 每个 `fonts.json` 条目的字体字节存在且 BLAKE3 一致；量纲与种类不变规则；MATH 表（经 CORE-12 已锁的 `ttf-parser` 读取）；且至少有一个含 MATH 表的字体；任一失败为 `ENGINE_DATA_INVALID`（details 标明违反的引用类别）。字体顺序：内置字体在前，再按层序与 `fonts.json` 顺序；`Glyph.font` 下标与 `DisplayList.font_ids`（CORE-12）据此确定。
 - 层身份不含Pack.pack_version；同pack_id升级先在副本替换整层再compose，不能保留新旧两层。remove_layer对Pack只匹配pack_id（忽略调用者携带版本），User只匹配profile_id；不存在时返回当前generation不发布。
 - 同代基础投影：每个EngineSnapshot的base_units/base_kinds来自同一层副本中仅Embedded+Pack的compose结果，不是从完整data按ID前缀猜测删除，也不读取数据库。调用侧可用 `MemRegistry::from_parts(snapshot.base_units.clone(), snapshot.base_kinds.clone())` 拥有稳定base，再以事务内最新用户定义构造 `MemRegistry::with_user_definitions(&base, &defs)`；两个registry的借用均不得离开持有该快照的本次分析。当前data保留完整已发布User层供普通engine/calc调用；临时事务overlay只供事务分析，不能反向发布或修改Arc。这是S1内部Rust接缝，不增加profile/Store依赖或FFI字段。
 - 发布：写者持 Mutex 在副本上分别compose完整层与Embedded+Pack基础投影，二者均成功后在写锁内一起替换同一个 Arc 并令 generation + 1；失败不改变快照与层集合。在途任务持旧 Arc，后续请求取新快照；读者只在读锁内克隆 Arc。`mark_unavailable` 发布 `unavailable = Some(reason)` 的快照，此后五个 op 均返回 `ENGINE_UNAVAILABLE`，直到下一次 `set_layer`/`remove_layer` 成功。
-- 推送者：CORE-95 的安装/恢复/卸载 `pack.*` 处理（`crates/fml-ffi/src/ops/pack.rs`）在恢复、安装、卸载后设置或移除 Pack 层；CORE-14 的 `units.*_user` 处理（`crates/fml-ffi/src/ops/units_user.rs`）在打开档案和用户单位提交后设置 User 层，关闭档案时移除，提交后设置失败调用 `mark_unavailable`。bootstrap 包的引擎数据由 CORE-16 工具从同一 `assets/engine-v1/` 生成，CI 比对两者 BLAKE3；安装它只使 generation + 1，结果与内置一致。
+- 推送者（下游说明，非契约）：CORE-95 的安装/恢复/卸载 `pack.*` 处理（`crates/fml-ffi/src/ops/pack.rs`）在恢复、安装、卸载后设置或移除 Pack 层；CORE-14 的 `units.*_user` 处理（`crates/fml-ffi/src/ops/units_user.rs`）在打开档案和用户单位提交后设置 User 层，关闭档案时移除，提交后设置失败调用 `mark_unavailable`。bootstrap 包的引擎数据由 CORE-16（下游说明，非契约）工具从同一 `assets/engine-v1/` 生成，CI 比对两者 BLAKE3；安装它只使 generation + 1，结果与内置一致。
 - FFI op（本表为五个 op 的唯一登记；DTO 未列字段按 CORE-03 映射规则，坐标为 JSON 数值，保留 2 位小数）：
 
 | op | 入参 → 出参 | 长任务？ |
@@ -62,7 +72,7 @@ impl EngineContext {
 | --- | --- | --- | --- |
 | `ENGINE_DATA_INVALID` | error | 否 | 层数据违反 schema、引用不存在、重复 ID、量纲或种类改变、字体哈希或 MATH 表校验失败、合成后无 MATH 字体；试图设置或移除 Embedded 层；User 层含非 `user:` 单位 |
 | `ENGINE_DATA_CONFLICT` | error | 否 | 两个 Pack 层定义同一单位、种类、方案、常数集或字体 ID；后设置的层被拒绝 |
-| `ENGINE_UNAVAILABLE` | error | 是 | 快照已被mark_unavailable标记、generation耗尽，或请求expected_generation与所取快照不一致；前两者恢复前拒绝，代数不一致由调用者重新查询后重试 |
+| `ENGINE_UNAVAILABLE` | error | 是 | 快照已被mark_unavailable标记、generation耗尽，或请求expected_generation与所取快照不一致；前两者恢复前拒绝，代数不一致由调用者重新查询后重试。retryable=是只对代数不一致成立：details.reason 取 `unavailable`/`exhausted`/`generation_mismatch`，UI 只对 `generation_mismatch` 自动重试一次，其余显示恢复入口 |
 
 快照通知接缝：每次成功set_layer/remove_layer/mark_unavailable在写锁外唤醒CORE-73（下游说明，非契约）的等待者；无变化不唤醒。快照发布和代数递增在同一锁内原子完成，u64耗尽返回ENGINE_UNAVAILABLE且不发布。CORE-03 expected_generation比对发生在取得Arc后、执行算法前，不匹配不运行；响应engine_generation来自该Arc。通知适配及Dart源的实现归CORE-73，发布接缝的20行预算和测试归CORE-73附属，本卡规模不重复计入。
 
@@ -83,9 +93,10 @@ generation耗尽的故障语义：所有发布入口均返回Result，mark_unava
 **实现约束**
 - 所需输入：编译期数据、调用方已读入并构造好的 `DataLayer`、请求 DTO、取消标志；本卡不读资源包文件或数据库，领域 crate 不读本上下文的全局单例。S1 通过测试用 fml_call 接入，不要求平台层提前实现 S2。
 - 并发只用标准库 `RwLock`/`Mutex`/`Arc`；写锁内不做 I/O、不调用回调，持锁时间只覆盖指针替换。
-- 外部前提：字体官方分发与许可 https://www.gust.org.pl/projects/e-foundry/lm-math；数值依据 BIPM SI 定义与 NIST CODATA 2022。首次构建记录字体和数据哈希。
+- 外部前提：字体官方分发与许可 https://www.gust.org.pl/projects/e-foundry/lm-math；数值依据 BIPM SI 定义与 NIST CODATA 2022。首次构建记录字体和数据哈希。Rust 依赖 `blake3`、`serde`/`serde_json`、`ttf-parser`（与 CORE-12 同一锁定版本）；开发依赖 YAML 夹具解析库（compose.yaml）；版本由首张使用卡按 ADR-V5-15 锁入 `Cargo.lock`。
+- `calc.solvable_targets` 的错误镜像不含 `UNIT_OVERFLOW`：check 内的溢出在该 op 中作为 check 诊断映射为 `EVAL_NOT_COMPUTABLE`（校验未通过），不作为外层错误；engine.check 与 calc.evaluate 保留外层 `UNIT_OVERFLOW`。
 
 **验收标准**：测试方案全文见 [Test/core/S1_CORE-56_TEST.md](../Test/core/S1_CORE-56_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 575 行；主包 `crates/fml-ffi/`（`engine_context.rs`、`analysis.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；assets/engine-v1/ 数据与字体不计，发布接缝由 CORE-73 计。分阶段：① 引擎数据与上下文（类型、compose、字体校验、数据加载、EngineContext、可用性检查、notation/constants/units 六个 op、错误，同代基础投影与一致性约20，合计约410）；② 引擎编排 op（engine.check、calc.*、typeset.* 五个 op，含可复用的 parse→bind→check 分析函数，诊断状态收敛与可选AST接缝约20，合计约165）。
+**规模**：约 615 行（CO-28 增加载与构造器约 40）；主包 `crates/fml-ffi/`（`engine_context.rs`、`analysis.rs` 与 `ops/{engine,calc,typeset,notation,units}.rs`）；assets/engine-v1/ 数据与字体不计，发布接缝由 CORE-73 计。分阶段：① 引擎数据与上下文（类型、compose、字体校验、数据加载、EngineContext、可用性检查、notation/constants/units 六个 op、错误，同代基础投影与一致性约20，加 from_files/user_layer/new 约40，合计约450）；② 引擎编排 op（engine.check、calc.*、typeset.* 五个 op，含可复用的 parse→bind→check 分析函数，诊断状态收敛与可选AST接缝约20，合计约165）。
 
