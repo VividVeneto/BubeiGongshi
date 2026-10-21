@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccountDeleteProfileSchema",
+  "$defs": {
+    "request": {
+      "title": "AccountDeleteProfileRequest",
+      "type": "object",
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "profile_id"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "AccountDeleteProfileOk",
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "profile_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "ok": {}
+    }
+  ]
+}

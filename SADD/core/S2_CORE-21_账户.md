@@ -118,7 +118,7 @@ pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &Secre
 
 **实现约束**
 - 只使用经审计的库（RustCrypto 的 chacha20poly1305、argon2、hkdf 与 sha2；无实际哈希用途不添加blake3依赖）；禁止自研密码算法与自研 PAKE。确定性 CBOR 只需上述字段类型，自写最小编码器，不引入通用 CBOR 库。
-- 外部前提：上述 crate 与 `zeroize` 版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`（`getrandom` 只由 CORE-23 的 `OsRandom` 依赖，不进入本crate正常/构建依赖闭包；chacha20poly1305等禁用默认隐式熵源特性，仅启用所需alloc/纯算法特性，按锁定版本核查；测试工具的dev依赖另报告，不能把它当生产依赖）；常见口令表的来源与许可在 M0 登记（≤ 100 KiB，编译进 crate）。
+- 外部前提：上述 crate 与 `zeroize` 版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`（`getrandom` 只由 CORE-23 的 `OsRandom` 依赖，不进入本crate正常/构建依赖闭包；chacha20poly1305等禁用默认隐式熵源特性，仅启用所需alloc/纯算法特性，按锁定版本核查；测试工具的dev依赖另报告，不能把它当生产依赖）；常见口令表（`crates/fml-crypto/data/common-passwords.txt`，每行一个 NFC 小写口令，≤ 100 KiB，`include_str!` 编译进 crate）的来源 URL、许可与 BLAKE3 在 M0 登记于附录D 本卡外部前提行；登记前该文件不交付、相应验收阻断，策略逻辑单元测试改用 `#[cfg(test)]` 内置 10 条固定样例表，不以空表通过。比对时口令先 NFC 再按 Unicode 小写折叠。本表只用于客户端同步密语/导出口令策略，与 CORE-22 服务端登录口令表（`AUTH_PASSWORD_WEAK`）相互独立，不共用文件、不要求一致（登录口令与端到端密钥无派生关系）。
 - 服务端可见的登录凭据永远不作为端到端加密密钥或其派生来源；同步密语只在客户端使用，从不上传。
 - 恢复码使用 HKDF（其熵已足够，不再做慢 KDF）；只显示一次，服务端不保存恢复码或其可离线验证的哈希，只保存它包装的密钥记录。
 - Argon2id 参数下限 m = 64 MiB、t = 3、p = 4，盐 128 位；内存占用上限 128 MiB；低内存设备不得降到下限以下，改为提示“改用恢复码”。

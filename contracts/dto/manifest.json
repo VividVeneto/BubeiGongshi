@@ -51,6 +51,21 @@
       ]
     },
     {
+      "op": "account.delete_profile",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "submit",
+      "scope": "device",
+      "schema": "account.delete_profile.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
+      ],
+      "sensitive_paths": []
+    },
+    {
       "op": "account.get_blob",
       "owner": "CORE-23",
       "status": "ready",
@@ -208,6 +223,21 @@
       "error_codes": [
         "AUTH_NO_PROFILE",
         "STORE_CORRUPT"
+      ],
+      "sensitive_paths": []
+    },
+    {
+      "op": "account.touch_last_used",
+      "owner": "CORE-23",
+      "status": "ready",
+      "mode": "call",
+      "scope": "device",
+      "schema": "account.touch_last_used.schema.json",
+      "error_codes": [
+        "AUTH_NO_PROFILE",
+        "STORE_BUSY",
+        "STORE_CORRUPT",
+        "STORE_DISK_FULL"
       ],
       "sensitive_paths": []
     },

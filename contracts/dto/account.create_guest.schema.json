@@ -19,6 +19,9 @@
         "db_key": {
           "type": "string",
           "format": "base64",
+          "minLength": 44,
+          "maxLength": 44,
+          "pattern": "^[A-Za-z0-9+/]{43}=$",
           "x-sensitive": true
         }
       },
