@@ -19,7 +19,7 @@ pub enum RecognizerInput { Ink(InkStrokes), Image(RecogImage) }
 pub struct InkStrokes { pub strokes: Vec<Vec<InkPoint>>, pub width: f32, pub height: f32 }   // 画布逻辑像素；≤ 500 笔、≤ 20000 点
 pub struct InkPoint { pub x: f32, pub y: f32, pub t_ms: u32, pub pressure: Option<f32> /* 0..=1 */ }
 #[derive(Serialize, Deserialize)] #[serde(rename_all="snake_case")]
-pub enum RecognitionMode { Lookup /* 查找：可按上下文重排、给出提示 */, Answer /* 作答：忠实转写 */ } // 唯一契约定义；线上值 lookup/answer 见 CORE-02 recognition-mode.json
+pub enum RecognitionMode { Lookup /* 查找：可按上下文重排、给出提示 */, Answer /* 作答：忠实转写 */ } // 唯一契约定义；线上值 lookup/answer 由本卡的 contracts/vectors/recognition-mode.json 固定（CORE-02 仅索引）
 pub struct CorrectionHint { pub wrong: String, pub right: String }   // 用户近期校正过的 LaTeX 片段，最多 20 条
 pub struct RecognitionContext { pub mode: RecognitionMode, pub symbol_hints: Vec<String> /* ≤ 50 */, pub subject: Option<String>,
                                 pub expected_kind: Option<MathKind> /* CORE-05 */, pub user_corrections: Vec<CorrectionHint> }
@@ -41,6 +41,8 @@ impl Registry {
 }
 pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Result<RecogImage, FmlError>;
 ```
+
+- 识别模式线上向量：本卡创建并维护 `contracts/vectors/recognition-mode.json`，顶层固定 `{"schema":1,"recognition_mode":1,"values":[{"variant":"Lookup","wire":"lookup"},{"variant":"Answer","wire":"answer"}],"invalid":["", "Lookup", "LOOKUP", "query", null, 0]}`；`values` 按 wire 字典序，Rust serde 与 CORE-33 服务端镜像 RecognitionModeWire 均须双向一致、`invalid` 全部拒绝。增删取值须升 recognition_mode 并同步 CORE-33。
 
 - 墨迹规范渲染：按包围盒缩放到长边 `long_edge_px`，四周留 5% 白边；笔宽 `max(2, long_edge_px / 200)` 像素，圆头圆角，忽略压力；白底黑字 8 位灰度；用 tiny-skia 软件光栅化、png crate 编码（压缩级别固定），使两端像素逐字节一致。
 - `run` 的检查顺序：id 不存在 → `RECOG_BACKEND_UNAVAILABLE`；networked 且游客 → `RECOG_BACKEND_NOT_ALLOWED`；networked（注册用户）→ `RECOG_BACKEND_REMOTE`（调用方改走 CORE-34）；输入类型不在 `input_kinds` 且为墨迹 → 先 `render_ink` 再识别；其余调用后端。后端返回空候选 → `RECOG_NO_CANDIDATE`。

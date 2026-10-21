@@ -4,7 +4,7 @@
 
 **验收标准**
 - [R19] 单元测试：生成器对样例注册表输出确定（两次生成逐字节一致）；重复 code、未知命名空间、缺 message_key 时生成失败。
-- [R19] 构造：`FmlError::new(ErrorCode::UnitOverflow)` 的 domain 为 `"unit"`、retryable 与注册表一致、diagnostics 为空、trace_id 为零值；From<ErrorCode> 等价。with_diagnostic 只追加、保序、不改变外层 code；with_trace 对零值填入，对已有非零值不覆盖。领域单测允许零值；FFI/HTTP 输出非零与关联一致的集成测试分别由 CORE-03、CORE-22/25 执行，本卡不依赖尚未交付的边界才能验收 Rust 核心。
+- [R19] 构造：`FmlError::new(ErrorCode::UnitOverflow)` 的 domain 为 `"unit"`、retryable 与注册表一致、diagnostics 为空、trace_id 为零值；From<ErrorCode> 等价。with_diagnostic 只追加、保序、不改变外层 code；with_trace 对零值填入，对已有非零值不覆盖；公开 API 不存在覆盖 retryable/domain 的构造或方法（编译期 API 清单检查）。领域单测允许零值；FFI/HTTP 输出非零与关联一致的集成测试分别由 CORE-03、CORE-22/25 执行，本卡不依赖尚未交付的边界才能验收 Rust 核心。
 - [R19] 漂移检查：修改 `registry.yaml` 而未重新生成时 `tools/ci/gen_errors.py --check` 失败。
 - [R20] `contracts/errors/README.md` 由生成器产出，含全部错误码、级别与是否可重试。
 - [R19] 往返测试：`contracts/vectors/errors-v1.json` 的真实32位 trace_id/多诊断/空诊断/省略可选字段/args乱序样例经 Rust 往返语义一致；固定字段顺序且 args 按键排序，规范输出逐字节相同。工厂 FmlException.fromJson 在 CORE-67 DiagnosticDto 就绪后读出相同 code/trace_id/诊断及其字段；未就绪时明确 Dart 集成未执行，不复制生成类冒充通过。
