@@ -26,6 +26,7 @@ final class DefaultKeyService implements KeyService {
 
 - KeySecretInput继续使用CORE-36定义，不迁移或重定义；SyncFacade/UpgradeFacade也留CORE-36。KeyService唯一实现/keys API归本卡。
 - rotateAfterRevoke只调用CORE-22/23/26/78本地op与CORE-25 API：DELETE设备→rotate_account_key→上传包装→sync.reencrypt→以本地prepare_push/POST/ack步进排空重加密批次→POST /v1/keys/min-version，随后返回新恢复码。这个受限轮换排空过程归本卡，不import或调用CORE-46 SyncCoordinator，不能形成98→46→98依赖环；常规同步/快照循环仍归46。错误/中断可重入，未推完不提升min-version。
+- rotate_account_key、wrap_with_passphrase请求体的now_ms由本卡读Dart时钟传入（CORE-24不读时钟），二者与import_account_key均为长任务提交；上传路径的版本取rotate返回的key_version/KeyOutput.key_version。
 - 新设备GET /v1/keys再import_account_key；设置口令用wrap_with_passphrase再PUT /v1/keys/{v}/sync_passphrase。服务端只有包装记录与密文，恢复前旧版本未结算批次按CORE-26失效重建。
 - 不新增业务码；AUTH_*/SYNC_*/NET_*按CORE-22/23/25/26/62/78唯一定义透传。
 

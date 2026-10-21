@@ -22,3 +22,4 @@
 - [R28] 向量 CLOCK-01、CLOCK-02 按本卡表逐条断言（合并后 lamport=12，本地编辑 title 时钟=(13,本设备)、outbox 同事务 1 条；outbox 注入磁盘满后业务、field_clock、L/S 与 outbox 全部回到原值）。
 - [R18] SCHEMA_VERSION：构建产物中的常量等于 migrations/ 直接子文件最大序号（夹具构建仅含 0013 时为 13）；store.open 返回的 schema_version 等于该常量。
 - [R19] Store op：按本卡字段表示例逐条调用 store.open/close/integrity_check（schema_version 断言 ≥ 13）；同一规范路径第二次 store.open 返回 STORE_BUSY 且首个句柄可继续使用；db_key_b64 解码非 32 字节返回 CORE-03 参数错误；close 后再用该句柄返回 CORE-03 句柄错误。
+- [R28] 墓碑清理：`purge_tombstones(before_ms)` 只删除 deleted_at_ms 严格小于 before_ms 的行（等于时保留）、返回删除条数、不写 outbox 与 field_clock；事务回滚后墓碑仍在。

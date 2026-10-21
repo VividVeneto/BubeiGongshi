@@ -24,7 +24,7 @@ final class DefaultUpgradeCoordinator implements UpgradeCoordinator {
 }
 ```
 
-- 升级（`UpgradeCoordinator.run`）：`account.upgrade_begin` → NewAccount：CORE-23 `register` / MergeInto：`login` → `Identity` → NewAccount：`NewKey` → `confirmSaved` 为真后 `PUT /v1/keys/{v}/recovery_code` → `KeyUploaded`；MergeInto：`GET /v1/keys` + `askSecret` → `ExistingKey` → `Commit` → `Done` → CORE-23 询问是否开启同步，开启则 `syncNow(afterUpgrade)`。任一步失败保留日志，下次启动 `resumeIfPending` 继续。
+- 升级（`UpgradeCoordinator.run`）：`account.upgrade_begin` → NewAccount：CORE-23 `register` / MergeInto：`login` → `Identity` → NewAccount：`NewKey` → `confirmSaved` 为真后 `PUT /v1/keys/{v}/recovery_code` → `KeyUploaded`；MergeInto：`GET /v1/keys` + `askSecret` → `ExistingKey` → `Commit` → `Done` → CORE-23 询问是否开启同步，开启则 `syncNow(afterUpgrade)`。任一步失败保留日志，下次启动 `resumeIfPending` 继续。`{v}` 取 NewKey 返回的 `KeyOutput.key_version`；`upgrade_begin`、`upgrade_advance`、`upgrade_abandon` 请求体的 `now_ms` 由本卡读 Dart 时钟传入（CORE-24 核心不读时钟），`upgrade_advance` 走长任务提交。
 
 **实现约束**
 - run/resumeIfPending 门面入口捕获一个 sessions.current，null 不发网络/档案 op、不弹秘密确认，resumeIfPending 直接完成，run 以 StateError 拒绝本地调用前置条件（不新增业务错误码）；一次升级链只使用捕获 session.core。登录/注册 HTTP 响应、confirmSaved、askSecret、GET/PUT、每步 advance/merge 的 await 后与下一副作用前都检查对象身份+handle，同 profileId 重开也过代。按 handle 单飞，用户确认尚未完成而关闭时撤销待处理回调，不无限等待用户；迟到确认/秘密只释放或清零，不能推进 A、上传包装或驱动 B。

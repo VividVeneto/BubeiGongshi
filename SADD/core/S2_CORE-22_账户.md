@@ -54,6 +54,7 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 | --- | --- | --- | --- | --- |
 | `AUTH_INVALID_CREDENTIALS` | error | 否 | 401 | 邮箱或口令错误（不区分哪一项） |
 | `AUTH_TOKEN_EXPIRED` | error | 否 | 401 | 访问令牌过期 |
+| `AUTH_TOKEN_INVALID` | error | 否 | 401 | 需认证的接口缺少 `Authorization`、不是 `Bearer` 格式，或令牌签名、iss、aud、必填声明校验失败，或令牌主体对应账户已删除（过期另报 `AUTH_TOKEN_EXPIRED`）；响应带 `WWW-Authenticate: Bearer` |
 | `AUTH_REFRESH_REVOKED` | error | 否 | 401 | 刷新令牌已吊销、过期、不在令牌族表中，或旧刷新令牌被重复使用（同时吊销整个令牌族） |
 | `AUTH_REAUTH_REQUIRED` | error | 否 | — | 仅客户端刷新失败，回到账户入口 |
 | `AUTH_RECENT_LOGIN_REQUIRED` | error | 否 | 401 | 服务端敏感操作的 auth_time 缺失（刷新所得令牌）或距今超过 300 s |

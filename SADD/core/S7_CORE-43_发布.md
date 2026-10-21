@@ -18,7 +18,7 @@ server/deploy/
                              本卡 database.url、storage.{endpoint,bucket,region}、data_key.env、ops.metrics_addr）；机密值只写 *_env（环境变量名）
   required_keys.txt          本卡所列ops/database/storage/data_key键及依赖业务卡配置的必填清单；不含CORE-45 email.*，preflight.py 据此检查
   preflight.py --config <path>   缺键、机密键未以 _env 提供、对应环境变量为空、端点不在白名单 → 退出 1 并逐项列出
-  backup.sh / restore.sh     pg_dump → age 加密 → 对象存储（保留 35 天）；restore 到新实例后运行 CORE-25 删除清单重放
+  backup.sh / restore.sh     pg_dump → age 加密 → 对象存储（保留 35 天）；restore 到新实例后运行 CORE-25 `fml-server replay-deletions`（读对象存储 deletions/ 前缀）
   alerts.yaml                Prometheus 告警规则（见下）
   keys.md                    签名与机密保管记录：TUF root/targets 私钥离线（发布负责人保管，首个 key_id 登记于此）、
                              snapshot/timestamp 私钥在线（密钥管理服务）、包签名密钥（CORE-16）、服务端数据密钥、供应商 Key 的轮换周期

@@ -543,6 +543,12 @@
     },
     {
       "kind": "error",
+      "key": "AUTH_TOKEN_INVALID",
+      "owner": "CORE-22",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "AUTH_REFRESH_REVOKED",
       "owner": "CORE-22",
       "point": "contracts/errors/registry.yaml"
@@ -687,6 +693,12 @@
     },
     {
       "kind": "error",
+      "key": "SYNC_ENVELOPE_INVALID",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "SYNC_KEY_VERSION_REJECTED",
       "owner": "CORE-25",
       "point": "contracts/errors/registry.yaml"
@@ -706,6 +718,12 @@
     {
       "kind": "error",
       "key": "SYNC_CURSOR_INVALID",
+      "owner": "CORE-25",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
+      "key": "SYNC_NOT_FOUND",
       "owner": "CORE-25",
       "point": "contracts/errors/registry.yaml"
     },
@@ -736,7 +754,7 @@
     {
       "kind": "error",
       "key": "SYNC_KEY_MISSING",
-      "owner": "CORE-26",
+      "owner": "CORE-24",
       "point": "contracts/errors/registry.yaml"
     },
     {
