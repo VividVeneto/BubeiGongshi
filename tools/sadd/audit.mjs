@@ -48,7 +48,8 @@ function main() {
     const cards = load(sadd);
     const readme = fs.readFileSync(path.join(sadd, 'README.md'), 'utf8');
     const appendix = fs.readFileSync(path.join(sadd, '附录D-编码就绪检查记录.md'), 'utf8');
-    const current = appendix.split('## D.10 ')[1]?.split('## D.11 ')[0] ?? '';
+    // D.10 数据行止于下一个三级小节（D.10.1 统计口径）与 D.11；子节内的合法卡号表行不是现行卡行（U76-N2）。
+    const current = appendix.split('## D.10 ')[1]?.split('### D.10.1')[0]?.split('## D.11 ')[0] ?? '';
     const rows = current.split('\n').filter(line => /^\| (?:CORE|AND|WIN)-\d+ \|/.test(line));
     const columns = current.split('\n').find(line => line.startsWith('| 编号 |'))?.split('|').map(c => c.trim()) ?? [];
     const gradeColumn = reviewColumn(columns), statusColumn = columns.indexOf('当前状态');
