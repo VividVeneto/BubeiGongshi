@@ -189,7 +189,7 @@ v5 的主要变化：
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47、CORE-66、CORE-68、CORE-78、CORE-80、CORE-83、CORE-84、CORE-98、CORE-99 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | 自动＋模型（M-MODEL） | CORE-35、CORE-51、CORE-95 |
 | R30 | 端侧只需加载通用资源包 | 原文 | V1 | 两端共用 Rust 加载器、同一包格式与包 ID | 自动 | CORE-15、CORE-16、CORE-43、CORE-51、CORE-95、CORE-96、AND-09、WIN-10 |
-| R31 | 识别照片中的手写公式 | 原文 | V1 | 相册/文件/相机/剪贴板导入 → 预处理 → 识别 | 自动＋真机（AND-12/WIN-13 场景；AND-16/WIN-18 矩阵汇总） | CORE-30、CORE-34、CORE-40、AND-02、AND-03、AND-04、AND-12、WIN-19 |
+| R31 | 识别照片中的手写公式 | 原文 | V1 | 相册/文件/相机/剪贴板导入 → 预处理 → 识别 | 自动＋真机（AND-12/WIN-13 场景；AND-16/WIN-18 矩阵汇总） | CORE-29、CORE-30、CORE-34、CORE-40、AND-02、AND-03、AND-04、AND-12、WIN-19 |
 | R32 | 去噪与图像增强 | 原文 | V1 | Rust 流式预处理管线与质量评估 | 自动 | CORE-30、CORE-40、AND-04 |
 | R33 | 识别结束后保留最近识别（垃圾回收方案） | 原文 | V1 | 识别会话状态机 + 两阶段 GC | 自动 | CORE-32、CORE-40、CORE-50、CORE-85、CORE-101 |
 | R34 | 保留范围用户可设 0 到 100 次 | 原文 | V1 | `keep_last` 0–100 | 自动 | CORE-47、CORE-85 |
