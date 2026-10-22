@@ -13,6 +13,7 @@
 - [R28] IdSource固定序列覆盖新库device_id、两个op_id、rotate；现库重开不取新device_id，重发不换op_id。失败CRYPTO_RNG_FAILED与非法/重复UUID的STORE_CORRUPT均回滚身份/业务/时钟/outbox，不无限重试；FFI store.open请求未新增rng字段。
 - [R28] Fake codec/applier/analyzer验证EntityRegistry重复注册拒绝、稳定类型/ID枚举、setting排除device.*及syncable=0；ApplyOutcome的非法实体回滚保存点、存储故障整页回滚由调用方fixture验证，owner不stamp/enqueue或嵌套Store调用。
 - [R28] requeue_outbox覆盖存活/墓碑/不存在/缺时钟/游客/注册未开同步，字段值/field_clock逐字不变，完整清队列+重排失败全回滚；初始化升级资格后可入队，重复既定重建不多一份实体。
+- [R18][R27] 错误码复用一致性：STORE_CORRUPT 的触发面包含“所有者读取已合入表时行内持久化格式不符”，CORE-78 的 push_batch 行损坏（op_ids_json 非法 JSON／envelopes 长度前缀越界／表内多行）经 78 入口返回同一 STORE_CORRUPT 且不改动任何行；本卡不新增错误码，shared-writes 仍只登记六个 STORE_* 码。
 - [R18] 所有已合入迁移中的表均在本卡策略表出现且owner/scope/mutability唯一；never闭包不导出，动态列/FK由PRAGMA读取而非复制他卡DDL；S2仅Fake和已交付setting，不要求未交付业务表存在。
 - [R18][R27] table_policies() 返回只读静态 slice：每个已合入 profile 表恰一条且 owner/scope/mutability/RowFilter 与唯一清单相符；不同构建只含各自已合入表，尚未交付表不创建；独立设备库表不进入 slice。未知表默认 Never，重复/矛盾策略、缺已合入表/过滤必需列返回 STORE_CORRUPT，不静默跳过。
 - [R27] 固定行过滤 fixture 覆盖用户/预置 item、非包/包缓存 revision、按 revision_id 的绑定、按 result_revision 的派生索引、syncable 设置及 device.*；未通过过滤的行隐式 Never，不能由 FK 闭包带出。RowFilter 只取闭集枚举，不接受任意 SQL。
@@ -21,5 +22,6 @@
 - [R28] 时钟边界：tombstone 写入 (entity_type, entity_id, deleted_at_ms) 且同事务 enqueue Delete 的 payload 为 entity=None、clocks 含 __deleted；local_clock.lamport 或 device_seq 为 i64::MAX 时 stamp 返回 STORE_CORRUPT 并回滚，不回绕；rotate_device_id(min_lamport) 后 device_seq=0、lamport=max(原值, min_lamport)，已有 field_clock 与 outbox 行逐字不变。
 - [R28] 向量 CLOCK-01、CLOCK-02 按本卡表逐条断言（合并后 lamport=12，本地编辑 title 时钟=(13,本设备)、outbox 同事务 1 条；outbox 注入磁盘满后业务、field_clock、L/S 与 outbox 全部回到原值）。
 - [R18] SCHEMA_VERSION：构建产物中的常量等于 migrations/ 直接子文件最大序号（夹具构建仅含 0013 时为 13）；store.open 返回的 schema_version 等于该常量。
+- [R27] store.open 路径口径：用 staging 下的临时路径（CORE-84 恢复用随机 DbKey 打开的库）与任意非 `<profile_id>.db` 文件名打开，迁移到最新版本成功；只有 CORE-23 的 open_profile 受 `root(StoreArea.database)/<profile_id>.db` 约束，本卡不按文件名拒绝。
 - [R19] Store op：按本卡字段表示例逐条调用 store.open/close/integrity_check（schema_version 断言 ≥ 13）；同一规范路径第二次 store.open 返回 STORE_BUSY 且首个句柄可继续使用；db_key_b64 解码非 32 字节返回 CORE-03 参数错误；close 后再用该句柄返回 CORE-03 句柄错误。
 - [R28] 墓碑清理：`purge_tombstones(before_ms)` 只删除 deleted_at_ms 严格小于 before_ms 的行（等于时保留）、返回删除条数、不写 outbox 与 field_clock；事务回滚后墓碑仍在。
