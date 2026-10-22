@@ -23,7 +23,7 @@
 - [R24] 启动恢复登记：composeApp 后 ctx.startupHooks 中 order 20 恰一项 id 为 account.restore，执行时调用 Fake DefaultAccountController.restoreOnStartup 恰一次；ApiClient 的 baseUrl 等于 ctx.apiBase。
 - [R19] 路由：/study/books/new 命中 bookReminderRoutes 的新建页而非 studyHomeRoutes 的 :bookId；/library/trash、/library/new、/library/import 均不被 /library/:itemId 吞掉；/settings/appearance 命中 CORE-58；Uninitialized 下访问 /library 被重定向到 /，/account/x 与 /privacy 放行。
 - [R18][R19] 登记门禁：FeatureRegistry 同类型重复登记、SettingsSections 同 id 或同 order、ProfileHooks 同 id/order、ShellKeyHandler 第二次登记均抛 StateError；正常组装后导出 build/extensions.json，含每项 owner/key/point 且与 contracts/policies/shared-writes.json 对应项一致。
-- [R28] Disabled 门面：DisabledSyncFacade.status 首个值为 SyncStatus(phase: disabled) 且计数为 0；choices 返回空列表；syncNow/setEnabled/provideKey/setSyncPassphrase/revokeDeviceAndRotate/resolveChoice 各抛 code 为 SYNC_NOT_AVAILABLE 的 FmlException；DisabledUpgradeFacade.run 抛同码，resumeIfPending 正常返回且无副作用。
+- [R28] Disabled 门面：DisabledSyncFacade.status 首个值为 SyncStatus(phase: disabled) 且计数为 0；choices 返回空列表；syncNow/setEnabled/provideKey/setSyncPassphrase/revokeDeviceAndRotate/resolveChoice 各抛 code 为 SYNC_NOT_AVAILABLE 的 FmlException；DisabledUpgradeFacade.run 与 abandonPending 抛同码，resumeIfPending 返回 `UpgradeResumeState.none` 且无副作用；UpgradeFacade.run 的 askSecret/askCredentials/askEnableSync 可缺省，缺省时不影响门面签名可编译。
 - [R24] 游客：AccountState 为 guestUnlocked 时设置页与识别页不出现云识别与同步入口；未登记 CloudRecognitionService 时注册用户同样不出现；源码扫描 app/lib/ui/ 无平台判断。
 - [R19] 状态恢复：MaterialApp.router 的 restorationScopeId 为 fml、GoRouter 为 router；在 /library/<id> 触发 restoration 往返后回到同一路由。
 - [R19] 系统返回（Widget 测试模拟 Android 返回）：二级页返回上一页；/library、/recognize、/settings 根页返回切到 /study；/study 根页返回交给系统（canPop 为真）且不弹提示；打开的底部面板/对话框先关闭自身；页面自设 PopScope(canPop: false) 时外壳规则不执行。

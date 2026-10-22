@@ -9,13 +9,15 @@
 - [R19] 向 `SettingsSections` 加入两个测试项（order 20、10）后设置首页依次显示 order 10、20 两项，未加入时不显示该区。
 - [R28] 注册用户设置页可开启/关闭同步并显示最近同步时间、待推送数量与错误（Fake `SyncFacade` 驱动各 `SyncPhase`）。
 - [R27] 备份界面（Fake `CoreBinding`）：只选“学习数据”时显示闭包提示，导出完成显示 `closure_added` 条数；恢复预览显示闭包条数与“不覆盖本机”说明；`commit_restore` 进行中“取消”按钮始终可点：Fake 让 commit 在取消后仍成功时显示成功报告并附“恢复已完成，未能取消”，返回 `BACKUP_CANCELLED` 时显示“已取消，原数据未改变”；五项范围全取消时导出按钮禁用（`BACKUP_SCOPE_INVALID` 作为后备映射）。
-- [R28] 升级向导：Fake `UpgradeFacade` 下“新建账户”经过显示恢复码 → 勾选已保存 → 完成；未勾选时无法继续；“并入已有账户”要求输入恢复码或同步密语。
+- [R28] 升级向导：Fake `UpgradeFacade` 下“新建账户”经 `askCredentials` → 显示恢复码 → 勾选已保存 → 完成；未勾选时 `confirmSaved` 为 false 且停留在恢复码步；“并入已有账户”经 `askSecret` 要求输入恢复码或同步密语；断言 VM 只在门面调用回调时才切换步骤，`run` 恰调用一次。
+- [R28] 升级回调与开启同步（Fake `UpgradeFacade`）：`askEnableSync` 被调用时出现“是否开启同步？”且默认不开启，选“开启”调用 `answerEnableSync(true)` 并由门面（非 VM）调 `setEnabled`/`syncNow`；选“暂不开启”后问询不再出现；Fake 让 `syncNow` 抛错时升级仍显示完成并附“可稍后手动同步”。`run` 抛错时显示映射文案与“继续/放弃”两个动作，放弃收到 `SYNC_UPGRADE_NOT_ABANDONABLE` 时提示“升级已提交，不能放弃”并隐藏放弃按钮。
+- [R28] 升级恢复入口（Fake `UpgradeFacade`）：`resumeIfPending` 返回 `needsUser` 时显示“上次升级未完成”与继续入口（继续后重新走 `choose`），返回 `completed` 时直接显示完成步且不显示恢复码，返回 `none` 时不出现该入口；离开页面时未完成的回调 completer 以 false/null 完成且不抛异常。
 - [R25] 游客设置页显示“游客：无内容上传”，不出现同步、设备与云识别项。
 - [R27] 导出 → 选择文件恢复（Fake 端口）走完预览与确认；在预览页返回后 `discard_restore` 被调用，原库不变。
 - [R27] 保护与模式（Fake CoreBinding）：游客不显示恢复码保护，已注册账户可选恢复码并发出 protection 为恢复码的 backup.export；恢复时 mode 随 prepare_restore 发出、commit_restore 只带 token/now_ms/day；预览后改选模式先 discard 再重新 prepare。
 - [R34] 设置 `keep_last` 时输入 101 被拒绝并提示范围；设为 0 后调用 `recog.settings.set` 且 `keep_last` 为 0。
 - [R42.f] Widget 测试：设置首页第一组显示“外观”项和当前预设/模式，点击后路由到 `/settings/appearance`（页面由 CORE-58 提供，本卡用占位页断言路由名）；游客模式同样可见。
-- [R28] 设备页（Fake `ApiClient` 与 `SyncFacade`）：返回两台设备（一台 `current`）时 load 得到两个 `DeviceDto` 且字段逐一对应；响应缺字段时显示通用加载失败并允许重试；吊销调用 `SyncFacade.revokeDeviceAndRotate` 恰一次，随后显示新恢复码，未勾选“已保存”不能离开，并显示“重新设置同步密语”提示与直达按钮；游客模式设置首页不出现设备项。
+- [R28] 设备页（Fake `ApiClient` 与 `SyncFacade`）：返回两台设备（一台 `current`）时 load 得到两个 `DeviceDto` 且字段逐一对应；响应缺字段时显示通用加载失败并允许重试；吊销调用 `SyncFacade.revokeDeviceAndRotate` 恰一次，随后显示新恢复码，未勾选“已保存”不能离开，并显示“重新设置同步密语”提示与直达按钮（直达按钮打开“设置同步密语”表单并以 `setSyncPassphrase` 提交）；游客模式设置首页不出现设备项。
 - [R28] needsKey 与同步密语（Fake `SyncFacade`）：phase 为 needsKey 时出现输入卡，选恢复码/同步密语分别以恢复码/密语输入调用 `provideKey`；设置同步密语两次输入不一致时提交按钮禁用，Fake 抛 `CRYPTO_PASSPHRASE_WEAK` 时错误显示在输入框。
 - [R28] 修订选择（Fake `SyncFacade`）：`status.openChoices` 为 2 时同步页出现入口，子页列出 `choices()` 两条；选定后以（choiceId, chosenRevisionId）调用 `resolveChoice` 恰一次；Fake 抛 `SYNC_CHOICE_INVALID` 时重新加载列表。
 - [R27] 账户页（Fake `SecureKeyValueStore` 与 `AccountController`）：`securityLevel` 返回 software 时显示“本机密钥保护能力较弱”及原因，返回 tee 时不显示；“恢复出厂或清除应用数据会丢失本机密钥…”始终显示；以 `fml.<profileId>.db` 调用 `securityLevel`，current 为 null 时不调用；“删除本机数据”须二次确认后才调用 `logout(deleteLocalData: true)`。
