@@ -353,7 +353,8 @@ fn safety_text(comment: &str) -> Option<&str> {
 /// 收集没有 `// SAFETY:` 说明的 `unsafe` 块（CORE-01:133）。
 ///
 /// 按行判定：代码位置出现 `unsafe` 关键字（`unsafe {`、`unsafe fn/impl/trait/extern`）时，
-/// 本行行尾或紧邻其上的连续注释里必须有非空 `// SAFETY:`；`unsafe_code` 这类 lint 名不算块。
+/// 本行行尾或起始行前 3 行内（CORE-74:14 的窗口口径）必须有非空 `// SAFETY:`；
+/// 空行、普通语句或属性隔开不影响判定，`unsafe_code` 这类 lint 名不算块。
 fn unsafe_blocks_without_safety(source: &str) -> Vec<String> {
     const BLOCK_MARKERS: &[&str] = &[
         "unsafe {",
@@ -363,6 +364,8 @@ fn unsafe_blocks_without_safety(source: &str) -> Vec<String> {
         "unsafe trait ",
         "unsafe extern ",
     ];
+    // CORE-74:14：unsafe 起始行前 3 行内的非空 `// SAFETY:` 都算数。
+    const SAFETY_WINDOW: usize = 3;
     let lines: Vec<&str> = source.lines().collect();
     let mut missing = Vec::new();
     for (at, line) in lines.iter().enumerate() {
@@ -372,12 +375,9 @@ fn unsafe_blocks_without_safety(source: &str) -> Vec<String> {
         }
         let trailing = &line[code.len()..];
         let has_safety = safety_text(trailing).is_some()
-            || lines[..at]
+            || lines[at.saturating_sub(SAFETY_WINDOW)..at]
                 .iter()
-                .rev()
-                .map(|above| above.trim())
-                .take_while(|above| above.starts_with("//"))
-                .any(|above| safety_text(above).is_some());
+                .any(|above| safety_text(above.trim()).is_some());
         if !has_safety {
             missing.push(format!("第 {} 行 {}", at + 1, line.trim()));
         }
@@ -801,6 +801,9 @@ const AUDITED_LIB: &str = "#![deny(missing_docs)]\n\n/// 占位。\npub fn read_
 /// CORE-22 的 fml-server 入口夹具：binary-only，没有 src/lib.rs（SADD 无 server/src/lib.rs）。
 const SERVER_MAIN: &str = "//! 服务端入口（CORE-22）。\n\nfn main() {}\n";
 
+/// NF-A 夹具：CORE-74:14 的三行窗口写法（真实 cargo 最小审计 crate 的 src/lib.rs 全文）。
+const WINDOW_SAFETY_LIB: &str = "//! NF-A 探针：CORE-74:14 的三行窗口 SAFETY 写法（与修复报告的证据 crate 同字节）。\n#![deny(missing_docs)]\n\n/// 紧邻注释（距 unsafe 行 1 行）。\npub fn read_adjacent(pointer: *const u32) -> u32 {\n    // SAFETY: 调用方保证 pointer 有效且对齐。\n    unsafe { std::ptr::read(pointer) }\n}\n\n/// 空行隔开（距 unsafe 行 2 行）。\npub fn read_across_blank(pointer: *const u32) -> u32 {\n    // SAFETY: 调用方保证 pointer 有效且对齐。\n\n    unsafe { std::ptr::read(pointer) }\n}\n\n/// 普通语句隔开（距 unsafe 行 2 行）。\npub fn read_across_statement(pointer: *const u32) -> u32 {\n    // SAFETY: 调用方保证 pointer 有效且对齐。\n    let offset: usize = 0;\n    unsafe { std::ptr::read(pointer.wrapping_add(offset)) }\n}\n\n/// 空行加语句隔开（距 unsafe 行 3 行）。\npub fn read_across_blank_and_statement(pointer: *const u32) -> u32 {\n    // SAFETY: 调用方保证 pointer 有效且对齐。\n    let offset: usize = 0;\n\n    unsafe { std::ptr::read(pointer.wrapping_add(offset)) }\n}\n";
+
 /// 夹具用的本仓库依赖名列表。
 fn deps(names: &[&str]) -> Vec<String> {
     names.iter().map(|name| name.to_string()).collect()
@@ -1130,6 +1133,92 @@ fn audited_unsafe_crate_uses_safety_comments_instead_of_workspace_lints() {
     );
 }
 
+/// NF-A：SAFETY 判据取 CORE-74:14 的“起始行前 3 行内”窗口，不再要求紧邻连续注释。
+///
+/// 距 unsafe 起始行 1/2/3 行的非空 `// SAFETY:` 一律合法（空行、普通语句隔开也算）；
+/// 非空下界仍来自 CORE-01:133。原因与证据见修复报告 NF-A。
+#[test]
+fn safety_comment_within_three_line_window_is_accepted() {
+    let source = |above: &[&str]| {
+        let mut lines = vec!["pub fn read_at(pointer: *const u32) -> u32 {"];
+        lines.extend_from_slice(above);
+        lines.push("    unsafe { std::ptr::read(pointer) }");
+        lines.push("}");
+        lines.join("\n") + "\n"
+    };
+    let note = "    // SAFETY: 调用方保证 pointer 有效且对齐。";
+    for (label, above) in [
+        ("紧邻 1 行", &[note][..]),
+        ("空行隔开 2 行", &[note, ""][..]),
+        (
+            "普通语句隔开 2 行",
+            &[note, "    let offset: usize = 0;"][..],
+        ),
+        (
+            "空行加语句隔开 3 行",
+            &[note, "", "    let offset: usize = 0;"][..],
+        ),
+    ] {
+        let text = source(above);
+        assert!(
+            unsafe_blocks_without_safety(&text).is_empty(),
+            "{label} 的 SAFETY 在 3 行窗口内应被接受：{text}"
+        );
+    }
+
+    // 受审计 crate 的整卡判据同样接受窗口写法：夹具与真实 cargo 最小例同字节。
+    let registry = dep_allow_registry();
+    let none: Vec<String> = Vec::new();
+    let windowed = MemberFacts {
+        name: "fml-ffi",
+        manifest_path: "crates/fml-ffi/Cargo.toml",
+        manifest: LEGAL_AUDITED_MANIFEST,
+        lib: Some(WINDOW_SAFETY_LIB),
+        main: None,
+        local_deps: &none,
+    };
+    let violations = member_violations(&windowed, &registry);
+    assert!(violations.is_empty(), "{violations:#?}");
+}
+
+/// NF-A 反面：窗口外注释、空内容、只有空白、无注释与非 SAFETY 注释仍然拒绝。
+#[test]
+fn safety_comment_outside_window_or_empty_is_rejected() {
+    let source = |above: &[&str]| {
+        let mut lines = vec!["pub fn read_at(pointer: *const u32) -> u32 {"];
+        lines.extend_from_slice(above);
+        lines.push("    unsafe { std::ptr::read(pointer) }");
+        lines.push("}");
+        lines.join("\n") + "\n"
+    };
+    let note = "    // SAFETY: 调用方保证 pointer 有效且对齐。";
+    // 距 unsafe 起始行 4 行：窗口之外，仍拒绝（窗口边界锁定）。
+    let far = source(&[note, "", "", "    let offset: usize = 0;"]);
+    assert_eq!(
+        unsafe_blocks_without_safety(&far),
+        vec!["第 6 行 unsafe { std::ptr::read(pointer) }".to_string()]
+    );
+    // 空内容、只有空白、普通注释、无注释都不是非空 SAFETY（不把任何 // 注释当 SAFETY）。
+    for (label, above) in [
+        ("空内容", &["    // SAFETY:"][..]),
+        ("只有空白", &["    // SAFETY:    "][..]),
+        (
+            "非 SAFETY 注释",
+            &["    // 调用方保证 pointer 有效且对齐。"][..],
+        ),
+        ("没有注释", &[][..]),
+        ("窗口内空内容加空行", &["    // SAFETY:", "", ""][..]),
+    ] {
+        let text = source(above);
+        assert!(
+            !unsafe_blocks_without_safety(&text).is_empty(),
+            "{label} 仍应被拒绝：{text}"
+        );
+    }
+    // 同行行尾的非空 SAFETY 仍被接受（既有判据不回退）。
+    let trailing = "pub fn read_at(pointer: *const u32) -> u32 {\n    unsafe { std::ptr::read(pointer) } // SAFETY: 调用方保证 pointer 有效且对齐。\n}\n";
+    assert!(unsafe_blocks_without_safety(trailing).is_empty());
+}
 /// B2：CORE-22:108 的 fml-server 是 binary-only（`server/src/{main.rs,...}`，无 lib.rs）。
 #[test]
 fn binary_only_server_member_is_accepted() {
