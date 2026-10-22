@@ -163,8 +163,8 @@ export function makeDto(root) {
     ok: {title: 'DemoOpenOk', type: 'object', properties: {n: {type: 'integer', minimum: 0, maximum: 10}}, required: ['n'], additionalProperties: false},
   }, [{request: {id: '00000000-0000-4000-8000-000000000001', key: 'k'}, ok: {n: 1}}])));
   write(path.join(dir, 'manifest.json'), JSON.stringify({version: 1, ops: [
-    {op: 'demo.open', owner: 'CORE-05', status: 'ready', mode: 'call', scope: 'none', schema: 'demo.open.schema.json', error_codes: ['DEMO_FAIL'], sensitive_paths: ['/body/key']},
-    {op: 'demo.later', owner: 'CORE-05', status: 'pending', mode: null, scope: 'none', schema: null, error_codes: [], sensitive_paths: [], blocked_reason: '待补'},
+    {op: 'demo.open', owner: 'CORE-05', stage: 'S1', status: 'ready', mode: 'call', scope: 'none', schema: 'demo.open.schema.json', error_codes: ['DEMO_FAIL'], sensitive_paths: ['/body/key'], reads_engine_snapshot: false},
+    {op: 'demo.later', owner: 'CORE-05', stage: 'S1', status: 'pending', mode: null, scope: 'none', schema: null, error_codes: [], sensitive_paths: [], blocked_reason: '待补'},
   ]}, null, 2));
   return dir;
 }

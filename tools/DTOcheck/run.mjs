@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {ROOT, loadCards, printReport, exitCodeFor, argOf} from './lib.mjs';
 import {checkDto} from './dto.mjs';
-import {checkCards} from './cards.mjs';
+import {checkCards, stageTable} from './cards.mjs';
 import {checkXref, DEFAULT_BASELINE} from './xref.mjs';
 import fs from 'node:fs';
 
@@ -14,7 +14,12 @@ export function runAll({root = ROOT, only = null} = {}) {
   const want = n => !only || only.includes(n);
   const reports = [];
   if (want('cards')) reports.push(checkCards({sadd}));
-  if (want('dto')) { let cards = null; try { cards = loadCards(sadd); } catch { /* 交给 cards 检查报告 */ } reports.push(checkDto({root, cards})); }
+  if (want('dto')) {
+    let cards = null, stages = null;
+    try { cards = loadCards(sadd); } catch { /* 交给 cards 检查报告 */ }
+    if (cards) { try { stages = stageTable(sadd).stageOf; } catch { /* 交给 cards 检查报告 */ } }
+    reports.push(checkDto({root, cards, stages}));
+  }
   if (want('xref')) reports.push(checkXref({sadd, root, baselinePath: fs.existsSync(DEFAULT_BASELINE) ? DEFAULT_BASELINE : null}));
   return reports;
 }
