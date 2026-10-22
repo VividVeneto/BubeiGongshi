@@ -392,6 +392,52 @@
       },
       "valid": false,
       "why": "recovery_invalid"
+    },
+    {
+      "id": "ERR-NEG-12",
+      "input": {
+        "error": {
+          "code": "AST_JSON_INVALID",
+          "domain": "ast",
+          "retryable": false,
+          "trace_id": "3f8b2c1d4e5f60718293a4b5c6d7e8f9",
+          "diagnostics": [
+            {
+              "code": "AST_JSON_INVALID",
+              "severity": "error",
+              "input_range": [
+                -1,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false,
+      "why": "range"
+    },
+    {
+      "id": "ERR-NEG-13",
+      "input": {
+        "error": {
+          "code": "AST_JSON_INVALID",
+          "domain": "ast",
+          "retryable": false,
+          "trace_id": "3f8b2c1d4e5f60718293a4b5c6d7e8f9",
+          "diagnostics": [
+            {
+              "code": "AST_JSON_INVALID",
+              "severity": "error",
+              "input_range": [
+                -5,
+                -2
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false,
+      "why": "range"
     }
   ]
 }
