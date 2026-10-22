@@ -39,10 +39,20 @@ test('root and parameter paths use longest whole-segment ownership',()=>{
  assert.equal(routeOwner(p,'/study/books/new').owner,'CORE-02');
  assert.equal(routeOwner(p,'/study/books/abc').owner,'CORE-01');
  assert.equal(routeOwner(p,'/').key,'/');
- assert.equal(routeOwner(p,'/libraryx'),undefined);
+ assert.equal(routeOwner(p,'/libraryx'),null);
  assert.ok(compareActual(p,{version:1,entries:[route('/study/stats','CORE-01','statsRoutes')]},cards).length);
  assert.deepEqual(compareActual(p,{version:1,entries:[route('/library/units/new','CORE-02','libraryToolsRoutes')]},cards),[]);
  assert.ok(validateReservations({version:1,entries:[route('/study/:a'),route('/study/:b')]},cards).length);
+});
+
+test('routeOwner returns null, not undefined, when no prefix owns a route',()=>{
+ const route=(key,owner='CORE-01',point='accountRoutes')=>({kind:'route',key,owner,point});
+ const p={version:1,entries:[route('/'),route('/study'),route('/study/books/:bookId')]};
+ for(const key of ['/studies','/libraryx','/study2'])assert.strictEqual(routeOwner(p,key),null,key);
+ assert.strictEqual(routeOwner({version:1,entries:[]},'/study'),null);
+ assert.equal(typeof routeOwner(p,'/libraryx'),'object');
+ assert.equal(routeOwner(p,'/study/books').key,'/study');
+ assert.equal(routeOwner(p,'/study/books/42').key,'/study/books/:bookId');
 });
 
 test('production profile hooks migrate without adding process startup orders',()=>{
@@ -102,6 +112,7 @@ test('production routes keep parent and child prefixes under different owners',(
   assert.equal(owner('/library/new'),'CORE-88');
   assert.equal(owner('/library/units/new'),'CORE-60');
   assert.equal(owner('/libraryx'),undefined);
+  assert.equal(routeOwner(p,'/libraryx'),null);
   assert.equal(owner('/'),'CORE-63');
   assert.deepEqual(compareActual(p,{version:1,entries:[{kind:'route',key:'/study/stats',owner:'CORE-49',point:'statsRoutes'}]},owners(p)),[]);
   assert.ok(compareActual(p,{version:1,entries:[{kind:'route',key:'/study/stats',owner:'CORE-89',point:'studyHomeRoutes'}]},owners(p)).length);

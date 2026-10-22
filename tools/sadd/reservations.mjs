@@ -43,7 +43,7 @@ export function routeOwner(policy, route) {
   const actual=route.split('/').slice(1);
   return policy.entries.filter(r=>r.kind==='route').map(r=>({r,parts:r.key==='/'?[]:r.key.split('/').slice(1)}))
     .filter(({parts,r})=>r.key==='/'?route==='/':parts.length<=actual.length && parts.every((p,i)=>p.startsWith(':')?!!actual[i]:p===actual[i]))
-    .sort((a,b)=>b.parts.length-a.parts.length || b.parts.filter(p=>!p.startsWith(':')).length-a.parts.filter(p=>!p.startsWith(':')).length)[0]?.r;
+    .sort((a,b)=>b.parts.length-a.parts.length || b.parts.filter(p=>!p.startsWith(':')).length-a.parts.filter(p=>!p.startsWith(':')).length)[0]?.r ?? null;
 }
 export function compareActual(policy,actual,cards) {
   const errors=validateReservations(actual,cards);
