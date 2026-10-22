@@ -6,7 +6,7 @@
 - 包含：词法与语法分析、命令白名单、Unicode 词法别名表、源码映射（AST 节点 → 字符区间）、错误定位与修复建议、ISO 80000-2 符号能力清单。
 - 不包含：LaTeX/Unicode 导出与 engine.export（CORE-92）；符号含义绑定与记号方案（CORE-07）；量纲（CORE-09）；排版（CORE-12）。
 
-**依赖**：CORE-01、CORE-02、CORE-05
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-05
 
 **接口契约**
 

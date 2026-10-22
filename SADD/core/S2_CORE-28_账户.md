@@ -16,7 +16,7 @@ enum GuardAccountState { uninitialized, guest, upgrading, registered, registered
 abstract interface class GuardContext {             // 组装层用 CORE-23 账户状态提供方（仅通过本卡 GuardContext 注入）.state 与当前 Profile.sync_enabled 实现
   GuardAccountState get accountState; bool get syncEnabled;
 }
-abstract interface class ConsentVerifier {          // CORE-34 实现：令牌存在、未过期、未使用，且与请求体图片哈希一致
+abstract interface class ConsentVerifier {          // CORE-34 实现：令牌存在、未过期、未使用，且与请求体图片哈希一致（哈希用 CORE-30 的线上表示逐字符比较：64 字符小写 hex）
   bool verify(String consentToken, Uint8List? body);
 }
 final class NetworkPolicy {
