@@ -493,6 +493,130 @@ fn t06_negative_cases_are_rejected() {
     }
 }
 
+/// T-06 增补（N2）：共享错误向量必须含 input_range 的负端点负例，
+/// 且这些负例只因符号被拒绝——端点抬成非负后同一文档必须可解析。
+#[test]
+fn t06_range_negatives_cover_negative_endpoints() {
+    let doc = read_json("contracts/vectors/errors-v1.json");
+    let cases = doc["cases"].as_array().expect("cases 必须是数组");
+
+    let mut negative_start = 0_usize;
+    let mut negative_end = 0_usize;
+    let mut reversed = 0_usize;
+    let mut upper_overflow = 0_usize;
+
+    for case in cases {
+        if case.get("valid").and_then(Value::as_bool) != Some(false) {
+            continue;
+        }
+        if case["why"].as_str() != Some("range") {
+            continue;
+        }
+        let id = case["id"].as_str().expect("id 必须是字符串");
+        let error_value = case["input"]["error"].clone();
+        let diagnostics = error_value["diagnostics"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{id} 的 range 负例必须带 diagnostics 数组"));
+        let mut seen = false;
+        for diagnostic in diagnostics {
+            let Some(range) = diagnostic.get("input_range") else {
+                continue;
+            };
+            let pair = range.as_array().expect("input_range 必须是数组");
+            assert_eq!(pair.len(), 2, "{id} 的 input_range 必须恰有两个端点");
+            let start = pair[0].as_i64().expect("input_range 端点必须是整数");
+            let end = pair[1].as_i64().expect("input_range 端点必须是整数");
+            seen = true;
+            // 四类互斥：负 start / 负 end / 非负倒序 / 上界溢出。
+            if start < 0 || end < 0 {
+                if start < 0 {
+                    negative_start += 1;
+                }
+                if end < 0 {
+                    negative_end += 1;
+                }
+            } else if start > end {
+                reversed += 1;
+            } else if end > i64::from(u32::MAX) {
+                upper_overflow += 1;
+            } else {
+                panic!("{id} 的 why=range 却给出合法区间 [{start},{end}]");
+            }
+            assert!(
+                serde_json::from_value::<FmlError>(error_value.clone()).is_err(),
+                "{id} 的 range 负例必须被真实解码流程拒绝"
+            );
+        }
+        assert!(seen, "{id} 的 why=range 必须给出 input_range");
+    }
+
+    assert!(reversed >= 1, "共享语料必须保留非负倒序负例（现有 [10,5]）");
+    assert!(
+        upper_overflow >= 1,
+        "共享语料必须保留上界溢出负例（现有 [0,4294967296]）"
+    );
+    assert!(
+        negative_start >= 1,
+        "共享语料必须含负 start 的 range 负例（N2）"
+    );
+    assert!(
+        negative_end >= 1,
+        "共享语料必须含负 end 的 range 负例（N2）"
+    );
+
+    // 两条新增负例的具体语义：负 start 与「负 start 且负 end」。
+    for (id, want_start, want_end) in [("ERR-NEG-12", -1_i64, 5_i64), ("ERR-NEG-13", -5, -2)] {
+        let case = cases
+            .iter()
+            .find(|case| case["id"].as_str() == Some(id))
+            .unwrap_or_else(|| panic!("缺少负端点向量 {id}"));
+        assert_eq!(case["valid"], json!(false), "{id} 必须写 valid: false");
+        assert_eq!(case["why"], json!("range"), "{id} 的 why 必须是 range");
+        let mut error_value = case["input"]["error"].clone();
+        let pair = error_value["diagnostics"][0]["input_range"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{id} 必须给出 input_range"))
+            .clone();
+        assert_eq!(
+            Value::Array(pair),
+            json!([want_start, want_end]),
+            "{id} 的 input_range 端点不对"
+        );
+        assert!(
+            serde_json::from_value::<FmlError>(error_value.clone()).is_err(),
+            "{id} 必须被真实解码流程拒绝"
+        );
+        // 只抹平符号（-1,5 -> 0,5；-5,-2 -> 0,0），其余字段不动。
+        error_value["diagnostics"][0]["input_range"] = json!([want_start.max(0), want_end.max(0)]);
+        assert!(
+            serde_json::from_value::<FmlError>(error_value).is_ok(),
+            "{id} 的端点抬成非负后必须可以解析，证明拒绝原因是负值"
+        );
+    }
+
+    // 端点边界与同类错误：上界本身收，上界 +1 与倒序仍拒。
+    let mut boundary = cases
+        .iter()
+        .find(|case| case["id"].as_str() == Some("ERR-NEG-12"))
+        .map(|case| case["input"]["error"].clone())
+        .expect("ERR-NEG-12 必须存在");
+    boundary["diagnostics"][0]["input_range"] = json!([0, u64::from(u32::MAX)]);
+    assert!(
+        serde_json::from_value::<FmlError>(boundary.clone()).is_ok(),
+        "input_range 上界 [0,4294967295] 必须可解析"
+    );
+    boundary["diagnostics"][0]["input_range"] = json!([0, u64::from(u32::MAX) + 1]);
+    assert!(
+        serde_json::from_value::<FmlError>(boundary.clone()).is_err(),
+        "上界 +1 必须被拒绝"
+    );
+    boundary["diagnostics"][0]["input_range"] = json!([9, 4]);
+    assert!(
+        serde_json::from_value::<FmlError>(boundary).is_err(),
+        "非负倒序 [9,4] 必须被拒绝"
+    );
+}
+
 /// T-07：全部错误码的生成视图与注册表逐条一致。
 #[test]
 fn t07_generated_metadata_matches_registry() {
