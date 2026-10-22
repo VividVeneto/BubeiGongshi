@@ -152,6 +152,22 @@ test('引擎快照集合：ready 必须显式布尔，且与该 op 的 ENGINE_UN
   edit(pending, 'manifest.json', m => { m.ops[1].reads_engine_snapshot = false; });
   assert.ok(checkDto({root: pending}).errors.some(e => e.id === 'DTO-24' && e.msg.includes('pending 不得声明')));
 });
+test('DTO-26：engine.generation / engine.wait_generation 必须 reads_engine_snapshot=false（按 op 名判，CORE-100 不判）', () => {
+  const root = fresh();
+  edit(root, 'manifest.json', m => {
+    m.ops[0].op = 'engine.generation';
+    m.ops[0].reads_engine_snapshot = true;
+    m.ops[0].error_codes = ['DEMO_FAIL', 'ENGINE_UNAVAILABLE'];
+  });
+  const errs = checkDto({root}).errors;
+  assert.ok(errs.some(e => e.id === 'DTO-26' && e.msg.includes('必须为 false')), JSON.stringify(errs));
+  // 布尔与错误码仍双向一致：DTO-24 不报，由 DTO-26 单独承担这条不变量
+  assert.deepEqual(errs.filter(e => e.id === 'DTO-24'), []);
+
+  const ok = fresh();
+  edit(ok, 'manifest.json', m => { m.ops[0].op = 'engine.wait_generation'; });
+  assert.deepEqual(checkDto({root: ok}).errors.filter(e => e.id === 'DTO-26'), []);
+});
 
 test('条目字段冻结：未知字段失败，ready 不得带 blocked_reason 以外的额外键', () => {
   const root = fresh();

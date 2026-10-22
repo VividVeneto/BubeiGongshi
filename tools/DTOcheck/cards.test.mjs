@@ -73,6 +73,16 @@ test('阶段：缺失、重复、依赖晚于自身', () => {
   root = fresh(); mutate(root, CORE, '| S0 骨架 | CORE-01、CORE-02 | x |\n| S1 引擎 | CORE-05 | x |', '| S0 骨架 | CORE-01、CORE-05 | x |\n| S2 引擎 | CORE-02 | x |');
   assert.ok(ids(run(root)).includes('STAGE-03'));
 });
+test('阶段表一行都解析不出时：报 STAGE-00 并停止下游阶段/布局检查（F-14）', () => {
+  const root = fresh();
+  mutate(root, CORE, '| S0 骨架 |', '| 骨架 |');
+  mutate(root, CORE, '| S1 引擎 |', '| 引擎 |');
+  mutate(root, AND, '| S2 平台 |', '| 平台 |');
+  mutate(root, '03-Windows端-v5.md', '| S0 骨架 |', '| 骨架 |');
+  const got = ids(run(root));
+  assert.ok(got.includes('STAGE-00'), got.join(','));
+  assert.ok(!got.includes('STAGE-01') && !got.includes('STAGE-02') && !got.includes('STAGE-03') && !got.includes('LAYOUT-02'), got.join(','));
+});
 
 test('README：卡数、分类统计、小节标题、阶段、重复/缺失、版本', () => {
   let root = fresh(); mutate(root, README, '5 张模块卡（公共核心 3', '5 张模块卡（公共核心 4');

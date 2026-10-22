@@ -498,7 +498,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-08 | 量纲与单位 | 端侧核心 | Rust crate | `crates/fml-units/` | S1 |
 | CORE-09 | 类型推断与量纲校验 | 端侧核心 | Rust crate | `crates/fml-type/src/{rules,infer,check}.rs` | S1 |
 | CORE-10 | 直接求值与数值内核 | 端侧核心 | Rust crate | `crates/fml-eval/` | S1 |
-| CORE-11 | 公式间代入、推导链与计算链 | 端侧核心 | Rust crate | `crates/fml-derive/615`、`crates/fml-ffi/src/ops/derive.rs` | S1 |
+| CORE-11 | 公式间代入、推导链与计算链 | 端侧核心 | Rust crate | `crates/fml-derive/`、`crates/fml-ffi/src/ops/derive.rs` | S1 |
 | CORE-12 | 数学 Box 布局内核 | 端侧核心 | Rust crate | `crates/fml-typeset/` | S1 |
 | CORE-13 | 本地库 Schema、单写者与迁移 | 端侧核心 | Rust crate | `crates/fml-store/`、`crates/fml-ffi/src/ops/store.rs` | S2 |
 | CORE-14 | 公式条目、修订与单位仓储 | 端侧核心 | Rust crate | `crates/fml-store/src/library/`、`crates/fml-ffi/src/ops/{library,units_user}.rs` | S3 |
