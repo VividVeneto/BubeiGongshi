@@ -43,3 +43,6 @@ xref 的候选是启发式的，不能当作缺陷清单，也不能整体忽略
 - `tools/sadd/`（pack、audit、stats、reservations、current）仍是材料、统计与就绪证据的正式入口，本工具不改写任何文件（`--update-baseline` 只写你指定的基线文件）。
 - 未覆盖：Rust/Dart 编译、DTO 生成器（CORE-67 的 `gen_dto.py`）、字段语义是否合理、示例以外的向量。
 - 未覆盖（等待所有者实现）：逐 op 期望错误集合的**双向比对**。对照源是 op 所有者卡的逐 op 错误镜像（`| op | 代码 |` 行或等效内联句），不是 registry——registry 只是码字典，REG-01 管字典与所有者卡表的逐列一致与双向全集（ADR-V5-55）。当前 DTO-06 只做“码已注册且归属唯一”、DTO-18 只拒 CORE-03 码，尚无“卡行 ↔ `error_codes`”的回向检查；registry.yaml 亦未创建（CORE-02 未实现）。本工具不把 manifest 与自身比、不自建第三份逐 op 期望，该回向比对落地后写在本工具，不在 `dto_schema.py` 里再写一遍。
+
+
+- CARD-06 例外：规模行写明附录D D.14.8 放宽登记号（`D.14.8 RL-NN`，用户批准、发布前收回）时不报“超过 800 行先拆卡”；超过 500 行仍须写“分阶段”。

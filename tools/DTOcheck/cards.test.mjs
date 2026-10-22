@@ -37,6 +37,8 @@ test('规模：与索引不一致、超过 800 或超过 500 未分阶段、含�
   assert.ok(!ids(run(root)).includes('CARD-06'));
   root = fresh(); mutate(root, CORE, '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 150 |', '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 900 |'); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 900 行；`crates/fml-type/`；分阶段：① 400；② 500。');
   assert.ok(ids(run(root)).includes('CARD-06'));
+  root = fresh(); mutate(root, CORE, '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 150 |', '| CORE-05 | 类型 | `crates/fml-type/` | 01、02 | 900 |'); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 900 行；`crates/fml-type/`；分阶段：① 400；② 500（附录D D.14.8 RL-08）。');
+  assert.ok(!ids(run(root)).includes('CARD-06'), '规模行写明 D.14.8 RL 放宽登记号时不报超限');
   root = fresh(); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 150 行；`crates/fml-type/`、`app/lib/x/`。');
   assert.ok(ids(run(root)).includes('CARD-08'));
   root = fresh(); mutate(root, CORE, '**规模**：约 150 行；`crates/fml-type/`。', '**规模**：约 150 行；主包 `crates/fml-type/`，附属 `app/lib/x/`。');
