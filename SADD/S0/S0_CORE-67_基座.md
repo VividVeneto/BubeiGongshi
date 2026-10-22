@@ -3,8 +3,8 @@
 **目标**：从 CORE-100 编译的类型图生成 Dart 不可变 DTO 与严格 codec，提供只读漂移检查与显式写盘两个入口，禁止多卡手写序列化口径漂移。
 
 **范围**
-- 包含：消费 CORE-100 类型图；Dart 不可变类型、codec、密封变体、tuple 与有类型 map 的生成；`gen_dto.py` 的 `--check`（只读）与 `--write`（写盘）入口、漂移报告格式与 0/1/2 退出码；在 `tools/ci/manifest.json` 追加本卡 CI 步骤条目（数据接入点）。
-- 不包含：manifest 条目、阶段门禁、快照集合、受限引用、format、敏感路径与错误集合的校验内核（CORE-100）；业务 DTO 字段与 op 实现（各领域卡）；FFI 运行时与信封（CORE-03，下游说明，非本卡契约）；`tools/ci/run_all.py` 的实现与其 manifest 结构（CORE-41）。本卡不实现第二份 schema 语义，只消费类型图。
+- 包含：消费 CORE-100 类型图；Dart 不可变类型、codec、密封变体、tuple 与有类型 map 的生成；生成类型与文件的命名算法（本卡是命名唯一真源，见“命名（冻结算法）”）；`Diagnostic`（各 op 报告 `diagnostics[]` 的元素，Dart 侧 `typedef DiagnosticDto = Diagnostic`）的生成与交付；`gen_dto.py` 的 `--check`（只读）与 `--write`（写盘）入口、漂移报告格式与 0/1/2 退出码；只提交本卡在 `tools/ci/manifest.json` 的 CI 步骤条目片段（合入归 CORE-41，本卡不直接改该文件）。
+- 不包含：manifest 条目、阶段门禁、快照集合、受限引用、format、敏感路径与错误集合的校验内核（CORE-100）；业务 DTO 字段与 op 实现（各领域卡）；FFI 运行时与信封（CORE-03，下游说明，非本卡契约）；`tools/ci/run_all.py` 的实现与其 manifest 结构、以及 `tools/ci/manifest.json` 本体（CORE-41 合入本卡的步骤片段）。本卡不实现第二份 schema 语义，只消费类型图。
 
 **依赖**：CORE-01、CORE-02、CORE-100
 
@@ -17,7 +17,7 @@ tools/ci/gen_dto.py --write [--manifest contracts/dto/manifest.json] [--out app/
                             [--required-stage S2]
 ```
 
-- 两个入口互斥，同时给出或都不给出 → 2。`--check` 只读：不写 Dart 文件，唯一写动作是 `--report` 指定的报告文件（默认 `build/dto/drift.json`）。`--write` 只写 `<out>/<domain>.g.dart`，不写报告文件（只在 stdout 打印摘要）。`--required-stage`/`--release` 的判定由 CORE-100 完成，本卡只透传参数并展示其诊断。
+- 两个入口互斥，同时给出或都不给出 → 2。`--check` 只读：不写 Dart 文件，唯一写动作是 `--report` 指定的报告文件（默认 `build/dto/drift.json`）。`--write` 只写本次应存在的确定文件集：`<out>/types.g.dart` 加每个 ready op 一域的 `<out>/<domain>.g.dart`（fixture 清单下即 fixture 域），不写集合外任何路径，不写报告文件（只在 stdout 打印摘要）。`--required-stage`/`--release` 的判定由 CORE-100 完成，本卡只透传参数并展示其诊断。
 - 退出码：0 = 生成结果与磁盘一致（`--check`）或全部文件写成功（`--write`）且无 error；1 = 存在漂移/缺失/多余生成文件、CORE-100 返回 valid=false（schema 或阶段门禁失败）、或生成被拒绝（类型名冲突、不支持的形状）；2 = 工具错误（参数错误、清单或报告 I/O 失败、CORE-100 抛 SchemaToolError、未预期内部异常）。错误不得从 2 降级为 1，也不得把 1 报成 0。
 - 报告（仅 `--check --report` 写出）JSON 固定形状，稳定排序、无时间戳、无绝对主机路径：
 
@@ -26,35 +26,37 @@ tools/ci/gen_dto.py --write [--manifest contracts/dto/manifest.json] [--out app/
  "required_stage": "S2", "release": false,
  "ready": 36, "pending": 107, "skipped": ["account.import_account_key"],
  "files": [{"path": "app/lib/binding/dto/types.g.dart", "status": "match",
-            "sha256": "…"}],
+            "sha256": "…", "expected_sha256": "…"}],
  "diagnostics": [{"severity": "info", "code": "DTO_PENDING_SKIP", "op": "account.import_account_key",
-                  "file": null, "message": "SKIP pending account.import_account_key: …"}],
+                  "file": null, "pointer": null, "message": "SKIP pending account.import_account_key: …"}],
  "exit": 0}
 ```
 
-  `required_stage` 缺省为 null；`files[].status` ∈ match/drift/missing/stale（stale 表示磁盘有本次不应存在的生成文件）；`files` 按 path 字节序，`skipped` 按 op 字节序，`diagnostics` 按 (file 或空串, code, op 或空串, message) 排序；同一输入重复运行报告逐字节相同。pending 的 `SKIP pending <op>: <blocked_reason>` 来自 CORE-100 的 info 诊断，本卡只展示：既定不失败、也不记为通过（与 CORE-41 的 pending 归档口径一致，main 保持可构建）。
+  `required_stage` 缺省为 null；`files[].status` ∈ match/drift/missing/stale（stale 表示磁盘有本次不应存在的生成文件）；`files` 按 path 字节序，`skipped` 按 op 字节序，`diagnostics` 按 (file 或空串, code, op 或空串, message) 排序；同一输入重复运行报告逐字节相同。`files[]` 每项只有 path/status/sha256/expected_sha256 四键：`expected_sha256` 是本次应按类型图生成的字节的 sha256，`sha256` 是磁盘现有内容的 sha256（missing 与 stale 时为 null），status 只由“是否应存在/是否存在/两者是否相同”推出，不看 mtime；`diagnostics[]` 每项只有 severity/code/op/file/pointer/message 六键，`pointer` 是 CORE-100 诊断的 schema JSON Pointer（无则 null）。本卡自产的 code 只有 `DTO_SCHEMA_INVALID`（CORE-100 valid=false 的转述）、`DTO_PENDING_SKIP`（SKIP info）、`DTO_NAME_CONFLICT`（命名冲突）、`DTO_HEADER_MISSING`（拒覆盖非生成文件）四个；CORE-100 的 code 原样透传、不改写，本卡不新增业务错误码（`DTO_*` 是否登记 `contracts/errors/registry.yaml` 归 CORE-02，本卡不写 registry）。pending 的 `SKIP pending <op>: <blocked_reason>` 来自 CORE-100 的 info 诊断，本卡只展示：既定不失败、也不记为通过（与 CORE-41 的 pending 归档口径一致，main 保持可构建）。
 - Dart 产物形状（冻结，属对外 API）：
   - object → `final class`，字段全 final、`const` 构造、`fromJson`/`toJson`；缺必填字段或类型不符抛 `FormatException`（Dart SDK 类型，本卡不新造错误类型）；toJson 只写声明字段，fromJson 忽略未声明的未知键且不因此失败（信封向前兼容）。
   - 可选/nullable → 字段类型加 `?`；缺键与显式 null 均映射 null；required 与 nullable 独立，required 且 nullable 的字段必须出现但可为 null。
   - enum → Dart `enum` + 固定 wire 字符串，映射用生成文件内的 `const Map<String, T>` 与 `switch` 实现（不依赖第三方注解包）；未知字符串抛 FormatException。
   - array → `List<T>` 的不可修改视图（`List.unmodifiable`）；tuple → Dart 3 record 类型 + 同文件 `typedef <Name> = (T1, T2, …);`，按 prefix 位置匹配，长度不符抛 FormatException。
   - 有类型 map（仅 Diagnostic.args）→ `Map<String, String>` 的 `Map.unmodifiable` 副本，所属 DTO 覆写 `==`/`hashCode` 使比较按内容相等。
-  - union → `sealed class <UnionName>`，分支名由判别推导：field_const 用 const 值、external_key 用唯一必填键名、scalar_enum 用 enum 值，统一转 PascalCase 并加联合前缀（如 `FormulaNodeSymbol`、`PathSegMoveTo`、`MathKindReal`）；分支为 `final class <UnionName><Branch> extends <UnionName>`，载荷字段直取；未知判别抛 FormatException。派生名重复或与既有类型冲突 → 退出 1 并在 `diagnostics` 指出该分支。
+  - union → `sealed class <UnionName>`，分支名由判别推导：field_const 用 const 值、external_key 用唯一必填键名、scalar_enum 用 enum 值，统一转 PascalCase 并加联合前缀（如 `FormulaNodeSymbol`、`PathSegMoveTo`、`MathKindReal`）；分支为 `final class <UnionName><Branch> extends <UnionName>`，载荷字段直取；未知判别抛 FormatException。派生名重复或与既有类型冲突 → 退出 1、报 `DTO_NAME_CONFLICT` 并在 `diagnostics` 指出该分支。
+  - 命名（冻结算法，①～⑧ 按序应用，命中即停）：① 生成类型名（object、enum、union 父类与分支、typedef、具名 record）= `PascalCase(title)`，不加前缀或后缀；title 跨文件全局唯一保证不重名，这也是 `FixtureEchoRequest`/`FormulaNodeSymbol` 等既有名字的来源。② wire 名保持 schema 的 snake_case 原样（fromJson/toJson 里写死字符串键，不用注解包），Dart 字段名为 lowerCamelCase。③ 内联 enum 名 = `<父类型名><字段 PascalCase>`（如 `Diagnostic` 的 `severity` → `DiagnosticSeverity`），冲突时追加 `Kind`。④ 内联 object/tuple 具名 = `<父类型名><字段 PascalCase>`（如 `DrawCmd` 的 `glyph` → `DrawCmdGlyph`、`DisplayListNode` 的 `bounds` → `DisplayListNodeBounds`、`Diagnostic` 的 `input_range` → `DiagnosticInputRange`），与 union 分支名大小写折叠后同名时追加 `Value`，仍冲突 → 退出 1 报 `DTO_NAME_CONFLICT`。⑤ 单值 const 字段与 min=max 的整数不新建类型，直接用标量/`int`。⑥ 与 Dart 保留字或核心类型同名（`Object`、`String`、`Function`、`Map`、`List`、`Set`、`Never`、`dynamic`、`Future` 等）时追加 `Value`。⑦ 同一 title 只生成一次，跨域时取 domain 字节序最早的声明文件，其他文件用相对 `import` 引用。⑧ union 分支名 = `<UnionName><Branch>`，Branch 由判别值 PascalCase（field_const 取 const 值、external_key 取必填键名、scalar_enum 取 enum 值），如 `FormulaNodeSymbol`、`PathSegMoveTo`、`MathKindReal`。
+  - Diagnostic 交付：`types.schema.json` 的 `$defs/Diagnostic` 生成到 `<out>/types.g.dart`，类名 `Diagnostic`，wire 字段与 CORE-02 §诊断模型逐字一致——`code`(String, 必填)、`severity`(DiagnosticSeverity enum: error/warning/info, 必填)、`node_path`→`nodePath`(String?)、`input_range`→`inputRange`(DiagnosticInputRange? 即 `(int, int)` record, 长度 2)、`args`(Map<String, String>, 必填)、`recovery`(String?)、`needs_confirm`→`needsConfirm`(bool, 必填)；消费者写 `typedef DiagnosticDto = Diagnostic;`（ADR-V5-58 ⑧），**不**生成第二个类。
   - 数值映射：int64 → `int`；decimal/uint64/int128/positive-int128 → `String`（原样十进制文本，不经 double，保证 i64 与宽整数无损）；base64 → `Uint8List`；uuid/date-time → `String`；number → `double`（非有限值拒绝）。
   - 生成类名取自 schema 条目的 `title`；消费者要别的名字时自建 `typedef` 别名，本卡不改 title、类名与 `fromJson` 的未知键规则（ADR-V5-58 ⑧）。
   - 不可变与隐私：集合字段深层不可修改；DTO 覆写 `==`/`hashCode` 按值比较；`toString` 对 `sensitive_paths` 命中的字段输出 `<redacted>`，不打印敏感值。
-- 域推导与文件布局：`op` 的第一段为域（`account.*`→account、`engine.*`→engine、`calc.*`→calc、`store.*`→store 等），写到 `<out>/<domain>.g.dart`；共享 `types.schema.json`→`<out>/types.g.dart`，`ast.schema.json`→`<out>/ast.g.dart`。同域多 op 与共享类型按 (域, op 或 title) 字节序合并进同一文件；每个文件头写 `// GENERATED CODE - DO NOT MODIFY BY HAND.`、来源 manifest/schema 文件名与 `// generator: CORE-67 v1`（文本常量，不含时间戳/版本库状态），使漂移比较确定。全局唯一 title 只生成一次并放在其声明域文件，生成文件之间用相对 `import` 互相引用。
-- 写盘安全与漂移判定：`--write` 先写同目录临时文件再原子 rename；只删除并重写本卡在 `<out>` 内应存在的 `<domain>.g.dart`，不触碰目录外文件，遇同名非生成文件（无 GENERATED 头）拒绝覆盖并以 1 退出；`--check` 以 sha256 比较期望内容与磁盘内容，缺失记 missing，多余生成文件记 stale。
-- 输入边界：默认读 `contracts/dto/manifest.json` 与其中引用的 `contracts/dto/*.schema.json`；fixture 的 manifest/schema 放在 `tools/ci/tests/fixtures/`，必须用 `--manifest` 显式指定，不得写入 `contracts/dto/`。S0 自包含 fixture（fixture.echo）用于验收生成器形状，真实清单 36 ready/107 pending 只做结构与漂移验收；`status=ready` 仅表示字段设计闭合，不代表业务实现完成、也不代表消费者已签认。
+- 域推导与文件布局：`op` 的第一段为域（`account.*`→account、`engine.*`→engine、`calc.*`→calc、`store.*`→store 等），写到 `<out>/<domain>.g.dart`；共享 `types.schema.json`→`<out>/types.g.dart`，`ast.schema.json` 只是纯 `$ref` 包装、无自有 `$defs`，不生成 `ast.g.dart`（无消费者 import 它，旧文本的该项删除）。文件集因此是确定的：`types.g.dart` 加每个 ready op 一域，不由目录扫描或 schema 文件名枚举决定。同域多 op 与共享类型按 (域, op 或 title) 字节序合并进同一文件；每个文件头写 `// GENERATED CODE - DO NOT MODIFY BY HAND.`、来源 manifest/schema 文件名与 `// generator: CORE-67 v1`（文本常量，不含时间戳/版本库状态），使漂移比较确定。全局唯一 title 只生成一次并放在其声明域文件，生成文件之间用相对 `import` 互相引用。
+- 写盘安全与漂移判定：`--write` 先写同目录临时文件再原子 rename，只写应存在文件集，不触碰目录外文件。“本卡生成物”的唯一判定是文件头两行同时含 `// GENERATED CODE - DO NOT MODIFY BY HAND.` 与 `// generator: CORE-67 v1`，不看文件名后缀、不看 mtime。四态只看内容：应存在且磁盘缺失 → missing（`sha256` 为 null）；应存在且磁盘字节与期望字节相同 → match；应存在但不同 → drift；不应存在却满足生成物判定 → stale。stale 的处理：`--check` 只报 stale 并退 1、不删除；`--write` 删除并在 stdout 列名。`<out>` 内应存在路径上的同名文件若不满足生成物判定，`--write` 拒绝覆盖、退 1 并报 `DTO_HEADER_MISSING`；`--check` 同样报该码并退 1；两种模式都不删除它。
+- 输入边界：默认读 `contracts/dto/manifest.json` 与其中引用的 `contracts/dto/*.schema.json`；fixture 的 manifest 与 schema 由本卡建立为 `tools/ci/tests/fixtures/dto/fixture.manifest.json` 与 `fixture-echo.schema.json`（CORE-100 测试复用同一份），必须用 `--manifest` 显式指定，不得写入 `contracts/dto/`。S0 自包含 fixture（fixture.echo）用于验收生成器形状，真实清单 36 ready/107 pending 只做结构与漂移验收；`status=ready` 仅表示字段设计闭合，不代表业务实现完成、也不代表消费者已签认。
 - pending 不生成类型：pending 条目无 mode/schema，本卡不生成、不猜字段，只在报告 `skipped` 中列出。
 
 **实现约束**
 - 生成器只负责格式，不推测领域默认值、不从 schema 猜业务语义；只消费 CORE-100 的类型图与 manifest 文本，不读 SADD、不 import CORE-56/CORE-03 的运行时代码。
 - Dart 产物只放 `app/lib/binding/dto/`；`ui/` 可只读 import 纯数据生成文件但不得持 CoreBinding（CORE-01 的 Dart 分层）；只用 dart:convert 等 SDK，不引入第三方 JSON 框架，不手写业务 DTO。
-- 数据边界而非依赖：CORE-03（信封）、CORE-56（引擎数据）、CORE-41（CI 聚合）只消费或调用本卡产物/入口。把它们写进“依赖”会形成 CORE-41→CORE-67→CORE-41 与 CORE-03→CORE-67→CORE-100→CORE-03 环（CORE-01 依赖方向、CARD-10），故本卡只在正文声明接入点：CI 侧由 CORE-41 的 manifest 步骤条目调用本卡 CLI，本卡不 import 其实现、不修改其 manifest 结构（沿用 CORE-41 已冻结的 `{version:1,steps:[{id,owner,argv,release_args?}]}` 追加一行）。
+- 数据边界而非依赖：CORE-03（信封）、CORE-56（引擎数据）、CORE-41（CI 聚合）只消费或调用本卡产物/入口。把它们写进“依赖”会形成 CORE-41→CORE-67→CORE-41 与 CORE-03→CORE-67→CORE-100→CORE-03 环（CORE-01 依赖方向、CARD-10），故本卡只在正文声明接入点：CI 侧由 CORE-41 的 manifest 步骤条目调用本卡 CLI，本卡不 import 其实现，也**不直接写** `tools/ci/manifest.json`，只提交本卡步骤条目片段 `{"id":"dto-drift","owner":"CORE-67","argv":["python","tools/ci/gen_dto.py","--check","--report","build/dto/drift.json"],"release_args":["--release"]}`，由 CORE-41 按其已冻结的 `{version:1,steps:[{id,owner,argv,release_args?}]}` 合入。
 - 契约变更按 README §8.4：新增/更改字段先改所有者卡与 schema，再重生成；本卡不改 type/properties 语义。schema 变更须同一提交内重跑 `--write`，main 上 `--check` 必须为 0。
-- 生成文件中的类型名与文件布局一旦发布即为对外 API（Flutter 界面只读 import），改名或移动属契约破坏性变更，须 ADR 与消费者通知；本卡不自建第二套命名规则。
+- 生成文件中的类型名与文件布局一旦发布即为对外 API（Flutter 界面只读 import），改名或移动属契约破坏性变更，须 ADR 与消费者通知；命名规则唯一真源是本卡的“命名（冻结算法）”，其他卡不得自建第二套，也不得在生成文件里手改类名或文件名。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-67_TEST.md](../Test/S0/S0_CORE-67_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约540行，分阶段。`tools/ci/dto_emit.py` 340（阶段1 180：不可变类型与严格 codec；阶段2 160：密封变体、tuple、有类型 map、递归与共享合并）、`tools/ci/gen_dto.py` 170（阶段1 100：CLI 参数、域推导、报告、退出码；阶段2 70：逐文件漂移与写盘安全）、本卡 CI 接入 30（manifest 步骤条目与生成目录约定）。阶段1 = 类型图消费 + 不可变类型 + codec + CLI/报告骨架，可独立构建与测试；阶段2 = 密封变体/tuple/typed map/递归合并/逐文件漂移，可独立构建与测试。contracts/dto 数据、生成的 `*.g.dart` 与自测不计；原960行另465归CORE-100，manifest/schema/阶段校验内核不在本卡。
+**规模**：约540行，分阶段。`tools/ci/dto_emit.py` 340（阶段1 180：不可变类型与严格 codec；阶段2 160：密封变体 40、tuple 与 record typedef 25、有类型 map 与 ==/hashCode 15、递归与跨文件共享合并 40、生成物判定与 stale 清理及 sha256 四态 40）、`tools/ci/gen_dto.py` 170（阶段1 100：CLI 参数、域推导、报告、退出码；阶段2 70：逐文件漂移与写盘安全）、本卡 CI 接入 30（manifest 步骤条目与生成目录约定）。阶段1 = 类型图消费 + 不可变类型 + codec + CLI/报告骨架，可独立构建与测试；阶段2 = 密封变体/tuple/typed map/递归合并/逐文件漂移，可独立构建与测试。contracts/dto 数据、生成的 `*.g.dart` 与自测不计；原960行另465归CORE-100，manifest/schema/阶段校验内核不在本卡。
