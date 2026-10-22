@@ -6,6 +6,8 @@ import {FILES, readDocs} from './layout.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export {FILES};
+// 契约或用法错误（CLI 退出码 2）；未被包装的异常视为内部故障（退出码 3）。内部类型，不导出。
+class PackError extends Error {}
 /** tests=false 时卡片正文不拼回 Test/ 测试方案，只保留引用行（testFile 仍记录路径）。 */
 export function load(sadd = path.join(ROOT, 'SADD'), {tests = true} = {}) {
   const cards = new Map();
@@ -67,11 +69,11 @@ export function definedSymbols(text) {
 export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests = false} = {}) {
   // 默认不收录 Test/ 测试方案（README §8.1）；本卡功能变更须同步修改测试方案时用 withTests 收录。
   const cards = load(sadd, {tests: withTests}); const target = cards.get(id);
-  if (!target) throw new Error(`Unknown card: ${id}`);
+  if (!target) throw new PackError(`Unknown card: ${id}`);
   const closure = new Set();
   function visit(key, stack = []) {
-    if (stack.includes(key)) throw new Error(`Cycle: ${[...stack, key].join(' -> ')}`);
-    if (!cards.has(key)) throw new Error(`Missing card: ${key}`);
+    if (stack.includes(key)) throw new PackError(`Cycle: ${[...stack, key].join(' -> ')}`);
+    if (!cards.has(key)) throw new PackError(`Missing card: ${key}`);
     if (closure.has(key)) return;
     closure.add(key);
     for (const d of cards.get(key).deps) visit(d, [...stack, key]);
@@ -146,7 +148,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   const norm = file => {
     const resolved = path.resolve(root, file);
     const relative = path.relative(root, resolved);
-    if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error(`Path outside workspace: ${file}`);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) throw new PackError(`Path outside workspace: ${file}`);
     return relative.split(path.sep).join('/');
   };
   const extraSet = new Set(extra.map(norm));
@@ -161,6 +163,9 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   const readText = file => fs.readFileSync(path.join(root, file), 'utf8');
   const MANIFEST = 'contracts/dto/manifest.json', SHARED = 'contracts/policies/shared-writes.json', TYPES = 'contracts/dto/types.schema.json';
   const manifestDoc = exists(MANIFEST) ? JSON.parse(readText(MANIFEST)) : {ops: []};
+  // CO-60-1/F-75-01：文件声明的单写维护者卡 = policy 中 kind=file 且 key 为该文件路径的条目 owner。
+  const sharedDoc = exists(SHARED) ? JSON.parse(readText(SHARED)) : {entries: []};
+  const maintainerOf = file => (sharedDoc.entries ?? []).find(e => e.kind === 'file' && e.key === file)?.owner;
   const ownedSchemas = new Set((manifestDoc.ops ?? []).filter(o => related.has(o.owner) && typeof o.schema === 'string').map(o => 'contracts/dto/' + o.schema));
   const isSchema = f => /^contracts\/dto\/[^/]+\.schema\.json$/.test(f) && f !== TYPES;
   const isVector = f => f.startsWith('contracts/vectors/');
@@ -181,9 +186,9 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
     for (const ref of schemaRefs(JSON.parse(readText(f)))) {
       const [file, fragment] = ref.split('#');
       if (!file) continue;
-      if (/^[a-z]+:/i.test(file)) throw new Error(`External contract reference: ${file}`);
+      if (/^[a-z]+:/i.test(file)) throw new PackError(`External contract reference: ${file}`);
       const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(f), file));
-      if (!dependency.startsWith('contracts/')) throw new Error(`Contract reference outside contracts: ${dependency}`);
+      if (!dependency.startsWith('contracts/')) throw new PackError(`Contract reference outside contracts: ${dependency}`);
       if (dependency === TYPES && !typesFull) {
         const name = fragment?.match(/^\/\$defs\/([^/]+)$/)?.[1];
         if (name) typesNeeded.add(name); else typesFull = true;
@@ -209,10 +214,23 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
     const content = readText(file); const entry = {path: file, originalBytes: bytes(content), sha256: sha256(content)};
     if (file === MANIFEST || file === SHARED) {
       const key = file === MANIFEST ? 'ops' : 'entries';
+      const total = jsonItems(content, key).length;
+      const maintainer = maintainerOf(file);
+      // 门禁卡（如 CORE-75）的编码材料必须能读到被校验数据：维护者在相关卡内时整文件收录，不静默过滤成空。
+      if (maintainer && related.has(maintainer)) {
+        files.push(file);
+        const note = `整文件收录：单写维护者 ${maintainer} 在相关卡内（CO-60-1/F-75-01），原文件 SHA-256=${entry.sha256}，条目数 ${total}/${total}（原 ${entry.originalBytes} 字节）；各条目与原文件逐字节一致；全文用 --file ${file}。`;
+        pushFile(file, note + '\n\n' + fence(content), `${file}（整文件收录）`);
+        filteredFiles.push({...entry, mode: 'filtered', includedBytes: entry.originalBytes, reason: `单写维护者 ${maintainer} 在相关卡内，整文件收录`, kept: total, total});
+        warnings.push(`${file}: 单写维护者 ${maintainer} 在相关卡内，整文件收录（条目数 ${total}/${total}，原文件 SHA-256=${entry.sha256}）`);
+        continue;
+      }
       const f = filterJsonArray(content, key, item => related.has(item.owner));
       const note = `已按 owner 过滤：owner ∈ {${ownerList}}，原文件 SHA-256=${entry.sha256}，条目数 ${f.kept}/${f.total}（原 ${entry.originalBytes} 字节，收录 ${bytes(f.text)} 字节）；保留原 JSON 结构，各条目与原文件逐字节一致；全文用 --file ${file}。`;
       pushFile(file, note + '\n\n' + fence(f.text), `${file}（已按 owner 过滤）`);
       filteredFiles.push({...entry, mode: 'filtered', includedBytes: bytes(f.text), reason: `只收录 owner ∈ 目标卡/直接依赖的条目（${f.kept}/${f.total}）`, kept: f.kept, total: f.total});
+      // 过滤为 0 条可能意味着本卡需要该文件却读不到，必须报警（CO-60-1/F-75-01）。
+      if (f.kept === 0) warnings.push(`${file}: owner ∈ {${ownerList}} 的条目为 0/${f.total}，按 owner 过滤后为空；如需校验该文件用 --file ${file} 取全文`);
       continue;
     }
     if (file === TYPES) {
@@ -241,7 +259,7 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
     filteredFiles.push({...entry, mode: 'listed', includedBytes: 0, reason});
   }
   const listed = filteredFiles.filter(f => f.mode === 'listed' && f.path.startsWith('contracts/'));
-  sections.push(`## contracts 清单（未收录正文的文件）\n\n共 ${inventory.length} 个文件：正文收录 ${inventory.filter(f => fullReason.has(f)).length}，切片/过滤 ${filteredFiles.filter(f => f.path.startsWith('contracts/') && f.mode !== 'listed').length}，只列名 ${listed.length}。需要时用 --file 取全文。\n\n| 文件 | 字节 | SHA-256 | 原因 |\n| --- | --- | --- | --- |\n${listed.map(f => `| ${f.path} | ${f.originalBytes} | ${f.sha256} | ${f.reason} |`).join('\n') || '| （无） | — | — | — |'}`);
+  sections.push(`## contracts 清单（未收录正文的文件）\n\n共 ${inventory.length} 个文件：正文收录 ${inventory.filter(f => fullReason.has(f) || files.includes(f)).length}，切片/过滤 ${filteredFiles.filter(f => f.path.startsWith('contracts/') && f.mode !== 'listed' && !files.includes(f.path)).length}，只列名 ${listed.length}。需要时用 --file 取全文。\n\n| 文件 | 字节 | SHA-256 | 原因 |\n| --- | --- | --- | --- |\n${listed.map(f => `| ${f.path} | ${f.originalBytes} | ${f.sha256} | ${f.reason} |`).join('\n') || '| （无） | — | — | — |'}`);
   const inventoryTokens = [...tokens(sections.join('\n'))].filter(t => /^[A-Z][a-z]+[A-Z]/.test(t));
   const definitionPattern = /(?:struct|class|enum|trait|typedef|type)\s+(\w+)/g;
   const known = new Set([...sections.join('\n').matchAll(definitionPattern)].map(m=>m[1]));
@@ -264,8 +282,10 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   const text = header + '\n' + sections.join('\n\n');
   const chars = [...text].length;
   const chunks = segment(text);
-  return {text, chunks, report: {id, chars, overLimit: chars > 80000, segments: chunks.length, tests: withTests ? 'included' : 'excluded',
-    closure: [...closure], related: [...related], manifest, files, filteredFiles, adr: adrSelection.report, missing, warnings, missingFromMaterials,
+  const overLimit = chars > 80000;
+  if (overLimit) warnings.push(`材料总量 ${chars} 字符超过 80000（分 ${chunks.length} 段无损写出，不裁剪）；CI 用 --check-budget 时退出码 1`);
+  return {text, chunks, report: {id, chars, overLimit, segments: chunks.length, tests: withTests ? 'included' : 'excluded',
+    closure: [...target.deps], related: [...related], manifest, files, filteredFiles, adr: adrSelection.report, missing, warnings, missingFromMaterials,
     undefinedIdentifiers: [...new Set(undefinedIdentifiers)].sort(), classifiedReferences, excludedSupplements: adrSelection.report.excludedSupplements}};
 }
 
@@ -281,7 +301,7 @@ export function segment(text, limit = 80000) {
   const chunks = []; let chunk = ''; let size = 0;
   for (const unit of units) {
     const n = [...unit].length;
-    if (n > limit) throw new Error('Single indivisible block exceeds 80000 characters; split its owning card');
+    if (n > limit) throw new PackError('Single indivisible block exceeds 80000 characters; split its owning card');
     if (size + n > limit && chunk) { chunks.push(chunk); chunk = ''; size = 0; }
     chunk += unit; size += n;
   }
@@ -414,13 +434,20 @@ export function writeOutput(out, result, extra = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const id = process.argv[2];
-  if (!id) { console.error('Usage: node tools/sadd/pack.mjs CARD [--out DIR] [--sadd DIR] [--file PATH] [--with-tests] [--check-budget]'); process.exit(2); }
-  const opt = name => { const i=process.argv.indexOf(name); return i<0?undefined:process.argv[i+1]; };
-  const extra = process.argv.flatMap((x,i) => x === '--file' ? [process.argv[i+1]] : []);
-  const result = pack(id, {sadd: opt('--sadd'), extra, withTests: process.argv.includes('--with-tests')});
-  const out = path.resolve(opt('--out') ?? `build/sadd/${id}`);
-  writeOutput(out, result, {node: process.version});
-  console.log(JSON.stringify({id, chars: result.report.chars, segments: result.chunks.length, warnings:result.report.warnings}));
-  if (process.argv.includes('--check-budget') && result.report.overLimit) process.exitCode = 1;
+  // 卡 :19：0 正常（含未带 --check-budget 的总量超限）、1 --check-budget 且总量超限、2 用法或契约错误、3 未预期内部异常。
+  try {
+    const id = process.argv[2];
+    if (!id || id.startsWith('--')) throw new PackError('Usage: node tools/sadd/pack.mjs CARD [--out DIR] [--sadd DIR] [--file PATH] [--with-tests] [--check-budget]');
+    const opt = name => { const i=process.argv.indexOf(name); return i<0?undefined:process.argv[i+1]; };
+    const extra = process.argv.flatMap((x,i) => x === '--file' ? [process.argv[i+1]] : []);
+    const result = pack(id, {sadd: opt('--sadd'), extra, withTests: process.argv.includes('--with-tests')});
+    const out = path.resolve(opt('--out') ?? `build/sadd/${id}`);
+    writeOutput(out, result, {node: process.version});
+    console.log(JSON.stringify({id, chars: result.report.chars, segments: result.chunks.length, warnings:result.report.warnings}));
+    if (process.argv.includes('--check-budget') && result.report.overLimit) process.exitCode = 1;
+  } catch (error) {
+    // 不写半成品材料：pack 失败时尚未创建输出；写出失败只留已写文件，退出码 3。
+    console.error(`pack: ${error instanceof PackError ? error.message : '未预期内部异常：' + error.message}`);
+    process.exitCode = error instanceof PackError ? 2 : 3;
+  }
 }

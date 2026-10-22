@@ -5,6 +5,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import * as packModule from './pack.mjs';
 
 test('fences and tables remain atomic', () => {
   const input='```rust\nstruct A {\n\n x: u8\n}\n```\n\n| a | b |\n| - | - |\n| 1 | 2 |\n';
@@ -295,5 +297,139 @@ test('indirect dependencies contribute only blocks that define a needed symbol; 
     assert.equal(path.dirname(path.resolve(root)), path.resolve(os.tmpdir()));
     assert.ok(path.basename(root).startsWith('sadd-pack-'));
     fs.rmSync(root, {recursive: true, force: true});
+  }
+});
+
+
+// ---- 退出码分类、超量报警、公开面与 CO-60-1（卡 :16/:19，测试方案 L7/L10/L12/L14） ----
+const run = args => spawnSync(process.execPath, [path.resolve('tools/sadd/pack.mjs'), ...args], {cwd: process.cwd(), encoding: 'utf8'});
+const outDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-run-'));
+const partNames = dir => { if (!fs.existsSync(dir)) return []; return fs.readdirSync(dir).filter(n => n.startsWith('part-') && n.endsWith('.md')).sort((a, b) => parseInt(a.slice(5), 10) - parseInt(b.slice(5), 10)); };
+
+test('CLI exits 2 for usage and contract errors and writes no material', () => {
+  const none = run([]);
+  assert.equal(none.status, 2); assert.match(none.stderr, /Usage/);
+  const dir = outDir();
+  try {
+    const unknown = run(['CORE-999', '--out', dir]);
+    assert.equal(unknown.status, 2); assert.match(unknown.stderr, /Unknown card/);
+    assert.ok(!fs.existsSync(path.join(dir, 'material.md')));
+    const outside = run(['CORE-01', '--out', dir, '--file', '../outside.txt']);
+    assert.equal(outside.status, 2); assert.match(outside.stderr, /outside workspace/);
+    assert.deepEqual(partNames(dir), []);
+    assert.ok(!fs.existsSync(path.join(dir, 'material.md')));
+  } finally { fs.rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('CLI exits 2 for an indivisible block above 80000 and 3 for unexpected internal failures', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-'));
+  const sadd = path.join(root, 'SADD'); fs.mkdirSync(sadd);
+  const out = path.join(root, 'out');
+  try {
+    const card = (id, deps, contract) => '### ' + id + ' fixture\n\n**依赖**：' + deps + '\n\n**接口契约**\n\n' + contract + '\n\n**实现约束**\nfixture\n';
+    const write = text => fs.writeFileSync(path.join(sadd, '01-公共核心-v5.md'),
+      card('CORE-01', '', 'root') + card('CORE-02', '', 'errors') + card('CORE-57', 'CORE-01、CORE-02', text));
+    for (const f of ['02-Android端-v5.md', '03-Windows端-v5.md', 'README.md', '附录A-架构决策与评审记录.md']) fs.writeFileSync(path.join(sadd, f), '');
+    write('y'.repeat(80001));
+    const big = run(['CORE-57', '--sadd', sadd, '--out', out]);
+    assert.equal(big.status, 2); assert.match(big.stderr, /Single indivisible block/);
+    assert.ok(!fs.existsSync(path.join(out, 'material.md')));
+    // 未预期内部异常（contracts JSON 损坏）必须落到 3，不得落到 1。
+    fs.mkdirSync(path.join(root, 'contracts/dto'), {recursive: true});
+    write('fixture contract');
+    fs.writeFileSync(path.join(root, 'contracts/dto/manifest.json'), '{not json');
+    const broken = run(['CORE-57', '--sadd', sadd, '--out', out]);
+    assert.equal(broken.status, 3); assert.match(broken.stderr, /^pack: /);
+    assert.ok(!fs.existsSync(path.join(out, 'material.md')));
+    assert.deepEqual(partNames(out), []);
+  } finally {
+    assert.ok(path.basename(root).startsWith('sadd-pack-'));
+    fs.rmSync(root, {recursive: true, force: true});
+  }
+});
+
+test('--check-budget exits 1 on an over-limit card with complete material and 0 without the flag', () => {
+  const dir = outDir();
+  try {
+    const on = run(['WIN-13', '--out', dir, '--check-budget']);
+    assert.equal(on.status, 1);
+    const report = JSON.parse(read(path.join(dir, 'report.json')));
+    const material = read(path.join(dir, 'material.md'));
+    assert.equal(report.overLimit, true); assert.ok(report.chars > 80000);
+    assert.equal(report.chars, [...material].length);
+    const parts = partNames(dir);
+    assert.deepEqual(parts, report.reading.parts);
+    assert.equal(parts.length, report.segments);
+    assert.equal(parts.map(p => read(path.join(dir, p))).join(''), material);
+    const off = run(['WIN-13', '--out', dir]);
+    assert.equal(off.status, 0);
+    const again = JSON.parse(read(path.join(dir, 'report.json')));
+    assert.equal(again.overLimit, true); assert.equal(again.chars, report.chars);
+  } finally { fs.rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('oversized read-only fixture cards report chars, segments, overLimit, manifest and missing locks', () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-big-'));
+  try {
+    for (const id of ['WIN-13', 'AND-12', 'WIN-14', 'WIN-08', 'CORE-50']) {
+      const dir = path.join(base, id); const result = pack(id);
+      const {parts, removedStaleParts} = writeOutput(dir, result);
+      assert.deepEqual(removedStaleParts, []);
+      const material = read(path.join(dir, 'material.md'));
+      assert.equal(result.report.chars, [...material].length, id + ' chars');
+      assert.equal(result.report.segments, parts.length, id + ' segments');
+      assert.deepEqual(partNames(dir), parts.map((_, i) => 'part-' + (i + 1) + '.md'), id + ' part numbering');
+      assert.ok(result.report.chars > 80000, id + ' over limit');
+      assert.equal(result.report.overLimit, true);
+      assert.ok(result.report.warnings.some(w => /超过 80000/.test(w)), id + ' over-limit warning');
+      assert.ok(result.report.manifest.length > 0, id + ' manifest');
+      for (const entry of result.report.manifest) for (const k of ['card', 'before', 'after', 'retained']) assert.ok(k in entry, id + ' ' + k);
+      assert.ok(result.report.missing.some(f => /toolchain\.versions$/.test(f)), id + ' missing locks');
+      assert.equal(parts.map(p => read(path.join(dir, p))).join(''), material, id + ' lossless parts');
+    }
+  } finally {
+    assert.ok(path.basename(base).startsWith('sadd-pack-big-'));
+    fs.rmSync(base, {recursive: true, force: true});
+  }
+});
+
+test('public surface stays fixed and report.json keeps the card field order', () => {
+  for (const name of ['ROOT', 'FILES', 'load', 'pack', 'segment', 'blocks', 'definedSymbols', 'schemaRefs', 'jsonItems', 'filterJsonArray', 'filterJsonObject', 'writeOutput']) assert.ok(name in packModule, name + ' exported');
+  for (const name of ['listContracts', 'skipString', 'skipValue', 'members', 'rebuild', 'selectAdr']) assert.ok(!(name in packModule), name + ' stays internal');
+  assert.equal(typeof packModule.ROOT, 'string');
+  const deps = load().get('CORE-78').deps;
+  const result = pack('CORE-78');
+  assert.deepEqual(Object.keys(result).sort(), ['chunks', 'report', 'text']);
+  assert.equal(result.chunks.join(''), result.text);
+  assert.deepEqual(result.report.closure, deps);
+  assert.deepEqual([...result.report.related].sort(), [...new Set(['CORE-78', ...deps, 'CORE-01', 'CORE-02'])].sort());
+  const dir = outDir();
+  try {
+    const {parts, removedStaleParts} = writeOutput(dir, result, {node: 'v-fixture'});
+    const report = JSON.parse(read(path.join(dir, 'report.json')));
+    assert.deepEqual(Object.keys(report), ['id', 'chars', 'overLimit', 'segments', 'tests', 'closure', 'related', 'manifest', 'files', 'filteredFiles', 'adr', 'missing', 'warnings', 'missingFromMaterials', 'undefinedIdentifiers', 'classifiedReferences', 'excludedSupplements', 'reading', 'removedStaleParts', 'node']);
+    assert.equal(report.node, 'v-fixture');
+    assert.deepEqual(removedStaleParts, []);
+    assert.equal(parts.length, result.chunks.length);
+  } finally { fs.rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('the policy maintainer in the closure gets the whole file; zero-hit filtering warns (CO-60-1)', () => {
+  const sw = read(SW); const entries = JSON.parse(sw).entries;
+  const maintainer = entries.find(e => e.kind === 'file' && e.key === SW).owner;
+  assert.equal(maintainer, 'CORE-75');
+  const r75 = pack('CORE-75');
+  assert.ok(r75.report.files.includes(SW), 'maintainer file is collected whole');
+  assert.equal(fenced(r75.text, SW + '（整文件收录）'), sw);
+  assert.ok(r75.report.warnings.some(w => w.includes(SW) && w.includes(maintainer) && /整文件收录/.test(w)), 'explicit warning');
+  const entry = r75.report.filteredFiles.find(f => f.path === SW);
+  assert.equal(entry.kept, entries.length); assert.equal(entry.total, entries.length);
+  assert.equal(entry.sha256, sha(sw)); assert.equal(entry.includedBytes, Buffer.byteLength(sw));
+  // 维护者不在相关卡内时仍按 owner 过滤；命中 0 条不得静默。
+  const r67 = pack('CORE-67');
+  for (const file of [SW, MAN]) {
+    const hit = r67.report.filteredFiles.find(f => f.path === file);
+    assert.equal(hit.mode, 'filtered'); assert.equal(hit.kept, 0); assert.ok(hit.total > 0, file + ' total');
+    assert.ok(r67.report.warnings.some(w => w.includes(file) && /0\//.test(w)), file + ' zero-hit warning');
   }
 });
