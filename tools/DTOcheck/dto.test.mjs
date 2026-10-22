@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {tmpRoot, makeDto, write} from './fixture.mjs';
+import {tmpRoot, makeDto, makeSadd, write} from './fixture.mjs';
 import {checkDto, uuidv5} from './dto.mjs';
 import {validate, lintSchema, FORMATS} from './schema.mjs';
+import {loadCards} from './lib.mjs';
 
 const codes = r => r.errors.map(e => e.id);
 const dto = root => path.join(root, 'contracts', 'dto');
@@ -114,4 +115,71 @@ test('向量：幂等键按 UUIDv5 重算，被改动即失败', () => {
   vec.vectors[0].idempotency_key = '00000000-0000-5000-8000-000000000000';
   write(path.join(root, 'contracts', 'vectors', 'cloud-idempotency-v1.json'), JSON.stringify(vec));
   assert.ok(codes(checkDto({root})).includes('DTO-21'));
+});
+
+test('阶段字段：缺失、非法取值、与 owner 卡实施阶段不一致', () => {
+  const root = fresh();
+  edit(root, 'manifest.json', m => { delete m.ops[0].stage; m.ops[1].stage = 'S9'; });
+  const msgs = checkDto({root}).errors.filter(e => e.id === 'DTO-22').map(e => e.msg).join('\n');
+  assert.ok(msgs.includes('demo.open')); assert.ok(msgs.includes('"S9"'), msgs);
+
+  // 取值合法但来源不符：来源是 §2 实施阶段表中的 owner 卡阶段
+  const root2 = fresh();
+  const cards = loadCards(makeSadd(root2));
+  const stages = new Map([['CORE-05', 'S2']]);
+  const bad = checkDto({root: root2, cards, stages: new Map([['CORE-05', 'S2']])}).errors.filter(e => e.id === 'DTO-23');
+  assert.ok(bad.length && bad[0].msg.includes('S2'), JSON.stringify(bad));
+  // owner 不在阶段表即无法核对，也要失败
+  assert.ok(codes(checkDto({root: root2, cards, stages: new Map()})).includes('DTO-23'));
+  // 一致时除“错误码未在卡内登记”（本夹具 SADD 无错误码表）外不再有其它错误
+  assert.deepEqual(checkDto({root: root2, cards, stages: new Map([['CORE-05', 'S1']])}).errors.filter(e => e.id !== 'DTO-06'), []);
+});
+
+test('引擎快照集合：ready 必须显式布尔，且与该 op 的 ENGINE_UNAVAILABLE 双向一致；pending 不得声明', () => {
+  const absent = fresh();
+  edit(absent, 'manifest.json', m => { delete m.ops[0].reads_engine_snapshot; });
+  assert.ok(checkDto({root: absent}).errors.some(e => e.id === 'DTO-24' && e.msg.includes('必须显式声明')));
+
+  const noCode = fresh();
+  edit(noCode, 'manifest.json', m => { m.ops[0].reads_engine_snapshot = true; });
+  assert.ok(checkDto({root: noCode}).errors.some(e => e.id === 'DTO-24' && e.msg.includes('未含 ENGINE_UNAVAILABLE')));
+
+  const noFlag = fresh();
+  edit(noFlag, 'manifest.json', m => { m.ops[0].error_codes = ['DEMO_FAIL', 'ENGINE_UNAVAILABLE']; });
+  assert.ok(checkDto({root: noFlag}).errors.some(e => e.id === 'DTO-24' && e.msg.includes('不为 true')));
+
+  const pending = fresh();
+  edit(pending, 'manifest.json', m => { m.ops[1].reads_engine_snapshot = false; });
+  assert.ok(checkDto({root: pending}).errors.some(e => e.id === 'DTO-24' && e.msg.includes('pending 不得声明')));
+});
+
+test('条目字段冻结：未知字段失败，ready 不得带 blocked_reason 以外的额外键', () => {
+  const root = fresh();
+  edit(root, 'manifest.json', m => { m.ops[0].stages = 'S1'; m.ops[1].snapshot = false; });
+  const msgs = checkDto({root}).errors.filter(e => e.id === 'DTO-25').map(e => e.msg).join('\n');
+  assert.ok(msgs.includes('stages') && msgs.includes('snapshot'), msgs);
+});
+
+test('错误集合来源：未注册、重复归属、CORE-03 信封码都失败，登记正确的码通过', () => {
+  const root = fresh();
+  const cards = loadCards(makeSadd(root));
+  const defTable = (code) => `\n\n**错误码**\n\n| 错误码 | 说明 |\n| --- | --- |\n| \`${code}\` | 测试 |\n`;
+  cards.get('CORE-05').body += defTable('DEMO_FAIL');
+  assert.deepEqual(checkDto({root, cards}).errors, []);          // 唯一注册时通过
+  cards.get('CORE-01').body += defTable('DEMO_FAIL');            // 重复归属
+  const dup = checkDto({root, cards}).errors.filter(e => e.id === 'DTO-06');
+  assert.ok(dup.some(e => e.msg.includes('多张卡定义')), JSON.stringify(dup));
+
+  const root2 = fresh();
+  const cards2 = loadCards(makeSadd(root2));
+  cards2.get('CORE-05').body += defTable('ENGINE_UNAVAILABLE');
+  cards2.set('CORE-03', {id: 'CORE-03', body: defTable('FFI_BAD_ARG')});
+  edit(root2, 'manifest.json', m => { m.ops[0].error_codes = ['ENGINE_UNAVAILABLE']; });
+  const noEngine = codes(checkDto({root: root2, cards: cards2}));
+  assert.ok(noEngine.includes('DTO-24'));                        // 含 ENGINE_UNAVAILABLE 却未标记快照
+  edit(root2, 'manifest.json', m => { m.ops[0].error_codes = ['FFI_BAD_ARG']; });
+  const envelope = codes(checkDto({root: root2, cards: cards2}));
+  assert.ok(envelope.includes('DTO-18'));                        // CORE-03 信封码混入业务错误集合
+  edit(root2, 'manifest.json', m => { m.ops[0].error_codes = ['NOPE_UNREGISTERED']; });
+  assert.ok(checkDto({root: root2, cards: cards2}).errors.some(e => e.id === 'DTO-06' && e.msg.includes('未注册')));
 });
