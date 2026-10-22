@@ -642,7 +642,7 @@ mat增加来自补全共享契约与新增前置数据/守卫/启动器，不是
 
 | 编号 | 阶段 | 评审等级（2026-10-19） | v5.3 修订后 | v5.3 复核（2026-10-20） | v5.3.1 修订后（未独立复核） | v5.3.2 复核 | v5.3.3 复核 | 当前状态 | 待定ADR影响（含依赖闭包） | 遗留阻塞/未复核原因 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CORE-01 | S0 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-01；pass；复检后无修订；消费方确认未完成） | —（仍须开工锁版本/平台探针） | 独立发现：E-I01；首卡验收依赖后卡，锁版与材料超量。；lead修复见D.14，未重新提级。 v5.3.4整卡复核（2026-10-21，rev-r1；s6-a，D.12 P2-CORE-01）：B/fail；阻断 R01-01 members 含 server 与本卡验收冲突（S0…；R01-02 交付文件清单缺失，deny.toml/lints 等 …；S6-CORE-01-01 DEP-1 允许表、dep6_symbo…；S6 pass。 CO-14附带：补Cargo workspace成员规则与fml-sync-proto目录（N-11）；lead修订后未复检，受影响条目须由非作者复检，不改等级。 v5.3.4 D2复检（2026-10-22，r11-core01-review，D.12 P2-CORE-01）：B/pass；复检后无修订。 |
+| CORE-01 | S0 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-01；pass；复检后无修订；消费方确认未完成） | —（仍须开工锁版本/平台探针） | 独立发现：E-I01；首卡验收依赖后卡，锁版与材料超量。；lead修复见D.14，未重新提级。 v5.3.4整卡复核（2026-10-21，rev-r1；s6-a，D.12 P2-CORE-01）：B/fail；阻断 R01-01 members 含 server 与本卡验收冲突（S0…；R01-02 交付文件清单缺失，deny.toml/lints 等 …；S6-CORE-01-01 DEP-1 允许表、dep6_symbo…；S6 pass。 CO-14附带：补Cargo workspace成员规则与fml-sync-proto目录（N-11）；lead修订后未复检，受影响条目须由非作者复检，不改等级。 v5.3.4 D2复检（2026-10-22，r11-core01-review，D.12 P2-CORE-01）：B/pass；复检后无修订。 2026-10-22：用户终审放行编码（例外，消费方确认编码后补做，见 D.14.6 第5项）。 |
 | CORE-02 | S0 | B | B | B | B | C v5.3.4 D2复检（2026-10-22，r14-core02-review，D.12 P2-CORE-02，CO-56 后）：B/pass；修订后已复检（CO-56：7654178、3d4fac5）。 | B | 未就绪（D.12 P2-CORE-02；fail；修订已整合待复检（CO-56：7654178、3d4fac5；r13-core02-review 进行中）） | —（仍须开工锁版本/平台探针） | 独立发现：E-N03；机器错误集合、消费确认、完整材料。；lead修复见D.14，未重新提级。 CO-14：补TraceId/Severity/Diagnostic/FmlError derive与serde、ErrorCode生成方法、FmlError::new/with_trace构造、示例改“L T^-1”；lead修订后未复检，受影响条目须由非作者复检，不改等级。 v5.3.4整卡复核（2026-10-21，rev-r3；s6-a，D.12 P2-CORE-02）：B/fail；阻断 R3-02-01 FFI/HTTP 适配层 with_trace 填…；R3-02-02 生成物 API 欠规格（变体命名、未知 code …；R3-02-03 Dart FmlException.fromJso…；R3-02-04 所有权两处登记；按各卡错误表预登记会漏 FFI_/…；S6 pass。 CO-27、CO-33 已修订，待复检。 v5.3.4 D2复检（2026-10-22，r9-errors02-review，D.12 P2-CORE-02）：B/fail；修订已整合待复检（CO-56：7654178、3d4fac5；r13-core02-review 进行中）。 |
 | CORE-03 | S0 | B | — | B | B | C | B | 未就绪（D.12 P2-CORE-03；fail；修订已整合待复检） | —（仍须开工锁版本/平台探针） | 独立发现：E-N01～04；handle改善，FFI规模与机器契约待闭合。；lead修复见D.14，未重新提级。 v5.3.4 D2复检（2026-10-22，r6-b，D.12 P2-CORE-03）：B/fail；修订已整合待复检。 |
 | CORE-04 | S0 | B | B | B | B | C | B | 未就绪（D.12 P2-CORE-04；pending；修订已整合待复检） | —（仍须开工锁版本/平台探针） | 独立发现：E-I13；同步Installer与异步editor不一致。；lead修复见D.14，未重新提级。 v5.3.4 D2复检（2026-10-22，r6-c，D.12 P2-CORE-04）：B/pending；修订已整合待复检。 |
@@ -1431,6 +1431,7 @@ CO-47 之后（2026-10-22，分支 docs/d2-account-network-fixes 工作区，`no
 2. 消费方确认：CORE-01/02 按实际使用的符号选代表性消费卡审核；只审契约是否足以写代码，不审测试方案（测试方案在编码后以代码为主再做）；用户终审。
 3. main：合入 integrate/d2-final2 的原提交，E2 登记单独作一个 docs(sadd) 提交，不推送。
 4. 下一轮：S0 先行，待复检卡与 S0 相关草案续做并行；CORE-02 的 M-01/M-02/L-01/L-03/L-04 现派所有者小修并做针对性非作者复检；r10 复检按原任务书重派；已合入的工作树在下一轮结束后再清理。
+5. S0 编码放行例外（2026-10-22 19:35）：用户终审放行 CORE-01 先行编码（D.12 P2-CORE-01 B/pass，r11-core01-review）；§8.5.1 的消费方确认改为编码后补做（按代表卡），本卡 D.10 状态仍为“未就绪”直到补齐确认，不据此放行其他卡。其余 S0 卡待文档批次完成后由用户逐张放行。工具链由 lead 安装当前 Rust stable 与 Flutter stable，版本与查询日期在 CORE-01 编码时写入锁文件并回填 ADR-V5-15。
 
 仍未执行（下一轮任务书见 temp/prompts/D3-后续任务提示词.md）：CORE-02 编码期交付（P4：registry.yaml、gen_errors.py、REG-01/DTO-06 回向）；未整合草案 CO-46/50/51/53 与未完成的 CO-52/54/55；修订已整合待复检的 16 张卡；CO-48 文本所称“本节末待决清单”不存在（R11-C01-10），随许可口径修订一并处理。
 
