@@ -12,5 +12,6 @@
 - [R01] Widget 测试：`smokeEntry` 在 Fake `RuntimeInfo.snapshot` 抛 `PLATFORM_UNSUPPORTED` 时显示 ABI 版本与固定文案“运行时信息待平台卡实现”、无异常；返回快照时显示快照字段。
 
 - [R27] LocalFileStore契约套件：私有子目录排除成功；兄弟目录、../越界、指向外部的符号链接（平台支持时）抛ArgumentError且目标不变；Fake与真实端口相同。
+- [R27] 暂存根来源（ADR-V5-53）：`root(StoreArea.staging)` 返回已存在的应用私有目录，其绝对路径可直接作为 staging 类 op 的 `staging_root`；同一实现重复调用返回同一目录且不删除调用方已接管文件，核心不保存全局暂存根。
 
 - [R19] 安装点夹具A返回未完成Future、B读取A登记值：A未完成时B不执行，A完成后按顺序执行B；A失败则compose失败且不发布AppDeps，不运行后续安装点；同步安装点亦保持既定顺序。
