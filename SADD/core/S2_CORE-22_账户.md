@@ -16,18 +16,21 @@ workspace接入：本卡首次创建 `server/Cargo.toml`（package.name固定 `f
 POST /v1/auth/register            { email, email_code, password } → 201 { account_id }（不返回授权码；随后显式 authorize）
 POST /v1/auth/password/reset      { email, email_code, new_password } → 204（身份服务吊销该账户全部会话/刷新令牌后才成功）
 GET /v1/auth/authorize            302 → Casdoor discovery 的 authorization_endpoint；保留 client_id、redirect_uri、state、nonce、code_challenge=S256
-POST /v1/auth/token               代理 discovery 的 token_endpoint，本服务作为机密客户端注入 client_secret；authorization_code 必带原 code_verifier；
-                                  refresh_token 必轮换并经令牌族表检测重放；可带头 X-Fml-Device-Id 把令牌族绑定到设备
+POST /v1/auth/token               Content-Type: application/x-www-form-urlencoded（OAuth2 表单，不接受 JSON）；代理 discovery 的 token_endpoint，本服务作为机密客户端注入 client_secret；
+                                  authorization_code 分支字段：grant_type=authorization_code、code、code_verifier（原 PKCE 值）、redirect_uri；
+                                  refresh_token 分支字段：grant_type=refresh_token、refresh_token（当前值）；两支均可带头 X-Fml-Device-Id 把令牌族绑定到设备（authorization_code 成功即建族）；
+                                  成功 200 application/json：Casdoor 响应原样透传，必含 access_token、refresh_token、token_type="Bearer"、expires_in（秒，访问令牌 15 min 即 900），本服务不增删字段；
+                                  refresh 必轮换：成功响应必带新的 refresh_token，旧值移入 used 表；未知、过期、已吊销或重放 → 401 AUTH_REFRESH_REVOKED 并吊销该族；Casdoor 超时或 5xx → 503 SERVER_UNAVAILABLE 且不移动 hash
 POST /v1/auth/logout              { refresh_token } → 204（吊销该刷新令牌所在令牌族；令牌未知也返回 204）
 POST /v1/devices                  { device_id (UUID), platform: android|windows, app_version } → 201；同一 device_id 重复登记返回 200
 GET  /v1/devices                  → 200 { devices: [{ device_id, platform, app_version, created_at, last_seen_at, current: bool }] }（只含未吊销设备）
 DELETE /v1/devices/{device_id}    吊销设备并吊销绑定该设备的令牌族 → 204（触发 CORE-26 密钥轮换提示）
 GET  /v1/meta/client-policy       → 200 { min_app_version, api_major: 1 }（无需令牌）
-GET  /healthz                     → 200 { status: "ok", version }
-所有请求头：Authorization: Bearer <token>（除注册、令牌、client-policy、healthz）；X-Fml-App-Version；X-Fml-Request-Id（非零32位小写十六进制；缺省/格式非法/全零均由边界生成新的非零值，不原样反射非法头）
+所有请求头：Authorization: Bearer <token>（免令牌端点只有 POST /v1/auth/register、POST /v1/auth/password/reset、GET /v1/auth/authorize、POST /v1/auth/token、POST /v1/auth/email-codes、GET /v1/meta/client-policy；其中 authorize 由系统浏览器直连，不经 Bearer 中间件；email-codes 由 CORE-45 注册，本卡只保证它不在 Bearer 中间件覆盖范围内）；X-Fml-App-Version；X-Fml-Request-Id（非零32位小写十六进制；缺省/格式非法/全零均由边界生成新的非零值，不原样反射非法头）
 版本过低：HTTP 426 { error: { code: "SERVER_CLIENT_TOO_OLD", … }, min_app_version }
 错误体：CORE-02 的 FmlError JSON；统一错误中间件调用 error.with_trace(request_trace)，仅补零，保留上游已有非零trace。响应头 X-Fml-Request-Id、记录本次响应的request_id及error.trace_id均取最终error.trace_id；不得为配合入站头而覆盖上游trace，零trace禁止序列化出边界。成功响应头使用本次request_trace；HTTP状态取注册表http_status，未填为400
 限流响应：429 + 头 `Retry-After`（秒），错误码 `AUTH_RATE_LIMITED`
+探针归属：GET /healthz（进程存活）与 GET /readyz（依赖可达）只由 CORE-43 注册（server/src/ops/health.rs），本卡不注册探针路由、不定义其响应体；本卡与 S2～S6 的集成测试直接调用上表业务路由，不以探针为前置。
 ```
 
 ```rust
@@ -42,6 +45,28 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 // server/src/config.rs 中的发信配置键（值由 CORE-43 部署注入）：
 // email.primary = "aliyun" | "tencent"、email.fallback、email.aliyun.*、email.tencent.*、email.code_hmac_key
 ```
+
+配置键（`server/src/config.rs`；`auth.*` 键名唯一所有者是本卡，CORE-43 的 `config.example.toml` 与 `required_keys.txt` 按本表键名引用；机密值只以 `*_env` 形式给出环境变量名，不写进配置文件）：
+
+| 键 | 类型 | 必填/默认 | 读取方 | 用途 |
+| --- | --- | --- | --- | --- |
+| `auth.issuer` | 字符串 | 必填 | `middleware/` | 令牌校验的固定 `iss`，与业务表 account 的 oidc_issuer 列一致 |
+| `auth.audience` | 字符串 | 必填 | `middleware/` | 令牌校验的固定 `aud`（本服务 API 资源标识） |
+| `auth.jwks_url` | 字符串（URL） | 必填 | `middleware/` | 访问令牌签名的 JWKS 拉取与缓存，须与 `auth.issuer` 的 discovery 一致 |
+| `auth.jwt.algorithms` | 字符串数组 | 必填 | `middleware/` | 签名算法白名单，随 Casdoor 应用签名算法锁定（ADR-V5-15），不得含 `none` |
+| `auth.jwt.clock_skew_s` | 整数（秒） | 默认 60 | `middleware/` | `exp`/`nbf` 校验容差 |
+| `auth.recent_login_max_age_s` | 整数（秒） | 默认 300 | `middleware/` | 敏感接口的 `auth_time` 最大年龄，超出返回 `AUTH_RECENT_LOGIN_REQUIRED` |
+| `auth.casdoor.client_id` | 字符串 | 必填 | `auth/` | authorize 保留的 `client_id`；token 代理的客户端标识 |
+| `auth.casdoor.client_secret_env` | 环境变量名 | 必填（机密） | `auth/` | token 代理注入的 `client_secret`（本服务是机密客户端） |
+| `auth.casdoor.discovery_url` | 字符串（URL） | 必填 | `auth/` | 解析 `authorization_endpoint`（302 目标）与 `token_endpoint` |
+| `auth.casdoor.admin_endpoint` | 字符串（URL） | 必填 | `auth/` | 注册/找回门面的内部受认证管理适配器端点 |
+| `auth.casdoor.admin_credential_env` | 环境变量名 | 必填（机密） | `auth/` | 上述管理适配器的凭据，不得出现在客户端与日志中 |
+| `auth.redirect_uris` | 字符串数组 | 必填 | `auth/` | authorize 的 `redirect_uri` 严格白名单，不匹配即拒绝且不重定向 |
+| `auth.refresh_hmac_key_env` | 环境变量名 | 必填（机密） | `auth/` | 令牌族 `auth_refresh_family.current_hash` 与 `auth_refresh_used.hash` 的 HMAC-SHA256 密钥 |
+| `auth.refresh_used_retention_days` | 整数（天） | 默认 30 | `auth/` | `auth_refresh_used` 保留期（重放检测窗口） |
+| `auth.min_app_version` | 字符串（SemVer） | 必填 | `meta/` 与版本门禁 | `GET /v1/meta/client-policy` 的 `min_app_version` 与 426 判定 |
+
+访问令牌 15 min 与刷新令牌闲置 30 天由 Casdoor 应用配置（`ExpireInHours`、`RefreshExpireInHours`）决定，服务端不读同名键，只校验令牌 `exp`。`email.*` 键名的唯一定义归 CORE-45（见上），本卡不读取，只按 `EmailCodeService` 接口交互。
 
 - 唯一所有权：Casdoor 保存邮箱/口令哈希、授权会话、签名密钥、授权码与刷新令牌；业务 PostgreSQL 的 account 只保存 id UUID PK、oidc_issuer TEXT、oidc_sub TEXT、email_normalized TEXT UNIQUE、created_at、deleted_at，UNIQUE(oidc_issuer,oidc_sub)。device 保存 id、account_id、platform、app_version、revoked_at；audit_log 保存 action、request_id、at。业务库不保存 password_hash，也不保存刷新令牌明文；令牌族表只存 HMAC（见下条）。
 - 注册/找回门面只经内部受认证 Casdoor 管理适配器执行，禁止公开管理凭据：先用 EmailCodeService 校验消费，再以请求 ID 幂等创建身份账户/改密与吊销；跨系统结果记 auth_operation(id PK, action, email_hash, state, subject NULL)，故障重试先查 subject 与状态，绝不因本地超时再次消费验证码。验证码未通过不查询或透露账户存在性。Casdoor 默认公开注册/找回关闭，所有本项目入口都经该门面；原生表单若启用，也必须调用同一门面。
