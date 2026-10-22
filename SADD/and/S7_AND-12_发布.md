@@ -10,7 +10,7 @@
 
 **接口契约**
 
-测量项与预算（数值以 CORE-01 预算表为准，下表只列 Android 列的引用名）：
+测量项与预算（数值以 CORE-01 预算表为准，下表只列 Android 列的引用名）。“测量项”列是场景 label，可合并也可简写；“CORE-01 预算表行”列逐字引用 CORE-01 预算表第一列的机器键，一个单元格引用多个键时每个键各自完整（不得省略括号内的口径）。
 
 | 测量项 | CORE-01 预算表行 | 集成测试文件 |
 | --- | --- | --- |
@@ -29,7 +29,7 @@
 | 切换预设与外观模式 | 主题切换（预设或外观模式，到新主题首帧） | `theme_switch_test.dart` |
 
 ```text
-原始样本JSON：{schema:1, device, android_api, ram_gb, rom, orientation, build_mode, row, metric, unit, samples:[], p50, p95}；build_mode为release或profile，row为CORE-01预算表行名。原始输出不含budget/pass，AND-16读取预算判定；缺设备/依赖另以status=pending及reason记录，不伪造samples/分位数。
+原始样本JSON：{schema:1, device, android_api, ram_gb, rom, orientation, build_mode, row, metric, unit, samples:[], p50, p95}；build_mode为release或profile，row为CORE-01 预算表第一列的完整机器键（逐字，不用测量项 label）。原始输出不含budget/pass，AND-16读取预算判定；缺设备/依赖另以status=pending及reason记录，不伪造samples/分位数。
 app/integration_test/android/
   上表测试文件；process_restore_test.dart（见验收）；consistency_test.dart（读 CORE-06 与 CORE-09 契约向量中的公式，至少 50 条，
   输出 engine.check 的 AST JSON、诊断码与 NodePath 到 out/consistency-android.json，由 WIN-18 的 compare.py 与 WIN-13 的 build/consistency/windows.json 输出比对）

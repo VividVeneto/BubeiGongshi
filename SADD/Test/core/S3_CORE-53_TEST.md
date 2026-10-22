@@ -9,4 +9,4 @@
 - [R08] Widget 测试（LaTeX 模式 `FormulaEditor`）：键入 `\su` 弹出含 `sum` 的列表；↓ 后 Enter 插入第二项；Esc 后继续键入字母不再弹出，键入新的 `\` 后再次弹出；弹层可见时源码框始终持有焦点；接受后撤销一次恢复为 `\su`；点按候选与按 Enter 结果相同。
 - [R08] Widget 测试：模拟输入法组合“阿尔法”期间不弹出；`features` 未登记 `LatexSourceAssist` 时源码框行为与 CORE-37 一致。
 - [R10] 数据测试：`latex_commands.json` 每项的 `insert` 经 `engine.check` 只可能出现 `PARSE_HOLE_UNFILLED`，不出现 `PARSE_UNSUPPORTED_COMMAND` 与 `PARSE_FORBIDDEN_COMMAND`；`palette.json` 中每个命令都有对应项；不含禁止清单中的名称。
-- [R03] 性能：rankCandidates按CORE-01“补全rankCandidates”行，由AND-12/WIN-13在S7真机测量；本卡Widget只验证候选正确及帧泵后可见，不用Fake计时证明性能。
+- [R03] 性能：rankCandidates按CORE-01 预算表“补全rankCandidates（锁定完整数据，P95）”行，由AND-12/WIN-13在S7真机测量；本卡Widget只验证候选正确及帧泵后可见，不用Fake计时证明性能。
