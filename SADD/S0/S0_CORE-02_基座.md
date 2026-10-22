@@ -43,7 +43,7 @@
 ```rust
 // crates/fml-error/src/lib.rs
 // codes.rs 由生成器产出：#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)] pub enum ErrorCode { … }，
-// 并生成 as_str()（注册表 code 原文）、domain()（命名空间前缀去下划线小写，如 TYPE_ → "type"）、severity()、retryable()、message_key()、fix_hint()、surface()/is_server_output()（均取注册表值；message_key/fix_hint 用于校验 recovery，is_server_output 用于校验 http_status）
+// 并生成 as_str()（注册表 code 原文）、domain()（命名空间前缀去下划线小写，如 TYPE_ → "type"）、severity()、retryable()、message_key()、fix_hint()、surface()/is_server_output()、http_status()（均取注册表值；message_key/fix_hint 用于校验 recovery，is_server_output 与 http_status() 同源：`pub fn http_status(self) -> Option<u16>` 对 client 返回 None，对 server/both 返回注册表值、未声明时返还默认 400，供 CORE-22/25 填 HTTP 状态）
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]   // Default = 全零，表示“尚未填入”
 pub struct TraceId(pub [u8; 16]);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -96,7 +96,7 @@ Dart：`class FmlException implements Exception { final String code; final List<
 
 黄金样例由本卡建立 `contracts/vectors/errors-v1.json`，Rust 与 Dart 共同消费；本卡是唯一所有者，CORE-03（FFI 返回码 1 的 `out`）、CORE-22/25（HTTP 错误响应体）与 CORE-40 只按本格式读取，不另建第二份：
 
-- 顶层 `{ "schema": 1, "error_version": 1, "cases": [...] }`；`error_version` 描述 `{error:{...}}` 中 error 对象的形状，字段集合或语义变化时递增，当前为 1；`registry_version` 变化（增删码、改条目字段）不递增 `error_version`（ADR-V5-58 ⑦）。CORE-03 读 FFI 错误信封时把 `error_version` 与自身支持下限比较，CORE-22/25 在 HTTP 错误响应体填本值。
+- 顶层 `{ "schema": 1, "version": 1, "error_version": 1, "cases": [...] }`；`version` 是 `contracts/vectors/` 全部向量的通用格式版本（DTOcheck DTO-20），本文件与 `schema` 同步为 1，语义不同于 `error_version`；`error_version` 描述 `{error:{...}}` 中 error 对象的形状，字段集合或语义变化时递增，当前为 1；`registry_version` 变化（增删码、改条目字段）不递增 `error_version`（ADR-V5-58 ⑦）。CORE-03 读 FFI 错误信封时把 `error_version` 与自身支持下限比较，CORE-22/25 在 HTTP 错误响应体填本值。
 - 正例 `{ "id": "ERR-01", "input": { "error": {…} }, "canonical": "…" }`：`input` 一律是**根信封** `{error:{…}}`（与 CORE-03 FFI `out`、服务端错误响应体同形，ADR-V5-58 ③），Rust 侧取 `input["error"]` 反序列化 `FmlError`，Dart 侧把整个 `input` 交给 `FmlException.fromJson`；`canonical` 是 error 对象规范序列化的期望文本，字段顺序与外层/Diagnostic 内顺序、`args` 排序及缺省可选字段的省略规则一律按 ADR-V5-58 ③，不得另定。Rust 序列化结果逐字节等于 `canonical`，Dart 逐字段相等。
 - 负例 `{ "id": "ERR-NEG-01", "input": {…}, "valid": false, "why": "unknown_field" }`：`why` 取 ADR-V5-58 ③ 的 9 个取值之一（`unknown_field`/`wrong_type`/`range`/`trace_format`/`domain_mismatch`/`retryable_mismatch`/`severity_mismatch`/`recovery_invalid`/`envelope_invalid`），两端必须拒绝且不 panic。`unknown_field` 只写 error 对象层；`envelope_invalid` 用于 `input` 缺 `error` 键或 `error` 非对象（Rust 取 `input["error"]` 失败、Dart 工厂直接拒绝）。
 - `id` 发布后不得改名或复用，删除用例只留空号（不重排、不回填）；正例至少 8 类（真实 32 位 trace、多诊断、空诊断、省略可选字段、`args` 乱序、`fix_hint: true` 且输出派生 `recovery`、`fix_hint: false` 时不输出 `recovery`、severity 为 warning/info 各一条），负例至少 9 条并覆盖 `why` 全部取值，随阶段1 建立。
