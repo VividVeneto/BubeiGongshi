@@ -20,8 +20,11 @@ final class SyncSettingsVm    { SyncSettingsVm(SyncFacade sync, AccountControlle
 final class AccountSettingsVm { AccountSettingsVm(AccountController account, ProfileSessionSource sessions, SecureKeyValueStore keys); AccountState? get state;
                                 Future<KeySecurityLevel?> securityLevel(); Future<void> logout({required bool deleteLocalData}); }
 final class AboutInfo         { static const String appVersion = String.fromEnvironment('FML_APP_VERSION', defaultValue: '0.0.0-dev'); }
-final class UpgradeWizardVm   { UpgradeWizardVm(UpgradeFacade upgrade); UpgradeStep get step; String? get recoveryCode; Future<void> start(UpgradeChoice c); Future<void> confirmSaved(); }
-enum UpgradeStep { choose, credentials, showRecoveryCode, askSecret, running, done, failed }
+final class UpgradeWizardVm   { UpgradeWizardVm(UpgradeFacade upgrade); UpgradeStep get step; String? get recoveryCode; String? get errorCode; bool get savedChecked; bool get enableSyncQuestion;
+                                Future<void> start(UpgradeChoice c); Future<void> submitCredentials(UpgradeCredentials credentials);
+                                Future<void> confirmSaved(); Future<void> submitSecret(KeySecretInput secret);
+                                Future<void> answerEnableSync(bool enable); Future<void> resume(); Future<void> abandon(); }
+enum UpgradeStep { choose, credentials, showRecoveryCode, askSecret, running, done, askEnableSync, failed }
 final class BackupVm          { BackupVm(ProfileSessionSource sessions, PlatformPorts ports); Future<void> export(BackupScopeDto scope, ExportProtectionDto protection);
                                 Future<RestorePreviewDto> pickAndPrepare(ExportProtectionDto protection, RestoreModeDto mode); Future<void> commit(); Future<void> discard(); Future<void> stopAndDrain(ProfileSession session); Future<void> disposeAsync(); }
 final class HistorySettingsVm { HistorySettingsVm(ProfileSessionSource sessions, HistoryKeyUnlocker keys); int get keepLast; Future<void> setKeepLast(int n); Future<void> clearAll(); Future<void> stopAndDrain(ProfileSession session); Future<void> disposeAsync(); }
@@ -44,11 +47,14 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/s
 - 设置首页第一组为“外观”，展示当前预设/模式并导航到CORE-58唯一的/settings/appearance；页面、AppearancePicker及触感开关均由58提供，本卡仅验收入口导航。
 - 平台设置项：设置首页在“关于”之前按 `order` 渲染 `deps.features.require<SettingsSections>().items`（CORE-36）的 `build` 结果，标题取 `titleKey`；本卡不认识具体平台项。
 - 恢复码只在 `showRecoveryCode` 步骤显示一次，离开页面后从内存清除；用户须勾选“已保存”才能继续。不设防截屏（README §6 Q41）。
+- 升级向导与门面回调的桥接（本卡只做界面侧，语义与错误归 CORE-99/24/36）：`start(choice)` 调 `upgrade.run(choice, confirmSaved: …, askCredentials: …, askSecret: …, askEnableSync: …)`，四个回调各返回一个由 VM 持有的 `Completer.future`；门面调用某回调时 VM 才把 `step` 切到 `credentials`/`showRecoveryCode`/`askSecret`/`askEnableSync` 并通知界面，对应的 `submitCredentials/confirmSaved/submitSecret/answerEnableSync` 完成该 completer 后回到 `running`；不得自行推断步骤或重复调用 `run`。`confirmSaved` 仅在勾选“已保存”后完成（未勾选为 false 时门面不推进，停留在 `showRecoveryCode`）。`run` 抛错 → `failed`，显示按 CORE-02 映射的错误码并只提供“继续”（重新 `run`）与“放弃”（`abandon`）两个动作；升级已本地提交后放弃被拒（`SYNC_UPGRADE_NOT_ABANDONABLE`）时提示“升级已提交，不能放弃”并隐藏放弃按钮。离开页面或会话过代时，未完成的 completer 以 false/null 完成，不停等用户输入。
+- 开启同步询问：`askEnableSync` 被调用时进入 `askEnableSync` 步，显示一次“升级完成，是否开启同步？”（开启/暂不开启两个动作，默认不开启）。选“开启”调 `answerEnableSync(true)`，由门面先 `setEnabled(true)` 再 `syncNow(SyncTrigger.afterUpgrade)`，本卡不直接调 `setEnabled/syncNow`；同步失败只显示“已开启同步，首次同步失败：<映射文案>，可稍后手动同步”，升级仍显示完成。
+- 升级恢复入口：进入升级页时调用 `resume()`（内部 `resumeIfPending()`）——返回 `needsUser` 显示“上次升级未完成”与“继续”（重新进入 `choose`，须选与上次相同的升级方式；选错时门面报错，按映射显示“请选择与上次相同的升级方式”），返回 `completed` 直接显示 `done`（不再显示恢复码），返回 `none` 不显示该入口。
 - 备份范围与闭包（CORE-27，ADR-V5-44）：范围选择处固定提示“所选范围引用到的公式/单位会一并导出”；导出完成后用 `manifest.closure_added` 显示实际带出的条数；恢复预览显示 `manifest.closure_added`，并说明“被带出的公式/单位只补充缺失项，不会覆盖或删除本机已有内容”。`backup.commit_restore` 是长任务：界面观察不到事务何时开始（CORE-03 只在结束时返回），因此进行中“取消”按钮始终可点；点击后调用取消，若任务仍以成功结束（事务已开始、取消无效），展示成功报告并附“恢复已完成，未能取消”提示，若返回 `BACKUP_CANCELLED` 则显示“已取消，原数据未改变”。
 - 导出口令须经两次输入一致并调用backup.export，由CORE-27在写文件之前执行CORE-21 check_passphrase_policy；CRYPTO_PASSPHRASE_WEAK回显在口令框，不在Dart复制策略；恢复先选择 Merge/Replace 再 `prepare_restore`（预览按所选模式计算），显示预览（条目数、时间、范围、replaced、kept_local、可能重复的公式对数 possible_duplicates 与缺失资源包列表 missing_packs，后两项非空时单独提示“不会自动合并”“重新安装资源包后自动关联”），用户确认后才 `commit_restore`；同步已开启时 Replace 选项禁用并说明须先关闭同步（`BACKUP_REPLACE_BLOCKED_BY_SYNC` 作为后备映射），`BACKUP_WRONG_SECRET` 回显在口令框并允许重输，`BACKUP_TOKEN_UNKNOWN`（预览超过 30 分钟）提示重新选择文件，改选模式须 discard 后重新 prepare；离开页面自动 `discard_restore`。导出保护可选口令或恢复码：恢复码入口仅对已注册账户显示，游客隐藏（`BACKUP_PROTECTION_UNAVAILABLE` 作为后备映射）。请求体的 now_ms 取 PlatformPorts 时钟，staging_root 取 CORE-04 StoreArea.staging，commit 的 day 取当前档案学习设置中的 StudyDay（与 srs.due_queue 调用方同源）。
 - `keep_last` 控件限制在 0–100，并说明“0 表示识别完成后不保留历史”。
 - 账户页 `/settings/account`：显示账户状态；`securityLevel()` 以当前 session 的 `fml.<profileId>.db` 别名调用 CORE-04 `SecureKeyValueStore.securityLevel`（current=null 返回 null 且不调用），结果为 `software` 时显示“本机密钥保护能力较弱”及原因“此设备未提供硬件密钥保护”（AND-06 指派文案，下游说明，非契约）；并始终显示“恢复出厂或清除应用数据会丢失本机密钥，请保存恢复码或定期导出备份”。退出登录提供“仅锁定”与“删除本机数据”两项，后者二次确认后才调用 `logout(deleteLocalData: true)`。
-- needsKey 与同步密语（`/settings/sync`）：phase 为 needsKey 时显示输入卡，可选恢复码或同步密语后调用 `provideKey`；“设置同步密语”表单两次输入一致后调用 `setSyncPassphrase`，`CRYPTO_PASSPHRASE_WEAK` 回显在输入框。设备页吊销成功后按恢复码同一规则显示新恢复码（须勾选已保存），并提示“原同步密语不适用于新密钥，请重新设置同步密语”且提供直达按钮。
+- needsKey 与同步密语（`/settings/sync`）：phase 为 needsKey 时显示输入卡，可选恢复码或同步密语后调用 `provideKey`；“设置同步密语”表单两次输入一致后调用 `setSyncPassphrase`，`CRYPTO_PASSPHRASE_WEAK` 回显在输入框。设备页吊销成功后按恢复码同一规则显示新恢复码（须勾选已保存），并提示“原同步密语不适用于新密钥，请重新设置同步密语”且提供直达按钮（直达“设置同步密语”表单，提交经 `SyncFacade.setSyncPassphrase` → CORE-98 `setSyncPassphrase`）。升级 `done` 步在用户未保存恢复码时作同一提示的只读文案“如未保存恢复码，可在此设置同步密语作为备用解锁方式”，不重建、不重放恢复码。
 - 修订选择：`status.openChoices > 0` 时同步页显示“有 n 处公式修订冲突待选择”入口，子页列出 `choices()` 的每条（公式与各头修订），用户选定后调用 `resolveChoice`；`SYNC_CHOICE_INVALID` 时刷新列表。
 - 提醒、隐私与关于：`/settings/reminders` 只重定向到 `/study/reminder`（CORE-90 提供，下游说明，非契约；未追加时设置项置灰），`/settings/privacy` 只重定向到 `/privacy`（CORE-63 提供，下游说明，非契约），本卡不复制其内容；关于页显示 `AboutInfo.appVersion`（发布构建由 `--dart-define=FML_APP_VERSION` 注入，与 AND-09 的 User-Agent 版本同源（下游说明，非契约），未注入时为 0.0.0-dev）并以 Flutter `showLicensePage` 展示开源许可。
 - settingsRoutes 在特性层以 deps.sessions 构造 BackupVm/HistorySettingsVm，监听 changes 及 beforeClose，VM key 用 session identity/handle；null 立即禁用操作、清掉口令/恢复码/预览，再排空旧操作并重建新 VM；不能仅按 profileId 复用。Sync/Upgrade/Devices 等 VM 同样隔离旧回调，Widget 不取裸 source/core。
@@ -59,7 +65,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/s
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-47_TEST.md](../Test/core/S6_CORE-47_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 795 行；用例/状态目录 `app/lib/settings/`；`app/lib/ui/settings/`。分阶段：① 设置首页与账户/同步/设备/升级（routes 骨架与首页、Sync/Upgrade/Devices/Account/needsKey 的视图模型与页面、DeviceDto、修订选择子页约20，约 500）；② 备份、识别历史、提醒、隐私与关于（视图模型、页面与子路由登记，约 295，其中备份VM/长任务/令牌清理约90，历史VM/密钥串行与异步释放约50，备份/历史页面约90，提醒/隐私重定向与关于页及子路由约65；包含本次新增世代隔离与beforeClose逻辑，不另藏附属行）。
+**规模**：约 795 行；用例/状态目录 `app/lib/settings/`；`app/lib/ui/settings/`。分阶段：① 设置首页与账户/同步/设备/升级（routes 骨架与首页、Sync/Upgrade/Devices/Account/needsKey 的视图模型与页面、DeviceDto、修订选择子页约20、升级向导回调桥接与开启同步询问约20，约 500）；② 备份、识别历史、提醒、隐私与关于（视图模型、页面与子路由登记，约 295，其中备份VM/长任务/令牌清理约90，历史VM/密钥串行与异步释放约50，备份/历史页面约90，提醒/隐私重定向与关于页及子路由约65；包含本次新增世代隔离与beforeClose逻辑，不另藏附属行）。
 
 ---
 
