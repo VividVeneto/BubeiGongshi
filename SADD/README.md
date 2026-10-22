@@ -581,7 +581,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
 | WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |
-| WIN-17 | Windows主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/windows/host_tests/run.py`、`tools/windows/host_tests/build_fixture.py`、`app/windows/toolchain.versions`、`tools/windows/host_tests/` | S2 |
+| WIN-17 | Windows主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/windows/host_tests/run.py`、`tools/windows/host_tests/build_fixture.py`、`tools/windows/host_tests/fixture_app/`、`tools/windows/requirements.txt`、`tools/windows/host_tests/` | S2 |
 | WIN-18 | Windows 环境矩阵与发布测量汇总 | 工程与发布 | 测试 | `tools/perf/windows/` | S7 |
 | WIN-20 | 启动器持久化与数据库恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/storage.h` | S7 |
 
