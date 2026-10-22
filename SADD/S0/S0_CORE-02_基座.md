@@ -4,7 +4,7 @@
 
 **范围**
 - 包含：`contracts/errors/registry.yaml` 格式、生成器、`fml-error` crate（`FmlError`、`Diagnostic`、`TraceId`）、Dart 侧 `FmlException` 与消息键。
-- 不包含：复现包导出（CORE-28）；各模块具体错误码（各卡在注册表中追加条目）；逐 op 期望错误集合（`contracts/dto/manifest.json` 每条条目的 `error_codes`，由 CORE-100 定义与校验；本卡只保证被引用的码已登记，见 ADR-V5-58 ⑥）；`contracts/dto/types.schema.json` 的 Diagnostic 字段集合（`recovery` 的派生规则属本卡语义校验，不改 schema）。
+- 不包含：复现包导出（CORE-28）；各模块具体错误码（各卡在注册表中追加条目）；逐 op 期望错误集合（`manifest.json` 的 `error_codes`，文本真源是 op 所有者卡逐 op 行；本卡只保证被引用的码已登记，见 ADR-V5-55/58 ⑥）；`contracts/dto/types.schema.json` 的 Diagnostic 字段集合（`recovery` 的派生规则属本卡语义校验，不改 schema）。
 
 **依赖**：CORE-01。（阶段2 的 Dart 异常桥另需他卡已生成的诊断数据类型，属产物依赖、不计入本卡的直接依赖，卡级顺序见“接口契约”末段的两阶段说明，ADR-V5-58 ⑤⑧。）
 
@@ -118,7 +118,7 @@ Dart：`class FmlException implements Exception { final String code; final List<
 
 错误码只在首个所有者卡的标准表中登记；消费者写“复用 + 处理”，不得复制 severity/retryable。新增代码先登记 contracts/errors/registry.yaml，生成器拒绝重复 code。
 
-错误码共享写入：registry.yaml 是 code/owner/namespace/severity/retryable/surface/message_key/fix_hint/版本/http_status 的唯一真源；`condition`（触发条件）只在业务卡提交片段与各所有者卡错误表，不写入 registry、也不由 registry 生成，避免两处维护。`ownership.yaml`（version=1，entries:[{code,owner}]）只是生成镜像，不接受独立手改；通用前缀可共享，不能以整段 AUTH_/PLATFORM_ 强行归某张业务卡。业务卡新增前提交 `{code,owner,severity,retryable,surface,condition,http_status?,fix_hint?}` 独立片段及简中消息（`fix_hint: true` 时同时给 `<message_key>.fix`），由 CORE-02 维护者合入 registry 后生成；遇到已占用 code 只引用所有者或先走契约变更单。初次创建 registry 必须收齐全部 SADD 标准错误表，判据是“SADD 里有多少条定义，registry 就有多少条”，不是人工列的定数：按当前 SADD 为 47 张卡、238 条定义，该数只是快照，随各卡追加增长，不得写进生成物或测试断言。所有者卡错误表的“级别/可重试/HTTP”列是生成展示值：由首次定义卡维护，取值必须等于 registry（HTTP 列只对服务端输出的码声明，缺省即 400 语义，纯端侧码不得声明），不一致时改 registry 再重新生成。registry 未创建阶段，shared-writes.error 仅含 code/owner，DTOcheck 只比对 SADD 与预分配表的 code/owner（缺项、重复、所有者不符及消费者重定义失败），不声称已检查 severity/retryable/http_status。机械对照规则 REG-01（工具项，按 README §7.1 以 chore(sadd) 提交）：registry 存在时 DTOcheck 做三项判定——(1) 每条 `owner` 必须是 SADD 现存卡号（卡已撤销或不存在即失败；owner 有效性的唯一检查点，生成器只查格式）；(2) 所有者卡表逐列与 registry 一致（owner/severity/retryable/http_status），不一致即失败；(3) 双向全集：registry 每条码都能在某卡标准表找到定义，SADD 每条定义都在 registry，缺失或多余都失败。registry 不存在时输出“未执行”，不按通过计。REG-01 尚未实现（registry 与生成器均未创建），是本卡交付后的验收项（附录 D CO-40）；交付后另须补齐生成镜像漂移检查，未交付时这些检查明确未执行。registry 不承载逐 op 期望错误集合：哪个 op 返回哪些码写在 `contracts/dto/manifest.json` 的 `error_codes`（结构校验归 CORE-100，引用有效性归 DTO-06/DTO-18），本卡只保证被引用的码已登记且元数据一致（ADR-V5-58 ⑥）；ADR-V5-55 中“registry 承载逐 op 集合”的措辞由 CO-37 所有者修订，本卡不改他卡 ADR 行。
+错误码共享写入：registry.yaml 是 code/owner/namespace/severity/retryable/surface/message_key/fix_hint/版本/http_status 的唯一真源；`condition`（触发条件）只在业务卡提交片段与各所有者卡错误表，不写入 registry、也不由 registry 生成，避免两处维护。`ownership.yaml`（version=1，entries:[{code,owner}]）只是生成镜像，不接受独立手改；通用前缀可共享，不能以整段 AUTH_/PLATFORM_ 强行归某张业务卡。业务卡新增前提交 `{code,owner,severity,retryable,surface,condition,http_status?,fix_hint?}` 独立片段及简中消息（`fix_hint: true` 时同时给 `<message_key>.fix`），由 CORE-02 维护者合入 registry 后生成；遇到已占用 code 只引用所有者或先走契约变更单。初次创建 registry 必须收齐全部 SADD 标准错误表，判据是“SADD 里有多少条定义，registry 就有多少条”，不是人工列的定数：按当前 SADD 为 47 张卡、238 条定义，该数只是快照，随各卡追加增长，不得写进生成物或测试断言。所有者卡错误表的“级别/可重试/HTTP”列是生成展示值：由首次定义卡维护，取值必须等于 registry（HTTP 列只对服务端输出的码声明，缺省即 400 语义，纯端侧码不得声明），不一致时改 registry 再重新生成。registry 未创建阶段，shared-writes.error 仅含 code/owner，DTOcheck 只比对 SADD 与预分配表的 code/owner（缺项、重复、所有者不符及消费者重定义失败），不声称已检查 severity/retryable/http_status。机械对照规则 REG-01（工具项，按 README §7.1 以 chore(sadd) 提交）：registry 存在时 DTOcheck 做三项判定——(1) 每条 `owner` 必须是 SADD 现存卡号（卡已撤销或不存在即失败；owner 有效性的唯一检查点，生成器只查格式）；(2) 所有者卡表逐列与 registry 一致（owner/severity/retryable/http_status），不一致即失败；(3) 双向全集：registry 每条码都能在某卡标准表找到定义，SADD 每条定义都在 registry，缺失或多余都失败。registry 不存在时输出“未执行”，不按通过计。REG-01 尚未实现（registry 与生成器均未创建），是本卡交付后的验收项（附录 D CO-40）；交付后另须补齐生成镜像漂移检查，未交付时这些检查明确未执行。registry 不承载逐 op 期望错误集合：哪个 op 返回哪些码写在 `contracts/dto/manifest.json` 的 `error_codes`（结构校验归 CORE-100，引用有效性归 DTO-06/DTO-18），本卡只保证被引用的码已登记且元数据一致（ADR-V5-58 ⑥）；逐 op 集合的文本真源是各 op 所有者卡的逐 op 错误镜像，双向比对归 DTO-06（ADR-V5-55，CO-56 修订）。
 
 PR3 预分配机器表 `contracts/policies/shared-writes.json` 的 error 项在 registry 未创建前为登记占位，由本卡单写，key 为完整错误码、owner 为首次定义卡；前缀不是所有权。建立 registry 时逐码核对并迁入 registry.owner，之后 shared-writes 的 error 项与 ownership 同为 registry 生成投影，不再独立维护；非 error 项不在本卡生成范围。后续新增必须先申请唯一 code。
 
@@ -127,7 +127,7 @@ PR3 预分配机器表 `contracts/policies/shared-writes.json` 的 error 项在 
 - 每次用例调用由 FFI/HTTP 适配层生成或验证非零 `trace_id`，领域 crate 无随机/I/O，`new` 的 trace_id 为零。边界返回前一律调用 `with_trace`；原值非零必须保留，不另造第二条错误链，零值不得出现在 FFI/HTTP 输出中。CORE-03 负责请求/完成回调，CORE-22/25 负责 HTTP 错误适配；FFI 外层 trace_id、HTTP request_id/日志关联值均取填充后的 `error.trace_id`，不是盲用新请求 ID。
 - V1 只提供简体中文消息；缺失消息键时 CI 失败。
 - 本卡不定义业务错误码；各卡在本卡注册表中追加条目，并在各自“接口契约”的错误码表中写明触发条件。
-- 本卡不定义逐 op 期望错误集合，也不生成第二份逐 op 表（ADR-V5-58 ⑥）：op→码 的引用在 `contracts/dto/manifest.json`，结构校验归 CORE-100，引用有效性归 DTO-06/DTO-18。
+- 本卡不定义逐 op 期望错误集合，也不生成第二份逐 op 表（ADR-V5-58 ⑥）：op→码 的引用在 `contracts/dto/manifest.json`，结构校验归 CORE-100，引用有效性归 DTO-06/DTO-18（对照源为 op 所有者卡行，ADR-V5-55）。
 - `registry_version` 与 `error_version` 互不替代：条目增加、废弃或字段改动只递增 `registry_version`；只有 error 对象形状变化才递增 `error_version`（ADR-V5-58 ⑦）。
 - 外部前提：Python 3 与 PyYAML（Python 版本见 `tools/toolchain.versions`，PyYAML 锁入 `tools/requirements.txt`，ADR-V5-15）。
 
