@@ -1491,7 +1491,7 @@ CO-47 之后（2026-10-22，分支 docs/d2-account-network-fixes 工作区，`no
 
 | 编号 | 放宽项 | 落点（卡:行/文件） | 当前做法 | 发布前须恢复为 | 收回负责 | 收回记录 |
 | --- | --- | --- | --- | --- | --- | --- |
-| RL-01 | 安全公告豁免：测试用 YAML 解析库依赖链上的一项公告（仅 dev 依赖；编号、受影响组件与细节只记在维护者本地说明，不入库） | CORE-01 :93、Test:7；deny.toml [advisories] ignore | 测试用 YAML 库若无法替换为无公告实现，允许登记该一项豁免并注明理由 | 替换为无公告的解析库，ignore 恢复为空；确认该依赖不进入任何发行产物 | CORE-01 所有者 | — |
+| RL-01 | 安全公告豁免：测试用 YAML 解析库依赖链上的一项公告（仅 dev 依赖；编号、受影响组件与细节只记在维护者本地说明，不入库） | CORE-01 :93、Test:7；deny.toml [advisories] ignore | 测试用 YAML 库若无法替换为无公告实现，允许登记该一项豁免并注明理由 | 替换为无公告的解析库，ignore 恢复为空；确认该依赖不进入任何发行产物 | CORE-01 所有者 | 2026-10-22 已收回：CORE-01 编码改用无公告的 `yaml-rust2`，deny.toml `[advisories] ignore = []`，裸 `cargo deny check` 退出 0；未使用豁免（仅保留后备批准记录） |
 | RL-02 | 工具链不强制精确版本 | CORE-01 :93、:131、Test:8；ADR-V5-15；rust-toolchain.toml、tools/toolchain.versions、app/.flutter-version | rust-toolchain.toml 用 channel = "stable"；其余版本文件只记录开工实测值，本地或 CI 版本不一致只告警 | 按 ADR-V5-15 恢复精确锁定（Rust、Flutter、Python、Node、cargo-deny 等），不一致即失败，保证构建可复现（CORE-42） | CORE-01、CORE-41 所有者 | — |
 | RL-03 | cargo-deny 版本不一致不阻断许可证/公告门禁 | CORE-01 Test:8 | cargo deny --version 与记录值不一致只告警 | 版本与锁值相符后才执行门禁 | CORE-01、CORE-41 所有者 | — |
 | RL-04 | 许可宽松处理 | CORE-01 :93（CO-48/CO-58）；D.14.7 | 锁文件中出现的 SPDX 许可抄入 deny.toml allow，不逐项裁定；未列入的仍拒绝 | 按 Q37/Q39 逐项裁定 D.14.7 全部条目，确定应用自身发布许可与授权主体，补齐 SBOM 与 dist/THIRD_PARTY_LICENSES.txt 覆盖范围 | Q37/Q39 所有者、CORE-42 所有者 | — |

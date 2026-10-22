@@ -406,6 +406,26 @@ v5.3.1 补充（2026-10-20）：首帧健康只证明壳可呈现，迁移在其
 官方依据：[平台通道线程](https://docs.flutter.dev/platform-integration/platform-channels)、[指针通知](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerpointerdevicenotifications)、[MSVC DEBUG](https://learn.microsoft.com/en-us/cpp/build/reference/debug-generate-debug-info?view=msvc-170)。指针/子HWND 和扩展解码的实际设备行为列为 M0 外部前提；不得用 API 文档替代真机结果。签名格式由 WIN-12 所有，WIN-03 只消费生成的 pin 集合。关联 CORE-36/58、WIN-01/03/08/12/15。
 
 
+### A.4.9 ADR-V5-15 锁版回填（2026-10-22，CORE-01 开工）
+
+查询日期 `queried_date=2026-10-22`（记录在 `tools/toolchain.versions`）。本卡按 ADR-V5-15 建立并回填以下锁版文件，取值、查询来源与兼容依据如下。
+
+| 文件 | 键/项 | 锁定值 | 查询来源 | 兼容依据 |
+| --- | --- | --- | --- | --- |
+| `rust-toolchain.toml` | `channel` | `stable`（开工实测 1.99.1；工程样品阶段不锁精确版本，附录D D.14.8 RL-02） | rustup 发行通道（本机 `rustc 1.99.1 (58cf8f9c3 2026-10-13)`、`cargo 1.99.1`） | 与 workspace `edition = "2024"`、`resolver = "2"` 及 MSVC 14.51 / Windows SDK 10.0.26100 组合实测可构建 |
+| `rust-toolchain.toml` | `components` | `rustfmt`、`clippy` | 同上 | `cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings` 通过 |
+| `app/.flutter-version` | 单行版本 | `3.47.7` | Flutter stable 发行版（framework `abaf9c5237`，2026-10-08） | 随附 Dart 3.13.5，`app/pubspec.yaml` 约束 `sdk: '>=3.13.0 <4.0.0'`；`flutter pub get`/`analyze`/`test` 通过 |
+| `tools/toolchain.versions` | `python` | `3.14.6` | python.org 发行版（本机已安装并验证） | 装有 PyYAML 6.0.3，工具脚本（`tools/sadd`、`tools/DTOcheck`）手工运行通过 |
+| `tools/toolchain.versions` | `node` | `24.18.0` | nodejs.org 发行版，Node 24 为 Active LTS | 运行 `node --test`、`tools/sadd/*.mjs`、`tools/DTOcheck/run.mjs` 通过 |
+| `tools/toolchain.versions` | `fuzz_nightly` | `2026-10-22` | rust nightly channel 清单（当日 HTTP 200 可访问） | 供后续 fuzz 卡按此日期取 nightly |
+| `tools/toolchain.versions` | `cargo_fuzz` | `0.13.2` | crates.io `cargo-fuzz` 最新版查询（2026-10-22） | 与上述 nightly 日期配套 |
+| `tools/toolchain.versions` | `cargo_deny` | `0.20.2` | crates.io `cargo-deny` 最新版查询（2026-10-22） | CORE-01 验收首次使用即追加；`deny.toml` 四域（licenses、bans、sources、advisories）在该版本下解析通过 |
+| `tools/requirements.txt` | 包 | `PyYAML==6.0.3` | PyPI `PyYAML` 最新版查询（2026-10-22） | 工具脚本仅需 PyYAML，精确锁定可复现 |
+| `Cargo.lock` | 第三方 crate | `serde_json 1.0.154`、`yaml-rust2 0.13.0`（连同 14 个传递依赖，锁文件共 16 个第三方包） | crates.io 查询后由 cargo 解析写入 `Cargo.lock`；`workspace.dependencies` 写确定版本 | 首次第三方 dev 依赖（卡实现约束）。CO-58 修复轮：`serde_yaml_ng 0.10.0` 的依赖链带一项安全公告（编号与组件不入库，见附录D D.14.8 RL-01），改用纯 Rust 的 `yaml-rust2 0.13.0`（`default-features = false`，不引入 `encoding_rs`），许可标识符集合随之变为 {Apache-2.0, MIT, Unicode-3.0, Unlicense, Zlib} 并抄录进 `deny.toml` |
+| `app/pubspec.lock` | Flutter SDK 依赖 | 由 `flutter pub get` 解析 | Flutter 3.47.7 自带 SDK 依赖 | 本卡不引入第三方 Dart 包 |
+
+未选 Python 3.15 与 Node 26 的理由：两者虽已被 endoflife.date 列出，但本次只锁定本机已安装并通过验证的版本（Python 3.14.6、Node 24.18.0），避免在工程验证阶段引入未经本机验证的组合；Node 24 为 Active LTS，符合服务端与工具脚本的长期支持要求。升级仍按 ADR-V5-15 走 ADR 修订与完整 CI。
+
 ## A.5 开发前冻结清单
 
 进入大规模 UI 或内容录入前必须冻结以下契约，未冻结前不得开始，否则后期返工成本会远高于文档修订成本：
