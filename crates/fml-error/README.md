@@ -20,4 +20,11 @@
 
 ## 当前状态
 
-CORE-01 只交付 crate 边界与 lint 骨架（`#![forbid(unsafe_code)]`、`#![deny(missing_docs)]`），**不声明任何占位 API**。正式的错误码枚举与错误类型由 CORE-02 交付；在此之前本 crate 没有任何公共项，依赖方无法编译通过占位实现。
+CORE-02 阶段1 已交付正式错误模型：
+
+- `ErrorCode`（`src/codes.rs`，由 `tools/ci/gen_errors.py` 从 `contracts/errors/registry.yaml` 生成），带 `as_str`、`domain`、`severity`、`retryable`、`message_key`、`fix_hint`、`surface`、`is_server_output`、`http_status` 访问器，并实现 `Display`、`FromStr`、`TryFrom<&str>` 与 serde（未知码解析失败返回 `UnknownErrorCode`）。
+- `FmlError`（字段顺序 `code`、`domain`、`retryable`、`trace_id`、`diagnostics`）、`Diagnostic`（可选手写位置、UTF-8 半开区间、参数表、修复建议与确认标记）、`Severity` 与 `TraceId`（32 位小写十六进制）。
+- 线上格式以 `contracts/vectors/errors-v1.json` 为黄金样例，根信封为 `{"error": {...}}`；错误对象与诊断对象反序列化都拒绝未知字段，并校验 `domain`、`retryable`、`severity` 与 `recovery` 与注册表一致。
+- `registry.yaml` 是错误元数据唯一真源；改码先改注册表与 `app/lib/l10n/errors_zh.arb`，再运行 `python tools/ci/gen_errors.py`。守护检查用 `--check`（0 无漂移、1 漂移、2 输入或环境错误）。
+
+Dart 侧异常桥（`FmlException`）与其 `DiagnosticDto` 别名属 CORE-02 阶段2，由 CORE-67 生成诊断数据类之后交付；本阶段只生成 `app/lib/binding/error_codes.g.dart` 元数据。
