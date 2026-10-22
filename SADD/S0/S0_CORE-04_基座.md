@@ -106,7 +106,7 @@ abstract interface class HttpTransport {
 abstract interface class FileExporter {
   Future<bool> saveAs(String suggestedName, Stream<List<int>> bytes); // 由用户选择保存位置；用户取消返回 false
 }
-/// 非图片文件选择（备份恢复 CORE-27、公式批量导入 CORE-14）：由系统选择器选取后复制到 StoreArea.staging。
+/// 非图片文件选择（备份恢复 CORE-84、公式批量导入 CORE-79）：由系统选择器选取后复制到 StoreArea.staging。
 abstract interface class DocumentPicker {
   Future<PickedDocument?> pick({required List<String> extensions, required int maxBytes});
   // extensions 为小写、不含点（如 ['fmlbackup']、['csv', 'tex', 'txt']）；用户取消返回 null；超过 maxBytes 抛 PLATFORM_FILE_TOO_LARGE
@@ -128,7 +128,7 @@ final class PlatformPorts {
 | `PLATFORM_UNSUPPORTED` | error | 否 | 当前平台不提供该能力（如 Windows 的 `CameraController`） |
 | `PLATFORM_PERMISSION_DENIED` | error | 是 | 用户拒绝或系统撤销相机、通知、存储等权限 |
 | `PLATFORM_KEY_UNAVAILABLE` | error | 否 | 别名不存在、密钥因系统重置或更换系统用户失效、密文被篡改 |
-| `PLATFORM_IO` | error | 是 | 文件读写失败、`ImportedImage` 已过期 |
+| `PLATFORM_IO` | error | 是 | 文件读写失败、`ImportedImage` 已过期、网络传输未指定 `saveTo` 时响应收集超过 16 MiB 上限（WIN-10、AND-09 实现） |
 | `PLATFORM_FILE_TOO_LARGE` | error | 否 | `DocumentPicker.pick` 选中的文件超过 `maxBytes`；`ImportedImage` 原文件超过 20 MiB 时其 `readBytes` |
 | `PLATFORM_FILE_TYPE_MISMATCH` | error | 否 | `DocumentPicker.pick` 选中文件的扩展名不在 `extensions` 中（系统选择器无法按自定义扩展名过滤时发生） |
 | `PLATFORM_CANCELLED` | info | 否 | 平台对话框被系统中断（用户主动取消按各方法约定返回空值，不抛此码） |
