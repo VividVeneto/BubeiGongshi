@@ -2,7 +2,7 @@
   "version": 1,
   "baseline": "2c04125",
   "reviewDate": "2026-10-20",
-  "note": "Independent pre-repair findings; lead repair evidence in D.14 does not upgrade grades. materialChars/segments are review input, not final material audit. 2026-10-21: 29 entries (v5.3.4 whole-card review + S6 re-read) updated in place for the same records; materialChars/segments are the review-time (pre-CO-22) values. 2026-10-22 E2: 83 entries updated from v5.3.4 D2 (latest non-author review per card; history[] keeps prior entry; conclusion pass never means ready without consumer confirmation). 2026-10-22 E2 CORE-02: replaced by post-CO-56 non-author recheck r14-core02-review.",
+  "note": "Independent pre-repair findings; lead repair evidence in D.14 does not upgrade grades. materialChars/segments are review input, not final material audit. 2026-10-21: 29 entries (v5.3.4 whole-card review + S6 re-read) updated in place for the same records; materialChars/segments are the review-time (pre-CO-22) values. 2026-10-22 E2: 83 entries updated from v5.3.4 D2 (latest non-author review per card; history[] keeps prior entry; conclusion pass never means ready without consumer confirmation). 2026-10-22 E2 CORE-02: replaced by post-CO-56 non-author recheck r14-core02-review. 2026-10-22 E2 CORE-02: replaced by post-CO-56 non-author recheck d3-core02-minor-review.",
   "entries": [
     {
       "record": "P2-CORE-01",
@@ -64,9 +64,9 @@
       "record": "P2-CORE-02",
       "card": "CORE-02",
       "grade": "B",
-      "reviewer": "r14-core02-review",
+      "reviewer": "d3-core02-minor-review",
       "date": "2026-10-22",
-      "materialChars": 174026,
+      "materialChars": 174581,
       "segments": 3,
       "checks": {
         "a": "pass",
@@ -85,14 +85,11 @@
       },
       "conclusion": "pass",
       "blockers": [
-        "M-01 README §8.3 未写 CORE-02 阶段2 插入点（中，文档同步）",
-        "M-02 T-10 的 DTO-06 回向检查未在卡内声明交付归属（中，卡:121/规模行补一句）",
-        "L-01 surface() 缺返回类型、T-07 未覆盖",
-        "L-02 a 位口径：附属 gen_errors.py 245 行大于主包 175 行，按 README §8.5 a 附属例外判 P（r9 曾按字面判 F），lead 采纳，用户可改判",
-        "L-03 附录D CO-40 行旧数未统一",
-        "L-04 ADR-V5-58 消费方分级漏 CORE-28、CORE-40 的 Dart 符号消费",
-        "阶段1/阶段2 均未执行，REG-01 与 DTO-06 回向未实现（编码期交付）",
-        "状态：修订后已复检（CO-56：7654178、3d4fac5）"
+        "F-01 低：ADR-V5-58 数据规则级漏 CORE-40（lead 已回填，CO-57 行）",
+        "F-02/F-03 信息：README §8.3 插入点措辞、卡:121 工具落点（lead 已回填）",
+        "REG-01 与 DTO-06 回向为编码期交付；阶段1/2 未执行",
+        "消费方确认未完成（CORE-03/22/25/40/41/56/100）",
+        "状态：修订后已复检（CO-57：397f297）"
       ],
       "consumerConfirmation": null,
       "history": [
@@ -145,6 +142,39 @@
             "H1 ADR-V5-55 三树同号但内容不同",
             "H2 Diagnostic 生成/忽略未知键与卡:75 拒绝未知字段冲突",
             "状态：修订已整合待复检（CO-56：7654178、3d4fac5；r13-core02-review 进行中）"
+          ]
+        },
+        {
+          "reviewer": "r14-core02-review",
+          "date": "2026-10-22",
+          "grade": "B",
+          "conclusion": "pass",
+          "materialChars": 174026,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          },
+          "blockers": [
+            "M-01 README §8.3 未写 CORE-02 阶段2 插入点（中，文档同步）",
+            "M-02 T-10 的 DTO-06 回向检查未在卡内声明交付归属（中，卡:121/规模行补一句）",
+            "L-01 surface() 缺返回类型、T-07 未覆盖",
+            "L-02 a 位口径：附属 gen_errors.py 245 行大于主包 175 行，按 README §8.5 a 附属例外判 P（r9 曾按字面判 F），lead 采纳，用户可改判",
+            "L-03 附录D CO-40 行旧数未统一",
+            "L-04 ADR-V5-58 消费方分级漏 CORE-28、CORE-40 的 Dart 符号消费",
+            "阶段1/阶段2 均未执行，REG-01 与 DTO-06 回向未实现（编码期交付）",
+            "状态：修订后已复检（CO-56：7654178、3d4fac5）"
           ]
         }
       ]
