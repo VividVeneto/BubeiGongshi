@@ -11,7 +11,7 @@
 - [R18] stats.mjs：基准下--check退出0；手改区块内就绪数退出1并输出`SADD stats drift`；删除起止标记退出2且stderr含`Missing stats block`；reviews JSON损坏退出2；不带--check只改写两标记之间内容，区块外字节不变。
 - [R18] audit.mjs：对基准目录用--sadd与--out运行，输出含stats/errors/warnings/materials且每卡一条材料记录；不传--out时写build/sadd/audit.json；运行前后SADD/reports/下既有文件字节不变；一张假卡材料超80000时只计入overLimit，等级、errors与退出码不变；任一validateCurrent错误时退出1。
 - [R18] 就绪字符串唯一：仅 就绪（D.12 P2-<card>） 精确匹配才计入就绪；就绪（D.12 第 3 行）、裸 就绪、就绪（D.12 P2-其他卡）均失败，且 audit.stats.ready 不把它们计入（不得用前缀匹配计数）。
-- [R18] D.12 解析协议反例：单元格内含 |（行宽不符）、表头字段改名、缺表头、同一 record 两次均失败；D.12 早期序号表（record 列非 P2-<card>）整行忽略而不报错；## D.12 到 ## D.13 之外的内容不参与匹配。
+- [R18] D.12 解析协议反例：单元格内含 |（行宽不符）、表头字段改名、缺表头、同一 record 两次均失败；D.12 早期序号表（record 列非 P2-<card>）整行忽略而不报错；## D.12 到 ## D.13 之外的内容不参与匹配；record 列形如 P2-COREX-1、P2-CORE-1a 的行不匹配 ^P2-(CORE|AND|WIN)-\d+$，整行忽略而不报错。
 - [R18] audit 报告字段：version===1、toolchain.node 等于 process.version、toolchain.sadd 等于 --sadd 解析值、stats 含 cards/CORE/AND/WIN/currentRows/ready/grades、materials 每卡一条且按 chars 降序并含 overLimit 布尔、warnings 每项 kind 属于 outside-closure/missing-local-definition/sdk-unknown/q-drift 且带对应 evidence、errors 每条以 SADD-12: 开头。
 - [R18] 历史快照只读：预置 SADD/reports/ 下旧版本文件，stats（带与不带 --check）与 audit 运行后其内容哈希不变；v5.3.3-reviews.json 含 v5.3.4 记录时只报版本不一致 warning，不重建、不改写、不改列名。
 - [R18] reviewColumn：表头含多列 vX.Y.Z 复核 时返回最右列下标，无匹配返回 -1，与 validateCurrent 的等级列选择一致。
