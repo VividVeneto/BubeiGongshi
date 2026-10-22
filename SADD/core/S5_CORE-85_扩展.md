@@ -19,7 +19,7 @@ pub fn gc_execute(store: &Store, plan: &GcPlan, fs: &dyn HistoryFs, now_ms: i64)
 pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs, now_ms: i64) -> Result<RecoveryReport, FmlError>; // 清未提交暂存、重试 next_try_ms ≤ now_ms 的 cleanup_job、对账孤儿、expires_ms ≤ now_ms 的 pending_cloud_job → EXPIRED_UNKNOWN
 ```
 
-- 表（主包外附属：`crates/fml-store/migrations/0032_recognition.sql` 与仓储 `crates/fml-store/src/recognition/`；全部本地，不进 outbox、不导出）：
+- 表（主包外附属：`crates/fml-store/migrations/0085_recognition.sql` 与仓储 `crates/fml-store/src/recognition/`；全部本地，不进 outbox、不导出）：
 
 | 表 | 列 | 说明 |
 | --- | --- | --- |
@@ -45,7 +45,7 @@ pub fn recover_on_start(store: &Store, fs: &dyn HistoryFs, now_ms: i64) -> Resul
 **实现约束**
 - 唯一实现位置fml-store/src/recognition/，通过CORE-32 trait暴露；fml-recognize不依赖本卡/crate。构造时注入Box<dyn SecureRandom + Send>与HistoryFs/受控目录，不在领域crate取时钟/随机/路径数据。
 - CORE-32规定的SessionKey、AAD、history_key_wrapped/key_check、pending旋转以及profile scope规则逐项实现；HistoryKeyUnlocker仍由32提供；操作错误复用32唯一定义，不双登记。
-- 全部表本地、不进outbox/备份；0032_recognition.sql数据迁移归本卡；Store关闭清零，密钥不上传，清理实现不扫描用户目录。
+- 全部表本地、不进outbox/备份；0085_recognition.sql数据迁移归本卡（V1 发布前迁移序号取归属卡编号，CORE-13）；Store关闭清零，密钥不上传，清理实现不扫描用户目录。
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-85_TEST.md](../Test/core/S5_CORE-85_TEST.md)；修改本卡功能时同步修改该文件。
 
