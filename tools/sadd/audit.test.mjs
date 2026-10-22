@@ -138,6 +138,38 @@ test('a version mismatch between the column and the D.10 narrative only warns', 
   }
 });
 
+test('D.10.1 and D.11 card-shaped rows stay out of the D.10 statistics', () => {
+  const s = sandbox();
+  try {
+    // U76-N2：D.10.1 是统计口径说明，D.11 是历史修订；两处的合法卡号表行都不是 D.10 数据行。
+    s.edit(APPENDIX, '### D.10.1 统计口径\n',
+      '### D.10.1 统计口径\n\n| 编号 | 卡 | 口径 |\n| --- | --- | --- |\n' +
+      '| CORE-02 | CORE-02 | 子节内的说明行，不计入 D.10 |\n| AND-01 | AND-01 | 子节内的说明行，不计入 D.10 |\n');
+    s.edit(APPENDIX, '## D.11 历史修订\n\n无。\n',
+      '## D.11 历史修订\n\n| 编号 | 修订 |\n| --- | --- |\n| CORE-01 | 历史行，不计入 D.10 |\n');
+    const out = path.join(s.root, 'build/subsection.json');
+    const r = s.run('audit.mjs', '--sadd', s.sadd, '--out', out);
+    assert.equal(r.status, 0, r.stderr);
+    const data = read(out);
+    assert.equal(data.stats.currentRows, 3);
+    assert.deepEqual(data.stats.grades, {A: 1, B: 1, '—': 1});
+    assert.equal(data.stats.ready, 1);
+    assert.deepEqual(data.errors, []);
+
+    // 边界不得顺带截断 D.10 本身：紧邻 D.10.1 之前的重复卡行仍须报错并退 1。
+    s.edit(APPENDIX, '\n### D.10.1 统计口径',
+      '\n| CORE-01 | S0 | — | A | 就绪（D.12 P2-CORE-01） | 重复行 |\n\n### D.10.1 统计口径');
+    const dupOut = path.join(s.root, 'build/duplicate.json');
+    const dup = s.run('audit.mjs', '--sadd', s.sadd, '--out', dupOut);
+    assert.equal(dup.status, 1, dup.stderr);
+    const dupData = read(dupOut);
+    assert.equal(dupData.stats.currentRows, 4);
+    assert.ok(dupData.errors.some(e => e.includes('duplicate current card CORE-01')), dupData.errors.join('; '));
+  } finally {
+    s.clean();
+  }
+});
+
 test('stats.ready only counts the exact ready string, even when the run fails', () => {
   const s = sandbox();
   try {
