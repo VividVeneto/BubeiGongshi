@@ -38,6 +38,7 @@ final class ReauthenticationRequired extends NetEvent {}
 
 **实现约束**
 - call显式透传purpose/consentToken到HttpRequestDto，不按path猜用途。cloudRecognition只用于POST /v1/recognition/jobs且须令牌；查询/取消/政策/功能同意用CORE-04显式cloudControl（CORE-28仅放行固定路由），其他同步用sync，登录刷新用auth。上传遇401可共享刷新但不自动重发原POST：刷新成功抛 `AUTH_UPLOAD_RECONFIRM_REQUIRED`，调用方回到预览重新确认，沿用同一业务幂等键；刷新失败仍抛 `AUTH_REAUTH_REQUIRED`（回到登录）；该保守行为避免消耗型令牌被验证两次。其他用途401只刷新一次并重发一次；刷新请求不能递归刷新；并发401共享一次刷新Future，失败清令牌并广播重登。
+- 请求体编码：`json` 非 null 时以 `dart:convert` 的 `jsonEncode` 编为 UTF-8 字节作为请求体（紧凑无空白、不转义 `/`、Map 按插入顺序输出键、整数原样输出），头 `Content-Type: application/json; charset=utf-8`；`json` 为 null 时不发请求体。ApiClient 不重排键、不追加字段，调用方可据此精确计量请求体字节（CORE-46 推送批次依赖此规则；下游说明，非契约）。
 - 426 广播停止写入事件，错误复用 CORE-22。令牌和口令不写日志。
 - 错误码（本卡唯一定义）：
 

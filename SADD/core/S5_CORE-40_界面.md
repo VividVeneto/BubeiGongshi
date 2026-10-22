@@ -31,14 +31,17 @@ final class FlowCancelled extends RecognitionStep { final String? sessionId; }
 final class RecognitionFlow extends ChangeNotifier {
   RecognitionFlow({required ProfileSessionSource sessions, required PlatformPorts ports, required RecognitionModeDto mode,
                    required String notationProfileId, List<SymbolDeclDto> userDecls = const [],
-                   CloudRecognitionService? cloud});
-  // notationProfileId/userDecls 原样填入 recog.postprocess、recog.correct、recog.final_check 的请求体（CORE-31）：
+                   List<String> symbolHints = const [], String? subject, CloudRecognitionService? cloud});
+  // 识别上下文：recog.run 与 recog.postprocess 的 context = { mode, symbol_hints: symbolHints, subject, expected_kind: null, user_corrections: [] }（CORE-29 RecognitionContext）；
+  // symbolHints 多于 50 项或含空串时构造即失败（断言错误，属调用方编程错误）；云端 submit 的 subject/symbolHints 取同一值（CORE-34）。lookup 由调用页传当前公式库筛选的学科与其中符号字形（未筛选时为空），
+  // answer 由 HandwritingAnswerInput 传期望修订的符号字形（按出现顺序去重取前 50）与卡片学科。
+  // notationProfileId/userDecls 原样填入 recog.postprocess 的请求体，并经 flow 只读公开给 CORE-50 用于 recog.correct、recog.final_check（下游说明，非契约）：
   // lookup 模式由调用页传当前记号方案（未选择时为 'cn-default'），answer 模式传所答题目期望修订（CORE-05 FormulaRevision）的 notation_profile_id，userDecls 为空
   RecognitionStep get step;
   Future<bool> needsKeepLastWarning(int imageCount);       // recog.settings.get：0 < keep_last < imageCount 时为 true
   Future<void> startInk(InkStrokesDto ink);                // session.start{ink} → 写墨迹文件 → transition Preview{Ink} → ChoosingBackend
   Future<void> startImages(List<ImportedImage> images, InputSourceDto source);   // 1–10 张；逐张：写暂存区 → img.probe → session.start → Cropping
-  Future<void> updateCrop(CropDto crop, EnhanceOptionsDto options);   // img.prepare（长任务，可取消，最新者生效）
+  Future<void> updateCrop(CropDto crop, EnhanceOptionsDto options);   // img.prepare（长任务，可取消，最新者生效）；long_edge 固定 2000，out_path/gray_out_path 为暂存区下 <sessionId>-prep-<n>.png / -gray-<n>.png（n 每次递增，旧文件在新结果发布后删除）
   Future<void> confirmInput();                             // transition Preview{Confirmed[, Original], quality} → ChoosingBackend
   Future<void> run(String backendId);                      // 本地：transition Running → recog.run → recog.postprocess → Succeeded{candidates}
                                                            // 远程：fetchPolicy；无 consentId → CloudConsentNeeded，否则 preparePreview → CloudPreviewing
@@ -81,6 +84,11 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 | --- | --- | --- |
 | `RECOG_ACTIVE_TASK_EXISTS` | CORE-32 | 提示“已有识别在进行”，提供“查看”与“取消它” |
 | `RECOG_NO_CANDIDATE` | CORE-29 | 提示重写或调整裁剪 |
+| `RECOG_ALL_CANDIDATES_INVALID`（postprocess 诊断） | CORE-31 | 进入 CandidatesReady 并展示原文供手工修改，不转 FlowFailed |
+| `CLOUD_TOKEN_EXPIRED`、`CLOUD_PREVIEW_STALE`、`AUTH_UPLOAD_RECONFIRM_REQUIRED` | CORE-34、CORE-62 | 回到 CloudPreviewing 并要求重新 preparePreview 与确认，不自动重传 |
+| `RECOG_CANCELLED`、`IMG_CANCELLED` | CORE-29、CORE-30 | 用户取消或被新请求取代：转 FlowCancelled（updateCrop 取代时保持 Cropping），不弹错误 |
+| `RECOG_HISTORY_KEY_UNAVAILABLE` | CORE-32 | 先 HistoryKeyUnlocker.ensure() 后重试一次，仍失败 FlowFailed(canRetry: false) |
+| 其余错误（含 `RECOG_OUTPUT_TOO_LARGE`、`RECOG_INPUT_INVALID`、`RECOG_BACKEND_NOT_ALLOWED`、`RECOG_QUOTA_EXCEEDED`、`RECOG_IMAGE_LOST`、`STORE_DISK_FULL`、`PLATFORM_*`） | 各自定义卡 | FlowFailed(errorCode, canRetry: FmlException.retryable)，文案取 CORE-02 errors_zh.arb，不自动换后端 |
 
 产品约束追踪：见README §6 Q4、Q38；已确认事项按确认值，待确认事项保持暂行默认，不由编码会话自行改产品取舍。
 
@@ -94,7 +102,7 @@ Dart 文件归属：本卡 ViewModel/用例/Controller/Worker/DTO 在 `app/lib/r
 - 增强选项或裁剪变化后旧 `previewPath` 作废；在 `CloudPreviewing` 返回裁剪必须重新 `preparePreview` 与确认（同一哈希原则见 CORE-34）。
 - 后端列表：游客只列 `networked = false`；作答模式只列 `faithful_transcription = true`；`cloud` 为 null 时不出现任何云端项。本地失败不得自动切换后端。
 - 墨迹采样、擦除、增量绘制及延迟唯一归CORE-64；本卡只接收其 `InkController.strokes`（`InkStrokesDto`）快照并驱动识别，不重复实现。
-- 手写作答：`HandwritingAnswerInput` 以 `RecognitionModeDto.answer`、`notationProfileId = 期望修订的 notation_profile_id` 运行流程；展示 Top-1 转写到 CORE-87 编辑器（LaTeX 模式，控制器契约 CORE-59）供用户修改，点“确认作答”后才调用 `AnswerSink`（`answer_mode = handwriting`、`Graded(Latex)`）；不显示识别置信度。
+- 手写作答：`HandwritingAnswerInput` 以 `RecognitionModeDto.answer`、`notationProfileId = 期望修订的 notation_profile_id` 运行流程；展示 Top-1 转写到 CORE-87 编辑器（LaTeX 模式，控制器契约 CORE-59）供用户修改，点“确认作答”后才调用 `AnswerSink`（`answer_mode = handwriting`、`Graded(Latex)`；`raw_answer` 与 Latex 内容均为用户确认时编辑器中的最终 LaTeX，`hint_used = false`，`duration_ms` 由注入时钟取输入组件首次显示到确认作答的毫秒差，超过 u32 上限时取上限）；不显示识别置信度。
 - 安装点：`installRecognition(ctx)` 以 ctx.features.require<ProfileSessionSource>() 与 ctx.ports.keys 构造 CORE-32 `HistoryKeyUnlocker` 并登记到 `ctx.features`；`RecognitionFlow` 在档案解锁后首次调用 `recog.session.*` 前 `ensure()`，返回 true 时提示一次“本机密钥失效，识别历史已清空”；以进程 startup order 40 登记“本地模型注册”（CORE-95 `pack.list` 中 `model-` 开头的包逐个 `recog.local.register`，失败只记录）；从 ctx.features 取 CORE-36 ProfileHooks，以档案 order 50 登记先 await keys.ensure() 再用传入 session.core 调 `recog.recover`；向 `ctx.features` 中的 `AnswerInputRegistry`（CORE-39）注册 `HandwritingAnswerInput`；订阅 `ports.lifecycle.events()`，`paused` 持续 30 s 或 `lowMemory` 时调用 `recog.local.unload_all`。在 CORE-36 `installers.dart` 追加一行，位于 `installStudy` 之后。（登记片段由聚合维护者单写合入，消费卡不直接写共享文件。）
 - 不把图片写入系统相册或公共目录。
 - 外部前提：无新增第三方库（裁剪手势用 Flutter 内置 `InteractiveViewer` 与自绘裁剪框）。

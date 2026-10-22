@@ -15,3 +15,10 @@
 - [R26] 游客：`ChoosingBackend.backends` 不含 networked 后端，且未调用任何 `CloudRecognitionService` 方法。
 - [R04][R04.e] 手写作答：识别返回 `m v^2` 时编辑器显示原样转写；未点“确认作答”前不调用 `AnswerSink`；确认后提交 `answer_mode = handwriting`。
 - [R31][R32] 请求与结果形状（Fake CoreBinding）：img.probe/prepare 与图片 recog.run、session.transition/get 请求都带 staging_root（等于 Fake LocalFileStore 暂存根）；开启增强时 img.prepare 带 gray_out_path 并展示对照图；postprocess 返回空 candidates 加 RECOG_ALL_CANDIDATES_INVALID 时进入手工输入且只提示一次；transition 请求带 now_ms 与 payload.networked。
+- [R06][R40] 识别上下文：lookup 传 symbolHints ['F','m'] 与 subject 'physics' 时 recog.run 与 recog.postprocess 请求体 context 等于 {mode:'lookup',symbol_hints:['F','m'],subject:'physics',expected_kind:null,user_corrections:[]}，云端 submit 收到同一 subject/symbolHints；51 项或含空串时构造失败；answer 模式取期望修订字形去重前 50。
+- [R32] 裁剪：连续三次 updateCrop 只发布最后一次结果，前两次的 IMG_CANCELLED 不产生 FlowFailed 或错误提示；img.prepare 请求 long_edge 为 2000，旧预览文件在新结果发布后被删除。
+- [R06][R40] 错误行逐码（Fake）：RECOG_MODEL_NOT_INSTALLED/BACKEND_UNAVAILABLE 显示手工输入与其他本地模型且无云端项；MODEL_TIMEOUT/OOM → canRetry 为真，retry() 复用原 sessionId；NO_CANDIDATE 提示调整；ACTIVE_TASK_EXISTS 显示“查看/取消它”；CloudUnknown 显示“结果未知，可能已计费”且 submit 只调用一次；ALL_CANDIDATES_INVALID 进入 CandidatesReady；CLOUD_PREVIEW_STALE/TOKEN_EXPIRED/AUTH_UPLOAD_RECONFIRM_REQUIRED 回 CloudPreviewing；未列错误 canRetry 等于 FmlException.retryable。
+- [R31] 队列：3 张图第 2 张 probe 失败时 next() 依次处理第 1、3 张并在末尾汇总一条跳过提示；全部 probe 失败时 session.start 零次、暂存清空、回导入入口且历史无新记录；空导入 session.start 零次；作答模式后端列表只含 faithful_transcription 为真者，游客只含 networked 为假者。
+- [R06][R33] 安装点：installRecognition 位于 installStudy 之后；startup order 40 对 model- 包逐个 register、单个失败只记录；档案 order 50 先 ensure() 再 recover，ensure 返回 true 时提示恰一次；lifecycle paused 29 s 不卸载、30 s 卸载一次，lowMemory 立即卸载；页面销毁后暂存目录无本会话文件。
+- [R04] 手写作答：确认后 AnswerSink 收到 answer_mode handwriting、raw_answer 等于编辑器最终 LaTeX、hint_used false、duration_ms 等于注入时钟差；未确认不调用。
+- [R06] 进度：Fake 推理延迟 1.2 s 时 1 s 后出现进度与取消，延迟 0.8 s 时不出现。

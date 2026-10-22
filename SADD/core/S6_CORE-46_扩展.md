@@ -21,6 +21,7 @@ abstract interface class SyncCoordinator implements SyncFacade {        // SyncF
   Future<void> setEnabled(bool enabled);              // 写 CORE-23 sync_enabled；关闭时取消进行中的同步
   void attach(AppLifecycle lifecycle);                // resumed → syncNow(resumed)；paused → 取消
   Future<void> stopAndDrain(ProfileSession session);
+  // choices()/resolveChoice() 在调用时捕获 session，分别调用 CORE-26 sync.choices / sync.resolve_choice（见下）
 }
 final class DefaultSyncCoordinator implements SyncCoordinator {
   DefaultSyncCoordinator({required ProfileSessionSource sessions, required SyncApi api,
@@ -43,6 +44,12 @@ final class DefaultSyncCoordinator implements SyncCoordinator {
 | `SYNC_ENVELOPE_INVALID`、`SYNC_HASH_MISMATCH`、`SYNC_PAYLOAD_TOO_LARGE`（push） | 客户端编码缺陷：`failed`，记录 error 诊断，不重试、不丢弃批次（等待升级修复） |
 | `SYNC_KEY_VERSION_REJECTED`、`SYNC_KEY_MISSING` | `GET /v1/keys`；本地缺少更高版本 → `needsKey`，界面引导输入恢复码或同步密语（`restoreOnNewDevice`） |
 | `SYNC_QUOTA_EXCEEDED` | `failed`，停止推送，拉取照常 |
+| `SYNC_SNAPSHOT_INCOMPLETE`（快照 commit，CORE-25）、`SYNC_SNAPSHOT_CORRUPT`、`SYNC_PATH_INVALID`（`sync.snapshot_apply/build`，CORE-66） | `failed`，删除本次快照暂存目录；下载方向的 CORRUPT 允许下次触发从头重新下载一次，其余不在本轮重试 |
+| `SYNC_BATCH_INVALID`（`sync.prepare_push`，CORE-78） | 编程错误：`failed`，记录 error 诊断，不重试 |
+| `STORE_BUSY` | 按网络退避同一规则重试，最多 3 次后 `failed` |
+| `STORE_DISK_FULL`、`STORE_CORRUPT`、`CRYPTO_*` | `failed`，不重试，交由界面按 CORE-02 消息映射提示 |
+| `SYNC_DECRYPT_FAILED`、`SYNC_AAD_MISMATCH`、`SYNC_QUARANTINED` | 只在 CORE-26 内部转入隔离区，不作为 op 错误返回；本卡从 `sync.status` 的 `quarantined` 计数更新状态，不置 `failed` |
+| 其他未列出的已登记错误码 | `failed`，lastErrorCode 取该码，可重试码按退避规则重试，不可重试码停止本轮 |
 | `SYNC_BATCH_UNKNOWN`（`sync.ack`） | 批次已因纪元变化或密钥更新被作废，属良性：丢弃本次 ack 结果，继续下一轮 `sync.prepare_push`（重建批次中服务端已存的 op_id 返回 CONFLICT 并出队），记录 warning 诊断后不计失败、不退避，不重试旧 ack |
 
 - 升级网络步进完整迁CORE-99；本卡只提供syncNow(afterUpgrade)消费入口，不调用或依赖升级协调器。
@@ -56,11 +63,14 @@ final class DefaultSyncCoordinator implements SyncCoordinator {
 - SYNC_BATCH_UNKNOWN 复用 CORE-26 的 warning / 不可重试：AppLog.event(LogLevel.warning, 'sync_batch_unknown', {LogKey.errorCode: LogCode('SYNC_BATCH_UNKNOWN')})，不输出 batch/key/token；不设置 failed/lastErrorCode，不触发错误弹窗/失败计数/退避，继续重新 prepare_push，受原 50 往返预算约束。
 - 只在应用前台、启动/恢复时、升级完成后或用户手动触发时同步；不做常驻后台同步与周期轮询。
 - 网络全部经 CORE-62 `ApiClient`（`RequestPurpose.sync`）；恢复码、口令、密钥不进日志与崩溃报告，Dart 字符串用后不再持有引用。
-- 推送请求体以紧凑 JSON 发送（无空白、不转义 `/`，字段按 `sync.prepare_push` 返回的顺序），其字节数与 CORE-26 的 `max_bytes` 计量一致。
+- 推送请求体：取 `sync.prepare_push` 返回的 `batch` 解码结果（`jsonDecode` 得到的 Map 保持键序），以 `{'envelopes': batch['envelopes']}` 交给 `ApiClient.call(json: …)`；CORE-62 规定 json 以 `jsonEncode` 编为紧凑 UTF-8（无空白、不转义 `/`、按插入顺序输出键），Envelope 字段全为 ASCII（UUID、base64、十六进制与整数），因此请求体字节数 = 16 + Σ 各 Envelope 规范 JSON 字节 + (n − 1)，与 CORE-26 的 `max_bytes` 口径一致。本卡不另行拼接或重排字节。
+- 状态：`lastSuccessAt` 为最近一次完整同步（拉取与推送循环都正常结束）完成时的注入时钟时刻，中途失败或因 50 往返上限结束不更新；`lastErrorCode` 取上表置 `failed`/`offline` 的错误码，下一次完整成功后置 null；`outboxLen`、`quarantined`、`openChoices` 每轮结束后从 `sync.status` 刷新。
+- 修订并发头：`choices()` 调用 `sync.choices {}`，把返回的每条 `id`、`item_id`、`heads_json`（UUID 数组）映射为 `(choiceId, itemId, heads)`，只保留未决条目（`resolved_at_ms` 为空）；`resolveChoice` 调用 `sync.resolve_choice { choice_id, chosen }`，成功后刷新状态并触发一次 `syncNow(manual)` 让选择结果上传；`SYNC_CHOICE_INVALID` 原样抛给界面。current=null 或游客时 choices 返回空列表，resolveChoice 直接返回并回账户入口（同 setEnabled 规则），二者都不调用 op。
+- 轮换与同步密语：`revokeDeviceAndRotate` 生成新密钥版本后，原同步密语包装只覆盖旧版本；本卡与 KeyService 不保留口令、不自动重新包装，由 CORE-47 在展示新恢复码时提示用户重新设置同步密语（`setSyncPassphrase`；下游说明，非契约）。
 - 推送不发 Idempotency-Key；CORE-25按(account_epoch,op_id)与密文哈希幂等。batch_id只作客户端持久化批次标识，重试不重新加密。
-- 外部前提：无新增第三方依赖；测试用内存版 CORE-25 服务端替身 `app/test/fakes/fake_sync_server.dart`（实现本卡用到的全部端点与错误码）。
+- 外部前提：无新增第三方依赖；测试用内存版 CORE-25 服务端替身 `app/test/fakes/fake_sync_server.dart`（实现本卡用到的全部端点与错误码）。两设备计算方案用例复用 CORE-48 的测试夹具（只在测试中引用，CORE-48 不成为本卡依赖；下游说明，非契约）。
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-46_TEST.md](../Test/core/S6_CORE-46_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约620行；主包 `app/lib/sync/`。分阶段：① 同步 API、循环、单飞/世代隔离、状态/异常与生命周期安装（约380）；② 快照分片续传/校验/应用/上传提交与同步接入（约240），各阶段在 CORE-98 之后可独立构建测试。加密、合并、服务端、fixture、生成物与自测不计；密钥与升级实现仍归 CORE-98/99，不由本次生命周期新增重复实现。
+**规模**：约640行；主包 `app/lib/sync/`。分阶段：① 同步 API、循环、单飞/世代隔离、状态/异常、并发头选择与生命周期安装（约400）；② 快照分片续传/校验/应用/上传提交与同步接入（约240），各阶段在 CORE-98 之后可独立构建测试。加密、合并、服务端、fixture、生成物与自测不计；密钥与升级实现仍归 CORE-98/99，不由本次生命周期新增重复实现。
 

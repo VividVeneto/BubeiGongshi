@@ -18,3 +18,13 @@
 - [R19] order 20 档案打开钩子悬挂超过 120 s、order 70 同步不完成时，firstFrameHooks 仍先完成且只执行一次；首帧前不执行。
 - [R19] 托盘首帧钩子悬挂不返回时，2 s 后健康确认钩子照常执行，随后启动钩子开始；悬挂项记录一条超时日志。
 - [R18] 源码扫描：`app/lib/ui/` 下任何 Widget 的构造参数或字段类型为 `AppDeps`、`CoreBinding`、`PlatformPorts` 时 CORE-69 DEP-5（CORE-41 编排）失败；`app/lib/<feature>/routes.dart` 读取 `deps.core` 不报错。
+- [R19] 组装顺序与失败：两个 Fake transportInstaller 中第一项挂起时第二项零次调用，完成后才执行；platformInstallers 全部在 featureInstallers 之后；第 k 个 featureInstaller 抛错时其后安装点与 platformInstallers 零次、已创建的 ProfileSessionHost/ApiClient 被释放、composeApp 抛原错误且不返回 AppDeps；installDesign 是 featureInstallers 第一项，AppearanceController.load 在 runApp 之前完成。
+- [R19] 启动失败：FML_API_HOST 为空或任一安装点抛错时 mainCommon 显示 StartupFailedScreen（只有“退出”），路由器未创建、firstFrame/startup/profile 钩子零次、提醒点击订阅零次，AppLog 恰一条 error 且界面不含异常原文。
+- [R24] 启动恢复登记：composeApp 后 ctx.startupHooks 中 order 20 恰一项 id 为 account.restore，执行时调用 Fake DefaultAccountController.restoreOnStartup 恰一次；ApiClient 的 baseUrl 等于 ctx.apiBase。
+- [R19] 路由：/study/books/new 命中 bookReminderRoutes 的新建页而非 studyHomeRoutes 的 :bookId；/library/trash、/library/new、/library/import 均不被 /library/:itemId 吞掉；/settings/appearance 命中 CORE-58；Uninitialized 下访问 /library 被重定向到 /，/account/x 与 /privacy 放行。
+- [R18][R19] 登记门禁：FeatureRegistry 同类型重复登记、SettingsSections 同 id 或同 order、ProfileHooks 同 id/order、ShellKeyHandler 第二次登记均抛 StateError；正常组装后导出 build/extensions.json，含每项 owner/key/point 且与 contracts/policies/shared-writes.json 对应项一致。
+- [R28] Disabled 门面：DisabledSyncFacade.status 首个值为 SyncStatus(phase: disabled) 且计数为 0；choices 返回空列表；syncNow/setEnabled/provideKey/setSyncPassphrase/revokeDeviceAndRotate/resolveChoice 各抛 code 为 SYNC_NOT_AVAILABLE 的 FmlException；DisabledUpgradeFacade.run 抛同码，resumeIfPending 正常返回且无副作用。
+- [R24] 游客：AccountState 为 guestUnlocked 时设置页与识别页不出现云识别与同步入口；未登记 CloudRecognitionService 时注册用户同样不出现；源码扫描 app/lib/ui/ 无平台判断。
+- [R19] 状态恢复：MaterialApp.router 的 restorationScopeId 为 fml、GoRouter 为 router；在 /library/<id> 触发 restoration 往返后回到同一路由。
+- [R19] 系统返回（Widget 测试模拟 Android 返回）：二级页返回上一页；/library、/recognize、/settings 根页返回切到 /study；/study 根页返回交给系统（canPop 为真）且不弹提示；打开的底部面板/对话框先关闭自身；页面自设 PopScope(canPop: false) 时外壳规则不执行。
+- [R04] 提醒点击在账户入口未完成（Uninitialized）时到达：先停留账户入口，完成游客入口后当前路由为 /study，且只跳转一次。
