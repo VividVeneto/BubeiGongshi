@@ -6,7 +6,7 @@
 - 包含：升级日志状态机与表、各步幂等实现（纯本地，网络结果由调用方作为输入传入）、升级后首次全量上传的触发标记。
 - 不包含：驱动升级的联网协调器与首次全量上传（CORE-99，经 CORE-25 的 `/v1/keys`）；注册用例（CORE-23）；账户界面（CORE-36）。
 
-**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-21、CORE-22、CORE-23（CORE-22 仅概念依赖：服务端账户与 `/v1/keys` 语义，本卡 Rust 代码不引用其符号）
+**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-21、CORE-22、CORE-23、CORE-102（CORE-22 仅概念依赖：服务端账户与 `/v1/keys` 语义，本卡 Rust 代码不引用其符号）
 
 **接口契约**
 
@@ -100,4 +100,4 @@ load_account_keys 在一个 Store.read 快照加载 account_state.account_id/acc
 
 **验收标准**：测试方案全文见 [Test/core/S6_CORE-24_TEST.md](../Test/core/S6_CORE-24_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约490行；主包`crates/fml-store/src/sync/upgrade.rs`与`keys.rs`，附属`crates/fml-ffi/src/ops/upgrade.rs`（除account.upgrade_merge外的处理/登记）及`migrations/0024_upgrade.sql`的数据定义。包含升级写门暂停/恢复接入，写门hook实现归CORE-13。DDL/自测/CORE-83并入实现不计。
+**规模**：约490行；主包`crates/fml-store/src/sync/upgrade.rs`与`keys.rs`，附属`crates/fml-ffi/src/ops/upgrade.rs`（除account.upgrade_merge外的处理/登记）及`migrations/0024_upgrade.sql`的数据定义。包含升级写门暂停/恢复接入；写门 hook 由 CORE-102 实现（`Store::pause_writes`/`write_gated`/`write_gate`），本卡只登记触发时机与 `SYNC_UPGRADE_IN_PROGRESS` 模板。DDL/自测/CORE-83并入实现不计。
