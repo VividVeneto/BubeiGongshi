@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "ops": [
+    {
+      "op": "fixture.echo",
+      "owner": "CORE-67",
+      "stage": "S0",
+      "status": "ready",
+      "mode": "call",
+      "scope": "none",
+      "schema": "fixture-echo.schema.json",
+      "error_codes": [],
+      "sensitive_paths": [
+        "/ok/db_key"
+      ],
+      "reads_engine_snapshot": false
+    },
+    {
+      "op": "fixture.pending_echo",
+      "owner": "CORE-67",
+      "stage": "S4",
+      "status": "pending",
+      "mode": null,
+      "scope": "none",
+      "schema": null,
+      "error_codes": [],
+      "sensitive_paths": [],
+      "blocked_reason": "等待字段设计闭合"
+    }
+  ]
+}
