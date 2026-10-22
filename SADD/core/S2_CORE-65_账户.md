@@ -27,6 +27,7 @@ final class DefaultAccountController implements AccountController {
   DefaultAccountController({required CoreBinding root, required PlatformPorts ports,
     required ApiClient api, required SecureTokenStore tokens, required ProfileSessionHost sessions});
   // 实现 AccountController 全部方法；root 只调用 CORE-23 全局档案管理 op。
+  Future<void> restoreOnStartup();   // 启动 order 20（CORE-36 composeApp 代为登记）；规则见下文“启动恢复”
 }
 // app/lib/account/secure_token_store.dart
 final class SecureTokenStore implements TokenStore {
@@ -66,6 +67,8 @@ CORE-36 composition 创建唯一 ProfileSessionHost 并以 ProfileSessionSource 
 addBeforeClose 的 id 全局唯一，重复抛 StateError；按登记顺序启动回调，不等前一项 drain 才启动下一项，以免档案钩子等待特性任务、特性取消却尚未启动的死锁；所有返回 Future 均收集结果（含同步抛错），等待已启动项全部 settle 后按登记顺序确定失败（不按完成竞态）再报告，不用 Future.wait 的提前失败释放句柄。返回函数只注销本次登记。调用 close 时冻结回调列表；注销不取消已启动的 drain。同一关闭中的并发 close 返回同一 Future，成功后幂等；失败后新的 close 重试未完成阶段，已完成回调不重复执行。账户切换/login/logout/启动恢复共用串行队列，禁止两个 open 或 open 与 close 交错。logout 在此队列内先 set_logged_out(true)，并立即进入上述 closing；该本地标志写失败则不伪造登出，成功排空关闭后才发布 registeredLocked。异常/退出也走 close；崩溃由 OS 释放，启动重新解包不复用 handle。
 
 logout(deleteLocalData: true) 只在界面二次确认后调用，同一串行队列内依次：set_logged_out(true) → 上述 closing 与 close_profile(lock: true) → CORE-23 account.delete_profile(profile_id) → ports.keys.delete('fml.<profile_id>.db')（CORE-04，别名不存在静默成功）→ 清空令牌缓存并发布 uninitialized。delete_profile 失败（STORE_BUSY 等）保持 registeredLocked、别名不删，可显式重试；别名只在该 op 成功后删除。每次 account.open_profile 成功后调用 account.touch_last_used(profile_id, now_ms)（now_ms 取 DateTime.now().millisecondsSinceEpoch）；该调用失败只记录诊断，不回滚已打开的档案。
+
+启动恢复（restoreOnStartup）：在同一串行队列内执行 CORE-23 启动规则——调 account.profiles；无档案 → 发布 uninitialized；否则取 last_used_ms 最大者（相等取 profile_id 字典序最小）；其 logged_out 为真 → 不打开档案，发布 registeredLocked；否则经 ports.keys 读取别名 'fml.<profile_id>.db' 系统级解包 DbKey（不弹认证）→ account.open_profile → touch_last_used → 构造 session → 按 account.state 发布状态。别名缺失、解包或打开失败：明文缓冲清零、不发布 session、状态保持 uninitialized，抛出原错误（由 CORE-36 钩子失败处理记录后继续），不删除档案与别名，用户仍可经账户入口登录或新建。已有 current session 时为空操作；重复调用不重复打开。
 
 SecureTokenStore 的异步 unwrap/save/refresh 在开始捕获档案与世代，完成后再验证；过期结果清零丢弃，绝不能写入另一个档案。关闭 drain 期间只允许已捕获旧任务的取消控制使用原有访问令牌，不启动刷新或新业务；关闭后 clear 不得误删下一档案令牌。DbKey、刷新令牌可变字节缓冲在成功/失败/过期各路径 finally 清零；不可变字符串只短暂持有并释放，不声称可原地擦除。平台软件密钥警告交账户页状态，由 CORE-47（下游说明，非契约）展示。
 

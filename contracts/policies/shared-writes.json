@@ -1425,6 +1425,12 @@
     },
     {
       "kind": "installer",
+      "key": "installDesignComponents",
+      "owner": "CORE-58",
+      "point": "own feature install.dart"
+    },
+    {
+      "kind": "installer",
       "key": "installAndroidEditing",
       "owner": "AND-07",
       "point": "own feature install.dart"

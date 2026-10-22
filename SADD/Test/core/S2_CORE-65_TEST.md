@@ -11,3 +11,4 @@
 - [R27] 删除本地数据：未二次确认时 account.delete_profile 与 keys.delete 零次；确认后调用顺序严格为 set_logged_out(true) → close_profile(lock:true) → delete_profile → keys.delete('fml.<id>.db') → uninitialized；Fake delete_profile 返回 STORE_BUSY 时 keys.delete 零次、状态保持 registeredLocked，重试成功后才删别名。open_profile 成功后 touch_last_used 恰一次且 now_ms 取注入时钟；其失败不关闭档案。
 
 - [R24][R27] Fake连续切换A→B：在A请求未排空前B的open不执行，changes依次A/null/B；close失败时仍为null；创建后的wrap/put_blob/open每处注入失败，明文临时缓冲均填零且没有Unlocked通知。
+- [R24][R27] 启动恢复：无档案 → uninitialized 且 open_profile 零次；两档案 last_used_ms 不同时打开较大者，相等时打开 profile_id 较小者；选中档案 logged_out 为真 → registeredLocked 且 keys 读取与 open_profile 均零次；Fake keys 别名缺失或 open_profile 失败 → 无 session、状态 uninitialized、抛原错误码、delete_profile 与 keys.delete 零次、DbKey 缓冲全零；成功后 touch_last_used 恰一次；已打开时再次调用零副作用。
