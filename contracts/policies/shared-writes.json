@@ -1205,49 +1205,49 @@
       "kind": "file",
       "key": "app/lib/composition/installers.dart",
       "owner": "CORE-36",
-      "point": "single-writer"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "file",
       "key": "app/lib/composition/routes.dart",
       "owner": "CORE-36",
-      "point": "single-writer"
+      "point": "app/lib/composition/routes.dart"
     },
     {
       "kind": "file",
       "key": "app/lib/composition/ports_android.dart",
       "owner": "AND-01",
-      "point": "single-writer"
+      "point": "app/lib/composition/ports_android.dart"
     },
     {
       "kind": "file",
       "key": "app/lib/composition/ports_windows.dart",
       "owner": "WIN-01",
-      "point": "single-writer"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "file",
       "key": "app/android/AndroidModules.kt",
       "owner": "AND-01",
-      "point": "single-writer"
+      "point": "app/android/AndroidModules.kt"
     },
     {
       "kind": "file",
       "key": "app/android/app/src/main/AndroidManifest.xml",
       "owner": "AND-02",
-      "point": "single-writer"
+      "point": "app/android/app/src/main/AndroidManifest.xml"
     },
     {
       "kind": "file",
       "key": "app/windows/runner/flutter_window.cpp",
       "owner": "WIN-01",
-      "point": "single-writer"
+      "point": "app/windows/runner/flutter_window.cpp"
     },
     {
       "kind": "file",
       "key": ".github/workflows/ci.yml",
       "owner": "CORE-41",
-      "point": "single-writer"
+      "point": ".github/workflows/ci.yml"
     },
     {
       "kind": "startup",
@@ -1385,7 +1385,7 @@
       "kind": "shortcut",
       "key": "app/default-and-reserved",
       "owner": "WIN-08",
-      "point": "defaultKeymap/isReservedChord"
+      "point": "defaultKeymap"
     },
     {
       "kind": "shortcut",
@@ -1397,121 +1397,121 @@
       "kind": "shortcut",
       "key": "study/command-ids",
       "owner": "CORE-58",
-      "point": "app/lib/design/commands.dart"
+      "point": "StudyCommand"
     },
     {
       "kind": "installer",
       "key": "installStudy",
       "owner": "CORE-39",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installRecognition",
       "owner": "CORE-40",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installStorageGuard",
       "owner": "CORE-101",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installPacks",
       "owner": "CORE-51",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installFormulaCopy",
       "owner": "CORE-91",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installDesign",
       "owner": "CORE-55",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installDesignComponents",
       "owner": "CORE-58",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installAndroidEditing",
       "owner": "AND-07",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_android.dart"
     },
     {
       "kind": "installer",
       "key": "installAndroidReminders",
       "owner": "AND-08",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_android.dart"
     },
     {
       "kind": "installer",
       "key": "installAndroidInteraction",
       "owner": "AND-13",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_android.dart"
     },
     {
       "kind": "installer",
       "key": "installAndroidClipboard",
       "owner": "AND-14",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_android.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsUpdater",
       "owner": "WIN-03",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsShell",
       "owner": "WIN-06",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsDrop",
       "owner": "WIN-19",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsClipboard",
       "owner": "WIN-05",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsEditing",
       "owner": "WIN-08",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsKeymap",
       "owner": "WIN-14",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsInteraction",
       "owner": "WIN-15",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installWindowsTray",
       "owner": "WIN-09",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "error",
@@ -1745,193 +1745,199 @@
       "kind": "installer",
       "key": "installEditor",
       "owner": "CORE-37",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installLatexCompletion",
       "owner": "CORE-53",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installLibraryBatch",
       "owner": "CORE-54",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installOnExit",
       "owner": "WIN-03",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/ports_windows.dart"
     },
     {
       "kind": "installer",
       "key": "installPrivacy",
       "owner": "CORE-28",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installCloud",
       "owner": "CORE-34",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installReminders",
       "owner": "CORE-20",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installSync",
       "owner": "CORE-46",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "route",
       "key": "/",
       "owner": "CORE-63",
-      "point": "app/lib/composition/routes.dart"
+      "point": "accountRoutes"
     },
     {
       "kind": "route",
       "key": "/account",
       "owner": "CORE-63",
-      "point": "app/lib/composition/routes.dart"
+      "point": "accountRoutes"
     },
     {
       "kind": "route",
       "key": "/privacy",
       "owner": "CORE-63",
-      "point": "app/lib/composition/routes.dart"
+      "point": "accountRoutes"
     },
     {
       "kind": "route",
       "key": "/library",
       "owner": "CORE-38",
-      "point": "app/lib/composition/routes.dart"
+      "point": "libraryRoutes"
     },
     {
       "kind": "route",
       "key": "/library/import",
       "owner": "CORE-60",
-      "point": "app/lib/composition/routes.dart"
+      "point": "libraryToolsRoutes"
     },
     {
       "kind": "route",
       "key": "/library/units",
       "owner": "CORE-60",
-      "point": "app/lib/composition/routes.dart"
+      "point": "libraryToolsRoutes"
     },
     {
       "kind": "route",
       "key": "/study",
       "owner": "CORE-89",
-      "point": "app/lib/composition/routes.dart"
+      "point": "studyHomeRoutes"
     },
     {
       "kind": "route",
       "key": "/study/stats",
       "owner": "CORE-49",
-      "point": "app/lib/composition/routes.dart"
+      "point": "statsRoutes"
     },
     {
       "kind": "route",
       "key": "/study/reminder",
       "owner": "CORE-90",
-      "point": "app/lib/composition/routes.dart"
+      "point": "bookReminderRoutes"
     },
     {
       "kind": "route",
       "key": "/study/books/new",
       "owner": "CORE-90",
-      "point": "app/lib/composition/routes.dart"
+      "point": "bookReminderRoutes"
     },
     {
       "kind": "route",
       "key": "/study/books/:bookId/edit",
       "owner": "CORE-90",
-      "point": "app/lib/composition/routes.dart"
+      "point": "bookReminderRoutes"
     },
     {
       "kind": "route",
       "key": "/recognize",
       "owner": "CORE-50",
-      "point": "app/lib/composition/routes.dart"
+      "point": "recognitionRoutes"
     },
     {
       "kind": "route",
       "key": "/settings",
       "owner": "CORE-47",
-      "point": "app/lib/composition/routes.dart"
+      "point": "settingsRoutes"
     },
     {
       "kind": "route",
       "key": "/settings/appearance",
       "owner": "CORE-58",
-      "point": "app/lib/composition/routes.dart"
+      "point": "designComponentRoutes"
     },
     {
       "kind": "route",
       "key": "/calc",
       "owner": "CORE-48",
-      "point": "app/lib/composition/routes.dart"
+      "point": "calcRoutes"
     },
     {
       "kind": "route",
       "key": "/packs",
       "owner": "CORE-51",
-      "point": "app/lib/composition/routes.dart"
+      "point": "packRoutes"
     },
     {
       "kind": "installer",
       "key": "installEditorInput",
       "owner": "CORE-87",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installKeys",
       "owner": "CORE-98",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "installer",
       "key": "installUpgrade",
       "owner": "CORE-99",
-      "point": "own feature install.dart"
+      "point": "app/lib/composition/installers.dart"
     },
     {
       "kind": "route",
       "key": "/library/new",
       "owner": "CORE-88",
-      "point": "app/lib/composition/routes.dart"
+      "point": "libraryEditRoutes"
     },
     {
       "kind": "route",
       "key": "/library/:itemId/edit",
       "owner": "CORE-88",
-      "point": "app/lib/composition/routes.dart"
+      "point": "libraryEditRoutes"
     },
     {
       "kind": "route",
       "key": "/study/session/:id",
       "owner": "CORE-39",
-      "point": "app/lib/composition/routes.dart"
+      "point": "studyRoutes"
     },
     {
       "kind": "route",
       "key": "/study/books",
       "owner": "CORE-89",
-      "point": "app/lib/composition/routes.dart"
+      "point": "studyHomeRoutes"
     },
     {
       "kind": "route",
       "key": "/study/plan/:bookId",
       "owner": "CORE-89",
-      "point": "app/lib/composition/routes.dart"
+      "point": "studyHomeRoutes"
+    },
+    {
+      "kind": "file",
+      "key": "contracts/policies/shared-writes.json",
+      "owner": "CORE-75",
+      "point": "contracts/policies/shared-writes.json"
     }
   ]
 }
