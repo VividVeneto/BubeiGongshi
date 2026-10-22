@@ -19,7 +19,8 @@ class ApiClient {
   Stream<NetEvent> get events;
   ApiClient(HttpTransport transport, TokenStore tokens, {required Uri baseUrl});
   Future<ApiResponse> call(String method, String path, {Object? json, required String requestId, String? idempotencyKey, required RequestPurpose purpose, String? consentToken});
-  // 每个请求统一附加 Authorization: Bearer <tokens.accessToken()>（为 null 时不带该头）与 X-Fml-App-Version=<appVersion>；
+  // 每个请求统一附加 Authorization: Bearer <tokens.accessToken()>（为 null 时不带该头）、X-Fml-App-Version=<appVersion> 与 X-Fml-Request-Id=<requestId>；idempotencyKey 非 null 时附加 Idempotency-Key: <值>（CORE-33:20/:59 的任务端点以该头为幂等键，键由 CORE-34:61 生成；本卡只透传，不生成、不改写）；
+  // ApiResponse.requestId 取响应头 X-Fml-Request-Id（HttpResult.headers 键为小写，按 x-fml-request-id 读取），缺失时用请求值；本卡不校验也不纠正该值，格式（非零 32 位小写十六进制）与非法/缺省补值由服务端边界负责（CORE-22:29/:31）；
   // 非cloudRecognition的401刷新后重试一次，刷新失败抛 FmlException('AUTH_REAUTH_REQUIRED')；
   // 刷新请求：POST /v1/auth/token，Content-Type: application/x-www-form-urlencoded，体 grant_type=refresh_token&refresh_token=<当前刷新令牌>（CORE-22，不递归刷新）；
   // 刷新成功：解析 /v1/auth/token 返回的 access_token、refresh_token、token_type、expires_in（秒）；token_type 大小写不敏感须为 Bearer，access_token 与 refresh_token 缺一即按刷新失败处理；
