@@ -8,5 +8,5 @@
 - [R11] Widget 测试（Fake CoreBinding 回放）：Fake分别invoke library.batch.toggle/extend.down/selectAll/clear及鼠标Ctrl/Shift单击的选中结果与选择规则一致；invoke trash后出现撤销提示条，invoke undo发出 `untrash` 且 ID 等于 `appliedIds`；invoke editTags打开编辑标签对话框；触控长按进入选择模式。
 - [R11] Widget 测试：未登记 `LibraryListDecorator` 时列表无复选框、上述语义命令不可用；筛选变化后选择被清空。
 - [R04] 集成测试（真实核心）：回收站页选中 5 条执行“恢复”，5 条回到公式库列表且修订历史不变。
-- [R11] 性能：10000条加一标签按CORE-01“库批量写入”行，期间交互与滚动另按“列表滚动”行；由AND-12/WIN-13在S7分别测量，不以滚动FPS代替事务耗时，本卡只验事务/取消语义。
+- [R11] 性能：10000条加一标签按CORE-01 预算表“库批量写入（10000条加一标签，P95）”行，期间交互与滚动另按“列表滚动”行；由AND-12/WIN-13在S7分别测量，不以滚动FPS代替事务耗时，本卡只验事务/取消语义。
 - [R42.b] Widget 测试：只点列表顶部“选择”按钮（不长按）即可进入选择模式；`touch` 下复选框点击区域 ≥ 48×48。
