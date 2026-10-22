@@ -6,7 +6,7 @@
 - 包含：outbox 取批与 ACK 处理、实体负载编码、加密与 AAD、拉取结果的校验与按实体合并、隔离区、待选择记录、字段逻辑时钟、纪元变化处理；快照与轮换已迁至CORE-66（下游说明，非契约）；对应 FFI op。
 - 不包含：HTTP 收发、触发时机与重试（CORE-46）；服务端（CORE-25）；同步界面（CORE-36）。
 
-**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-56、CORE-68、CORE-78、CORE-82、CORE-86
+**依赖**：CORE-01、CORE-02、CORE-05、CORE-13、CORE-14、CORE-17、CORE-19、CORE-21、CORE-24、CORE-25、CORE-56、CORE-68、CORE-78、CORE-82、CORE-86、CORE-102
 
 **接口契约**
 
@@ -15,7 +15,7 @@
 pub struct AccountKeys { pub account_id: Uuid, pub account_epoch: u32, pub current: u32, keys: BTreeMap<u32, SecretKey> } // 由 account_key 表（CORE-24）加载
 pub struct PushBatch { pub batch_id: Uuid, pub envelopes: Vec<Envelope> }        // Envelope 唯一定义见 CORE-68（经CORE-25依赖），import fml_sync_proto::Envelope；返回前已经 CORE-78 `save_batch` 持久化
 pub use fml_sync_proto::{PushItemResult as PushResult, PullResponse as PullPage};   // 线类型唯一定义见 CORE-68（Ack{op_id,server_seq} / Conflict{op_id}；PullPage 字段 envelopes/next_cursor/has_more/account_epoch），本卡不另定义
-pub const PULL_CURSOR_STREAM: &str = "sync_pull";                                   // CORE-13 sync_cursor.stream 唯一取值；该行 epoch = keys.account_epoch；apply_pull 与 CORE-66 apply_snapshot 写、sync.cursor 读
+pub const PULL_CURSOR_STREAM: &str = "sync_pull";                                   // CORE-102 sync_cursor.stream 唯一取值（读写入口 read_sync_cursor/set_sync_cursor/clear_sync_cursor 归 CORE-102，DDL 与列规则仍归 CORE-13）；该行 epoch = keys.account_epoch；apply_pull 与 CORE-66 apply_snapshot 写、sync.cursor 读
 pub struct ApplyReport { pub applied: u32, pub duplicates: u32, pub quarantined: u32, pub new_choices: u32 }
 pub fn prepare_push(tx: &mut WriteTx, keys: &AccountKeys, rng: &mut dyn SecureRandom, max_count: u32 /* ≤ 200 */, max_bytes: u32 /* ≤ 1 MiB，口径见下 */) -> Result<Option<PushBatch>, FmlError>;
 // 全部在调用方的同一写事务内：先调 CORE-78 `pending_batch(tx)`；有未结算批次且其 account_epoch == keys.account_epoch、key_version == keys.current，则原样返回其持久化字节，不取 rng、不重新加密；二者任一不一致（如另一设备轮换后本机经 import_account_key 取得新版本、或纪元已变），先 `invalidate_all(tx, Stale)` 再按当前密钥重建；无批次时读取 outbox 构造并加密新批次，并 `save_batch(tx)` 落盘。rng 由 FFI 适配传入 CORE-23 OsRandom，nonce 经 seal_with_rng 逐条取得

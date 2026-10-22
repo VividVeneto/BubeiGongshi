@@ -15,7 +15,7 @@
 4. **识别可插拔**：墨迹与照片走同一识别契约；首版交付云端 LLM 识别（仅注册用户、逐次授权）；本地轻量模型是可下载资源包；YOLO 只在实验分支预研。
 5. **资源与程序剥离**：内容、字体、模型都是签名资源包；安装包内置CORE-56的最小引擎数据与bootstrap-pack，其余按需下载。
 6. **识别历史可回收**：保留最近 0–100 次识别，默认 5 次，两阶段垃圾回收。
-7. **按模块卡实施**：135 张模块卡（公共核心 101、Android 15、Windows 19；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），通过README §8.5与附录D §D.10就绪复核后按卡交给AI编码助手完成。
+7. **按模块卡实施**：136 张模块卡（公共核心 102、Android 15、Windows 19；AND-10、WIN-11 已在 v5.1 撤销，编号不复用），通过README §8.5与附录D §D.10就绪复核后按卡交给AI编码助手完成。
 
 ## 2. 需求基线与文档效力
 
@@ -176,8 +176,8 @@ v5 的主要变化：
 | R15 | 后期自定义量纲与单位 | 原文 | 阶段 | 用户单位命名空间，防循环与冲突 | 自动 | CORE-08、CORE-14、CORE-60 |
 | R16 | 量纲匹配时可把公式代入到别的公式中同量纲的部分 | 原文 | V1 | 槽位候选排序、代入条件检查、推导关系 | 自动 | CORE-11、CORE-14、CORE-48、CORE-86 |
 | R17 | 避免同量纲不同物理量误代（由 R13、R16 推出） | 已确认决策（2026-10-10） | V1 | QuantityKind 警告与排序、跨类确认留痕 | 自动 | CORE-11、CORE-48 |
-| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | 自动 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-56、CORE-57、CORE-67、CORE-69、CORE-70、CORE-71、CORE-73、CORE-74、CORE-75、CORE-76、CORE-100、AND-01、WIN-01 |
-| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-17、CORE-21、CORE-27、CORE-28、CORE-29、CORE-34、CORE-36、CORE-37、CORE-41、CORE-43、CORE-47、CORE-56、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、CORE-84、CORE-91、CORE-92、CORE-93、CORE-100、AND-13、AND-15、WIN-01、WIN-03、WIN-04、WIN-05、WIN-08、WIN-14、WIN-17 |
+| R18 | 很强的可维护性 | 原文 | V1 | 模块卡边界、依赖规则、ADR、错误码注册表、CI 门禁 | 自动 | CORE-01、CORE-04、CORE-13、CORE-22、CORE-25、CORE-36、CORE-41、CORE-56、CORE-57、CORE-67、CORE-69、CORE-70、CORE-71、CORE-73、CORE-74、CORE-75、CORE-76、CORE-100、CORE-102、AND-01、WIN-01 |
+| R19 | 重读与 bug 排除方便 | 原文 | V1 | NodePath 错误定位、trace_id、脱敏复现包、调试面板 | 自动 | CORE-02、CORE-03、CORE-04、CORE-05、CORE-06、CORE-10、CORE-13、CORE-15、CORE-16、CORE-17、CORE-21、CORE-27、CORE-28、CORE-29、CORE-34、CORE-36、CORE-37、CORE-41、CORE-43、CORE-47、CORE-56、CORE-67、CORE-70、CORE-72、CORE-73、CORE-74、CORE-84、CORE-91、CORE-92、CORE-93、CORE-100、CORE-102、AND-13、AND-15、WIN-01、WIN-03、WIN-04、WIN-05、WIN-08、WIN-14、WIN-17 |
 | R20 | 注释完整可靠 | 原文 | V1 | 公开 API 文档注释门禁、crate README、日志不含内容 | 自动 | CORE-01、CORE-02、CORE-04、CORE-28、CORE-57、CORE-69、CORE-70、CORE-71、CORE-91、AND-11、WIN-05 |
 | R21 | 搜寻开源公式库并尝试获取资源 | 原文 | 阶段 | 内容管线、许可审查与来源登记；调查见附录 C | 自动＋内容（M-CONTENT） | CORE-16 |
 | R22 | YOLO 等轻量识别的预备方案，不写入主分支 | 原文 | V1（主线零依赖） | 实验分支 `codex/exp-yolo-recognizer`；方案见附录 B | 自动 | CORE-01、CORE-29 |
@@ -185,8 +185,8 @@ v5 的主要变化：
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | 自动 | CORE-22、CORE-23、CORE-45、CORE-46、CORE-62、CORE-63、CORE-65 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | 自动 | CORE-23、CORE-24、CORE-27、CORE-47、CORE-63、CORE-65、CORE-83、CORE-84、CORE-99、CORE-101 |
 | R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-01、CORE-23、CORE-24、CORE-25、CORE-26、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-46、CORE-50、CORE-51、CORE-62、CORE-69、CORE-84、AND-08、AND-09、AND-11、WIN-03、WIN-09、WIN-10 |
-| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-04、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、CORE-84、CORE-85、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07、WIN-09、WIN-16、WIN-20 |
-| R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47、CORE-66、CORE-68、CORE-78、CORE-80、CORE-83、CORE-84、CORE-98、CORE-99 |
+| R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-04、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、CORE-84、CORE-85、CORE-102、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07、WIN-09、WIN-16、WIN-20 |
+| R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47、CORE-66、CORE-68、CORE-78、CORE-80、CORE-83、CORE-84、CORE-98、CORE-99、CORE-102 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | 自动＋模型（M-MODEL） | CORE-35、CORE-51、CORE-95 |
 | R30 | 端侧只需加载通用资源包 | 原文 | V1 | 两端共用 Rust 加载器、同一包格式与包 ID | 自动 | CORE-15、CORE-16、CORE-43、CORE-51、CORE-95、CORE-96、AND-09、WIN-10 |
 | R31 | 识别照片中的手写公式 | 原文 | V1 | 相册/文件/相机/剪贴板导入 → 预处理 → 识别 | 自动＋真机（AND-12/WIN-13 场景；AND-16/WIN-18 矩阵汇总） | CORE-29、CORE-30、CORE-34、CORE-40、AND-02、AND-03、AND-04、AND-12、WIN-19 |
@@ -272,7 +272,7 @@ v5.2 界面设计中从需求推不出、属于产品取舍的事项 Q21–Q30 �
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 本文：总览、需求基线、范围、版本、追踪总表、已确认与待确认事项、使用说明与前后端编程索引 |
-| [01 公共核心：core/](core/00-总览.md) | CORE-01～CORE-101（S0 阶段的卡在 S0/）：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
+| [01 公共核心：core/](core/00-总览.md) | CORE-01～CORE-102（S0 阶段的卡在 S0/）：工程骨架、错误码、C ABI、端口契约与组装层、公式引擎、本地库、资源包（含下载与管理界面）、学习、账户加密同步与邮箱验证码、识别管线与云网关、共享 UI（应用壳、编辑器、公式库、计算、学习、统计、识别、设置）、公式复制格式导出、LaTeX 命令补全、公式库批量操作、CI 与发布、鸿蒙预留；界面设计系统与主题（CORE-55） |
 | [02 Android 端：and/](and/00-总览.md) | AND-01～AND-16（AND-10 已撤销；AND-01 在 S0/）：工程构建、权限、生命周期、存储与 Keystore、相册/文件导入、相机、手写与编辑器适配、提醒、网络传输、打包发布、性能矩阵、触摸交互与横竖屏适配 |
 | [03 Windows 端：win/](win/00-总览.md) | WIN-01～WIN-20（WIN-11 已撤销；WIN-01 在 S0/）：工程构建、安装器、自更新客户端、独立启动器与更新恢复、文件导入与拖拽、剪贴板与多格式复制、窗口与 DPI、存储与 DPAPI、快捷键与笔输入、提醒与托盘、网络传输、签名发布、性能矩阵、快捷键自定义、桌面交互与窗口适配 |
 | [S0/](S0/) | S0 骨架阶段的 16 张卡（CORE、AND、WIN 都在这里） |
@@ -414,7 +414,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 
 每次会话先在下表找到目标卡的主类，按该类的工具链与检查命令工作。分组以各卡“规模”与所在文档 §3 模块索引中的代码位置为准，两者不一致时先改正卡片；阶段取所在文档 §2。
 
-- 统计：共 135 张卡——前端 58 张，端侧核心 47 张，后端 5 张，工程与发布 25 张。跨语言附属与行数以卡片规模为准。
+- 统计：共 136 张卡——前端 58 张，端侧核心 48 张，后端 5 张，工程与发布 25 张。跨语言附属与行数以卡片规模为准。
 - 跨前后端的卡归入工作量较大一侧作为主类，“代码目录”列写出各部分目录；同一会话内两侧都要改，并分别运行两侧的检查命令。
 - 主类只决定工具链与代码位置；所有会话均按§8.1收集目标全文和被依赖的契约。消费方片段可作为额外只读资料，不要求凭反向依赖猜测接口。
 
@@ -484,7 +484,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | WIN-15 | Windows 桌面交互与窗口适配 | 前端 | 平台层、测试 | `app/lib/platform/windows/interaction/`、`app/windows/runner/interaction_channel.cpp`、`app/windows/runner/flutter_window.cpp`、`app/integration_test/windows/interaction_test.dart` | S2 |
 | WIN-19 | 图片拖放与文件夹导入 | 前端 | 平台层 | `app/lib/platform/windows/drop/`、`app/windows/runner/image_drop.cpp` | S5 |
 
-#### 端侧核心（47 张）
+#### 端侧核心（48 张）
 
 - 范围：`crates/` 下的 Rust 代码，编译为 `fmlcore` 动态库，经 C ABI（CORE-03）由前端调用。
 - 检查命令：`cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`。
@@ -501,6 +501,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-11 | 公式间代入、推导链与计算链 | 端侧核心 | Rust crate | `crates/fml-derive/`、`crates/fml-ffi/src/ops/derive.rs` | S1 |
 | CORE-12 | 数学 Box 布局内核 | 端侧核心 | Rust crate | `crates/fml-typeset/` | S1 |
 | CORE-13 | 本地库 Schema、单写者与迁移 | 端侧核心 | Rust crate | `crates/fml-store/`、`crates/fml-ffi/src/ops/store.rs` | S2 |
+| CORE-102 | 同步读取入口与写门 | 端侧核心 | Rust crate | `crates/fml-store/` | S2 |
 | CORE-14 | 公式条目、修订与单位仓储 | 端侧核心 | Rust crate | `crates/fml-store/src/library/`、`crates/fml-ffi/src/ops/{library,units_user}.rs` | S3 |
 | CORE-15 | 资源包格式、验签与安全读取 | 端侧核心 | Rust crate | `crates/fml-pack/src/{manifest,validate,extract,reader,catalog}.rs` | S4 |
 | CORE-17 | FSRS排程、复习事件与参数仓储 | 端侧核心 | Rust crate | `crates/fml-srs/`、`crates/fml-store/src/study/cards.rs`、`crates/fml-ffi/src/ops/srs.rs` | S4 |
