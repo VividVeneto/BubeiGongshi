@@ -27,6 +27,7 @@ final class AndroidCameraController implements CameraController {
   final PermissionService permissions;
   // capture()：① permissions.request(camera, rationaleKey: 'camera_rationale')，非 granted 抛 PLATFORM_PERMISSION_DENIED
   //            ② 通道 capture → null 返回 null；否则包装为 ImportedImage（mimeType 'image/jpeg'）
+  // 调用说明：本卡只按 AND-02 的接口调用，不构造 ChannelPermissionService、不自建对话框宿主或导航键；用途说明对话框由组合层注入的上下文提供者驱动，界面不可用时由 AND-02 降级为只弹系统权限框。
 }
 ```
 

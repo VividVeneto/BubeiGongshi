@@ -460,7 +460,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-99 | 游客升级网络协调 | 前端 | 用例与组装 | `app/lib/sync/upgrade_coordinator.dart` | S6 |
 | AND-01 | 工程与构建 | 前端 | 平台层 | `app/android/`、`app/lib/main_android.dart`、`app/lib/composition/ports_android.dart` | S0 |
 | AND-02 | 权限与清单 | 前端 | 平台层 | `tools/ci/check_android_manifest.py` | S2 |
-| AND-03 | 相册、文件导入与导出 | 前端 | 平台层 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt`、`tools/ci/check_android_manifest.py` | S5 |
+| AND-03 | 相册、文件导入与导出 | 前端 | 平台层 | `app/lib/platform/android/picker/`、`app/android/.../ImportBridge.kt` | S5 |
 | AND-04 | 相机 | 前端 | 平台层 | `app/lib/platform/android/camera/`、`app/android/.../CameraBridge.kt`、`app/android/.../CameraActivity.kt` | S5 |
 | AND-05 | 生命周期、进程恢复与运行时信息 | 前端 | 平台层 | `app/lib/platform/android/lifecycle/` | S2 |
 | AND-06 | 本地存储与 Keystore | 前端 | 平台层 | `app/lib/platform/android/storage/`、`app/android/.../KeystoreBridge.kt` | S2 |
@@ -576,12 +576,12 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-76 | 现行评级统计与就绪证据核对 | 工程与发布 | 新增职责 | `tools/sadd/current.mjs`、`tools/sadd/stats.mjs`、`tools/sadd/audit.mjs` | S0 |
 | CORE-100 | DTO schema 编译、类型图与严格校验 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/dto_schema.py` | S0 |
 | AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle.kts` | S7 |
-| AND-15 | Android主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/android/host_tests/run.py`、`tools/android/host_tests/build_fixture.py`、`app/lib/main.dart`、`app/outputs/flutter-apk/app-debug.apk`、`tools/android/host_tests/` | S2 |
+| AND-15 | Android主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/android/host_tests/run.py`、`tools/android/host_tests/build_fixture.py`、`tools/android/host_tests/fixture_app/lib/main.dart`、`tools/android/host_tests/fixture_app/build/app/outputs/flutter-apk/app-debug.apk`、`tools/android/host_tests/` | S2 |
 | AND-16 | Android 真机矩阵与发布测量汇总 | 工程与发布 | 测试 | `tools/perf/android/` | S7 |
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
 | WIN-16 | 启动器与更新恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/` | S7 |
-| WIN-17 | Windows主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/windows/host_tests/run.py`、`tools/windows/host_tests/build_fixture.py`、`app/windows/toolchain.versions`、`tools/windows/host_tests/` | S2 |
+| WIN-17 | Windows主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/windows/host_tests/run.py`、`tools/windows/host_tests/build_fixture.py`、`tools/windows/host_tests/fixture_app/`、`tools/windows/requirements.txt`、`tools/windows/host_tests/` | S2 |
 | WIN-18 | Windows 环境矩阵与发布测量汇总 | 工程与发布 | 测试 | `tools/perf/windows/` | S7 |
 | WIN-20 | 启动器持久化与数据库恢复 | 工程与发布 | C++ 独立构建 | `installer/windows/launcher/storage.h` | S7 |
 
