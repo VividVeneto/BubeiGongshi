@@ -41,6 +41,7 @@ tools/ci/gen_dto.py --write [--manifest contracts/dto/manifest.json] [--out app/
   - 有类型 map（仅 Diagnostic.args）→ `Map<String, String>` 的 `Map.unmodifiable` 副本，所属 DTO 覆写 `==`/`hashCode` 使比较按内容相等。
   - union → `sealed class <UnionName>`，分支名由判别推导：field_const 用 const 值、external_key 用唯一必填键名、scalar_enum 用 enum 值，统一转 PascalCase 并加联合前缀（如 `FormulaNodeSymbol`、`PathSegMoveTo`、`MathKindReal`）；分支为 `final class <UnionName><Branch> extends <UnionName>`，载荷字段直取；未知判别抛 FormatException。派生名重复或与既有类型冲突 → 退出 1 并在 `diagnostics` 指出该分支。
   - 数值映射：int64 → `int`；decimal/uint64/int128/positive-int128 → `String`（原样十进制文本，不经 double，保证 i64 与宽整数无损）；base64 → `Uint8List`；uuid/date-time → `String`；number → `double`（非有限值拒绝）。
+  - 生成类名取自 schema 条目的 `title`；消费者要别的名字时自建 `typedef` 别名，本卡不改 title、类名与 `fromJson` 的未知键规则（ADR-V5-58 ⑧）。
   - 不可变与隐私：集合字段深层不可修改；DTO 覆写 `==`/`hashCode` 按值比较；`toString` 对 `sensitive_paths` 命中的字段输出 `<redacted>`，不打印敏感值。
 - 域推导与文件布局：`op` 的第一段为域（`account.*`→account、`engine.*`→engine、`calc.*`→calc、`store.*`→store 等），写到 `<out>/<domain>.g.dart`；共享 `types.schema.json`→`<out>/types.g.dart`，`ast.schema.json`→`<out>/ast.g.dart`。同域多 op 与共享类型按 (域, op 或 title) 字节序合并进同一文件；每个文件头写 `// GENERATED CODE - DO NOT MODIFY BY HAND.`、来源 manifest/schema 文件名与 `// generator: CORE-67 v1`（文本常量，不含时间戳/版本库状态），使漂移比较确定。全局唯一 title 只生成一次并放在其声明域文件，生成文件之间用相对 `import` 互相引用。
 - 写盘安全与漂移判定：`--write` 先写同目录临时文件再原子 rename；只删除并重写本卡在 `<out>` 内应存在的 `<domain>.g.dart`，不触碰目录外文件，遇同名非生成文件（无 GENERATED 头）拒绝覆盖并以 1 退出；`--check` 以 sha256 比较期望内容与磁盘内容，缺失记 missing，多余生成文件记 stale。
