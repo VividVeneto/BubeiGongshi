@@ -46,6 +46,32 @@ export function buildUnits(scale) {
   return units;
 }
 
+/** 迁移文件：crates/fml-store/migrations/ 直接子文件与 server/migrations/ 的 NNNN_名.sql（NNNN<0100）须等于声明它的归属卡 CORE-NNNN，且该卡正文提到此文件；
+ * registry/ 子目录与其他 crate 的独立库迁移各自编号，不检查；未写路径的文件名按同名带路径提及推断，均无路径时视为档案库迁移。 */
+export function checkMigrations(cards) {
+  const out = []; const RE = /((?:crates\/[\w-]+|server)\/migrations\/(?:registry\/)?)?\b(\d{4})_([a-z0-9_]+)\.sql/g;
+  const mentions = []; const dirOf = new Map();
+  for (const [id, c] of cards) for (const m of c.body.matchAll(RE)) {
+    const file = `${m[2]}_${m[3]}.sql`;
+    mentions.push({id, file, num: Number(m[2]), dir: m[1] ?? null});
+    if (m[1]) dirOf.set(file, m[1]);
+  }
+  const seen = new Map();
+  for (const x of mentions) {
+    const dir = x.dir ?? dirOf.get(x.file) ?? 'crates/fml-store/migrations/';
+    if (!/^(?:crates\/fml-store\/migrations\/|server\/migrations\/)$/.test(dir) || x.num >= 100) continue;
+    const key = dir + x.file;
+    if (seen.has(key)) continue; seen.set(key, true);
+    const owner = `CORE-${String(x.num).padStart(2, '0')}`;
+    if (!cards.has(owner)) out.push({id: 'MIG-01', msg: `${x.id}: 迁移 ${dir}${x.file} 的序号 ${x.num} 没有对应的归属卡 ${owner}（V1 发布前序号取归属卡编号，CORE-13）`});
+    else if (!cards.get(owner).body.includes(x.file)) out.push({id: 'MIG-01', msg: `${x.id}: 迁移 ${dir}${x.file} 的序号指向 ${owner}，但该卡未声明此文件（V1 发布前序号取归属卡编号，CORE-13）`});
+  }
+  const byNum = new Map();
+  for (const key of seen.keys()) { const m = key.match(/^(.*\/)(\d{4})_/); const k = m[1] + m[2]; byNum.set(k, [...(byNum.get(k) ?? []), key]); }
+  for (const [k, files] of byNum) if (files.length > 1) out.push({id: 'MIG-02', msg: `迁移序号重复：${files.join('、')}`});
+  return out;
+}
+
 export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
   const r = new Report('cards');
   let cards;
@@ -93,6 +119,9 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
     const units = buildUnits(sl);
     if (units.size > 1 && !/附属|跨语言/.test(sl)) r.error('CARD-08', `${id}: 规模落在多个构建单元且未声明附属：${[...units].join(' | ')}`);
   }
+
+  // 迁移文件序号（CORE-13：V1 发布前本地档案库与 server 迁移序号取归属卡编号，归属卡须声明该文件）
+  for (const x of checkMigrations(cards)) r.error(x.id, x.msg);
 
   // 依赖闭合与环
   for (const [id, c] of cards) for (const d of c.deps) if (!cards.has(d)) r.error('CARD-09', `${id}: 依赖了不存在的卡 ${d}`);

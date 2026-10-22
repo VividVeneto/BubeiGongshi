@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {tmpRoot, makeSadd, mutate} from './fixture.mjs';
-import {checkCards, parseDeps, buildUnits} from './cards.mjs';
+import {checkCards, parseDeps, buildUnits, checkMigrations} from './cards.mjs';
 
 const run = (root) => checkCards({sadd: root + '/SADD'});
 const ids = r => r.errors.map(e => e.id);
@@ -92,4 +92,23 @@ test('README：卡数、分类统计、小节标题、阶段、重复/缺失、�
 test('卡号重复与索引缺行', () => {
   let root = fresh(); mutate(root, CORE, '| CORE-02 | 错误码 | `crates/fml-error/` | 01 | 120 |\n', '');
   assert.ok(ids(run(root)).includes('CARD-02'));
+});
+
+test('迁移序号：取归属卡编号且归属卡须声明；registry/ 与其他 crate 独立库不查；同目录序号重复报错', () => {
+  const cards = new Map([
+    ['CORE-13', {body: '迁移 `crates/fml-store/migrations/0013_core.sql`；归属：0086_calculation_plan.sql 由 CORE-86 提交'}],
+    ['CORE-86', {body: '表（`crates/fml-store/migrations/0086_calculation_plan.sql`）'}],
+    ['CORE-23', {body: '`crates/fml-store/migrations/registry/0023_registry.sql`、`crates/fml-pack/migrations/0001_pack_meta.sql`'}],
+    ['CORE-22', {body: '`server/migrations/0022_auth.sql`'}],
+  ]);
+  assert.deepEqual(checkMigrations(cards), []);
+  cards.set('CORE-85', {body: '`crates/fml-store/migrations/0032_recognition.sql`；0032_recognition.sql 数据迁移归本卡'});
+  assert.deepEqual(checkMigrations(cards).map(x => x.id), ['MIG-01']);
+  cards.set('CORE-85', {body: '`crates/fml-store/migrations/0085_recognition.sql`'});
+  assert.deepEqual(checkMigrations(cards), []);
+  cards.set('CORE-14', {body: '`server/migrations/0099_x.sql`'});
+  assert.match(checkMigrations(cards)[0].msg, /没有对应的归属卡 CORE-99/);
+  cards.delete('CORE-14');
+  cards.set('CORE-13', {body: '`crates/fml-store/migrations/0013_core.sql`、`crates/fml-store/migrations/0013_extra.sql`'});
+  assert.deepEqual(checkMigrations(cards).map(x => x.id), ['MIG-02']);
 });
