@@ -576,7 +576,7 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-76 | 现行评级统计与就绪证据核对 | 工程与发布 | 新增职责 | `tools/sadd/current.mjs`、`tools/sadd/stats.mjs`、`tools/sadd/audit.mjs` | S0 |
 | CORE-100 | DTO schema 编译、类型图与严格校验 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/dto_schema.py` | S0 |
 | AND-11 | 打包、签名与发布 | 工程与发布 | 脚本与配置 | `tools/release/android/`、`app/android/app/build.gradle.kts` | S7 |
-| AND-15 | Android主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/android/host_tests/run.py`、`tools/android/host_tests/build_fixture.py`、`app/lib/main.dart`、`app/outputs/flutter-apk/app-debug.apk`、`tools/android/host_tests/` | S2 |
+| AND-15 | Android主机集成测试基础设施 | 工程与发布 | 新增职责 | `tools/android/host_tests/run.py`、`tools/android/host_tests/build_fixture.py`、`tools/android/host_tests/fixture_app/lib/main.dart`、`tools/android/host_tests/fixture_app/build/app/outputs/flutter-apk/app-debug.apk`、`tools/android/host_tests/` | S2 |
 | AND-16 | Android 真机矩阵与发布测量汇总 | 工程与发布 | 测试 | `tools/perf/android/` | S7 |
 | WIN-02 | 安装器与卸载 | 工程与发布 | 脚本与配置 | `installer/windows/` | S7 |
 | WIN-12 | 代码签名与发布检查 | 工程与发布 | 脚本与配置 | `tools/release/windows/` | S7 |
