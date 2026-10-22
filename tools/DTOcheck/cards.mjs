@@ -87,6 +87,8 @@ export function stageTable(sadd = path.join(ROOT, 'SADD'), docs = null) {
       stageOf.set(id, m[1]);
     }
   }
+  // F-14：表格存在却一条都解析不出时，不能静默当成“无阶段”（会让下游 STAGE-02/LAYOUT-02 全空转）
+  if (stageOf.size === 0) throw new Error('§2 实施阶段表未解析出任何卡号（表格缺失或格式已变），拒绝按空阶段表继续检查');
   return {stageOf, conflicts};
 }
 
@@ -182,7 +184,10 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
   }
 
   // 实施阶段（解析与 dto 检查共用 stageTable）
-  const {stageOf, conflicts: stageConflicts} = stageTable(sadd, docs);
+  let stageOf, stageConflicts;
+  try { ({stageOf, conflicts: stageConflicts} = stageTable(sadd, docs)); }
+  catch (e) { r.error('STAGE-00', e.message); return r; }
+
   for (const c of stageConflicts) r.error('STAGE-01', `${c.id}: 同时出现在 ${c.from} 与 ${c.to}`);
   for (const id of cards.keys()) if (!stageOf.has(id)) r.error('STAGE-02', `${id}: 未出现在任何实施阶段`);
   // 拆分布局：文件名中的 S 编号与所在文件夹必须与实施阶段表一致

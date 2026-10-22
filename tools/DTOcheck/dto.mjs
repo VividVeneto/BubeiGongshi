@@ -96,6 +96,10 @@ export function checkDto({root = ROOT, cards = null, stages = null} = {}) {
           ? 'reads_engine_snapshot=true 但 error_codes 未含 ENGINE_UNAVAILABLE'
           : 'error_codes 含 ENGINE_UNAVAILABLE 但 reads_engine_snapshot 不为 true');
       }
+      // engine.generation / engine.wait_generation 查快照状态而非读快照数据，必须为 false（DTO-26）
+      if (op.reads_engine_snapshot === true && (op.op === 'engine.generation' || op.op === 'engine.wait_generation')) {
+        bad('DTO-26', `${op.op}: 查快照状态而非读快照数据，reads_engine_snapshot 必须为 false`);
+      }
       if (typeof op.schema !== 'string') { bad('DTO-09', 'ready 必须有 schema'); continue; }
       referenced.add(op.schema);
       const doc = files.get(op.schema);
