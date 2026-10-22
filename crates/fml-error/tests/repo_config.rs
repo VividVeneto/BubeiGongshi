@@ -200,7 +200,9 @@ fn workspace_members_are_only_fml_error() {
 }
 
 #[test]
-fn fml_error_is_docs_and_lint_skeleton_only() {
+fn fml_error_keeps_docs_and_lint_attributes() {
+    // CORE-02 把 CORE-01 的文档/lint 骨架替换成正式错误模型，属性与配置约束不变，
+    // 只去掉“骨架不得声明公共项”这条随时间失效的断言。
     let lib = read("crates/fml-error/src/lib.rs");
     assert!(
         lib.contains("#![forbid(unsafe_code)]"),
@@ -210,21 +212,6 @@ fn fml_error_is_docs_and_lint_skeleton_only() {
         lib.contains("#![deny(missing_docs)]"),
         "missing_docs 必须用 crate 属性显式声明"
     );
-    for forbidden in [
-        "pub fn",
-        "pub struct",
-        "pub enum",
-        "pub trait",
-        "pub type",
-        "pub const",
-        "pub static",
-        "pub use",
-    ] {
-        assert!(
-            !lib.contains(forbidden),
-            "CORE-01 骨架不得声明公共项，发现：{forbidden}"
-        );
-    }
 
     let manifest = read("crates/fml-error/Cargo.toml");
     assert!(
@@ -286,10 +273,16 @@ fn app_is_shell_only() {
 
     let mut libs = Vec::new();
     collect_files("app/lib", &mut libs);
+    libs.sort();
+    // 空壳 main.dart 加 CORE-02 生成/登记的共享错误资源：生成物只读，仍不允许界面代码。
     assert_eq!(
         libs,
-        vec!["app/lib/main.dart".to_string()],
-        "app/lib 只允许空壳 main.dart"
+        vec![
+            "app/lib/binding/error_codes.g.dart".to_string(),
+            "app/lib/l10n/errors_zh.arb".to_string(),
+            "app/lib/main.dart".to_string(),
+        ],
+        "app/lib 只允许空壳 main.dart 与 CORE-02 的错误码生成物、消息资源"
     );
 
     for platform in ["android", "windows", "linux", "macos", "ios"] {

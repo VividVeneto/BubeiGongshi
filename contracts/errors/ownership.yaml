@@ -1,0 +1,479 @@
+# 由 tools/ci/gen_errors.py 从 contracts/errors/registry.yaml 生成，请勿手工编辑。
+version: 1
+entries:
+  - code: AST_JSON_INVALID
+    owner: CORE-05
+  - code: AUTH_EMAIL_CODE_EXPIRED
+    owner: CORE-45
+  - code: AUTH_EMAIL_CODE_INVALID
+    owner: CORE-45
+  - code: AUTH_EMAIL_SEND_FAILED
+    owner: CORE-45
+  - code: AUTH_EMAIL_TAKEN
+    owner: CORE-22
+  - code: AUTH_GUEST_EXISTS
+    owner: CORE-23
+  - code: AUTH_INVALID_CREDENTIALS
+    owner: CORE-22
+  - code: AUTH_LOCKED
+    owner: CORE-23
+  - code: AUTH_NO_PROFILE
+    owner: CORE-23
+  - code: AUTH_PASSWORD_WEAK
+    owner: CORE-22
+  - code: AUTH_PROFILE_EXISTS
+    owner: CORE-23
+  - code: AUTH_RATE_LIMITED
+    owner: CORE-22
+  - code: AUTH_REAUTH_REQUIRED
+    owner: CORE-22
+  - code: AUTH_RECENT_LOGIN_REQUIRED
+    owner: CORE-22
+  - code: AUTH_REFRESH_REVOKED
+    owner: CORE-22
+  - code: AUTH_SETTING_INVALID
+    owner: CORE-23
+  - code: AUTH_TOKEN_EXPIRED
+    owner: CORE-22
+  - code: AUTH_TOKEN_INVALID
+    owner: CORE-22
+  - code: AUTH_UPLOAD_RECONFIRM_REQUIRED
+    owner: CORE-62
+  - code: BACKUP_CANCELLED
+    owner: CORE-27
+  - code: BACKUP_CORRUPT
+    owner: CORE-27
+  - code: BACKUP_DISK_FULL
+    owner: CORE-27
+  - code: BACKUP_PROTECTION_UNAVAILABLE
+    owner: CORE-27
+  - code: BACKUP_REPLACE_BLOCKED_BY_SYNC
+    owner: CORE-27
+  - code: BACKUP_SCHEMA_TOO_NEW
+    owner: CORE-27
+  - code: BACKUP_SCOPE_INVALID
+    owner: CORE-27
+  - code: BACKUP_TOKEN_UNKNOWN
+    owner: CORE-27
+  - code: BACKUP_WRONG_SECRET
+    owner: CORE-27
+  - code: CLOUD_BUDGET_BREAKER
+    owner: CORE-33
+  - code: CLOUD_CONSENT_INVALID
+    owner: CORE-33
+  - code: CLOUD_HASH_MISMATCH
+    owner: CORE-33
+  - code: CLOUD_IDEMPOTENCY_CONFLICT
+    owner: CORE-33
+  - code: CLOUD_IMAGE_TOO_LARGE
+    owner: CORE-33
+  - code: CLOUD_JOB_NOT_FOUND
+    owner: CORE-33
+  - code: CLOUD_NOT_ELIGIBLE
+    owner: CORE-33
+  - code: CLOUD_OUTPUT_REJECTED
+    owner: CORE-33
+  - code: CLOUD_PREVIEW_STALE
+    owner: CORE-34
+  - code: CLOUD_PROVIDER_ERROR
+    owner: CORE-33
+  - code: CLOUD_PROVIDER_TIMEOUT
+    owner: CORE-33
+  - code: CLOUD_QUOTA_EXCEEDED
+    owner: CORE-33
+  - code: CLOUD_TOKEN_EXPIRED
+    owner: CORE-34
+  - code: CLOUD_UNKNOWN_OUTCOME
+    owner: CORE-33
+  - code: CONTENT_DUPLICATE
+    owner: CORE-16
+  - code: CONTENT_FIELD_INVALID
+    owner: CORE-16
+  - code: CONTENT_FIELD_MISSING
+    owner: CORE-16
+  - code: CONTENT_LICENSE_FORBIDDEN
+    owner: CORE-16
+  - code: CONTENT_LICENSE_MISSING
+    owner: CORE-16
+  - code: CONTENT_NOT_VERIFIED
+    owner: CORE-16
+  - code: CONTENT_REVIEW_INVALID
+    owner: CORE-16
+  - code: CRYPTO_DECRYPT_FAILED
+    owner: CORE-21
+  - code: CRYPTO_KDF_MEMORY
+    owner: CORE-21
+  - code: CRYPTO_KEY_VERSION_UNKNOWN
+    owner: CORE-21
+  - code: CRYPTO_PARAM_INVALID
+    owner: CORE-21
+  - code: CRYPTO_PASSPHRASE_WEAK
+    owner: CORE-21
+  - code: CRYPTO_RECOVERY_CODE_FORMAT
+    owner: CORE-21
+  - code: CRYPTO_RNG_FAILED
+    owner: CORE-21
+  - code: DERIVE_CROSS_KIND_UNCONFIRMED
+    owner: CORE-11
+  - code: DERIVE_CYCLE
+    owner: CORE-11
+  - code: DERIVE_DEPTH_EXCEEDED
+    owner: CORE-11
+  - code: DERIVE_NODE_LIMIT
+    owner: CORE-11
+  - code: DERIVE_NOT_VERIFIED
+    owner: CORE-11
+  - code: DERIVE_READ_ONLY
+    owner: CORE-11
+  - code: DERIVE_TYPE_MISMATCH
+    owner: CORE-11
+  - code: ENGINE_DATA_CONFLICT
+    owner: CORE-56
+  - code: ENGINE_DATA_INVALID
+    owner: CORE-56
+  - code: ENGINE_UNAVAILABLE
+    owner: CORE-56
+  - code: EVAL_DIV_ZERO
+    owner: CORE-10
+  - code: EVAL_DOMAIN
+    owner: CORE-10
+  - code: EVAL_LIMIT_EXCEEDED
+    owner: CORE-10
+  - code: EVAL_MULTI_BRANCH
+    owner: CORE-93
+  - code: EVAL_NAN_OR_INF
+    owner: CORE-10
+  - code: EVAL_NEEDS_INTERVAL
+    owner: CORE-93
+  - code: EVAL_NOT_COMPUTABLE
+    owner: CORE-10
+  - code: EVAL_NO_CONVERGE
+    owner: CORE-93
+  - code: EVAL_OVERFLOW
+    owner: CORE-10
+  - code: EVAL_TIMEOUT
+    owner: CORE-10
+  - code: EXPORT_NOT_RENDERABLE
+    owner: CORE-52
+  - code: EXPORT_TOO_LARGE
+    owner: CORE-52
+  - code: FFI_BAD_ARG
+    owner: CORE-03
+  - code: FFI_BUSY
+    owner: CORE-03
+  - code: FFI_PANIC
+    owner: CORE-03
+  - code: FFI_STALE_HANDLE
+    owner: CORE-03
+  - code: FFI_UNKNOWN_OP
+    owner: CORE-03
+  - code: FFI_VERSION_MISMATCH
+    owner: CORE-03
+  - code: GRADE_PARSE_FAILED
+    owner: CORE-18
+  - code: GRADE_TIMEOUT
+    owner: CORE-18
+  - code: GRADE_UNSUPPORTED
+    owner: CORE-18
+  - code: IMG_CANCELLED
+    owner: CORE-30
+  - code: IMG_CORRUPT
+    owner: CORE-30
+  - code: IMG_CROP_INVALID
+    owner: CORE-30
+  - code: IMG_FORMAT_UNSUPPORTED
+    owner: CORE-30
+  - code: IMG_PATH_INVALID
+    owner: CORE-30
+  - code: IMG_TOO_LARGE
+    owner: CORE-30
+  - code: IMG_TOO_MANY_PIXELS
+    owner: CORE-30
+  - code: IMG_UPLOAD_TOO_LARGE
+    owner: CORE-30
+  - code: LIB_BATCH_CANCELLED
+    owner: CORE-54
+  - code: LIB_BATCH_TOO_LARGE
+    owner: CORE-54
+  - code: LIB_DRAFT_INVALID
+    owner: CORE-61
+  - code: LIB_IMPORT_ROW_INVALID
+    owner: CORE-14
+  - code: LIB_IMPORT_TOO_LARGE
+    owner: CORE-14
+  - code: LIB_META_INVALID
+    owner: CORE-14
+  - code: LIB_NOT_FOUND
+    owner: CORE-14
+  - code: LIB_NOT_VERIFIED
+    owner: CORE-14
+  - code: LIB_READ_ONLY
+    owner: CORE-14
+  - code: LIB_TAGS_LIMIT
+    owner: CORE-14
+  - code: LIB_TRASHED
+    owner: CORE-14
+  - code: NET_HOST_NOT_ALLOWED
+    owner: CORE-04
+  - code: NET_OFFLINE
+    owner: CORE-04
+  - code: NET_TIMEOUT
+    owner: CORE-04
+  - code: NET_TLS
+    owner: CORE-04
+  - code: NOTATION_AMBIGUOUS
+    owner: CORE-07
+  - code: NOTATION_CONSTANT_CONFLICT
+    owner: CORE-07
+  - code: NOTATION_LOG_BASE
+    owner: CORE-07
+  - code: NOTATION_UNBOUND
+    owner: CORE-07
+  - code: PACK_DEP_MISSING
+    owner: CORE-15
+  - code: PACK_DOWNGRADE
+    owner: CORE-15
+  - code: PACK_DOWNLOAD_INCOMPLETE
+    owner: CORE-51
+  - code: PACK_EPOCH_ROLLBACK
+    owner: CORE-15
+  - code: PACK_FORBIDDEN_ENTRY
+    owner: CORE-15
+  - code: PACK_HASH_MISMATCH
+    owner: CORE-15
+  - code: PACK_INCOMPATIBLE
+    owner: CORE-15
+  - code: PACK_KEY_UNKNOWN
+    owner: CORE-15
+  - code: PACK_LIMIT_EXCEEDED
+    owner: CORE-15
+  - code: PACK_METADATA_EXPIRED
+    owner: CORE-15
+  - code: PACK_SIG_INVALID
+    owner: CORE-15
+  - code: PACK_STORAGE_LOW
+    owner: CORE-51
+  - code: PACK_UNSAFE_PATH
+    owner: CORE-15
+  - code: PARSE_FORBIDDEN_COMMAND
+    owner: CORE-06
+  - code: PARSE_HOLE_UNFILLED
+    owner: CORE-06
+  - code: PARSE_LIMIT_EXCEEDED
+    owner: CORE-05
+  - code: PARSE_SYNTAX
+    owner: CORE-06
+  - code: PARSE_TIMEOUT
+    owner: CORE-06
+  - code: PARSE_UNICODE_NOT_EXPORTABLE
+    owner: CORE-92
+  - code: PARSE_UNSUPPORTED_COMMAND
+    owner: CORE-06
+  - code: PLATFORM_CANCELLED
+    owner: CORE-04
+  - code: PLATFORM_FILE_TOO_LARGE
+    owner: CORE-04
+  - code: PLATFORM_FILE_TYPE_MISMATCH
+    owner: CORE-04
+  - code: PLATFORM_IO
+    owner: CORE-04
+  - code: PLATFORM_KEY_UNAVAILABLE
+    owner: CORE-04
+  - code: PLATFORM_PERMISSION_DENIED
+    owner: CORE-04
+  - code: PLATFORM_UNSUPPORTED
+    owner: CORE-04
+  - code: PLATFORM_UPDATE_DISK_FULL
+    owner: CORE-04
+  - code: PLATFORM_UPDATE_HASH_MISMATCH
+    owner: CORE-04
+  - code: PLATFORM_UPDATE_ROLLED_BACK
+    owner: CORE-04
+  - code: PLATFORM_UPDATE_SIG_INVALID
+    owner: CORE-04
+  - code: PRIVACY_CONSENT_MISSING
+    owner: CORE-28
+  - code: PRIVACY_DIAGNOSTICS_DISABLED
+    owner: CORE-28
+  - code: PRIVACY_REPRO_FAILED
+    owner: CORE-28
+  - code: PRIVACY_REQUEST_BLOCKED
+    owner: CORE-28
+  - code: RECOG_ACTIVE_TASK_EXISTS
+    owner: CORE-32
+  - code: RECOG_ALL_CANDIDATES_INVALID
+    owner: CORE-31
+  - code: RECOG_BACKEND_NOT_ALLOWED
+    owner: CORE-29
+  - code: RECOG_BACKEND_REMOTE
+    owner: CORE-29
+  - code: RECOG_BACKEND_UNAVAILABLE
+    owner: CORE-29
+  - code: RECOG_CANCELLED
+    owner: CORE-29
+  - code: RECOG_HISTORY_KEY_UNAVAILABLE
+    owner: CORE-32
+  - code: RECOG_IMAGE_LOST
+    owner: CORE-32
+  - code: RECOG_INPUT_INVALID
+    owner: CORE-29
+  - code: RECOG_KEEP_LAST_OUT_OF_RANGE
+    owner: CORE-32
+  - code: RECOG_MODEL_INCOMPATIBLE
+    owner: CORE-35
+  - code: RECOG_MODEL_NOT_INSTALLED
+    owner: CORE-35
+  - code: RECOG_MODEL_OOM
+    owner: CORE-35
+  - code: RECOG_MODEL_TIMEOUT
+    owner: CORE-35
+  - code: RECOG_NO_CANDIDATE
+    owner: CORE-29
+  - code: RECOG_OUTPUT_REJECTED
+    owner: CORE-31
+  - code: RECOG_OUTPUT_TOO_LARGE
+    owner: CORE-31
+  - code: RECOG_QUOTA_EXCEEDED
+    owner: CORE-32
+  - code: RECOG_SESSION_NOT_FOUND
+    owner: CORE-32
+  - code: RECOG_SPAN_INVALID
+    owner: CORE-31
+  - code: RECOG_TRANSITION_INVALID
+    owner: CORE-32
+  - code: SERVER_CLIENT_TOO_OLD
+    owner: CORE-22
+  - code: SERVER_UNAVAILABLE
+    owner: CORE-22
+  - code: STORE_BUSY
+    owner: CORE-13
+  - code: STORE_CORRUPT
+    owner: CORE-13
+  - code: STORE_DISK_FULL
+    owner: CORE-13
+  - code: STORE_KEY_INVALID
+    owner: CORE-13
+  - code: STORE_MIGRATION_FAILED
+    owner: CORE-13
+  - code: STORE_SCHEMA_TOO_NEW
+    owner: CORE-13
+  - code: STUDY_BOOK_READ_ONLY
+    owner: CORE-19
+  - code: STUDY_CARD_NOT_FOUND
+    owner: CORE-17
+  - code: STUDY_CARD_PENDING_CHOICE
+    owner: CORE-17
+  - code: STUDY_DAY_INVALID
+    owner: CORE-17
+  - code: STUDY_INPUT_INVALID
+    owner: CORE-19
+  - code: STUDY_K_OUT_OF_RANGE
+    owner: CORE-19
+  - code: STUDY_NO_CARDS
+    owner: CORE-19
+  - code: STUDY_PARAMS_NO_PREVIOUS
+    owner: CORE-17
+  - code: STUDY_PARAMS_VERSION_STALE
+    owner: CORE-17
+  - code: STUDY_PLAN_INVALID
+    owner: CORE-19
+  - code: STUDY_RETENTION_OUT_OF_RANGE
+    owner: CORE-17
+  - code: STUDY_REVISION_NOT_VERIFIED
+    owner: CORE-80
+  - code: STUDY_SESSION_EXPIRED
+    owner: CORE-19
+  - code: STUDY_STATS_RANGE_INVALID
+    owner: CORE-20
+  - code: SYNC_AAD_MISMATCH
+    owner: CORE-26
+  - code: SYNC_BATCH_INVALID
+    owner: CORE-78
+  - code: SYNC_BATCH_UNKNOWN
+    owner: CORE-78
+  - code: SYNC_CHOICE_INVALID
+    owner: CORE-26
+  - code: SYNC_CURSOR_INVALID
+    owner: CORE-25
+  - code: SYNC_DECRYPT_FAILED
+    owner: CORE-26
+  - code: SYNC_DISABLED
+    owner: CORE-26
+  - code: SYNC_ENVELOPE_INVALID
+    owner: CORE-25
+  - code: SYNC_EPOCH_STALE
+    owner: CORE-25
+  - code: SYNC_HASH_MISMATCH
+    owner: CORE-25
+  - code: SYNC_KEY_MISSING
+    owner: CORE-24
+  - code: SYNC_KEY_VERSION_REJECTED
+    owner: CORE-25
+  - code: SYNC_MERGE_CONFLICT
+    owner: CORE-83
+  - code: SYNC_NOT_AVAILABLE
+    owner: CORE-36
+  - code: SYNC_NOT_FOUND
+    owner: CORE-25
+  - code: SYNC_PATH_INVALID
+    owner: CORE-66
+  - code: SYNC_PAYLOAD_TOO_LARGE
+    owner: CORE-25
+  - code: SYNC_QUARANTINED
+    owner: CORE-26
+  - code: SYNC_QUOTA_EXCEEDED
+    owner: CORE-25
+  - code: SYNC_SNAPSHOT_CORRUPT
+    owner: CORE-66
+  - code: SYNC_SNAPSHOT_INCOMPLETE
+    owner: CORE-25
+  - code: SYNC_UPGRADE_IN_PROGRESS
+    owner: CORE-24
+  - code: SYNC_UPGRADE_KEY_FAILED
+    owner: CORE-24
+  - code: SYNC_UPGRADE_NOT_ABANDONABLE
+    owner: CORE-24
+  - code: SYNC_UPGRADE_STEP_INVALID
+    owner: CORE-24
+  - code: TYPESET_DEPTH_EXCEEDED
+    owner: CORE-12
+  - code: TYPESET_MISSING_GLYPH
+    owner: CORE-12
+  - code: TYPESET_NO_FONT
+    owner: CORE-12
+  - code: TYPE_AFFINE_MISUSE
+    owner: CORE-09
+  - code: TYPE_CROSS_DIM
+    owner: CORE-09
+  - code: TYPE_DIM_CONFLICT
+    owner: CORE-09
+  - code: TYPE_EMPIRICAL_COEFF
+    owner: CORE-09
+  - code: TYPE_FUNC_ARG_DIMENSIONED
+    owner: CORE-09
+  - code: TYPE_LOG_DIMENSIONED
+    owner: CORE-09
+  - code: TYPE_MATHKIND_MISMATCH
+    owner: CORE-09
+  - code: TYPE_QK_MISMATCH
+    owner: CORE-09
+  - code: TYPE_UNKNOWN_DIM
+    owner: CORE-09
+  - code: UNIT_AFFINE_MISUSE
+    owner: CORE-08
+  - code: UNIT_CYCLE
+    owner: CORE-08
+  - code: UNIT_DIM_SYNTAX
+    owner: CORE-08
+  - code: UNIT_DUPLICATE
+    owner: CORE-08
+  - code: UNIT_INCOMPATIBLE
+    owner: CORE-08
+  - code: UNIT_INVALID_OFFSET
+    owner: CORE-08
+  - code: UNIT_IN_USE
+    owner: CORE-08
+  - code: UNIT_OVERFLOW
+    owner: CORE-08
+  - code: UNIT_UNKNOWN
+    owner: CORE-08

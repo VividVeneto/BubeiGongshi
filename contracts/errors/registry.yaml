@@ -1,0 +1,1937 @@
+# 不背公式错误码注册表（CORE-02）。
+# 唯一真源：code/owner/namespace/severity/message_key/fix_hint/retryable/版本/surface/http_status。
+# 生成器 tools/ci/gen_errors.py 读取本文件产出 Rust 枚举、Dart 镜像与契约镜像；不要手改生成物。
+# condition（触发条件）只在各所有者卡错误表，按 ADR-V5-58 第一项不写入本文件。
+# surface 取 client|server|both；http_status 仅 server/both 可填，server 未填表示 400。
+registry_version: 1
+entries:
+  - code: AST_JSON_INVALID
+    namespace: AST
+    owner: CORE-05
+    severity: error
+    message_key: err.ast.json_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_EMAIL_CODE_EXPIRED
+    namespace: AUTH
+    owner: CORE-45
+    severity: error
+    message_key: err.auth.email_code_expired
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: AUTH_EMAIL_CODE_INVALID
+    namespace: AUTH
+    owner: CORE-45
+    severity: error
+    message_key: err.auth.email_code_invalid
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: AUTH_EMAIL_SEND_FAILED
+    namespace: AUTH
+    owner: CORE-45
+    severity: error
+    message_key: err.auth.email_send_failed
+    retryable: true
+    since: 1
+    surface: server
+    http_status: 503
+  - code: AUTH_EMAIL_TAKEN
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.email_taken
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 409
+  - code: AUTH_GUEST_EXISTS
+    namespace: AUTH
+    owner: CORE-23
+    severity: error
+    message_key: err.auth.guest_exists
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_INVALID_CREDENTIALS
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.invalid_credentials
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 401
+  - code: AUTH_LOCKED
+    namespace: AUTH
+    owner: CORE-23
+    severity: error
+    message_key: err.auth.locked
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_NO_PROFILE
+    namespace: AUTH
+    owner: CORE-23
+    severity: error
+    message_key: err.auth.no_profile
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_PASSWORD_WEAK
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.password_weak
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: AUTH_PROFILE_EXISTS
+    namespace: AUTH
+    owner: CORE-23
+    severity: warning
+    message_key: err.auth.profile_exists
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_RATE_LIMITED
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.rate_limited
+    retryable: true
+    since: 1
+    surface: server
+    http_status: 429
+  - code: AUTH_REAUTH_REQUIRED
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.reauth_required
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_RECENT_LOGIN_REQUIRED
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.recent_login_required
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 401
+  - code: AUTH_REFRESH_REVOKED
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.refresh_revoked
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 401
+  - code: AUTH_SETTING_INVALID
+    namespace: AUTH
+    owner: CORE-23
+    severity: error
+    message_key: err.auth.setting_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: AUTH_TOKEN_EXPIRED
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.token_expired
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 401
+  - code: AUTH_TOKEN_INVALID
+    namespace: AUTH
+    owner: CORE-22
+    severity: error
+    message_key: err.auth.token_invalid
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 401
+  - code: AUTH_UPLOAD_RECONFIRM_REQUIRED
+    namespace: AUTH
+    owner: CORE-62
+    severity: warning
+    message_key: err.auth.upload_reconfirm_required
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_CANCELLED
+    namespace: BACKUP
+    owner: CORE-27
+    severity: info
+    message_key: err.backup.cancelled
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_CORRUPT
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.corrupt
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_DISK_FULL
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.disk_full
+    retryable: true
+    since: 1
+    surface: client
+  - code: BACKUP_PROTECTION_UNAVAILABLE
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.protection_unavailable
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_REPLACE_BLOCKED_BY_SYNC
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.replace_blocked_by_sync
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_SCHEMA_TOO_NEW
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.schema_too_new
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_SCOPE_INVALID
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.scope_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_TOKEN_UNKNOWN
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.token_unknown
+    retryable: false
+    since: 1
+    surface: client
+  - code: BACKUP_WRONG_SECRET
+    namespace: BACKUP
+    owner: CORE-27
+    severity: error
+    message_key: err.backup.wrong_secret
+    retryable: true
+    since: 1
+    surface: client
+  - code: CLOUD_BUDGET_BREAKER
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.budget_breaker
+    retryable: true
+    since: 1
+    surface: client
+  - code: CLOUD_CONSENT_INVALID
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.consent_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_HASH_MISMATCH
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.hash_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_IDEMPOTENCY_CONFLICT
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.idempotency_conflict
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_IMAGE_TOO_LARGE
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.image_too_large
+    fix_hint: true
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_JOB_NOT_FOUND
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.job_not_found
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_NOT_ELIGIBLE
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.not_eligible
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_OUTPUT_REJECTED
+    namespace: CLOUD
+    owner: CORE-33
+    severity: warning
+    message_key: err.cloud.output_rejected
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_PREVIEW_STALE
+    namespace: CLOUD
+    owner: CORE-34
+    severity: warning
+    message_key: err.cloud.preview_stale
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_PROVIDER_ERROR
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.provider_error
+    retryable: true
+    since: 1
+    surface: client
+  - code: CLOUD_PROVIDER_TIMEOUT
+    namespace: CLOUD
+    owner: CORE-33
+    severity: error
+    message_key: err.cloud.provider_timeout
+    retryable: true
+    since: 1
+    surface: client
+  - code: CLOUD_QUOTA_EXCEEDED
+    namespace: CLOUD
+    owner: CORE-33
+    severity: warning
+    message_key: err.cloud.quota_exceeded
+    retryable: true
+    since: 1
+    surface: client
+  - code: CLOUD_TOKEN_EXPIRED
+    namespace: CLOUD
+    owner: CORE-34
+    severity: warning
+    message_key: err.cloud.token_expired
+    retryable: false
+    since: 1
+    surface: client
+  - code: CLOUD_UNKNOWN_OUTCOME
+    namespace: CLOUD
+    owner: CORE-33
+    severity: warning
+    message_key: err.cloud.unknown_outcome
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_DUPLICATE
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.duplicate
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_FIELD_INVALID
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.field_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_FIELD_MISSING
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.field_missing
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_LICENSE_FORBIDDEN
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.license_forbidden
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_LICENSE_MISSING
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.license_missing
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_NOT_VERIFIED
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.not_verified
+    retryable: false
+    since: 1
+    surface: client
+  - code: CONTENT_REVIEW_INVALID
+    namespace: CONTENT
+    owner: CORE-16
+    severity: error
+    message_key: err.content.review_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_DECRYPT_FAILED
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: error
+    message_key: err.crypto.decrypt_failed
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_KDF_MEMORY
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: error
+    message_key: err.crypto.kdf_memory
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_KEY_VERSION_UNKNOWN
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: error
+    message_key: err.crypto.key_version_unknown
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_PARAM_INVALID
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: error
+    message_key: err.crypto.param_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_PASSPHRASE_WEAK
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: warning
+    message_key: err.crypto.passphrase_weak
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_RECOVERY_CODE_FORMAT
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: warning
+    message_key: err.crypto.recovery_code_format
+    retryable: false
+    since: 1
+    surface: client
+  - code: CRYPTO_RNG_FAILED
+    namespace: CRYPTO
+    owner: CORE-21
+    severity: error
+    message_key: err.crypto.rng_failed
+    retryable: true
+    since: 1
+    surface: client
+  - code: DERIVE_CROSS_KIND_UNCONFIRMED
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.cross_kind_unconfirmed
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_CYCLE
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.cycle
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_DEPTH_EXCEEDED
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.depth_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_NODE_LIMIT
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.node_limit
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_NOT_VERIFIED
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.not_verified
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_READ_ONLY
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.read_only
+    retryable: false
+    since: 1
+    surface: client
+  - code: DERIVE_TYPE_MISMATCH
+    namespace: DERIVE
+    owner: CORE-11
+    severity: error
+    message_key: err.derive.type_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: ENGINE_DATA_CONFLICT
+    namespace: ENGINE
+    owner: CORE-56
+    severity: error
+    message_key: err.engine.data_conflict
+    retryable: false
+    since: 1
+    surface: client
+  - code: ENGINE_DATA_INVALID
+    namespace: ENGINE
+    owner: CORE-56
+    severity: error
+    message_key: err.engine.data_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: ENGINE_UNAVAILABLE
+    namespace: ENGINE
+    owner: CORE-56
+    severity: error
+    message_key: err.engine.unavailable
+    retryable: true
+    since: 1
+    surface: client
+  - code: EVAL_DIV_ZERO
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.div_zero
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_DOMAIN
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.domain
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_LIMIT_EXCEEDED
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.limit_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_MULTI_BRANCH
+    namespace: EVAL
+    owner: CORE-93
+    severity: info
+    message_key: err.eval.multi_branch
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_NAN_OR_INF
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.nan_or_inf
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_NEEDS_INTERVAL
+    namespace: EVAL
+    owner: CORE-93
+    severity: error
+    message_key: err.eval.needs_interval
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_NOT_COMPUTABLE
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.not_computable
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_NO_CONVERGE
+    namespace: EVAL
+    owner: CORE-93
+    severity: error
+    message_key: err.eval.no_converge
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_OVERFLOW
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.overflow
+    retryable: false
+    since: 1
+    surface: client
+  - code: EVAL_TIMEOUT
+    namespace: EVAL
+    owner: CORE-10
+    severity: error
+    message_key: err.eval.timeout
+    retryable: true
+    since: 1
+    surface: client
+  - code: EXPORT_NOT_RENDERABLE
+    namespace: EXPORT
+    owner: CORE-52
+    severity: warning
+    message_key: err.export.not_renderable
+    retryable: false
+    since: 1
+    surface: client
+  - code: EXPORT_TOO_LARGE
+    namespace: EXPORT
+    owner: CORE-52
+    severity: warning
+    message_key: err.export.too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_BAD_ARG
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.bad_arg
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_BUSY
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.busy
+    retryable: true
+    since: 1
+    surface: client
+  - code: FFI_PANIC
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.panic
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_STALE_HANDLE
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.stale_handle
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_UNKNOWN_OP
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.unknown_op
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_VERSION_MISMATCH
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.version_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: GRADE_PARSE_FAILED
+    namespace: GRADE
+    owner: CORE-18
+    severity: error
+    message_key: err.grade.parse_failed
+    retryable: false
+    since: 1
+    surface: client
+  - code: GRADE_TIMEOUT
+    namespace: GRADE
+    owner: CORE-18
+    severity: warning
+    message_key: err.grade.timeout
+    retryable: false
+    since: 1
+    surface: client
+  - code: GRADE_UNSUPPORTED
+    namespace: GRADE
+    owner: CORE-18
+    severity: warning
+    message_key: err.grade.unsupported
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_CANCELLED
+    namespace: IMG
+    owner: CORE-30
+    severity: info
+    message_key: err.img.cancelled
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_CORRUPT
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.corrupt
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_CROP_INVALID
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.crop_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_FORMAT_UNSUPPORTED
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.format_unsupported
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_PATH_INVALID
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.path_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_TOO_LARGE
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_TOO_MANY_PIXELS
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.too_many_pixels
+    retryable: false
+    since: 1
+    surface: client
+  - code: IMG_UPLOAD_TOO_LARGE
+    namespace: IMG
+    owner: CORE-30
+    severity: error
+    message_key: err.img.upload_too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_BATCH_CANCELLED
+    namespace: LIB
+    owner: CORE-54
+    severity: info
+    message_key: err.lib.batch_cancelled
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_BATCH_TOO_LARGE
+    namespace: LIB
+    owner: CORE-54
+    severity: error
+    message_key: err.lib.batch_too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_DRAFT_INVALID
+    namespace: LIB
+    owner: CORE-61
+    severity: error
+    message_key: err.lib.draft_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_IMPORT_ROW_INVALID
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.import_row_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_IMPORT_TOO_LARGE
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.import_too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_META_INVALID
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.meta_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_NOT_FOUND
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.not_found
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_NOT_VERIFIED
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.not_verified
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_READ_ONLY
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.read_only
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_TAGS_LIMIT
+    namespace: LIB
+    owner: CORE-14
+    severity: warning
+    message_key: err.lib.tags_limit
+    retryable: false
+    since: 1
+    surface: client
+  - code: LIB_TRASHED
+    namespace: LIB
+    owner: CORE-14
+    severity: error
+    message_key: err.lib.trashed
+    retryable: false
+    since: 1
+    surface: client
+  - code: NET_HOST_NOT_ALLOWED
+    namespace: NET
+    owner: CORE-04
+    severity: error
+    message_key: err.net.host_not_allowed
+    retryable: false
+    since: 1
+    surface: client
+  - code: NET_OFFLINE
+    namespace: NET
+    owner: CORE-04
+    severity: error
+    message_key: err.net.offline
+    retryable: true
+    since: 1
+    surface: client
+  - code: NET_TIMEOUT
+    namespace: NET
+    owner: CORE-04
+    severity: error
+    message_key: err.net.timeout
+    retryable: true
+    since: 1
+    surface: client
+  - code: NET_TLS
+    namespace: NET
+    owner: CORE-04
+    severity: error
+    message_key: err.net.tls
+    retryable: false
+    since: 1
+    surface: client
+  - code: NOTATION_AMBIGUOUS
+    namespace: NOTATION
+    owner: CORE-07
+    severity: warning
+    message_key: err.notation.ambiguous
+    retryable: false
+    since: 1
+    surface: client
+  - code: NOTATION_CONSTANT_CONFLICT
+    namespace: NOTATION
+    owner: CORE-07
+    severity: info
+    message_key: err.notation.constant_conflict
+    retryable: false
+    since: 1
+    surface: client
+  - code: NOTATION_LOG_BASE
+    namespace: NOTATION
+    owner: CORE-07
+    severity: warning
+    message_key: err.notation.log_base
+    retryable: false
+    since: 1
+    surface: client
+  - code: NOTATION_UNBOUND
+    namespace: NOTATION
+    owner: CORE-07
+    severity: error
+    message_key: err.notation.unbound
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_DEP_MISSING
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.dep_missing
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_DOWNGRADE
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.downgrade
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_DOWNLOAD_INCOMPLETE
+    namespace: PACK
+    owner: CORE-51
+    severity: warning
+    message_key: err.pack.download_incomplete
+    retryable: true
+    since: 1
+    surface: client
+  - code: PACK_EPOCH_ROLLBACK
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.epoch_rollback
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_FORBIDDEN_ENTRY
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.forbidden_entry
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_HASH_MISMATCH
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.hash_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_INCOMPATIBLE
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.incompatible
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_KEY_UNKNOWN
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.key_unknown
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_LIMIT_EXCEEDED
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.limit_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_METADATA_EXPIRED
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.metadata_expired
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_SIG_INVALID
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.sig_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: PACK_STORAGE_LOW
+    namespace: PACK
+    owner: CORE-51
+    severity: warning
+    message_key: err.pack.storage_low
+    retryable: true
+    since: 1
+    surface: client
+  - code: PACK_UNSAFE_PATH
+    namespace: PACK
+    owner: CORE-15
+    severity: error
+    message_key: err.pack.unsafe_path
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_FORBIDDEN_COMMAND
+    namespace: PARSE
+    owner: CORE-06
+    severity: error
+    message_key: err.parse.forbidden_command
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_HOLE_UNFILLED
+    namespace: PARSE
+    owner: CORE-06
+    severity: error
+    message_key: err.parse.hole_unfilled
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_LIMIT_EXCEEDED
+    namespace: PARSE
+    owner: CORE-05
+    severity: error
+    message_key: err.parse.limit_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_SYNTAX
+    namespace: PARSE
+    owner: CORE-06
+    severity: error
+    message_key: err.parse.syntax
+    fix_hint: true
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_TIMEOUT
+    namespace: PARSE
+    owner: CORE-06
+    severity: error
+    message_key: err.parse.timeout
+    retryable: true
+    since: 1
+    surface: client
+  - code: PARSE_UNICODE_NOT_EXPORTABLE
+    namespace: PARSE
+    owner: CORE-92
+    severity: warning
+    message_key: err.parse.unicode_not_exportable
+    retryable: false
+    since: 1
+    surface: client
+  - code: PARSE_UNSUPPORTED_COMMAND
+    namespace: PARSE
+    owner: CORE-06
+    severity: error
+    message_key: err.parse.unsupported_command
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_CANCELLED
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: info
+    message_key: err.platform.cancelled
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_FILE_TOO_LARGE
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.file_too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_FILE_TYPE_MISMATCH
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.file_type_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_IO
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.io
+    retryable: true
+    since: 1
+    surface: client
+  - code: PLATFORM_KEY_UNAVAILABLE
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.key_unavailable
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_PERMISSION_DENIED
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.permission_denied
+    retryable: true
+    since: 1
+    surface: client
+  - code: PLATFORM_UNSUPPORTED
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.unsupported
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_UPDATE_DISK_FULL
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.update_disk_full
+    retryable: true
+    since: 1
+    surface: client
+  - code: PLATFORM_UPDATE_HASH_MISMATCH
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.update_hash_mismatch
+    retryable: true
+    since: 1
+    surface: client
+  - code: PLATFORM_UPDATE_ROLLED_BACK
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: warning
+    message_key: err.platform.update_rolled_back
+    retryable: false
+    since: 1
+    surface: client
+  - code: PLATFORM_UPDATE_SIG_INVALID
+    namespace: PLATFORM
+    owner: CORE-04
+    severity: error
+    message_key: err.platform.update_sig_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: PRIVACY_CONSENT_MISSING
+    namespace: PRIVACY
+    owner: CORE-28
+    severity: error
+    message_key: err.privacy.consent_missing
+    retryable: false
+    since: 1
+    surface: client
+  - code: PRIVACY_DIAGNOSTICS_DISABLED
+    namespace: PRIVACY
+    owner: CORE-28
+    severity: info
+    message_key: err.privacy.diagnostics_disabled
+    retryable: false
+    since: 1
+    surface: client
+  - code: PRIVACY_REPRO_FAILED
+    namespace: PRIVACY
+    owner: CORE-28
+    severity: error
+    message_key: err.privacy.repro_failed
+    retryable: true
+    since: 1
+    surface: client
+  - code: PRIVACY_REQUEST_BLOCKED
+    namespace: PRIVACY
+    owner: CORE-28
+    severity: error
+    message_key: err.privacy.request_blocked
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_ACTIVE_TASK_EXISTS
+    namespace: RECOG
+    owner: CORE-32
+    severity: warning
+    message_key: err.recog.active_task_exists
+    retryable: true
+    since: 1
+    surface: client
+  - code: RECOG_ALL_CANDIDATES_INVALID
+    namespace: RECOG
+    owner: CORE-31
+    severity: warning
+    message_key: err.recog.all_candidates_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_BACKEND_NOT_ALLOWED
+    namespace: RECOG
+    owner: CORE-29
+    severity: error
+    message_key: err.recog.backend_not_allowed
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_BACKEND_REMOTE
+    namespace: RECOG
+    owner: CORE-29
+    severity: info
+    message_key: err.recog.backend_remote
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_BACKEND_UNAVAILABLE
+    namespace: RECOG
+    owner: CORE-29
+    severity: error
+    message_key: err.recog.backend_unavailable
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_CANCELLED
+    namespace: RECOG
+    owner: CORE-29
+    severity: info
+    message_key: err.recog.cancelled
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_HISTORY_KEY_UNAVAILABLE
+    namespace: RECOG
+    owner: CORE-32
+    severity: error
+    message_key: err.recog.history_key_unavailable
+    retryable: true
+    since: 1
+    surface: client
+  - code: RECOG_IMAGE_LOST
+    namespace: RECOG
+    owner: CORE-32
+    severity: warning
+    message_key: err.recog.image_lost
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_INPUT_INVALID
+    namespace: RECOG
+    owner: CORE-29
+    severity: error
+    message_key: err.recog.input_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_KEEP_LAST_OUT_OF_RANGE
+    namespace: RECOG
+    owner: CORE-32
+    severity: error
+    message_key: err.recog.keep_last_out_of_range
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_MODEL_INCOMPATIBLE
+    namespace: RECOG
+    owner: CORE-35
+    severity: error
+    message_key: err.recog.model_incompatible
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_MODEL_NOT_INSTALLED
+    namespace: RECOG
+    owner: CORE-35
+    severity: error
+    message_key: err.recog.model_not_installed
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_MODEL_OOM
+    namespace: RECOG
+    owner: CORE-35
+    severity: error
+    message_key: err.recog.model_oom
+    retryable: true
+    since: 1
+    surface: client
+  - code: RECOG_MODEL_TIMEOUT
+    namespace: RECOG
+    owner: CORE-35
+    severity: warning
+    message_key: err.recog.model_timeout
+    retryable: true
+    since: 1
+    surface: client
+  - code: RECOG_NO_CANDIDATE
+    namespace: RECOG
+    owner: CORE-29
+    severity: warning
+    message_key: err.recog.no_candidate
+    retryable: true
+    since: 1
+    surface: client
+  - code: RECOG_OUTPUT_REJECTED
+    namespace: RECOG
+    owner: CORE-31
+    severity: warning
+    message_key: err.recog.output_rejected
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_OUTPUT_TOO_LARGE
+    namespace: RECOG
+    owner: CORE-31
+    severity: error
+    message_key: err.recog.output_too_large
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_QUOTA_EXCEEDED
+    namespace: RECOG
+    owner: CORE-32
+    severity: warning
+    message_key: err.recog.quota_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_SESSION_NOT_FOUND
+    namespace: RECOG
+    owner: CORE-32
+    severity: error
+    message_key: err.recog.session_not_found
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_SPAN_INVALID
+    namespace: RECOG
+    owner: CORE-31
+    severity: error
+    message_key: err.recog.span_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: RECOG_TRANSITION_INVALID
+    namespace: RECOG
+    owner: CORE-32
+    severity: error
+    message_key: err.recog.transition_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: SERVER_CLIENT_TOO_OLD
+    namespace: SERVER
+    owner: CORE-22
+    severity: error
+    message_key: err.server.client_too_old
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 426
+  - code: SERVER_UNAVAILABLE
+    namespace: SERVER
+    owner: CORE-22
+    severity: error
+    message_key: err.server.unavailable
+    retryable: true
+    since: 1
+    surface: server
+    http_status: 503
+  - code: STORE_BUSY
+    namespace: STORE
+    owner: CORE-13
+    severity: warning
+    message_key: err.store.busy
+    retryable: true
+    since: 1
+    surface: client
+  - code: STORE_CORRUPT
+    namespace: STORE
+    owner: CORE-13
+    severity: error
+    message_key: err.store.corrupt
+    retryable: false
+    since: 1
+    surface: client
+  - code: STORE_DISK_FULL
+    namespace: STORE
+    owner: CORE-13
+    severity: error
+    message_key: err.store.disk_full
+    retryable: true
+    since: 1
+    surface: client
+  - code: STORE_KEY_INVALID
+    namespace: STORE
+    owner: CORE-13
+    severity: error
+    message_key: err.store.key_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: STORE_MIGRATION_FAILED
+    namespace: STORE
+    owner: CORE-13
+    severity: error
+    message_key: err.store.migration_failed
+    retryable: false
+    since: 1
+    surface: client
+  - code: STORE_SCHEMA_TOO_NEW
+    namespace: STORE
+    owner: CORE-13
+    severity: error
+    message_key: err.store.schema_too_new
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_BOOK_READ_ONLY
+    namespace: STUDY
+    owner: CORE-19
+    severity: error
+    message_key: err.study.book_read_only
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_CARD_NOT_FOUND
+    namespace: STUDY
+    owner: CORE-17
+    severity: error
+    message_key: err.study.card_not_found
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_CARD_PENDING_CHOICE
+    namespace: STUDY
+    owner: CORE-17
+    severity: warning
+    message_key: err.study.card_pending_choice
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_DAY_INVALID
+    namespace: STUDY
+    owner: CORE-17
+    severity: error
+    message_key: err.study.day_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_INPUT_INVALID
+    namespace: STUDY
+    owner: CORE-19
+    severity: error
+    message_key: err.study.input_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_K_OUT_OF_RANGE
+    namespace: STUDY
+    owner: CORE-19
+    severity: error
+    message_key: err.study.k_out_of_range
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_NO_CARDS
+    namespace: STUDY
+    owner: CORE-19
+    severity: info
+    message_key: err.study.no_cards
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_PARAMS_NO_PREVIOUS
+    namespace: STUDY
+    owner: CORE-17
+    severity: error
+    message_key: err.study.params_no_previous
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_PARAMS_VERSION_STALE
+    namespace: STUDY
+    owner: CORE-17
+    severity: error
+    message_key: err.study.params_version_stale
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_PLAN_INVALID
+    namespace: STUDY
+    owner: CORE-19
+    severity: error
+    message_key: err.study.plan_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_RETENTION_OUT_OF_RANGE
+    namespace: STUDY
+    owner: CORE-17
+    severity: error
+    message_key: err.study.retention_out_of_range
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_REVISION_NOT_VERIFIED
+    namespace: STUDY
+    owner: CORE-80
+    severity: error
+    message_key: err.study.revision_not_verified
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_SESSION_EXPIRED
+    namespace: STUDY
+    owner: CORE-19
+    severity: warning
+    message_key: err.study.session_expired
+    retryable: false
+    since: 1
+    surface: client
+  - code: STUDY_STATS_RANGE_INVALID
+    namespace: STUDY
+    owner: CORE-20
+    severity: error
+    message_key: err.study.stats_range_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_AAD_MISMATCH
+    namespace: SYNC
+    owner: CORE-26
+    severity: warning
+    message_key: err.sync.aad_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_BATCH_INVALID
+    namespace: SYNC
+    owner: CORE-78
+    severity: error
+    message_key: err.sync.batch_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_BATCH_UNKNOWN
+    namespace: SYNC
+    owner: CORE-78
+    severity: warning
+    message_key: err.sync.batch_unknown
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_CHOICE_INVALID
+    namespace: SYNC
+    owner: CORE-26
+    severity: error
+    message_key: err.sync.choice_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_CURSOR_INVALID
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.cursor_invalid
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: SYNC_DECRYPT_FAILED
+    namespace: SYNC
+    owner: CORE-26
+    severity: warning
+    message_key: err.sync.decrypt_failed
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_DISABLED
+    namespace: SYNC
+    owner: CORE-26
+    severity: info
+    message_key: err.sync.disabled
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_ENVELOPE_INVALID
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.envelope_invalid
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: SYNC_EPOCH_STALE
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.epoch_stale
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 409
+  - code: SYNC_HASH_MISMATCH
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.hash_mismatch
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 400
+  - code: SYNC_KEY_MISSING
+    namespace: SYNC
+    owner: CORE-24
+    severity: error
+    message_key: err.sync.key_missing
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_KEY_VERSION_REJECTED
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.key_version_rejected
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 409
+  - code: SYNC_MERGE_CONFLICT
+    namespace: SYNC
+    owner: CORE-83
+    severity: warning
+    message_key: err.sync.merge_conflict
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_NOT_AVAILABLE
+    namespace: SYNC
+    owner: CORE-36
+    severity: info
+    message_key: err.sync.not_available
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_NOT_FOUND
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.not_found
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 404
+  - code: SYNC_PATH_INVALID
+    namespace: SYNC
+    owner: CORE-66
+    severity: error
+    message_key: err.sync.path_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_PAYLOAD_TOO_LARGE
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.payload_too_large
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 413
+  - code: SYNC_QUARANTINED
+    namespace: SYNC
+    owner: CORE-26
+    severity: warning
+    message_key: err.sync.quarantined
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_QUOTA_EXCEEDED
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.quota_exceeded
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 507
+  - code: SYNC_SNAPSHOT_CORRUPT
+    namespace: SYNC
+    owner: CORE-66
+    severity: error
+    message_key: err.sync.snapshot_corrupt
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_SNAPSHOT_INCOMPLETE
+    namespace: SYNC
+    owner: CORE-25
+    severity: error
+    message_key: err.sync.snapshot_incomplete
+    retryable: false
+    since: 1
+    surface: server
+    http_status: 409
+  - code: SYNC_UPGRADE_IN_PROGRESS
+    namespace: SYNC
+    owner: CORE-24
+    severity: warning
+    message_key: err.sync.upgrade_in_progress
+    retryable: true
+    since: 1
+    surface: client
+  - code: SYNC_UPGRADE_KEY_FAILED
+    namespace: SYNC
+    owner: CORE-24
+    severity: error
+    message_key: err.sync.upgrade_key_failed
+    retryable: true
+    since: 1
+    surface: client
+  - code: SYNC_UPGRADE_NOT_ABANDONABLE
+    namespace: SYNC
+    owner: CORE-24
+    severity: error
+    message_key: err.sync.upgrade_not_abandonable
+    retryable: false
+    since: 1
+    surface: client
+  - code: SYNC_UPGRADE_STEP_INVALID
+    namespace: SYNC
+    owner: CORE-24
+    severity: error
+    message_key: err.sync.upgrade_step_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPESET_DEPTH_EXCEEDED
+    namespace: TYPESET
+    owner: CORE-12
+    severity: error
+    message_key: err.typeset.depth_exceeded
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPESET_MISSING_GLYPH
+    namespace: TYPESET
+    owner: CORE-12
+    severity: error
+    message_key: err.typeset.missing_glyph
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPESET_NO_FONT
+    namespace: TYPESET
+    owner: CORE-12
+    severity: error
+    message_key: err.typeset.no_font
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_AFFINE_MISUSE
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.affine_misuse
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_CROSS_DIM
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.cross_dim
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_DIM_CONFLICT
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.dim_conflict
+    fix_hint: true
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_EMPIRICAL_COEFF
+    namespace: TYPE
+    owner: CORE-09
+    severity: warning
+    message_key: err.type.empirical_coeff
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_FUNC_ARG_DIMENSIONED
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.func_arg_dimensioned
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_LOG_DIMENSIONED
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.log_dimensioned
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_MATHKIND_MISMATCH
+    namespace: TYPE
+    owner: CORE-09
+    severity: error
+    message_key: err.type.mathkind_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_QK_MISMATCH
+    namespace: TYPE
+    owner: CORE-09
+    severity: warning
+    message_key: err.type.qk_mismatch
+    retryable: false
+    since: 1
+    surface: client
+  - code: TYPE_UNKNOWN_DIM
+    namespace: TYPE
+    owner: CORE-09
+    severity: warning
+    message_key: err.type.unknown_dim
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_AFFINE_MISUSE
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.affine_misuse
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_CYCLE
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.cycle
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_DIM_SYNTAX
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.dim_syntax
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_DUPLICATE
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.duplicate
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_INCOMPATIBLE
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.incompatible
+    fix_hint: true
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_INVALID_OFFSET
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.invalid_offset
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_IN_USE
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.in_use
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_OVERFLOW
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.overflow
+    retryable: false
+    since: 1
+    surface: client
+  - code: UNIT_UNKNOWN
+    namespace: UNIT
+    owner: CORE-08
+    severity: error
+    message_key: err.unit.unknown
+    retryable: false
+    since: 1
+    surface: client

@@ -5,8 +5,10 @@ version.workspace = true
 edition.workspace = true
 publish = false
 
-# CORE-01 只建骨架：本 crate 当前没有任何公共项与第三方运行时依赖。
+# 正式错误模型（CORE-02）只依赖 serde：错误值要序列化成 contracts/vectors/errors-v1.json
+# 规定的线上格式，反序列化时要按注册表校验。领域 crate 不依赖其他第三方 crate。
 [dependencies]
+serde = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
