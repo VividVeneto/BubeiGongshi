@@ -24,6 +24,7 @@ node --test tools/DTOcheck/*.test.mjs                 # 本工具自身的测试
 | dto | contracts/vectors：JSON 合法；云识别幂等键按 UUIDv5 重算 | DTO-20～21 |
 | cards | 卡号重复；§3 索引的名称/依赖/规模与卡正文一致；规模 ≤ 500、不含“另计”、多构建单元必须声明附属；依赖存在且无环 | CARD-01～10 |
 | cards | 依赖图（mermaid）节点标签、边 ⊆ 依赖字段、每条直接依赖可达（CORE-01/02 除外）；实施阶段唯一且依赖不晚于自身 | GRAPH-01～05、STAGE-01～03 |
+| cards | 迁移序号：`crates/fml-store/migrations/` 直接子文件与 `server/migrations/` 中序号 <0100 的 `NNNN_名.sql` 须对应归属卡 CORE-NNNN 且该卡正文声明此文件（CORE-13：V1 发布前序号取归属卡编号）；同目录序号不得重复；`registry/` 与其他 crate 的独立库迁移不查 | MIG-01～02 |
 | cards | README §8.6：每卡一行、名称与阶段一致、卡数/分类统计句/小节标题；各文件版本号一致 | README-01～07、VER-01 |
 | cards | 拆分布局：文件名为 `S编号_卡号_分组.md` 且分组在 8 个之内；S 编号等于实施阶段；S0 阶段的卡在 `S0/`，其余按卡号前缀在 `core/`、`and/`、`win/`；卡片文件只含一张卡且以其标题开头；每张卡在对应总览中恰有一个标记 | LAYOUT-01～05 |
 | xref | 错误码在多张卡的“错误码”表中重复定义;`contracts/policies/shared-writes.json` 的 error 登记与卡内定义必须一致（owner 不符、卡内有定义却未登记、登记了无定义的码）——均为硬错误 | XREF-01～04 |
