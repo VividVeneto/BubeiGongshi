@@ -14,22 +14,22 @@
 // crates/fml-imgproc/src/lib.rs
 pub struct DecodeLimits { pub max_bytes: u64 /* 20 MiB */, pub max_pixels: u64 /* 40 MP，按头部判断，解码前拒绝 */ }
 pub enum ImageFormat { Png, Jpeg, WebP }
-pub struct ImageInfo { pub format: ImageFormat, pub width: u32, pub height: u32, pub bytes: u64, pub exif_orientation: u8 /* 1..=8，无则 1 */ }
+pub struct ImageInfo { pub format: ImageFormat, pub width: u32, pub height: u32 /* EXIF 方向修正后的显示尺寸，不是头部原始尺寸；方向 5..=8 时宽高已交换，2..=4 不变 */, pub bytes: u64, pub exif_orientation: u8 /* 1..=8，无则 1；原值保留供审计 */ }
 pub struct WorkingImage { /* 已按方向旋转的 8 位 RGB 缓冲；不可序列化，只在一次 op 内存活 */ }
 pub struct Crop { pub x: u32, pub y: u32, pub w: u32, pub h: u32, pub rotation_deg: f32 }
 pub struct EnhanceOptions { pub denoise: bool, pub illumination: bool, pub local_contrast: bool, pub deskew: bool, pub binarize: bool /* 默认 false */ }
 pub struct QualityReport { pub sharpness: f32 /* 拉普拉斯方差 */, pub too_dark: bool, pub overexposed: bool, pub shadow: f32,
                            pub tilt_deg: f32, pub region_ratio: f32, pub hints: Vec<String> /* 消息键 */ }
-pub struct PreparedImage { pub png: Vec<u8>, pub width: u32, pub height: u32, pub sha256: [u8; 32] }
+pub struct PreparedImage { pub png: Vec<u8>, pub width: u32, pub height: u32 /* 输出 PNG 的 IHDR 宽高 */, pub sha256: [u8; 32] /* 对 png 全部字节计算；FFI/DTO 中一律为 64 字符小写十六进制字符串（本卡唯一定义，CORE-28、CORE-29、CORE-34、CORE-40 只引用；属 CORE-03“二进制→base64”的例外） */ }
 pub struct PrepareOutput { pub image: PreparedImage /* 增强图 */, pub gray: Option<PreparedImage> /* 增强前灰度对照图；任一增强选项为 true 时 Some */, pub quality: QualityReport }
 pub fn probe(bytes: &[u8], limits: &DecodeLimits, declared_ext: Option<&str> /* 小写、不含点；None 不比较 */) -> Result<ImageInfo, FmlError>;
 pub fn decode_oriented(bytes: &[u8], limits: &DecodeLimits, cancel: &CancelFlag) -> Result<WorkingImage, FmlError>; // 修正方向、剥离全部元数据
 pub fn prepare(img: &WorkingImage, crop: &Crop, opts: &EnhanceOptions, long_edge: u32 /* 1600..=2200 */, cancel: &CancelFlag) -> Result<PrepareOutput, FmlError>;
 pub fn fit_for_upload(img: &PreparedImage, cancel: &CancelFlag) -> Result<PreparedImage, FmlError>;
-// s = min(1, √(4×10⁶ ÷ (w·h)))，重新编码后 ≤ 4 MiB；之后才计算 sha256 并展示预览
+// s = min(1, √(4×10⁶ ÷ (w·h)))，重新编码后 ≤ 4 MiB；返回值的 width/height 取新 PNG 的 IHDR，sha256 对新 PNG 全部字节重算、不复用入参哈希（入参 sha256 只供调用方自检）
 ```
 
-- FFI op（图片字节不经 JSON 传递，输入输出都是 `StoreArea.staging` 下的文件路径；按 ADR-V5-53 每个请求带 `staging_root`）：`img.probe`（同步）`{ path, staging_root }` → `ImageInfo`；`img.prepare`（长任务）`{ path, crop, options, long_edge, out_path, gray_out_path?, staging_root }` → `{ out_path, width, height, sha256, quality, gray_out_path? }`（写出 PNG；`gray_out_path` 给出且 `PrepareOutput.gray` 为 Some 时另写对照图，否则响应不含该字段）；`img.fit_for_upload`（长任务）`{ prepared_path, out_path, staging_root }` → `{ out_path, width, height, sha256, bytes }`。适配层把每个路径与 `staging_root` 规范化后比较：须位于其下、路径各级都不是符号链接或重解析点、`out_path`/`gray_out_path` 的父目录已存在，否则 `IMG_PATH_INVALID`；`staging_root` 本身须为已存在的绝对目录，否则 `FFI_BAD_ARG`。
+- FFI op（图片字节不经 JSON 传递，输入输出都是 `StoreArea.staging` 下的文件路径；按 ADR-V5-53 每个请求带 `staging_root`）：`img.probe`（同步）`{ path, staging_root }` → `ImageInfo`；`img.prepare`（长任务）`{ path, crop, options, long_edge, out_path, gray_out_path?, staging_root }` → `{ out_path, width, height, sha256, quality, gray_out_path? }`（写出 PNG；`gray_out_path` 给出且 `PrepareOutput.gray` 为 Some 时另写对照图，否则响应不含该字段）；`img.fit_for_upload`（长任务）`{ prepared_path, out_path, staging_root }` → `{ out_path, width, height, sha256, bytes }`。适配层把每个路径与 `staging_root` 规范化后比较：须位于其下、路径各级都不是符号链接或重解析点、`out_path`/`gray_out_path` 的父目录已存在，否则 `IMG_PATH_INVALID`；`staging_root` 本身须为已存在的绝对目录，否则 `FFI_BAD_ARG`。`img.fit_for_upload` 的请求不含宽高与哈希：适配层按本卡固定的 `DecodeLimits`（`max_bytes` 20 MiB、`max_pixels` 40 MP，:15）校验并读入 `prepared_path`，由 PNG 的 IHDR 填 `width/height`、对该文件全部字节重算 `sha256` 构造 `PreparedImage`，调用后写出 `out_path`；响应的 `width/height` 取输出 PNG 的 IHDR、`sha256` 对输出字节重算、`bytes` 为输出文件长度，不信任也不回显请求侧的任何哈希。
 - 扩展名与取消（ADR-V5-46）：`CancelFlag` 取自 CORE-05 的 `fml-ast`（本卡新增依赖，仅用该类型）。纯函数不读文件名。扩展名比较归 fml-ffi 适配层：`img.probe` 与 `img.prepare` 从 `path` 取小写扩展名传给 `probe` 的 `declared_ext`（`png`→Png，`jpg`/`jpeg`→Jpeg，`webp`→WebP；`bin` 或无扩展名传 `None` 不比较；其他扩展名视为与任何格式都不符）；魔数格式与 `Some` 扩展名不符 → `IMG_FORMAT_UNSUPPORTED`。平台导入写暂存文件时使用与实际格式一致的扩展名，或统一使用 `.bin`。`CancelFlag` 检查点：解码每 64 行、方向旋转与裁剪每 64 行、去噪与光照归一每个分块、deskew 每个角度步、PNG 编码每个块之后；置位立即返回 `IMG_CANCELLED`。FFI 适配先写 `out_path.tmp` 再原子重命名，取消或失败时删除临时文件，不留半成品。
 - 支持格式：PNG（image crate）、JPEG（zune-jpeg）、静态单帧 WebP（image-webp，不链接 libwebp）；不支持 SVG、PDF 与网页。
 - 错误码：
@@ -42,10 +42,10 @@ pub fn fit_for_upload(img: &PreparedImage, cancel: &CancelFlag) -> Result<Prepar
 | `IMG_CORRUPT` | error | 否 | 头部无法解析、数据截断或解码器报错 |
 | `IMG_CROP_INVALID` | error | 否 | 裁剪框超出图像、宽或高 < 32 像素、旋转角不在 −45°..45°；`long_edge` 不在 1600..=2200 |
 | `IMG_UPLOAD_TOO_LARGE` | error | 否 | 按公式缩放并以最高压缩级别编码后仍 > 4 MiB |
-| `IMG_PATH_INVALID` | error | 否 | 输入或输出路径不在 `StoreArea.staging` 内，或为符号链接 |
+| `IMG_PATH_INVALID` | error | 否 | 输入或输出路径不在 `StoreArea.staging` 内，或为符号链接；输入路径不存在、不是普通文件或不可读（输出路径不存在属正常：先写 `.tmp` 再原子重命名） |
 | `IMG_CANCELLED` | info | 否 | `CancelFlag` 置位（`decode_oriented`、`prepare`、`fit_for_upload` 的检查点触发；`probe` 不取消） |
 
-处理流水线（`prepare`，固定次序）：① 输入为 `decode_oriented` 输出（已按 EXIF 方向旋转，坐标系即该图像素坐标，原点左上）；② 按 `Crop` 的 x,y,w,h 取轴对齐矩形，再以矩形中心旋转 `rotation_deg`（正值逆时针，双线性、白底、画布保持 w×h）；③ 长边大于 `long_edge` 时按三角（双线性）滤波等比缩小到 `long_edge`，不放大；④ 8 位灰度 Y = (77R + 150G + 29B + 128) >> 8；此灰度图即对照图 `gray`，质量评分与 `tilt_deg` 都在此图上计算；⑤ 依选项依次执行光照归一 → 去噪 → 局部对比度 → deskew（在 ② 的旋转之后叠加）→ 二值化；⑥ 输出 8 位灰度 PNG（固定压缩级别与滤波，不写任何辅助块，同输入跨平台字节一致），sha256 对最终 PNG 字节计算。
+处理流水线（`prepare`，固定次序）：① 输入为 `decode_oriented` 输出（已按 EXIF 方向旋转，坐标系即该图像素坐标，原点左上）；② 按 `Crop` 的 x,y,w,h 取轴对齐矩形，再以矩形中心旋转 `rotation_deg`（正值逆时针，双线性、白底、画布保持 w×h）；③ 长边大于 `long_edge` 时按三角（双线性）滤波等比缩小到 `long_edge`，不放大；④ 8 位灰度 Y = (77R + 150G + 29B + 128) >> 8；此灰度图即对照图 `gray`，质量评分与 `tilt_deg` 都在此图上计算；⑤ 依选项依次执行光照归一 → 去噪 → 局部对比度 → deskew（在 ② 的旋转之后叠加）→ 二值化；⑥ 输出 8 位灰度 PNG（固定压缩级别与滤波，不写任何辅助块，同输入跨平台字节一致），sha256 对最终 PNG 字节计算（线上表示为 64 字符小写 hex，见 :23）。
 
 质量指标（均在 ④ 的灰度图上）：`sharpness` = 3×3 离散 Laplacian 响应方差；`too_dark` = 均值 < 40；`overexposed` = 灰度 ≥ 250 的像素比例 > 0.2；`shadow` = 把图分为 32×32 像素块，块均值 < 0.6 × 全部块均值中位数的块所占比例（0..1）；`tilt_deg` = 下述 deskew 检出角（无论 `opts.deskew` 是否开启都计算；无可靠峰时为 0）；`region_ratio` = Otsu 阈值下暗像素的外接矩形面积 ÷ 图像面积（0..1，无暗像素为 0）。`hints` 为以下消息键的子集，按此顺序：`quality.blurry`（sharpness < 100）、`quality.too_dark`、`quality.overexposed`、`quality.shadow`（shadow > 0.25）、`quality.tilted`（|tilt_deg| > 3）、`quality.deskew_unreliable`（无可靠峰）、`quality.region_small`（region_ratio < 0.05）；CORE-40 按键映射文案。上述数值为 M0 前初值，阈值文件 `crates/fml-imgproc/thresholds.yaml`（`version: 1` 加以上七个阈值键，编译期 `include_str!` 嵌入并在单元测试中解析校验，不在运行时读文件）。
 

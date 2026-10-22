@@ -8,8 +8,8 @@
 - [R40] `fit_for_upload` 输出 ≤ 4 MiB 且 ≤ 4 MP；输出不含 EXIF 等元数据（逐字节检查）。
 - [R31] 取消与扩展名：20 MP 样本在 `decode_oriented`、`prepare`（含 deskew）、`fit_for_upload` 各阶段中途置位 `CancelFlag`（用计数型测试 CancelFlag 在第 k 次检查时置位），置位后至返回之间最多再处理一个检查点单元（64 行 / 一个分块 / 一个角度步 / 一个 PNG 块，以处理单元计数断言，不用绝对毫秒）并返回 `IMG_CANCELLED`，适配层测试中 `out_path` 与 `.tmp` 均不存在；`declared_ext` 为 `Some("png")` 而内容是 JPEG 报 `IMG_FORMAT_UNSUPPORTED`，`None` 与 `.bin` 不比较并按魔数通过；`.gif`/`.heic` 扩展名被拒绝。
 - [R03] 性能：12 MP 照片 `img.prepare` 满足 CORE-01 预算表“图片预处理”行；连续导入 20 张 12 MP 图片满足“连续 20 张 12 MP 图片”行（基准 `crates/fml-imgproc/benches/prepare.rs`，真机数据由 AND-12、WIN-13 采集）。
-- [R31] 方向与元数据：EXIF 方向 1–8 各一张 3×2 彩色块夹具，decode_oriented 后像素排列与期望逐像素相同；含 EXIF/XMP/ICC/文本块的 JPEG、PNG、WebP 输入经 prepare 与 fit_for_upload 输出都只含 IHDR/IDAT/IEND（逐块检查）。
+- [R31] 方向与元数据：EXIF 方向 1–8 各一张 3×2 彩色块夹具，decode_oriented 后像素排列与期望逐像素相同；含 EXIF/XMP/ICC/文本块的 JPEG、PNG、WebP 输入经 prepare 与 fit_for_upload 输出都只含 IHDR/IDAT/IEND（逐块检查）；`img.probe` 对方向 5～8 的夹具返回交换后的 width/height（即方向修正后的显示尺寸）、方向 2～4 不变，`exif_orientation` 保留原值。
 - [R31] 边界：文件恰为 20 MiB 通过、+1 字节 IMG_TOO_LARGE；头部恰 40 MP 通过、多 1 像素 IMG_TOO_MANY_PIXELS（解码前，分配计数为 0）；动画 WebP 与 GIF 魔数报 IMG_FORMAT_UNSUPPORTED；IMG_CROP_INVALID 各条件（越界、w 或 h = 31、旋转 ±45.5°、long_edge 1599/2201）逐条触发，32 像素、±45°、1600/2200 通过。
-- [R40] 上传：构造按公式缩放后最高压缩仍 > 4 MiB 的噪声图报 IMG_UPLOAD_TOO_LARGE；sha256 等于最终输出字节的 SHA-256；同一输入在 Linux/Windows/Android CI 产物上 prepare 与 fit_for_upload 的 PNG 字节与 sha256 相同（跨平台向量文件）。
+- [R40] 上传：构造按公式缩放后最高压缩仍 > 4 MiB 的噪声图报 IMG_UPLOAD_TOO_LARGE；sha256 等于最终输出字节的 SHA-256；同一输入在 Linux/Windows/Android CI 产物上 prepare 与 fit_for_upload 的 PNG 字节与 sha256 相同（跨平台向量文件）；FFI 响应中的 sha256 为 64 字符小写 hex（长度与小写逐字符断言），width/height 等于输出 PNG 的 IHDR；适配层不信任也不回显输入侧哈希（把 prepared_path 换成另一张同尺寸图后，响应 sha256 随内容变化）。
 - [R32] 流水线与质量：合成图验证裁剪→旋转→缩小次序（已知坐标标记点位置）、长边小于 long_edge 时不放大、输出为 8 位灰度 PNG；旋转 5°、−7.5° 的文本合成图 deskew 检出角误差 ≤ 0.5°，均匀噪声图无可靠峰给出 quality.deskew_unreliable 且 tilt_deg = 0；七项指标各一张合成图触发对应消息键且 hints 顺序固定；thresholds.yaml 解析成功且含全部七个键。
-- [R31] 路径：path/out_path 在 staging_root 外、经符号链接或重解析点指向外部、父目录不存在均报 IMG_PATH_INVALID；staging_root 为相对路径或不存在报 FFI_BAD_ARG。
+- [R31] 路径：path/out_path 在 staging_root 外、经符号链接或重解析点指向外部、父目录不存在均报 IMG_PATH_INVALID；staging_root 为相对路径或不存在报 FFI_BAD_ARG；输入 path/prepared_path 不存在、是目录或不可读也报 IMG_PATH_INVALID，输出路径不存在仍正常（写 .tmp 后重命名）。

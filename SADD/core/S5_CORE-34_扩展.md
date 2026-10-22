@@ -22,7 +22,7 @@ final class FeatureConsentInput { final bool ageUnder14; final bool guardianConf
 final class UploadPreview {
   final String sessionId; final ProviderPolicy policy; final QuotaInfo quota;
   final File image;                        // StoreArea.staging 下 fit_for_upload 的输出 PNG（无元数据），即实际上传的字节
-  final Uint8List imageHash;               // 该文件的 SHA-256
+  final Uint8List imageHash;               // 该文件的 SHA-256；跨 FFI/HTTP 与 recog.pending_cloud.record 的 image_hash 一律用 CORE-30 定义的 64 字符小写 hex，只有进程内保留 32 字节
   final int width, height, byteLength;
 }
 final class ConsentToken { final String tokenId; final Uint8List imageHash; final DateTime expiresAt; } // 有效 10 分钟，只能用于一次提交
