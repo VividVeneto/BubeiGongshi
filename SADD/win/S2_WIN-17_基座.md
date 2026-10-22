@@ -12,7 +12,7 @@
 python tools/windows/host_tests/run.py --exe <absolute-path> --case <id> --out <dir> [--timeout-seconds 120]；0通过/1断言失败/2工具或参数错误/3环境或场景pending。cases.json固定version=1、每项{id,owner,stage,driver,fixture,timeout_seconds}，ID唯一；框架先实现window/restart/dialog/tray自测，业务卡单独登记场景，不反向依赖晚期卡。
 pywinauto使用backend=uia，按automation_id/control_type/name定位；Win32窗口/进程控制仅针对本次启动PID及已验证子PID，禁止按模糊进程名杀其他实例。等待窗口/JSON握手有总超时，保存PID句柄后终止并等待真正退出；主机保持存活并重启fixture，断言恢复结果。Profile允许integration_test内部脚本，Release只用外部UIA/日志采样；UIA不可见时显式pending并记录M0探针，不用固定坐标充通过。测试入口编译期隔离，正式Release不能暴露fixture指令。
 result.json固定{version:1,case_id,owner,status:pass|fail|pending,device:{os_build,session,dpi},app_sha256,steps:[{name,status,elapsed_ms}],reason?,artifacts:[relative_path]}。保存UIA树、窗口截图、日志与状态JSON。取消/超时结束本次子进程并finally恢复本次修改的窗口/DPI测试设置和测试注册表根；不改变真实用户档案，失败证据保留，清理失败单列。
-CI windows-host-fixture在有交互桌面的专用Windows runner运行，锁屏/Session0/无桌面/工具缺失退出3并归档pending；无交互的普通CI只验收schema/命令/fixture注册，不能冒称UIA通过。S7由WIN-18汇总，发布门禁不接受pending（下游说明，非契约）。
+CI windows-host-fixture作业定义写入 .github/workflows/ci.yml（该文件单写维护者为 CORE-41，登记于 contracts/policies/shared-writes.json 的 kind=file 条目，措辞参照 CORE-44 的 ohos-smoke 片段），本卡只交付 tools/windows/host_tests/run.py、build_fixture.py 与可调用的 YAML 步骤片段，不直接编辑该文件，作业注册待 CORE-41 追加；该作业在有交互桌面的专用Windows runner运行，锁屏/Session0/无桌面/工具缺失退出3并归档pending；无交互的普通CI只验收schema/命令/fixture注册，不能冒称UIA通过。S7由WIN-18汇总，发布门禁不接受pending（下游说明，非契约）。
 
 自包含制品：tools/windows/host_tests/build_fixture.py用锁定Flutter生成fixture_app/标准windows模板，项目名host_fixture，入口lib/main.dart，flutter build windows --debug --target lib/main.dart，产物build/windows/x64/runner/Debug/host_fixture.exe连同data/flutter DLL目录整体保留；fixture-artifact.json={version:1,exe,sha256,target:"host-fixture"}。run.py增加--artifact参数并验证--exe绝对路径/哈希及target，拒绝生产exe当fixture；不依赖产品启动器或晚期业务。main(List<String> args)只接受--host-run=<UUID>、--host-case=<注册case>、--host-root=<本次out/fixture绝对目录>，模板runner原样传参。构建脚本记录模板生成清单与工具版本；生产app目标不含此main和参数处理。
 
@@ -26,4 +26,4 @@ Windows ready/probe在--host-root/<run_id>/，主机仅读取该已解析绝对�
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-17_TEST.md](../Test/win/S2_WIN-17_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 660 行；主包 `tools/windows/host_tests/`（`run.py`、`build_fixture.py` 与 `fixture_app/`，约 660 行），附属数据 `tools/windows/requirements.txt`（依赖锁文件为数据，不计行数）。组件估算：UIA/进程/窗口驱动与等待约 175 行，注册/握手/隔离/取消/证据约 240 行，fixture Dart与模板runner补丁约 175 行，模板构建/制品验证/CI约 70 行。分阶段：① 主机驱动约 415 行；② fixture与构建约 245 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。本卡交付的主机/fixture基础设施实现计入规模，其自身验证测试不计。
+**规模**：约 660 行；主包 `tools/windows/host_tests/`（`run.py`、`build_fixture.py` 与 `fixture_app/`，约 660 行），附属数据 `tools/windows/requirements.txt`（依赖锁文件为数据，不计行数）。组件估算：UIA/进程/窗口驱动与等待约 175 行，注册/握手/隔离/取消/证据约 240 行，fixture Dart与模板runner补丁约 175 行，模板构建/制品验证与自检入口约 70 行（.github/workflows/ci.yml 的作业定义归 CORE-41，不计入本卡）。分阶段：① 主机驱动约 415 行；② fixture与构建约 245 行；各阶段以替身隔离后续能力，分别可构建、验收与提交，未交付阶段不声明通过。只计本卡交付实现及附属接入代码；验证测试、夹具与静态配置/资源数据不计。本卡交付的主机/fixture基础设施实现计入规模，其自身验证测试不计。
