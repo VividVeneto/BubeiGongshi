@@ -11,7 +11,9 @@
 
 - [R18] --check-budget 以子进程断言：spawnSync(process.execPath, ['tools/sadd/pack.mjs', <超量卡号>, '--out', <临时目录>, '--check-budget']) 的 status===1，且该目录下 report.json 的 overLimit===true、material.md 与 part-*.md 齐全；对同一输入去掉该开关断言 status===0。总量超限不得实现成拒绝或裁剪，只有单个不可分块超过 80000 才是错误。仅明标下游的引用不展开，混合未分类引用仍全文收录；ADR 无关章节排除且列标题、相关章节保留全文。不得用普通字段名触发间接整闭包。另断言无卡号调用 status===2（用法错误，不写出材料），与卡内退出码分配一致。
 
-- [R18] 真实材料对CORE-67的34份ready schema及types.schema.json、CORE-75的shared-writes.json均在 files 或 filteredFiles 中有记录，--file 可取回全文；无关 schema 只列名（大小与 SHA-256）、相关 schema 完整；manifest/shared-writes 过滤结果为合法 JSON 且条目与原文件逐字节一致；types 切片含内部引用闭包；旧 part-*.md 被清理；删除引用文件时列入missing；额外引用/$ref越界失败，所有分段拼接逐字节等于 material.md。
+- [R18] 退出码分类（卡 :19）以子进程断言：无卡号、未知卡、路径越界与单块超过 80000（夹具）均 status===2 且不写出材料；未预期内部异常（如 contracts JSON 损坏）status===3，不得落到 1；带 `--check-budget` 的总量超量为 1、不带为 0。
+
+- [R18] 真实材料对CORE-67的34份ready schema及types.schema.json、CORE-75的shared-writes.json均在 files 或 filteredFiles 中有记录，--file 可取回全文；无关 schema 只列名（大小与 SHA-256）、相关 schema 完整；manifest/shared-writes 过滤结果为合法 JSON 且条目与原文件逐字节一致；types 切片含内部引用闭包；旧 part-*.md 被清理；删除引用文件时列入missing；CO-60-1（F-75-01）维护者数据可见：`contracts/policies/shared-writes.json` 的单写维护者（policy 中 `kind=file` 且 `key` 为该文件路径的条目的 owner）在相关卡内时，`report.files` 含该路径、材料含其逐字节全文且 `warnings` 有明确说明（`pack('CORE-75')`）；维护者不在相关卡内时仍按 owner 过滤，`kept===0` 必须记 warning（`pack('CORE-67')` 的 shared-writes 与 manifest），不得静默过滤成空；额外引用/$ref越界失败，所有分段拼接逐字节等于 material.md。
 
 - [R18] 间接依赖夹具：定义所需符号的 struct、impl、const、错误码表行、op 行及其传递定义被收录，只提及符号的说明块与无关定义不收录，mentionOnly 计数正确。
 
