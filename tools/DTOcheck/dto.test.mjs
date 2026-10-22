@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {tmpRoot, makeDto, makeSadd, write} from './fixture.mjs';
+import {tmpRoot, makeDto, makeSadd, write, defTable, mirrorTable, mirrorInline} from './fixture.mjs';
 import {checkDto, uuidv5} from './dto.mjs';
 import {validate, lintSchema, FORMATS} from './schema.mjs';
 import {loadCards} from './lib.mjs';
@@ -179,17 +179,18 @@ test('条目字段冻结：未知字段失败，ready 不得带 blocked_reason �
 test('错误集合来源：未注册、重复归属、CORE-03 信封码都失败，登记正确的码通过', () => {
   const root = fresh();
   const cards = loadCards(makeSadd(root));
-  const defTable = (code) => `\n\n**错误码**\n\n| 错误码 | 说明 |\n| --- | --- |\n| \`${code}\` | 测试 |\n`;
-  cards.get('CORE-05').body += defTable('DEMO_FAIL');
-  assert.deepEqual(checkDto({root, cards}).errors, []);          // 唯一注册时通过
-  cards.get('CORE-01').body += defTable('DEMO_FAIL');            // 重复归属
+  const def = (code) => `\n\n**错误码**\n\n| 错误码 | 说明 |\n| --- | --- |\n| \`${code}\` | 测试 |\n`;
+  // 唯一注册且逐 op 镜像齐全时通过（DTO-06 双向比对）
+  cards.get('CORE-05').body += def('DEMO_FAIL') + mirrorTable({'demo.open': ['DEMO_FAIL']});
+  assert.deepEqual(checkDto({root, cards}).errors, []);
+  cards.get('CORE-01').body += def('DEMO_FAIL');                 // 重复归属
   const dup = checkDto({root, cards}).errors.filter(e => e.id === 'DTO-06');
   assert.ok(dup.some(e => e.msg.includes('多张卡定义')), JSON.stringify(dup));
 
   const root2 = fresh();
   const cards2 = loadCards(makeSadd(root2));
-  cards2.get('CORE-05').body += defTable('ENGINE_UNAVAILABLE');
-  cards2.set('CORE-03', {id: 'CORE-03', body: defTable('FFI_BAD_ARG')});
+  cards2.get('CORE-05').body += def('ENGINE_UNAVAILABLE');
+  cards2.set('CORE-03', {id: 'CORE-03', body: def('FFI_BAD_ARG')});
   edit(root2, 'manifest.json', m => { m.ops[0].error_codes = ['ENGINE_UNAVAILABLE']; });
   const noEngine = codes(checkDto({root: root2, cards: cards2}));
   assert.ok(noEngine.includes('DTO-24'));                        // 含 ENGINE_UNAVAILABLE 却未标记快照
@@ -198,4 +199,49 @@ test('错误集合来源：未注册、重复归属、CORE-03 信封码都失败
   assert.ok(envelope.includes('DTO-18'));                        // CORE-03 信封码混入业务错误集合
   edit(root2, 'manifest.json', m => { m.ops[0].error_codes = ['NOPE_UNREGISTERED']; });
   assert.ok(checkDto({root: root2, cards: cards2}).errors.some(e => e.id === 'DTO-06' && e.msg.includes('未注册')));
+});
+
+test('DTO-06 双向比对：卡行与 error_codes 任一侧缺码都失败', () => {
+  const root = fresh();
+  const cards = loadCards(makeSadd(root, {extra05: defTable(['DEMO_FAIL', 'DEMO_OTHER'])}));
+  cards.get('CORE-05').body += mirrorTable({'demo.open': ['DEMO_FAIL']});
+  assert.deepEqual(checkDto({root, cards}).errors, []);                    // 两侧一致时通过
+
+  edit(root, 'manifest.json', m => { m.ops[0].error_codes = ['DEMO_FAIL', 'DEMO_OTHER']; });
+  const onlyManifest = checkDto({root, cards}).errors.filter(e => e.id === 'DTO-06');
+  assert.ok(onlyManifest.some(e => e.msg.includes('error_codes 有码但所有者卡 CORE-05 的逐 op 镜像没有：DEMO_OTHER')), JSON.stringify(onlyManifest));
+
+  edit(root, 'manifest.json', m => { m.ops[0].error_codes = ['DEMO_FAIL']; });
+  cards.get('CORE-05').body = cards.get('CORE-05').body.replace('| `demo.open` | DEMO_FAIL |', '| `demo.open` | DEMO_FAIL、DEMO_OTHER |');
+  const onlyCard = checkDto({root, cards}).errors.filter(e => e.id === 'DTO-06');
+  assert.ok(onlyCard.some(e => e.msg.includes('镜像有码但 error_codes 没有：DEMO_OTHER')), JSON.stringify(onlyCard));
+});
+
+test('DTO-06：ready op 必须有所有者卡的逐 op 镜像，pending 不要求；镜像写在非所有者卡失败', () => {
+  const root = fresh();
+  const cards = loadCards(makeSadd(root, {extra05: defTable('DEMO_FAIL')}));
+  const bare = checkDto({root, cards}).errors.filter(e => e.id === 'DTO-06');
+  assert.ok(bare.some(e => e.msg.includes('所有者 CORE-05 的卡没有 demo.open 的逐 op 错误镜像')), JSON.stringify(bare));
+  assert.ok(!bare.some(e => e.msg.includes('demo.later')), 'pending 无逐 op 契约，不应报错');
+
+  const root2 = fresh();
+  const cards2 = loadCards(makeSadd(root2, {extra05: defTable('DEMO_FAIL')}));
+  cards2.get('CORE-01').body += mirrorTable({'demo.open': ['DEMO_FAIL']});   // 写在了非所有者卡
+  const wrongCard = checkDto({root: root2, cards: cards2}).errors.filter(e => e.id === 'DTO-06');
+  assert.ok(wrongCard.some(e => e.msg.includes('逐 op 错误镜像写在 CORE-01，应由 op 所有者 CORE-05')), JSON.stringify(wrongCard));
+});
+
+test('DTO-06：内联句也是对照源；ENGINE_UNAVAILABLE 与 CORE-03 信封码不算差集', () => {
+  const root = fresh();
+  const cards = loadCards(makeSadd(root, {extra05: defTable(['DEMO_FAIL', 'ENGINE_UNAVAILABLE'])}));
+  // 内联句：只列 DEMO_FAIL；信封码写在说明段之后（不被当作镜像）
+  cards.get('CORE-05').body += mirrorInline({'demo.open': ['DEMO_FAIL']});
+  edit(root, 'manifest.json', m => { m.ops[0].reads_engine_snapshot = true; m.ops[0].error_codes = ['DEMO_FAIL', 'ENGINE_UNAVAILABLE']; });
+  assert.deepEqual(checkDto({root, cards}).errors.filter(e => e.id.startsWith('DTO-06')), []);   // ENGINE_UNAVAILABLE 由 DTO-24 管
+
+  const root2 = fresh();
+  const cards2 = loadCards(makeSadd(root2, {extra05: defTable('DEMO_FAIL')}));
+  cards2.set('CORE-03', {id: 'CORE-03', body: '\n\n**错误码**\n\n| 错误码 | 说明 |\n| --- | --- |\n| `FFI_BAD_ARG` | 测试 |\n'});
+  cards2.get('CORE-05').body += mirrorTable({'demo.open': ['DEMO_FAIL', 'FFI_BAD_ARG']});
+  assert.deepEqual(checkDto({root: root2, cards: cards2}).errors.filter(e => e.id === 'DTO-06'), []);   // CORE-03 码由 DTO-18 管
 });
