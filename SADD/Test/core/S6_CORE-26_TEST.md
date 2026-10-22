@@ -19,13 +19,13 @@
 - [R28] SY-PAYLOAD-V1独立字节向量与CBOR非法最短编码/重复键/不定长/尾字节反例；逐项断言Envelope的固定version/kind、原outbox身份序号、修订专用revision_id、purpose/base64/hash与AAD一致，内层不虚构key_version。
 - [R28] 正常Stale重包装Conflict仅出队，不改变device_id；只有通过验证的本机高device_seq触发rotate，篡改/未知schema的高序号不能旋转；RNG失败整页回滚。epoch全量重排保留业务时钟，含未过期原类型墓碑，不上传tombstone第二类型。
 - [R28] 事务分析前提矩阵：未自建的cn-default/iso从同Arc内置方案精确取得；同ID自建方案以当前事务记录覆盖，真正未知ID返回NOTATION_UNBOUND而非任意默认。快照获取失败/不可用返回ENGINE_UNAVAILABLE；Fake记录ParseOptions=100/true、empirical=false。以上前提故障均整页/游标回滚、无隔离行，不与无效远端内容的逐条Invalid混淆。
-- [R28] 入站 Envelope 校验：apply_pull 的页内依次放入 `contracts/vectors/envelope-v2.json` 中可由 PullResponse 反序列化的非法用例（字段越界、HashMismatch、TooLarge）与 setting 实体使用 UUID entity_id、formula 实体使用设置键的两条，每条进隔离区并计 `SYNC_QUARANTINED`，同页合法条目照常应用、游标前移；`PushResult`/`PullPage` 与 CORE-68 类型为同一 Rust 类型（编译期 `TypeId` 断言）。
+- [R28] 入站 Envelope 校验：apply_pull 的页内依次放入 `contracts/vectors/envelope-v2.json` 中 `deserializable=true` 且 `group` 为 invalid/too_large/hash_mismatch 的用例（文件结构与分组见 CORE-68 测试方案）与 setting 实体使用 UUID entity_id、formula 实体使用设置键的两条，每条进隔离区并计 `SYNC_QUARANTINED`，同页合法条目照常应用、游标前移；`PushResult`/`PullPage` 与 CORE-68 类型为同一 Rust 类型（编译期 `TypeId` 断言）。
 - [R28] 隔离逐码：同一页分别放入篡改 ciphertext 一字节（`SYNC_DECRYPT_FAILED`）、未知 schema_version=2、未登记 entity_type、负载 CBOR 非法（非最短整数、重复键、尾随字节）、entity_id 形态与类型不符（UUID 实体用大写 UUID、local_setting 键含大写）、内外 entity_id 不一致但解密成功（`SYNC_AAD_MISMATCH`，用测试密钥构造），各自进入 sync_quarantine 且 reason 为对应码，其余条目照常应用、游标前移，ApplyReport.quarantined 计数正确；同一 op_id 再次到达不新增行。
 - [R28] 隔离 raw：合法上限 Envelope（密文 262 144 字节）隔离时 raw 为完整规范字节、raw_truncated=0；伪造超过 384 KiB 的 Envelope 只存前 393 216 字节、raw_truncated=1。
 - [R28] 保留期：apply_pull 以 now_ms 调用后 received_at_ms 早于 now_ms − 30 天的隔离行被删、恰等于边界的保留；早于 now_ms − 180 天的墓碑被删；墓碑清理后到达的旧版本按普通实体应用（文档化行为）；页回滚时清理一并回滚。
 - [R28] 待选择：resolve_choice 选择不在 heads 中的修订返回 `SYNC_CHOICE_INVALID` 且不写入；合法选择后 `sync.choices` 不再列出该记录，选择结果作为 merge_choice 实体入 outbox。
 - [R28] 命名冲突与设置：两端各建同名自定义单位/记号方案后同步，两者都保留、后到者加后缀并生成提示；`local_setting` 仅 syncable=1 的键产生 envelope，`device.*` 键与 syncable=0 键不出现在 prepare_push 结果中，同键并发修改按 (counter, device_id) 收敛。
 - [R28] 查询 op：`sync.cursor`、`sync.status`、`sync.choices` 在空库与有数据时的返回字段与卡片 FFI 段一致（status 空库例值逐字节相等）。
-- [R28] 透传：Fake CORE-78 让 `save_batch` 返回 `SYNC_BATCH_INVALID` 时 prepare_push 原样返回该码且事务回滚；负载超过 256 KiB 的实体不进入批次且返回所有者卡的 `LIB_*` 上限错误（在写入时已拒绝，本卡不再拆分）。
+- [R28] 透传：Fake CORE-78 让 `save_batch` 返回 `SYNC_BATCH_INVALID` 时 prepare_push 原样返回该码且事务回滚；明文 CBOR 超过 262128 字节（CORE-68 密文上限 262144 减 16 字节 tag）的实体不生成 Envelope、不进入批次，本卡不拆分修订链；写入侧拒绝的错误码由该实体所有者卡定义（CORE-14 尚无单实体超限码，该用例在其码确认前记 pending，不以本卡自造码填充）。
 - [R28] 负载字段：Envelope 的 nonce 解码为 24 字节、ciphertext 不含版本字节与 nonce；以 version=1 重组 Sealed 可解密；ciphertext_hash 等于 SHA-256(ciphertext) 小写 hex。
 - [R28] 纪元同值：`on_epoch_changed` 传入与本地相同的纪元时仍作废批次、清游标并重建 outbox；传入更小值返回 `SYNC_EPOCH_STALE` 且不写入。

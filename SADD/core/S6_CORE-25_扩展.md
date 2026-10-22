@@ -39,7 +39,7 @@ Envelope v2字段、Rust结构和编码唯一归CORE-68，本卡/客户端都imp
 
 | 错误码 | 级别 | 可重试 | HTTP | 触发条件 |
 | --- | --- | --- | --- | --- |
-| `SYNC_PAYLOAD_TOO_LARGE` | error | 否 | 413 | 单个 envelope 密文 > 256 KiB、请求 > 200 条或 > 1 MiB、分片 > 4 MiB、包装记录 > 4 KiB |
+| `SYNC_PAYLOAD_TOO_LARGE` | error | 否 | 413 | 单个 envelope 密文 > 256 KiB（即 262144 字节，含 16 字节 AEAD tag，口径唯一定义在 CORE-68；对应明文 CBOR 上限 262128 由 CORE-26 与实体所有者卡换算）、请求 > 200 条或 > 1 MiB、分片 > 4 MiB、包装记录 > 4 KiB |
 | `SYNC_HASH_MISMATCH` | error | 否 | 400 | `ciphertext_hash` 或快照分片哈希与内容不符 |
 | `SYNC_ENVELOPE_INVALID` | error | 否 | 400 | push 请求体或其中 envelope 未通过 CORE-68 字段域校验（`args.field` 为首个出错字段名，外层或 JSON 结构错误为 `$`） |
 | `SYNC_KEY_VERSION_REJECTED` | error | 否 | 409 | `key_version` < `min_key_version`；`min-version` 请求值小于现值 |
