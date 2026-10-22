@@ -42,8 +42,8 @@ final class WindowsCamera implements CameraController { const WindowsCamera(); }
 
 ```text
 MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话框在 UI 线程以 IFileDialog 模态显示，复制与转码在工作线程）
-  openImages {max}            → [{name, size, path}] 或 []   IFileOpenDialog，FOS_ALLOWMULTISELECT | FOS_FILEMUSTEXIST | FOS_FORCEFILESYSTEM，
-                                过滤器 “图片 (*.png;*.jpg;*.jpeg;*.webp;*.heic;*.heif)”；选中超过 max 时只取前 max 个并在结果附 truncated: true
+  openImages {max}            → {items: [{name, size, path}], truncated: bool}   IFileOpenDialog，FOS_ALLOWMULTISELECT | FOS_FILEMUSTEXIST | FOS_FORCEFILESYSTEM，
+                                过滤器 “图片 (*.png;*.jpg;*.jpeg;*.webp;*.heic;*.heif)”；选中超过 max 时 items 只取前 max 个并置 truncated: true；无选中（用户取消）返回 {items: [], truncated: false}
   openDocument {exts}         → {name, size, path} 或 null    过滤器由 exts 生成（“*.fmlbackup” 等）
   saveDocument {name, ext}    → path 或 null                  IFileSaveDialog，默认文件夹 FOLDERID_Documents，FOS_OVERWRITEPROMPT
   copyImage {src, dest_dir, max_bytes} → {mime, size, path}
@@ -53,7 +53,7 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
   copyDocument {src, dest_path, max_bytes} → null             超过 max_bytes 抛 PLATFORM_FILE_TOO_LARGE
 
 规则：
-  ImagePicker.pick：openImages → 逐个 copyImage(dest_dir = root(staging)\tmp-import\picker\<batch_id>, max_bytes = 20 MiB)；无 path 的项其 readBytes 抛 PLATFORM_FILE_TOO_LARGE
+  ImagePicker.pick：openImages → {items, truncated}；只为 items 逐个 copyImage(dest_dir = root(staging)\tmp-import\picker\<batch_id>, max_bytes = 20 MiB) 并按返回副本构造 ImportedImage；无 path 的项其 readBytes 抛 PLATFORM_FILE_TOO_LARGE；truncated 只用于本卡调试日志与 WIN-17 主机验收断言，不改变复制数量，CORE-04 的 ImagePicker.pick 签名不变（不新增返回值）
   DocumentPicker.pick：openDocument → 扩展名（小写）不在 extensions → PLATFORM_FILE_TYPE_MISMATCH；size > maxBytes → PLATFORM_FILE_TOO_LARGE；
                        否则 copyDocument 到 root(staging)\<UUID>.<ext>
   FileExporter.saveAs：saveDocument → null 返回 false；否则写入 <path>.fmlpart（64 KiB 分块，Dart 侧 IOSink），完成后改名覆盖目标；失败删除 .fmlpart，抛 PLATFORM_IO
@@ -63,13 +63,13 @@ MethodChannel "fml/windows/files"（app/windows/runner/file_dialog.cpp；对话�
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-18汇总（下游说明，非契约）。
 
-picker仅拥有staging/tmp-import/picker/<batch_id>/；drop目录、订阅与登记归WIN-19，clipboard归WIN-05。batch_id为每次操作新UUID；平台工厂发布本端口前await唯一init Future，重入等待同一Future；只清理已确认上次进程的picker批次，当前活动目录永不删除。到期/结束先关闭本批句柄再删除，仅结束自己的上批；错误留待下次启动重试，不递归清空共用根。
+picker仅拥有staging/tmp-import/picker/<batch_id>/；drop目录、订阅与登记归WIN-19，clipboard归WIN-05。batch_id为每次操作新UUID；平台工厂发布本端口前await唯一init Future，重入等待同一Future。批次归属判据：每个批次目录写 `.owner`（UTF-8 文本，含 pid 与进程启动时刻）；启动清理只删能确认上次进程已退出的批次——`.owner` 可解析、且其 pid 已不存在，或该 pid 已被复用（登记的启动时刻与现存进程启动时刻不一致）；pid 仍存活即跳过；`.owner` 缺失、不可解析或查询进程失败无法确认（含权限/IO 错误）一律保守跳过并保留目录，不以“启动时刻早于本进程”单独作为删除依据；当前 batch_id 永不删除；清理只在初始化 Future 内做一次，不实现常驻进程巡检或退出清理。到期/结束先关闭本批句柄再删除，仅结束自己的上批；错误留待下次启动重试，不递归清空共用根。
 
 **实现约束**
 - WIN-19 通过本卡已有 `fml/windows/files.copyImage` 受限复制/转码方法复用读取实现；该方法由本卡唯一拥有，调用者只传自己的drop批次目录，不接管picker状态。
 - 读取一次即复制；不保存原文件路径（含识别历史），不删除、不修改、不加锁用户原文件；复制失败时删除已写部分。
 - Dart 层除 HEIC 转换外不解码图片；HEIC 转换在原生工作线程降采样输出，主线程只等待通道结果。
-- `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束删除副本；WindowsImagePicker首次请求前await唯一初始化Future，只清理上次进程遗留的picker批次目录；构造器不启动悬空异步删除，不触碰clipboard目录。删除前确保本卡打开的句柄已关闭；删除失败的副本留待下次启动清空。
+- `ImportedImage.expiresAt` 为创建后 1 h；到期或导入会话结束删除副本；WindowsImagePicker首次请求前await唯一初始化Future，只清理按 `.owner` 判定为上次进程已退出或 pid 已被复用的 picker 批次目录（判据见上），无法确认时跳过不删；构造器不启动悬空异步删除，不触碰clipboard目录。删除前确保本卡打开的句柄已关闭；删除失败的副本留待下次启动清空。
 - 外部前提：HEIC/HEIF的WIC编解码能力取决于系统、HEIF图像扩展与可能需要的HEVC视频扩展（含授权）；1809/11组合须M0实测。任一解码步骤失败提示“当前系统无法解码，请检查HEIF/HEVC扩展或转换为JPEG”，不保证安装某一扩展必然成功。
 
 **验收标准**：测试方案全文见 [Test/win/S5_WIN-04_TEST.md](../Test/win/S5_WIN-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。

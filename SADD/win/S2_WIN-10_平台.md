@@ -45,14 +45,14 @@ send(req, cancel) 步骤（调用前由CORE-28完成HTTPS/主机/Cookie/用途�
 
 - 错误码：只使用 CORE-04 登记的 `NET_OFFLINE`、`NET_TLS`、`NET_TIMEOUT`、`PLATFORM_IO`；取消抛 CORE-03 `FfiCancelled`；本卡不新增错误码。
 
-构造器订阅传入的AppLifecycle，在构造和resumed后刷新代理；dispose取消订阅并关闭HttpClient（本卡实现显式dispose方法，组装层生命周期清理调用）。testContext仅供非发布测试构造；kReleaseMode且非空运行时抛StateError，不用assert，不设置badCertificateCallback。生产使用默认信任库。与AND-09共同遵守CORE-04的续传验证协议；平台不引用对方卡作会话材料。
+AppLifecycle 实例由 WIN-06 的 `WindowsLifecycle` 提供（`app/lib/platform/windows/window/`）；WIN-06 未交付前本端口保持 CORE-04 的 S0 占位（`app/lib/ports/unsupported/` 的 `UnsupportedHttpTransport`，按 `UnsupportedXxx` 约定），本卡不另建第二个生命周期来源。接入只做端口构造替换：`app/lib/composition/ports_windows.dart` 的 `http` 字段一行（该文件由 WIN-01 单写；替换行计入本卡规模行“接入”估算），不新增安装点、不向 `platformInstallers` 登记、不改 `CompositionContext.http`（其传输安装点由 CORE-28 换成 NetworkGuard）。构造器订阅传入的AppLifecycle，在构造和resumed后刷新代理；dispose取消订阅并关闭HttpClient（本卡实现显式dispose方法，组装层生命周期清理调用）。testContext仅供非发布测试构造；kReleaseMode且非空运行时抛StateError，不用assert，不设置badCertificateCallback。生产使用默认信任库。与AND-09共同遵守CORE-04的续传验证协议；平台不引用对方卡作会话材料。
 
 本卡需要主机的验收使用WIN-17的run.py/cases.json/result.json协议，按本卡前缀登记场景；本阶段fixture与S7真实业务/设备矩阵分开。缺交互桌面/设备保留pending，WIN-18汇总（下游说明，非契约）。
 
 **实现约束**
 - 证书只用 `dart:io` 默认信任库；不设置 `badCertificateCallback`，不做证书固定（V1）。
 - 非 2xx 不抛异常、不自动重试、`followRedirects = false`；不记录请求体、响应体与请求头值。
-- 两端传输实现刻意保持同构（同一步骤与映射表），差异只在代理读取；两者都跑 CORE-04 契约套件。
+- 两端传输实现刻意保持同构（同一步骤与映射表），差异只在代理读取与允许错误码集合（本卡不产生 `NET_HOST_NOT_ALLOWED`，由 CORE-28 在调用前拒绝）；两者都跑 CORE-04 契约套件。
 - 外部前提：不引入 HTTP 插件；PAC 自动代理脚本不支持（记入附录 D 遗留），企业网络需配置静态代理。
 
 **验收标准**：测试方案全文见 [Test/win/S2_WIN-10_TEST.md](../Test/win/S2_WIN-10_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
