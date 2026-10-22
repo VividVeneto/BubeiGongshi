@@ -6,4 +6,4 @@
 - [R18][R20] 注释/字符串/嵌套闭包/三元表达式夹具给固定期望复杂度，文件与Rust阈值反例返回1，Dart阈值只warning；PR有annotation、weekly有对比、两者均不发评论。
 - [R18] 相同输入重复运行结果字节一致；缺上周报告只标baseline，损坏配置失败2。
 
-- [R18][R20] LCOV夹具4/5=80%通过、3/5退出1；缺核心SF、空报告、缺参数、DA重复/负计数、LF/LH不符、越界路径退出2；集合外高覆盖文件不抬高比例，零分母拒绝；重跑稳定。领域源码集合为空必须pending，--release失败。
+- [R18][R20] LCOV夹具4/5=80%通过、3/5退出1；缺核心SF、空报告、缺参数、DA重复/负计数、LF/LH不符、越界路径退出2；集合外高覆盖文件不抬高比例，零分母拒绝；重跑稳定。领域集合完整性夹具：CORE-01领域crate表13项加`crates/fml-sync/src/merge.rs`逐条命中，漏任一crate、把新增领域crate排除、把`crates/fml-sync`其他文件纳入或缩小分母即失败；字面`{ast,type}`花括号路径不展开、不收录；排除tests/fixtures与`*.g.rs`；未创建的crate不计文件但分母不变；领域源码集合为空必须pending，--release失败。

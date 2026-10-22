@@ -25,7 +25,12 @@ tools/ohos-smoke/
                     ④ 用同一合法信封调用fml_call("no.such_op", ...)，返回-2且out错误信封含FFI_UNKNOWN_OP，外层trace_id与内层error.trace_id均为上述32hex；再以全零trace调用，须-1/FFI_BAD_ARG且错误信封两处trace均非零并一致；每次fml_free_buffer
                     ⑤ 每步失败打印步骤号并以 1 退出；全部通过打印 OK 并以 0 退出
                     JSON 不引入库：固定断言可作子串检查；trace 须在out.ptr/out.len有界缓冲内按外层与error对象位置分别提取32字节，校验全为小写hex且非全零，再memcmp比较两值/预期值；拒绝缺失、重复或越界字段，不得仅一次strstr错误码代替trace断言
-.github/workflows/ci.yml 中的 ohos-smoke 作业（与 CORE-41 共用文件，本卡追加一个 job）
+.github/workflows/ci.yml 中的 ohos-smoke 作业（与 CORE-41 共用文件；ci.yml 单写维护者为 CORE-41，
+                    本卡以契约变更单提交片段，不直接编辑该文件）：
+                    片段只含 ohos-smoke 一个 job（key、needs、steps、缓存与环境）；needs 只引用
+                    CORE-41 已定义的 lint/test 作业；steps 与 CORE-41 各作业一致，先跑 toolchain.py，
+                    再执行 build.sh --target ohos；job key 与既有作业重复、needs 引用不存在作业或
+                    缺 toolchain.py 前置时，由 CORE-41 拒绝合入并按变更单回退，不得静默改名或删除既有作业
 ```
 
 端口在鸿蒙上的对应能力（未来实现时参考；V1 不编码）：
