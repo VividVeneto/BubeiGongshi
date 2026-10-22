@@ -15,6 +15,7 @@
 
 - [R18] 真实材料对CORE-67的34份ready schema及types.schema.json、CORE-75的shared-writes.json均在 files 或 filteredFiles 中有记录，--file 可取回全文；无关 schema 只列名（大小与 SHA-256）、相关 schema 完整；manifest/shared-writes 过滤结果为合法 JSON 且条目与原文件逐字节一致；types 切片含内部引用闭包；旧 part-*.md 被清理；删除引用文件时列入missing；CO-60-1（F-75-01）维护者数据可见：`contracts/policies/shared-writes.json` 的单写维护者（policy 中 `kind=file` 且 `key` 为该文件路径的条目的 owner）在相关卡内时，`report.files` 含该路径、材料含其逐字节全文且 `warnings` 有明确说明（`pack('CORE-75')`）；维护者不在相关卡内时仍按 owner 过滤，`kept===0` 必须记 warning（`pack('CORE-67')` 的 shared-writes 与 manifest），不得静默过滤成空；额外引用/$ref越界失败，所有分段拼接逐字节等于 material.md。
 
+- [R18] 错误码 contracts 按相关性收录（CORE-02 阶段1 后材料回落）：pack('CORE-02') 时 contracts/errors/registry.yaml 与 ownership.yaml、README.md 及 contracts/vectors/errors-v1.json 均全文收录，且不出现“按 owner/引用过滤”切片标题；pack('CORE-77')（不拥有错误码的卡）时 registry 为切片——report.filteredFiles 中该条 mode==='sliced'、sha256 等于原文件、切片保留 `entries:` 以上头部、保留条目的 owner 均 ∈ report.related 或 code 出现在 CORE-77 正文、被省略条目的 `- code:` 行不出现，kept===0 时 warnings 有记录，`--file` 指定该文件可恢复全文；ownership.yaml 与 README.md 只列名（mode==='listed'、includedBytes===0、清单行含字节数与 SHA-256、正文不含其内容）；errors-v1.json 同样只列名。断言失败的典型情形：任一把生成镜像或错误向量改回整收会让 CORE-77/CORE-78 的材料超上限用例失败；切片漏掉相关 owner 条目会让本用例的 owner/code 断言失败；切片丢掉 `entries:` 以上头部会让头部断言失败。
 - [R18] 间接依赖夹具：定义所需符号的 struct、impl、const、错误码表行、op 行及其传递定义被收录，只提及符号的说明块与无关定义不收录，mentionOnly 计数正确。
 
 - [R18] 测试方案默认不收录：默认材料中有测试方案的卡只保留“验收标准”引用行、头部说明目标卡测试方案路径且 report.tests 为 "excluded"；`--with-tests`（withTests）时目标卡正文含测试方案全文、report.tests 为 "included"；两种方式 testFile 路径相同。
