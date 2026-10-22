@@ -17,7 +17,7 @@ pub struct StoreConfig { pub db_path: PathBuf, pub backup_dir: PathBuf, pub read
 pub trait IdSource: Send { fn new_uuid(&mut self) -> Result<Uuid, FmlError>; } // 调用方注入，生产适配见 CORE-23；本卡无 OS 随机实现
 pub struct Store { /* 单写者 actor + 只读池 + 注入的 IdSource */ }
 impl Store {
-    pub fn open(cfg: &StoreConfig, key: DbKey, ids: Box<dyn IdSource>) -> Result<Store, FmlError>;   // 校验 user_version 与密钥
+    pub fn open(cfg: &StoreConfig, key: DbKey, ids: Box<dyn IdSource>) -> Result<Store, FmlError>;   // 以密钥解密库头（失败 STORE_KEY_INVALID）后补执行未记入 schema_migration 的文件；待执行集合不以 user_version 判定
     pub fn write<T>(&self, cmd: impl FnOnce(&mut WriteTx) -> Result<T, FmlError>) -> Result<T, FmlError>; // 一个用例命令 = 一个事务
     pub fn read<T>(&self, q: impl FnOnce(&ReadTx) -> Result<T, FmlError>) -> Result<T, FmlError>;          // WAL 快照读
     pub fn integrity_check(&self) -> Result<IntegrityReport, FmlError>;
@@ -90,6 +90,7 @@ impl WriteTx<'_> {
 - `register` 的泛型只负责擦除静态 codec，`EntityApplier` / `RemoteRevisionAnalyzer` 均 object-safe；重复注册视为构建错误，返回 STORE_CORRUPT。未知实体由分派方先查 `entity_types` 并隔离，不把未登记类型当成成功。所有者只注册自己的类型；CORE-13 提供 `setting` 的 codec/applier，键为实体 ID，仅 `syncable=1` 且非 `device.*` 可枚举/读写；CORE-14/17/82/86 与 CORE-26 的 merge_choice 实现由各自卡交付，S2 不加载未交付模块。
 - owner applier 仅在传入 WriteTx 内更新自己的表、field_clock、派生投影与缓存失效，不调用 enqueue_outbox/stamp、不另开 Store.read/write、不提交事务；非法远端业务内容返回 Invalid（由分派方保存点回滚该条并隔离），SQLite/I/O 故障返回 Err（整页回滚）。Duplicate 不改任何行。墓碑仍按被删实体类型分派，不设第二个可同步 tombstone 实体。
 - `requeue_outbox` 从同一事务回读 codec 与完整现有 field_clock，保留全部字段值/时钟；已删实体从 tombstone 与 __deleted 时钟生成 Delete。既无存活实体又无墓碑时幂等不入队；存活实体缺时钟是 STORE_CORRUPT，不偷偷 stamp 字段。新队列 op 使用新事务序号，但绝不改业务字段或 field_clock；调用方重建全队列前先作废批次、清旧 outbox，再按类型/ID 稳定顺序枚举，追加未过期墓碑；全部在同一写事务。游客仍不入队，升级先在同一事务改注册资格再重排。
+- CO-44 缺口（本卡未提供、消费方已依赖，待拆卡后并入）：`EntityRegistry` 只按类型枚举 ID 与分派 apply，未暴露 `read_entity`；`field_clock`、`sync_cursor`、`tombstone` 只有 DDL 没有读取入口（`sync_cursor` 也无写入入口）；`Store` 没有写门 hook。CORE-66（下游说明，非契约）的快照 build/apply、CORE-26（下游说明，非契约）的拉取游标与重推、CORE-24（下游说明，非契约）的升级写门均因此无法闭合，且这些读取必须经本卡以保持表与事务规则唯一（禁止消费方自拼 SQL）。符号清单与拆卡方案见附录 D D.14.5 的 CO-44；拆卡决定前本卡不进入编码。
 - analyzer 的 conn 为**合同只读**同事务视图，不嵌套 Store.read/write；本卡只拥有输入/输出与 trait，返回结果只供所有者重建派生缓存。具体 FFI 适配归 CORE-26/66 的 S6 附属接线，读取当前事务 user_unit/notation_profile 并调用 CORE-56 的 S1 纯 helper；CORE-56 不依赖 CORE-13、不读库，fml-store 不依赖 fml-ffi。输出保留解析失败的 ast=None，不造 Hole 或信任上传 AST；validation/diagnostics 从纯 helper 的 check_result 投影，S2 不依赖 fml-type 的 CheckResult。S2 用 FakeAnalyzer 验收，不以未来引擎/同步实现为前提。
 
 - 迁移文件：`crates/fml-store/migrations/<4 位序号>_<域>.sql`，按序号升序执行，本次升级全部待执行文件在同一个事务中执行，每文件在 `schema_migration` 记一行（连同最终 user_version 一起提交）。待执行文件 = `migrations/` 中未记入 `schema_migration` 的文件（不以 user_version 比较判定）；`PRAGMA user_version` 等于已执行文件的最大序号（= `SCHEMA_VERSION`），不因补执行低序号文件而降低。V1 发布前依赖关系可使高序号文件先于低序号文件合入（如 CORE-78 的 0078 先于 CORE-26 的 0026），开发与测试库在下次打开时按上述规则补执行；发布后新增文件序号必须大于已发布的最大序号，不允许乱序。V1 发布前序号取归属卡编号（如 `0013_core.sql`、`0014_library.sql`），发布后新增迁移从 `0100` 起递增，已发布的迁移文件不得修改。
@@ -181,9 +182,9 @@ RowFilter 的 SQL 谓词/必要连接由本卡闭集映射实现，不允许调�
 | `STORE_KEY_INVALID` | error | 否 | 密钥无法解密库头 |
 | `STORE_SCHEMA_TOO_NEW` | error | 否 | user_version/已记录最大序号高于本构建，或任一已执行迁移文件缺失 |
 | `STORE_MIGRATION_FAILED` | error | 否 | 已执行迁移的 name/checksum 与嵌入文件不符，或迁移事务失败并回滚 |
-| `STORE_CORRUPT` | error | 否 | `integrity_check` 非 ok、文件头损坏、时钟计数溢出，或已合入表策略的必需表/过滤列缺失、重复/矛盾策略 |
+| `STORE_CORRUPT` | error | 否 | `integrity_check` 非 ok、文件头损坏、时钟计数溢出，已合入表策略的必需表/过滤列缺失、重复/矛盾策略，或表所有者按本卡格式约定读取已合入表时发现行内持久化格式（JSON、长度前缀、版本字段）与该表契约不符（所有者复用本码，不另立码；首个复用点为 CORE-78 的 `push_batch`） |
 | `STORE_DISK_FULL` | error | 是 | `SQLITE_FULL` 或迁移前剩余空间小于库文件 2 倍 |
-| `STORE_BUSY` | warning | 是 | 写命令排队超过 5 s |
+| `STORE_BUSY` | warning | 是 | 写命令排队超过 5 s；或同一进程内同一规范路径已有打开的 Store（重复 `store.open`、CORE-23 仍有未关闭句柄时的 `open_profile`/`delete_profile`） |
 
 - 外部前提：`rusqlite`（`bundled-sqlcipher` 特性）、`zeroize`、`uuid`（serde；不启用内部 OS RNG）、`serde`/`serde_json`、`blake3`，build-dependencies 的 `blake3` 同运行时版本；版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`；SQLCipher 以 BSD 风格许可随包分发，需在关于页列出。
 
@@ -219,7 +220,7 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 | store.open | STORE_KEY_INVALID、STORE_SCHEMA_TOO_NEW、STORE_MIGRATION_FAILED、STORE_CORRUPT、STORE_DISK_FULL、STORE_BUSY、CRYPTO_RNG_FAILED |
 
 **实现约束**
-- 单用户单库：每个本地账户一个库文件与一个私有资产目录（库文件为 `root(StoreArea.database)/<profile_id>.db`；档案私有资产位于其他 StoreArea 根目录下的 `<profile_id>/` 子目录）。
+- 单用户单库：每个本地账户一个库文件与一个私有资产目录（档案库文件为 `root(StoreArea.database)/<profile_id>.db`（该规则只约束 CORE-23 的 `open_profile`；`store.open` 接受任意可写 `db_path`，含 CORE-84 在 staging 下用随机 DbKey 打开的临时恢复库与 fixture 库，不按文件名拒绝）；档案私有资产位于其他 StoreArea 根目录下的 `<profile_id>/` 子目录）。
 - SQLCipher（rusqlite 的 bundled-sqlcipher 特性）使用 32 字节原始密钥；数据库文件、WAL 与临时文件均加密；`temp_store = MEMORY`。密钥材料不得写入任何普通表。
 - WAL 模式；写入只经单写者 actor；长任务分批提交并让出写锁。
 - 迁移：先检查剩余空间，再做受平台密钥保护的本地备份，迁移在单个事务中完成；失败返回错误并保留原库与备份，不返回未完成迁移的正常 Store；禁止破坏性迁移与不受控的降级迁移。
@@ -228,5 +229,5 @@ FFI错误镜像（不重定义代码；通用信封错误见CORE-03）：
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-13_TEST.md](../Test/core/S2_CORE-13_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 705 行；主包 `crates/fml-store/`（crate 核心代码，约 665；`0013_core.sql` 等 DDL 为数据不计，业务仓储子模块由归属卡编写），附属 `crates/fml-ffi/src/ops/store.rs`（store.open/close/integrity_check 处理，约 40）。分阶段：① 存储内核（打开与 SQLCipher、单写者、只读池、迁移执行器与 checksum 规则、build.rs、完整性检查、错误映射、表所有权元数据骨架、store.* 三个 op，约 405）；② 写事务、字段时钟与同步接缝（WriteTx/stamp、enqueue_outbox、tombstone、rotate_device_id、OutboxEntityCodec 含 list_entity_ids、requeue_outbox、EntityApplier 与注册表、合并时钟辅助、setting codec/applier、完整 table_policies 静态元数据/固定 RowFilter 映射约45，约 300）。
+**规模**：约 705 行（下述 CO-44 待拆卡内容未并入本数）；主包 `crates/fml-store/`（crate 核心代码，约 665；`0013_core.sql` 等 DDL 为数据不计，业务仓储子模块由归属卡编写），附属 `crates/fml-ffi/src/ops/store.rs`（store.open/close/integrity_check 处理，约 40）。分阶段：① 存储内核（打开与 SQLCipher、单写者、只读池、迁移执行器与 checksum 规则、build.rs、完整性检查、错误映射、表所有权元数据骨架、store.* 三个 op，约 405）；② 写事务、字段时钟与同步接缝（WriteTx/stamp、enqueue_outbox、tombstone、rotate_device_id、OutboxEntityCodec 含 list_entity_ids、requeue_outbox、EntityApplier 与注册表、合并时钟辅助、setting codec/applier、完整 table_policies 静态元数据/固定 RowFilter 映射约45，约 300）。CO-44 待拆卡的只读辅助与写门（`EntityRegistry::read_entity`、`read_field_clocks`、`list_tombstones`、`read_sync_cursor`、`WriteTx::set_sync_cursor`、`Store` 写门 hook）预计 95～150 行，并入后达 800 附近或以上，按 ADR-V5-52 须先拆卡：新卡号由主理人分配，本卡不占号，也不以压低估算规避。
 
