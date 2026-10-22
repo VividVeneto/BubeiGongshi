@@ -12,26 +12,34 @@
 
 ```dart
 // app/lib/net/api_client.dart（客户端侧最小封装，经 CORE-04 HttpTransport）
-final class ApiResponse { final int status; final Map<String, Object?>? json; final String requestId; }
+final class ApiResponse { const ApiResponse(this.status, this.json, this.requestId); final int status; final Map<String, Object?>? json; final String requestId; }
 class ApiClient {
+  // 版本头来源（D2 暂行默认）：构建期 --dart-define FML_APP_VERSION，缺省 0.0.0-dev（与界面卡关于页的版本同源）；不新增构造参数
+  static const String appVersion = String.fromEnvironment('FML_APP_VERSION', defaultValue: '0.0.0-dev');
   Stream<NetEvent> get events;
   ApiClient(HttpTransport transport, TokenStore tokens, {required Uri baseUrl});
   Future<ApiResponse> call(String method, String path, {Object? json, required String requestId, String? idempotencyKey, required RequestPurpose purpose, String? consentToken});
-  // 统一附加令牌与版本头；非cloudRecognition的401刷新后重试一次，刷新失败抛 FmlException('AUTH_REAUTH_REQUIRED')；
+  // 每个请求统一附加 Authorization: Bearer <tokens.accessToken()>（为 null 时不带该头）与 X-Fml-App-Version=<appVersion>；
+  // 非cloudRecognition的401刷新后重试一次，刷新失败抛 FmlException('AUTH_REAUTH_REQUIRED')；
+  // 刷新请求：POST /v1/auth/token，Content-Type: application/x-www-form-urlencoded，体 grant_type=refresh_token&refresh_token=<当前刷新令牌>（CORE-22，不递归刷新）；
+  // 刷新成功：解析 /v1/auth/token 返回的 access_token、refresh_token、token_type、expires_in（秒）；token_type 大小写不敏感须为 Bearer，access_token 与 refresh_token 缺一即按刷新失败处理；
+  // 解析成功后以一次 tokens.save(access_token, refresh_token) 同时写回两个值（两者都被轮换，旧值不保留；expires_in 不落地，本卡不做本地过期计时）；
   // cloudRecognition 上传遇401且刷新成功时不重发，抛 FmlException('AUTH_UPLOAD_RECONFIRM_REQUIRED')；
   // 426 → 抛 FmlException('SERVER_CLIENT_TOO_OLD') 并广播 clientTooOld 事件，由同步模块停止写入
 }
-abstract interface class TokenStore {   // 由 CORE-65 实现（经 SecureKeyValueStore 保存刷新令牌）
+abstract interface class TokenStore {   // 契约所有者为本卡；由 CORE-65 实现（经 SecureKeyValueStore 保存刷新令牌）
   Future<String?> accessToken(); Future<String?> refreshToken(); Future<void> save(String access, String refresh); Future<void> clear();
 }
+// 刷新写回口径：save 保持两参数签名，不加过期时间——刷新完全由 401 驱动、不做本地过期计时、CORE-22 的 expires_in 不持久化；
+// 因此 CORE-65 的实现只需严格照本签名，无需变更。刷新失败走 tokens.clear()，并发 401 共享同一刷新结果，只广播一次 ReauthenticationRequired。
 ```
 
 
 
 ```dart
 sealed class NetEvent { const NetEvent(); }
-final class ClientTooOld extends NetEvent { final String? minimumVersion; // CORE-22 semver；无效或缺失为null }
-final class ReauthenticationRequired extends NetEvent {}
+final class ClientTooOld extends NetEvent { const ClientTooOld(this.minimumVersion); final String? minimumVersion; // CORE-22 semver；无效或缺失为null }
+final class ReauthenticationRequired extends NetEvent { const ReauthenticationRequired(); }
 // ApiClient增加 Stream<NetEvent> get events；broadcast，响应426每请求发一次ClientTooOld；刷新失败只发一次ReauthenticationRequired。
 ```
 最小版本只取426 JSON顶层min_app_version（CORE-22，SemVer字符串）；缺失或非法时minimumVersion=null，仍停止同步写入并提示升级，不回退为0；订阅不重放旧事件，Coordinator建立后先查自身状态。
