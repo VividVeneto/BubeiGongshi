@@ -18,7 +18,7 @@ enum InputSourceDto { ink, camera, gallery, file, clipboard, dragDrop }
 sealed class RecognitionStep {}
 final class Idle extends RecognitionStep {}
 final class Cropping extends RecognitionStep {            // 图片输入；previewPath 为 img.prepare 输出（暂存区）
-  final String sessionId; final ImageInfoDto info; final CropDto crop; final EnhanceOptionsDto options;
+  final String sessionId; final ImageInfoDto info; final CropDto crop; final EnhanceOptionsDto options;   // info.width/height 是 CORE-30 EXIF 方向修正后的显示尺寸，CropDto 的 x/y/w/h 以该像素坐标为准（原点左上）
   final String? previewPath; final QualityReportDto? quality; final int queueIndex, queueLength; }
 final class ChoosingBackend extends RecognitionStep { final String sessionId; final List<BackendCapsDto> backends; }
 final class CloudConsentNeeded extends RecognitionStep { final String sessionId; final ProviderPolicy policy; }
