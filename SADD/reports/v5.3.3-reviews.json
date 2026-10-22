@@ -2,78 +2,15 @@
   "version": 1,
   "baseline": "2c04125",
   "reviewDate": "2026-10-20",
-  "note": "Independent pre-repair findings; lead repair evidence in D.14 does not upgrade grades. materialChars/segments are review input, not final material audit. 2026-10-21: 29 entries (v5.3.4 whole-card review + S6 re-read) updated in place for the same records; materialChars/segments are the review-time (pre-CO-22) values.",
+  "note": "Independent pre-repair findings; lead repair evidence in D.14 does not upgrade grades. materialChars/segments are review input, not final material audit. 2026-10-21: 29 entries (v5.3.4 whole-card review + S6 re-read) updated in place for the same records; materialChars/segments are the review-time (pre-CO-22) values. 2026-10-22 E2: 83 entries updated from v5.3.4 D2 (latest non-author review per card; history[] keeps prior entry; conclusion pass never means ready without consumer confirmation). 2026-10-22 E2 CORE-02: replaced by post-CO-56 non-author recheck r14-core02-review.",
   "entries": [
     {
       "record": "P2-CORE-01",
       "card": "CORE-01",
       "grade": "B",
-      "reviewer": "rev-r1；s6-a",
-      "date": "2026-10-21",
-      "materialChars": 88102,
-      "segments": 2,
-      "checks": {
-        "a": "pass",
-        "b": "pass",
-        "c": "pass",
-        "d": "fail",
-        "e": "fail",
-        "f": "pass",
-        "g": "pass",
-        "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
-        "S4": "pending",
-        "S5": "pass",
-        "S6": "pass"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "R01-01 members 含 server 与本卡验收冲突（S0 时 server 不存在）",
-        "R01-02 交付文件清单缺失，deny.toml/lints 等 AGENTS.md 要求的检查无卡拥有",
-        "S6-CORE-01-01 DEP-1 允许表、dep6_symbols.txt、platform-check-patterns.json 三份机器可读策略文件无定义者"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-02",
-      "card": "CORE-02",
-      "grade": "B",
-      "reviewer": "rev-r3；s6-a",
-      "date": "2026-10-21",
-      "materialChars": 63027,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pass",
-        "c": "pass",
-        "d": "fail",
-        "e": "pass",
-        "f": "pass",
-        "g": "pass",
-        "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
-        "S4": "pass",
-        "S5": "pass",
-        "S6": "pass"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "R3-02-01 FFI/HTTP 适配层 with_trace 填入 trace_id 的义务无卡接下",
-        "R3-02-02 生成物 API 欠规格（变体命名、未知 code 反序列化）",
-        "R3-02-03 Dart FmlException.fromJson 与 DiagnosticDto 来源未定",
-        "R3-02-04 所有权两处登记；按各卡错误表预登记会漏 FFI_/CONTENT_/GRADE_ 等 16 个码"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-03",
-      "card": "CORE-03",
-      "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 101772,
+      "reviewer": "r11-core01-review",
+      "date": "2026-10-22",
+      "materialChars": 98651,
       "segments": 2,
       "checks": {
         "a": "pass",
@@ -82,38 +19,154 @@
         "d": "pass",
         "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
         "S2": "pass",
         "S3": "pass",
-        "S4": "pending",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "pass",
       "blockers": [
-        "E-N01～04；handle改善，FFI规模与机器契约待闭合。"
+        "无阻断；流程项 R11-C01-11 消费方确认未签",
+        "R11-C01-01 许可抄录口径与“不替用户决定”的张力待 lead/用户口径（不阻断）",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1；s6-a",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 88102,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
-      "record": "P2-CORE-04",
-      "card": "CORE-04",
-      "grade": "C",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 133394,
-      "segments": 2,
+      "record": "P2-CORE-02",
+      "card": "CORE-02",
+      "grade": "B",
+      "reviewer": "r14-core02-review",
+      "date": "2026-10-22",
+      "materialChars": 174026,
+      "segments": 3,
       "checks": {
         "a": "pass",
         "b": "pass",
-        "c": "fail",
-        "d": "fail",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pass",
+      "blockers": [
+        "M-01 README §8.3 未写 CORE-02 阶段2 插入点（中，文档同步）",
+        "M-02 T-10 的 DTO-06 回向检查未在卡内声明交付归属（中，卡:121/规模行补一句）",
+        "L-01 surface() 缺返回类型、T-07 未覆盖",
+        "L-02 a 位口径：附属 gen_errors.py 245 行大于主包 175 行，按 README §8.5 a 附属例外判 P（r9 曾按字面判 F），lead 采纳，用户可改判",
+        "L-03 附录D CO-40 行旧数未统一",
+        "L-04 ADR-V5-58 消费方分级漏 CORE-28、CORE-40 的 Dart 符号消费",
+        "阶段1/阶段2 均未执行，REG-01 与 DTO-06 回向未实现（编码期交付）",
+        "状态：修订后已复检（CO-56：7654178、3d4fac5）"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-a",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 63027,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        },
+        {
+          "reviewer": "r9-errors02-review",
+          "date": "2026-10-22",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 151717,
+          "segments": 2,
+          "checks": {
+            "a": "fail",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          },
+          "blockers": [
+            "H1 ADR-V5-55 三树同号但内容不同",
+            "H2 Diagnostic 生成/忽略未知键与卡:75 拒绝未知字段冲突",
+            "状态：修订已整合待复检（CO-56：7654178、3d4fac5；r13-core02-review 进行中）"
+          ]
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-03",
+      "card": "CORE-03",
+      "grade": "B",
+      "reviewer": "r6-b",
+      "date": "2026-10-22",
+      "materialChars": 102632,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "pass",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
-        "S2": "fail",
+        "S2": "pass",
         "S3": "fail",
         "S4": "pending",
         "S5": "pass",
@@ -121,40 +174,148 @@
       },
       "conclusion": "fail",
       "blockers": [
-        "E-I13；同步Installer与异步editor不一致。"
+        "F-01 中：依赖行缺 CORE-44/05/AND-01/WIN-01/CORE-",
+        "F-02 中：abi_major_bump/MAJOR 拒绝启动/budget_ms",
+        "F-03 中：fml_close_handle 返回值语义未定义且与「关闭是 sub",
+        "F-04 中：budget 支持 op 集合无机器声明",
+        "F-05 中：registry.yaml 未创建→六码 severity/retry",
+        "F-06～F-09 低",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 101772,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
-      "record": "P2-CORE-05",
-      "card": "CORE-05",
+      "record": "P2-CORE-04",
+      "card": "CORE-04",
       "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 105761,
+      "reviewer": "r6-c",
+      "date": "2026-10-22",
+      "materialChars": 129449,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "fail",
+        "d": "pass",
+        "e": "pending",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
         "S2": "pass",
-        "S3": "pass",
-        "S4": "pending",
+        "S3": "pending",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pending",
       "blockers": [
-        "R05-01 核心类型 derive/serde 约定缺失（仅 MathKind 完整）",
-        "R05-02 外部前提缺 NFC、SHA-256、JSON Schema 校验库",
-        "R05-03 ID/seed 函数无覆盖且期望值非独立"
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 133394,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "fail",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-05",
+      "card": "CORE-05",
+      "grade": "A",
+      "reviewer": "r6-i2",
+      "date": "2026-10-22",
+      "materialChars": 80515,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pass",
+      "blockers": [
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 105761,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-06",
@@ -217,65 +378,110 @@
     {
       "record": "P2-CORE-08",
       "card": "CORE-08",
-      "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 88553,
+      "grade": "A",
+      "reviewer": "r6-i2",
+      "date": "2026-10-22",
+      "materialChars": 85995,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "fail",
+        "d": "pass",
+        "e": "pass",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
-        "S4": "pending",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pass",
       "blockers": [
-        "R08-01 Rational/Dimension/DimensionFull/Unit/UnitKind/QuantityKind/UnitDefinition 未声明 serde 与 derive",
-        "R08-02 缺 UnitRegistry/UnitRegistryMut 的具体实现与构造符号",
-        "R08-03 π/角度换算无法用 Rational 精确表示，验收无期望值",
-        "R08-04 UNIT_AFFINE_MISUSE 无触发入口，温度点相加被拒无可调用 API"
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 88553,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-09",
       "card": "CORE-09",
-      "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 120222,
+      "grade": "A",
+      "reviewer": "r6-i2",
+      "date": "2026-10-22",
+      "materialChars": 138117,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "fail",
+        "d": "pass",
+        "e": "pass",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
         "S2": "pass",
-        "S3": "fail",
-        "S4": "pending",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pass",
       "blockers": [
-        "R09-01 运算规则表未在卡内枚举",
-        "R09-02 QuantityKind 与 MathKind 的推断/传播规则缺失",
-        "R09-03 dx.yaml 输入与约定诊断映射未给出，验收不能直接落成测试"
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 120222,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-10",
@@ -310,32 +516,56 @@
       "record": "P2-CORE-11",
       "card": "CORE-11",
       "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 138717,
-      "segments": 2,
+      "reviewer": "r6-j",
+      "date": "2026-10-22",
+      "materialChars": 170957,
+      "segments": 3,
       "checks": {
         "a": "pass",
         "b": "pass",
-        "c": "pass",
-        "d": "fail",
+        "c": "fail",
+        "d": "pass",
         "e": "fail",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
-        "S4": "pending",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "R11-01 substitute/rank 依赖的符号反解没有公开函数",
-        "R11-02 substitute 的确定性规则缺失",
-        "R11-03 RevisionSnapshot.typed 与 Candidate.output_type 无人生成或存储"
+        "11-J1（derive.substitute 错误集合缺 EVAL_*，与卡 :6",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 138717,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-12",
@@ -370,10 +600,10 @@
       "record": "P2-CORE-13",
       "card": "CORE-13",
       "grade": "B",
-      "reviewer": "rev-r2；s6-c",
-      "date": "2026-10-21",
-      "materialChars": 184475,
-      "segments": 3,
+      "reviewer": "r6-l",
+      "date": "2026-10-22",
+      "materialChars": 260747,
+      "segments": 4,
       "checks": {
         "a": "pass",
         "b": "pass",
@@ -381,7 +611,7 @@
         "d": "pass",
         "e": "pass",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
         "S2": "pass",
         "S3": "pass",
@@ -389,43 +619,91 @@
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pass",
       "blockers": [
-        "F-01（高）缺全量重入队能力：OutboxEntityCodec 无实体枚举、enqueue_outbox 重推会写新字段时钟（阻断 CORE-24/26/66）",
-        "F-02 op_id/device_id 随机来源未定义",
-        "F-03 外部前提缺 uuid、serde_json、blake3 与 build.rs 构建依赖",
-        "F-04 迁移 checksum 不符、有记录无文件等规则与机器校验缺"
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-c",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 184475,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-14",
       "card": "CORE-14",
       "grade": "C",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 171918,
-      "segments": 3,
+      "reviewer": "r6-q",
+      "date": "2026-10-22",
+      "materialChars": 253687,
+      "segments": 4,
       "checks": {
-        "a": "pass",
+        "a": "fail",
         "b": "fail",
-        "c": "fail",
+        "c": "pass",
         "d": "fail",
         "e": "fail",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "fail",
         "S1": "pass",
         "S2": "fail",
         "S3": "fail",
-        "S4": "pending",
+        "S4": "fail",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "fail"
       },
       "conclusion": "fail",
       "blockers": [
-        "E-I04；标签错误条件和后阶段批次表述。"
+        "高：units.*_user 未在卡内登记、投影字段不在 ItemView、规模>8",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 171918,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "fail",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-15",
@@ -459,39 +737,66 @@
     {
       "record": "P2-CORE-16",
       "card": "CORE-16",
-      "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 176161,
+      "grade": "C",
+      "reviewer": "r6-q",
+      "date": "2026-10-22",
+      "materialChars": 185776,
       "segments": 3,
       "checks": {
         "a": "pass",
-        "b": "pass",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
-        "e": "pass",
+        "d": "fail",
+        "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pending",
         "S5": "pending",
-        "S6": "pending"
+        "S6": "fail"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "真实内容/审校/许可、15适配与规模。"
+        "阻断：CORE-56 无写向 API 而阶段②必须生成引擎数据六文件",
+        "高：依赖缺 CORE-56/14/19/35/43、7 个 CONTENT 码未登记",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 176161,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-17",
       "card": "CORE-17",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 168268,
+      "reviewer": "r6-r",
+      "date": "2026-10-22",
+      "materialChars": 219604,
       "segments": 3,
       "checks": {
         "a": "fail",
@@ -499,82 +804,154 @@
         "c": "pass",
         "d": "fail",
         "e": "pass",
-        "f": "pass",
-        "g": "fail",
+        "f": "fail",
+        "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
-        "S4": "fail",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）FsrsParams 持久化/同步与 params_version、rating_map_version 未定义",
-        "F-02（高）pending_choice 由谁、何时置位未定义",
-        "F-03 规模≥650 行需拆卡（含 fml-ffi 附属未计）",
-        "R5-17-01（中）generate_cards 无 template_id 入参",
-        "R5-17-02（中）CardType × RequirementLevel 映射与出卡前置条件缺"
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 168268,
+          "segments": 3,
+          "checks": {
+            "a": "fail",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-18",
       "card": "CORE-18",
-      "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 111943,
+      "grade": "C",
+      "reviewer": "r6-q",
+      "date": "2026-10-22",
+      "materialChars": 129739,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pass",
-        "c": "pass",
-        "d": "pass",
-        "e": "pass",
-        "f": "pass",
-        "g": "pending",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "fail",
+        "g": "fail",
         "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pending",
-        "S5": "pending",
-        "S6": "pending"
+        "S5": "fail",
+        "S6": "fail"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "类型/数值边界、判分语料、500行与确认。"
+        "高：Grade* 七类型无机器 schema 且 witness 无展示通路、bud",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 111943,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-19",
       "card": "CORE-19",
       "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 182846,
+      "reviewer": "r6-r",
+      "date": "2026-10-22",
+      "materialChars": 166920,
       "segments": 3,
       "checks": {
         "a": "pass",
-        "b": "pass",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
+        "d": "fail",
         "e": "pass",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "fail",
         "S1": "pass",
-        "S2": "pass",
+        "S2": "fail",
         "S3": "pass",
-        "S4": "pending",
-        "S5": "pending",
-        "S6": "pending"
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "继承17事务问题，Q33待确认。"
+        "状态：修订草案未整合"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 182846,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-20",
@@ -609,18 +986,18 @@
       "record": "P2-CORE-21",
       "card": "CORE-21",
       "grade": "B",
-      "reviewer": "rev-r3；s6-a",
-      "date": "2026-10-21",
-      "materialChars": 84884,
+      "reviewer": "r6-m",
+      "date": "2026-10-22",
+      "materialChars": 142079,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
+        "d": "pass",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
         "S2": "fail",
         "S3": "fail",
@@ -630,60 +1007,109 @@
       },
       "conclusion": "fail",
       "blockers": [
-        "R3-21-01（高）SecretKey 无构造与取值接口（波及 CORE-13/23/24/26/32）",
-        "R3-21-02（高）RecoveryCode 无取文本接口，recovery_key 的 HKDF 输入未定义",
-        "R3-21-04 KV-02～05 向量无法经公开函数验证",
-        "R3-21-05 CRYPTO_KEY_VERSION_UNKNOWN 无产生函数"
+        "`temp/review/r6-m/CORE-21-复检.md`",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-a",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 84884,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-22",
       "card": "CORE-22",
       "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 100823,
+      "reviewer": "r6-m",
+      "date": "2026-10-22",
+      "materialChars": 93804,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
-        "c": "pass",
-        "d": "pass",
-        "e": "pass",
-        "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "fail",
+        "g": "fail",
+        "S1": "fail",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pending",
-        "S5": "pending",
-        "S6": "pending"
+        "S5": "pass",
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "Casdoor锁版、真实账号与规模。"
+        "`temp/review/r6-m/CORE-22-复检.md`（22215 B）",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 100823,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-23",
       "card": "CORE-23",
       "grade": "B",
-      "reviewer": "rev-r3；s6-d",
-      "date": "2026-10-21",
-      "materialChars": 185032,
-      "segments": 3,
+      "reviewer": "r6-l",
+      "date": "2026-10-22",
+      "materialChars": 245271,
+      "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "pass",
+        "b": "fail",
         "c": "pass",
         "d": "fail",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "fail",
+        "S2": "pass",
         "S3": "fail",
         "S4": "pass",
         "S5": "pass",
@@ -691,86 +1117,159 @@
       },
       "conclusion": "fail",
       "blockers": [
-        "R3-23-01（高）登记 GuardContext 的 Dart 安装点无卡拥有",
-        "R3-23-02（高）删除档案、更新 last_used_ms、set_sync_enabled 无 Rust 接口或 FFI op",
-        "R3-23-03/04 OsRandom 无注入点、create_guest/create_registered 无 rng 参数",
-        "S6-CORE-23-01（中）档案创建 op 漏列 RNG 失败透传"
+        "R6L-23-01（中）open_profile 与 logged_out 无定义且",
+        "R6L-23-02（中）account_state 首行无写入者",
+        "R6L-23-03（中）backup_root 来源/backup_dir 派生未定",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-d",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 185032,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-24",
       "card": "CORE-24",
       "grade": "C",
-      "reviewer": "rev-r3；s6-d",
-      "date": "2026-10-21",
-      "materialChars": 146636,
-      "segments": 2,
+      "reviewer": "r7-core24-full",
+      "date": "2026-10-22",
+      "materialChars": 222315,
+      "segments": 3,
       "checks": {
-        "a": "fail",
+        "a": "pass",
         "b": "fail",
         "c": "pass",
         "d": "fail",
         "e": "fail",
-        "f": "pass",
+        "f": "fail",
         "g": "pass",
         "S1": "pass",
-        "S2": "fail",
+        "S2": "pass",
         "S3": "fail",
-        "S4": "fail",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "R3-24-01（高）规模不可信，远超 500 行，需拆卡（merge_guest 等）",
-        "R3-24-02（高）NewAccount 升级需更新注册表行，CORE-23 DeviceRegistry 无转换/投影接口",
-        "R3-24-03 同一 op 不能同时 call 与 submit",
-        "R3-24-04 随机/时间来源未注入",
-        "S6 fail：材料缺 CORE-05 pack_item_id/pack_template_id/card_id 定义块（证实 R3-24-08）"
+        "F-24-01 升级写门在依赖闭包内无承载",
+        "F-24-02 CORE-83 journal cursor/导入映射字段缺失",
+        "F-24-11 abandon 状态未定义",
+        "状态：修订草案未整合"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-d",
+          "date": "2026-10-21",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 146636,
+          "segments": 2,
+          "checks": {
+            "a": "fail",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-25",
       "card": "CORE-25",
       "grade": "B",
-      "reviewer": "rev-r2；s6-b",
-      "date": "2026-10-21",
-      "materialChars": 79126,
-      "segments": 1,
+      "reviewer": "r6-n",
+      "date": "2026-10-22",
+      "materialChars": 115582,
+      "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
         "d": "fail",
-        "e": "pass",
+        "e": "fail",
         "f": "pass",
         "g": "pass",
         "S1": "pass",
         "S2": "pass",
         "S3": "pass",
         "S4": "fail",
-        "S5": "pass",
+        "S5": "fail",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "S6-CORE-25-01（高）BIGSERIAL 取号顺序不等于提交顺序，游标越过后提交的小序号永久漏同步",
-        "F-01 越权 404、无快照 404、无令牌 401 未给错误码",
-        "F-02 sync_envelope.body 存什么未定义",
-        "F-05 规模约 500 行无分项、疑超 500"
+        "**B / fail**（1 高 N-02",
+        "中 N-01/N-03/N-04）",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-b",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 79126,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-26",
       "card": "CORE-26",
       "grade": "B",
-      "reviewer": "rev-r2；s6-b",
-      "date": "2026-10-21",
-      "materialChars": 231566,
-      "segments": 3,
+      "reviewer": "r7-core26-full",
+      "date": "2026-10-22",
+      "materialChars": 307251,
+      "segments": 4,
       "checks": {
         "a": "pass",
         "b": "pass",
@@ -788,145 +1287,267 @@
       },
       "conclusion": "fail",
       "blockers": [
-        "S6-CORE-26-01（高）apply_pull 缺 11 类实体的写侧应用契约、实体 JSON 形状与校验注入路径",
-        "F-01 CONFLICT 即判定整库回退与 ADR-V5-43/T-STALE 自相矛盾",
-        "F-02 负载 CBOR 无编码/解码契约",
-        "F-03 构造 Envelope 的字段映射未定义",
-        "F-04 on_epoch_changed 全量重建 outbox 无实体枚举契约"
+        "R7-01 resolve_choice 重绑语义未定",
+        "R7-03 256KiB 与 262144 边界冲突",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-b",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 231566,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-27",
       "card": "CORE-27",
       "grade": "C",
-      "reviewer": "rev-r3；s6-d",
-      "date": "2026-10-21",
-      "materialChars": 188943,
+      "reviewer": "r6-h",
+      "date": "2026-10-22",
+      "materialChars": 202372,
       "segments": 3,
-      "checks": {
-        "a": "fail",
-        "b": "fail",
-        "c": "pass",
-        "d": "fail",
-        "e": "fail",
-        "f": "pass",
-        "g": "pass",
-        "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
-        "S4": "fail",
-        "S5": "pass",
-        "S6": "fail"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "R3-27-01（高）规模约 730 行，需拆卡",
-        "R3-27-02（高）Replace 删除范围表与 RESTRICT 外键及未选范围引用规则缺",
-        "R3-27-04 token 临时库为进程级全局表，与 ADR-V5-39 冲突",
-        "R3-27-05 恢复模式在 prepare/commit 两侧不一致（CORE-47）",
-        "S6 fail：材料缺 CORE-19/48 范围表列/外键/写入契约（证实 R3-27-09）"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-28",
-      "card": "CORE-28",
-      "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 130137,
-      "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
         "d": "pass",
         "e": "pass",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pass",
+        "S2": "fail",
         "S3": "pass",
-        "S4": "pending",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "完整依赖闭包及消费确认。"
+        "R6H-27-01（高）共享解码层无符号，CORE-84 无法仅凭契约实现",
+        "R6H-27-02（中）[R18] 追踪双向不一致",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-d",
+          "date": "2026-10-21",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 188943,
+          "segments": 3,
+          "checks": {
+            "a": "fail",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-28",
+      "card": "CORE-28",
+      "grade": "C",
+      "reviewer": "r6-s",
+      "date": "2026-10-22",
+      "materialChars": 166258,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 P1：Rust `Level` 未定义、四值↔三值映射缺失（需 CORE-",
+        "F-02～F-04 P2",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 130137,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-29",
       "card": "CORE-29",
       "grade": "B",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 107553,
+      "reviewer": "r6-t",
+      "date": "2026-10-22",
+      "materialChars": 123788,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pass",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
-        "e": "pass",
+        "d": "fail",
+        "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pass",
-        "S5": "pending",
-        "S6": "pending"
+        "S5": "pass",
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "识别后端前提与材料。"
+        "fail",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 107553,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pending",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-30",
       "card": "CORE-30",
       "grade": "B",
-      "reviewer": "rev-r3；s6-c",
-      "date": "2026-10-21",
-      "materialChars": 77885,
-      "segments": 1,
+      "reviewer": "r6-t",
+      "date": "2026-10-22",
+      "materialChars": 103009,
+      "segments": 2,
       "checks": {
-        "a": "fail",
-        "b": "fail",
+        "a": "pass",
+        "b": "pass",
         "c": "pass",
         "d": "fail",
-        "e": "fail",
+        "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
-        "S4": "fail",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "R3-30-02（高）核心侧无契约获知 StoreArea.staging 根目录，IMG_PATH_INVALID 无法实现",
-        "R3-30-04 预处理流水线次序与坐标系未定义",
-        "R3-30-03 QualityReport 多个字段无公式",
-        "R3-30-06 规模恰在上限且带超出再拆保留语"
+        "fail",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-c",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 77885,
+          "segments": 1,
+          "checks": {
+            "a": "fail",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-31",
       "card": "CORE-31",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 152653,
-      "segments": 2,
+      "reviewer": "r6-t",
+      "date": "2026-10-22",
+      "materialChars": 185677,
+      "segments": 3,
       "checks": {
         "a": "pass",
         "b": "fail",
@@ -937,51 +1558,100 @@
         "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
+        "S3": "pass",
         "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）apply_correction 缺 units 与 cancel 参数，无法重做量纲推导",
-        "R5-31-01（高）三个纯函数只收预构造 SymbolEnv，缺逐候选 bind 所需 NotationProfile 与 user_decls",
-        "F-02 fml-recognize 内编排解析/绑定与 CORE-01 规则 1 冲突",
-        "F-05 RECOG_OUTPUT_REJECTED 等错误语义无出口"
+        "fail",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 152653,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-32",
       "card": "CORE-32",
-      "grade": "C",
-      "reviewer": "rev-r3；s6-d",
-      "date": "2026-10-21",
-      "materialChars": 185304,
-      "segments": 3,
+      "grade": "B",
+      "reviewer": "r6-h",
+      "date": "2026-10-22",
+      "materialChars": 240271,
+      "segments": 4,
       "checks": {
-        "a": "fail",
-        "b": "fail",
+        "a": "pass",
+        "b": "pass",
         "c": "pass",
         "d": "fail",
         "e": "pass",
-        "f": "pass",
-        "g": "pass",
+        "f": "fail",
+        "g": "fail",
         "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
+        "S2": "pass",
+        "S3": "pass",
         "S4": "fail",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "R3-32-01（高）gc_execute 无 Store 参数却须写库",
-        "R3-32-02（高）HistoryRepo 致 fml-recognize 与 fml-store 循环依赖",
-        "R3-32-08（高）规模恰在 500 上限且未计 fml-ffi 适配",
-        "S6 fail：材料缺 Page<T> 定义（证实 R3-32-09）"
+        "R6H-32-01(中)[R24]/[R36]追踪不一致(README §5 未列 ",
+        "R6H-32-03(中)encode_result 与 CORE-02/05 ser",
+        "R6H-32-02(中)规模分项不自洽(350 vs 主包30/Dart未计)",
+        "R6H-32-06(中)缺外部前提条目",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r3；s6-d",
+          "date": "2026-10-21",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 185304,
+          "segments": 3,
+          "checks": {
+            "a": "fail",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-33",
@@ -1016,30 +1686,56 @@
       "record": "P2-CORE-34",
       "card": "CORE-34",
       "grade": "C",
-      "reviewer": "/root/p2_core_early",
-      "date": "2026-10-20",
-      "materialChars": 181972,
-      "segments": 3,
+      "reviewer": "r6-u",
+      "date": "2026-10-22",
+      "materialChars": 240333,
+      "segments": 4,
       "checks": {
         "a": "pass",
         "b": "pass",
-        "c": "pass",
+        "c": "fail",
         "d": "fail",
         "e": "fail",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "fail",
         "S1": "pass",
-        "S2": "fail",
+        "S2": "pass",
         "S3": "fail",
-        "S4": "pending",
-        "S5": "pass",
-        "S6": "pending"
+        "S4": "pass",
+        "S5": "fail",
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "E-I12；NS_FML_CLOUD未冻结。"
+        "fail",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_early",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 181972,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-35",
@@ -1074,33 +1770,57 @@
       "record": "P2-CORE-36",
       "card": "CORE-36",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 334650,
+      "reviewer": "r6-v",
+      "date": "2026-10-22",
+      "materialChars": 378828,
       "segments": 5,
       "checks": {
         "a": "pass",
-        "b": "fail",
+        "b": "pass",
         "c": "pass",
         "d": "fail",
         "e": "pass",
-        "f": "pass",
+        "f": "fail",
         "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
+        "S3": "pass",
         "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）DefaultAccountController/TokenStore 无实现类，ProfileSessionSource 注入无契约",
-        "F-03 SYNC_NOT_AVAILABLE 的游客触发条件无人实现",
-        "F-04 errors.g.dart 不存在（CORE-02 实际生成 error_codes.g.dart 与 errors_zh.arb）",
-        "R5-36-01（中）NetworkGuard 所需 GuardContext/ConsentVerifier 在 composeApp 步骤② 无提供者"
+        "N-36-01/02（高）",
+        "N-36-03～07（中）",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 334650,
+          "segments": 5,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-37",
@@ -1193,52 +1913,20 @@
       "record": "P2-CORE-40",
       "card": "CORE-40",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 239823,
+      "reviewer": "r6-w",
+      "date": "2026-10-22",
+      "materialChars": 302075,
       "segments": 4,
       "checks": {
         "a": "pass",
         "b": "fail",
-        "c": "pass",
+        "c": "fail",
         "d": "fail",
         "e": "pass",
-        "f": "pass",
+        "f": "fail",
         "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
-        "S4": "fail",
-        "S5": "pass",
-        "S6": "pass"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "F-01（高）installRecognition 构造 HistoryKeyUnlocker/RecognitionFlow 拿不到档案 scopedTo 视图（ProfileSessionSource）",
-        "F-06 规模约 370 行疑偏低",
-        "F-04/F-07 错误处理与验收只覆盖主路径",
-        "R5-40-01（中）启动钩子 50 recog.recover 为 profile 作用域 op，无重跑契约"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-41",
-      "card": "CORE-41",
-      "grade": "B",
-      "reviewer": "rev-r1；s6-a",
-      "date": "2026-10-21",
-      "materialChars": 64805,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pass",
-        "c": "fail",
-        "d": "fail",
-        "e": "fail",
-        "f": "pass",
-        "g": "fail",
-        "S1": "pass",
-        "S2": "pass",
         "S3": "pass",
         "S4": "pass",
         "S5": "pass",
@@ -1246,11 +1934,89 @@
       },
       "conclusion": "fail",
       "blockers": [
-        "R41-01 run_all 的 manifest、CLI 与归档格式未定义",
-        "R41-02 范围与归属表矛盾，thresholds.yaml 归属不清",
-        "S6-CORE-41-01 CORE-71 交给本卡的 core-sources.json 生成器无交付与验收"
+        "N40-01（F-05 未闭合：33 条 op schema/mode pendin",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 239823,
+          "segments": 4,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-41",
+      "card": "CORE-41",
+      "grade": "B",
+      "reviewer": "r9-aggregator41-review",
+      "date": "2026-10-22",
+      "materialChars": 73270,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pass",
+      "blockers": [
+        "状态：修订后已复检"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1；s6-a",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 64805,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "fail",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-42",
@@ -1285,59 +2051,119 @@
       "record": "P2-CORE-43",
       "card": "CORE-43",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 126129,
+      "reviewer": "r6-p",
+      "date": "2026-10-22",
+      "materialChars": 118214,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
-        "e": "pass",
-        "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
-        "S4": "pending",
+        "d": "fail",
+        "e": "fail",
+        "f": "fail",
+        "g": "fail",
+        "S1": "fail",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L；真实托管/账号/轮换"
+        "F-01 /healthz 与 CORE-22:26 重复定义且响应冲突、/read",
+        "F-02 --config/TOML 加载属 CORE-22 却由 43 单方定义",
+        "F-03 服务端数据密钥无格式/轮换",
+        "F-06 CORE-25 备份 30 vs 35 天",
+        "F-07 update.json 无格式",
+        "F-08 CDN 基址与 WIN-03 FML_PACK_HOST 无映射",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 126129,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-44",
       "card": "CORE-44",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 84549,
+      "reviewer": "r9-aggregator-consumers-review",
+      "date": "2026-10-22",
+      "materialChars": 80328,
       "segments": 2,
       "checks": {
-        "a": "pass",
-        "b": "pending",
-        "c": "pass",
+        "a": "fail",
+        "b": "fail",
+        "c": "fail",
         "d": "pass",
-        "e": "pass",
+        "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
-        "S4": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "fail",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L；锁版SDK/C消费者"
+        "F-44-01 依赖闭包缺 CORE-41",
+        "F-44-02 断言 CORE-56 engine.check 却未列依赖",
+        "F-44-03 合入校验三处重复定义",
+        "F-44-04 提取器拒绝合成响应不可自动化",
+        "状态：修订后已复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 84549,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-45",
@@ -1372,94 +2198,172 @@
       "record": "P2-CORE-46",
       "card": "CORE-46",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 170711,
-      "segments": 3,
+      "reviewer": "r7-core46-full",
+      "date": "2026-10-22",
+      "materialChars": 246716,
+      "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "fail",
+        "b": "pass",
         "c": "pass",
         "d": "fail",
-        "e": "pass",
+        "e": "fail",
         "f": "pass",
         "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
+        "S3": "pass",
         "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）紧凑 JSON 字节约束与 ApiClient.call(json:) 不闭合（无已编码字节入口）",
-        "F-02 依赖缺 CORE-03 与 CORE-78",
-        "F-06 游客/未开启同步三处行为不一致（disabled、SYNC_DISABLED、SYNC_NOT_AVAILABLE）",
-        "R5-46-01（中）协调器无 ProfileSessionSource，profile 作用域调用无句柄"
+        "R6-46-01 404 无快照落 failed",
+        "R7-46-01 account.state device scope 与 session.core 冲突",
+        "R6-46-02/03 未闭合",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 170711,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-47",
       "card": "CORE-47",
       "grade": "B",
-      "reviewer": "rev-r4；rev-r5",
-      "date": "2026-10-21",
-      "materialChars": 213173,
-      "segments": 3,
+      "reviewer": "r6-x",
+      "date": "2026-10-22",
+      "materialChars": 274974,
+      "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "fail",
+        "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "pass",
+        "d": "pass",
+        "e": "fail",
         "f": "pass",
         "g": "pass",
-        "S1": "fail",
+        "S1": "pass",
         "S2": "fail",
-        "S3": "fail",
-        "S4": "fail",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）BackupVm.pickAndPrepare 无 mode，与 CORE-27 prepare_restore 签名不闭合",
-        "F-02（高）账户、提醒、隐私、关于、needsKey 等子页无 VM/符号契约",
-        "F-06 规模约 480 行估算 600～750，疑超 500",
-        "R5-47-01（中）merge_choice 待选并发修订无界面卡与 SyncFacade 方法"
+        "R6-47-01（UpgradeWizardVm 缺 KeySecretInput ",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r4；rev-r5",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 213173,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "fail",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-48",
       "card": "CORE-48",
-      "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 207414,
-      "segments": 3,
+      "grade": "C",
+      "reviewer": "r7-core48-full",
+      "date": "2026-10-22",
+      "materialChars": 269966,
+      "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "pending",
-        "c": "pass",
-        "d": "pending",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
         "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
+        "S2": "pass",
         "S3": "pass",
-        "S4": "pending",
-        "S5": "pending",
-        "S6": "fail"
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L/H；计划DTO/同步"
+        "F-48-01 三 DTO 无定义且命名不符 CORE-67",
+        "F-48-10 VM 缺档案 scoped 绑定",
+        "F-48-12 4 个被调 op 机器契约 pending",
+        "F-48-03 EmptyState 误归 CORE-55",
+        "F-48-11 计算链交接无参数",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 207414,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pending",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-49",
@@ -1494,30 +2398,56 @@
       "record": "P2-CORE-50",
       "card": "CORE-50",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 294230,
+      "reviewer": "r6-w",
+      "date": "2026-10-22",
+      "materialChars": 291741,
       "segments": 4,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "fail",
         "c": "pass",
-        "d": "pending",
+        "d": "fail",
         "e": "pass",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
+        "S2": "fail",
         "S3": "pass",
-        "S4": "pending",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L/H；识别DTO/平台接缝"
+        "N50-01（识别 DTO/op schema 全 pending、registry",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 294230,
+          "segments": 4,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pending",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-51",
@@ -1668,9 +2598,9 @@
       "record": "P2-CORE-56",
       "card": "CORE-56",
       "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 159841,
+      "reviewer": "r6-j",
+      "date": "2026-10-22",
+      "materialChars": 195813,
       "segments": 3,
       "checks": {
         "a": "pass",
@@ -1679,79 +2609,156 @@
         "d": "fail",
         "e": "fail",
         "f": "pass",
-        "g": "fail",
+        "g": "pass",
         "S1": "pass",
         "S2": "pass",
         "S3": "fail",
-        "S4": "pending",
+        "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "R56-01 缺少引擎数据 JSON → DataLayer 的加载/构造函数",
-        "R56-02 缺少非全局构造器与测试注入点",
-        "R56-03 验收覆盖缺口与夹具未给出"
+        "56-J1（ConstantValue.unit 语义未定 + CORE-08 无单",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 159841,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-57",
       "card": "CORE-57",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 46647,
+      "reviewer": "r6-c",
+      "date": "2026-10-22",
+      "materialChars": 69415,
       "segments": 1,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "pending",
+        "d": "pass",
+        "e": "pass",
         "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "pending",
+        "g": "pass",
+        "S1": "pending",
+        "S2": "pass",
         "S3": "pending",
         "S4": "pass",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
       "conclusion": "pending",
       "blockers": [
-        "L-N07；M/L"
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 46647,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "fail",
+            "e": "pending",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pending",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-58",
       "card": "CORE-58",
       "grade": "C",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 183910,
+      "reviewer": "r6-y",
+      "date": "2026-10-22",
+      "materialChars": 170907,
       "segments": 3,
       "checks": {
         "a": "pass",
-        "b": "fail",
-        "c": "pass",
+        "b": "pass",
+        "c": "fail",
         "d": "fail",
-        "e": "pending",
+        "e": "fail",
         "f": "pass",
         "g": "pending",
         "S1": "pass",
         "S2": "fail",
-        "S3": "pending",
-        "S4": "pending",
+        "S3": "pass",
+        "S4": "pass",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "L-I05；M/L"
+        "F-58-01 ShortcutLabelSource 双定义",
+        "F-58-02 组件枚举/构造签名缺失",
+        "F-58-03 命令 ID 无验收",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 183910,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "pass",
+            "d": "fail",
+            "e": "pending",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pending",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-59",
@@ -1815,16 +2822,16 @@
       "record": "P2-CORE-61",
       "card": "CORE-61",
       "grade": "B",
-      "reviewer": "rev-r2；s6-c",
-      "date": "2026-10-21",
-      "materialChars": 129136,
+      "reviewer": "r6-y",
+      "date": "2026-10-22",
+      "materialChars": 157833,
       "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "fail",
+        "d": "pass",
+        "e": "pass",
         "f": "pass",
         "g": "pass",
         "S1": "pass",
@@ -1834,42 +2841,91 @@
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pass",
       "blockers": [
-        "F-01 三个 op 均 call 与 Store 单写者事务及 CORE-03 call 时限冲突",
-        "F-02 校验错误码未定义",
-        "F-03 测试方案仅一条"
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-c",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 129136,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-62",
       "card": "CORE-62",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 90237,
+      "reviewer": "r6-v",
+      "date": "2026-10-22",
+      "materialChars": 80843,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "pass",
         "c": "pass",
-        "d": "pass",
+        "d": "fail",
         "e": "pass",
-        "f": "pass",
-        "g": "pending",
+        "f": "fail",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pass",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L；完整消费者确认"
+        "N-62-01/02/03",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 90237,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-63",
@@ -1932,40 +2988,183 @@
     {
       "record": "P2-CORE-65",
       "card": "CORE-65",
-      "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 162898,
+      "grade": "C",
+      "reviewer": "r6-m",
+      "date": "2026-10-22",
+      "materialChars": 197945,
       "segments": 3,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
-        "e": "pass",
+        "d": "fail",
+        "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
-        "S4": "pending",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "fail",
         "S5": "pass",
-        "S6": "fail"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L；生命周期确认"
+        "`temp/review/r6-m/CORE-65-复检.md`（24645 B）",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 162898,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-66",
       "card": "CORE-66",
       "grade": "B",
-      "reviewer": "rev-r2；s6-c2",
-      "date": "2026-10-21",
-      "materialChars": 167514,
-      "segments": 3,
+      "reviewer": "r7-core66-full",
+      "date": "2026-10-22",
+      "materialChars": 256753,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-1 存储读接口与 sync_cursor 无契约",
+        "F-2 依赖行漏 CORE-04/CORE-23",
+        "F-3 snapshot_cleanup mode 未定义且 op schema 缺失",
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-c2",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 167514,
+          "segments": 3,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pass",
+            "S4": "fail",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-67",
+      "card": "CORE-67",
+      "grade": "B",
+      "reviewer": "r8-schema67-review",
+      "date": "2026-10-22",
+      "materialChars": 133809,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-1 --write 文件范围与布局矛盾",
+        "F-2 生成物命名规则缺失",
+        "F-3 registry 逐 op 唯一源不可实现",
+        "F-5 manifest 写入点未登记",
+        "F-6 DiagnosticDto 交付缺口",
+        "F-4 diagnostics 字段/code 未冻结",
+        "状态：修订草案未整合"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 65195,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "fail",
+            "d": "fail",
+            "e": "pending",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pending",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-68",
+      "card": "CORE-68",
+      "grade": "B",
+      "reviewer": "r7-core68-full",
+      "date": "2026-10-22",
+      "materialChars": 115548,
+      "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
@@ -1976,168 +3175,216 @@
         "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "pass",
-        "S4": "fail",
-        "S5": "pass",
-        "S6": "pass"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "F-01（高）快照内容与分片格式无定义（明文序列化、实体范围、分片边界、每片 AAD）",
-        "F-04（高）轮换重入队经 enqueue_outbox 会写新字段时钟、制造虚假字段更改，实体枚举/重入队算法缺",
-        "F-02 FFI 段新旧协议并存",
-        "F-03 路径校验无 staging 根输入"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-67",
-      "card": "CORE-67",
-      "grade": "C",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 65195,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pending",
-        "c": "fail",
-        "d": "fail",
-        "e": "pending",
-        "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "fail",
-        "S3": "pending",
-        "S4": "pending",
-        "S5": "pass",
-        "S6": "fail"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "E-N机器契约；L-N07"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-68",
-      "card": "CORE-68",
-      "grade": "B",
-      "reviewer": "rev-r2；s6-b",
-      "date": "2026-10-21",
-      "materialChars": 80920,
-      "segments": 2,
-      "checks": {
-        "a": "pass",
-        "b": "pass",
-        "c": "pass",
-        "d": "fail",
-        "e": "fail",
-        "f": "pass",
-        "g": "fail",
-        "S1": "pass",
-        "S2": "fail",
-        "S3": "pass",
+        "S3": "fail",
         "S4": "pass",
         "S5": "pass",
         "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "F-01（高）边界校验无 API（无 validate/from_json）与错误映射",
-        "F-04 entity_id=UUID 与 CORE-26 setting 键冲突",
-        "F-03 测试方案过薄且向量未创建",
-        "g 位外部前提缺 sha2/base64",
-        "S6-CORE-68-01 PushResult/PullPage 等同步线格式无所有者"
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-b",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 80920,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "fail",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-69",
       "card": "CORE-69",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 57449,
-      "segments": 1,
+      "reviewer": "r8-policy69-review",
+      "date": "2026-10-22",
+      "materialChars": 92131,
+      "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pending",
-        "c": "pass",
-        "d": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
         "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
+        "S2": "fail",
         "S3": "pass",
         "S4": "pending",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
-      "conclusion": "pending",
+      "conclusion": "fail",
       "blockers": [
-        "M/L；词法子集/消费者"
+        "R8-69-01 DEP-3 领域集合与 CORE-01:46 冲突",
+        "R8-69-02 DEP-5 前缀固定 ui/ 与 ports.http 冲突",
+        "R8-69-03 退出码 2 输出/规则号缺契约",
+        "R8-69-04 tokens 语言/suffix/DEP-4 范围未定",
+        "状态：修订草案未整合"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 57449,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-70",
       "card": "CORE-70",
       "grade": "C",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 45885,
+      "reviewer": "r9-aggregator-consumers-review",
+      "date": "2026-10-22",
+      "materialChars": 57246,
       "segments": 1,
       "checks": {
         "a": "pass",
         "b": "fail",
-        "c": "fail",
+        "c": "pass",
         "d": "fail",
-        "e": "pending",
+        "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
         "S2": "fail",
-        "S3": "pending",
-        "S4": "pending",
+        "S3": "fail",
+        "S4": "fail",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "L-N05；M/L"
+        "F-70-01（高）DTOcheck 与 SADD-1/2/3/5/8 重叠未裁决、1443 行未计规模",
+        "F-70-02（中）作者相同退 1 与 CORE-76 记录模型冲突",
+        "F-70-03（中）SADD-9/10 材料输入未定义",
+        "F-70-10（中）target 解析域与存在性未定义",
+        "F-70-11（中）SADD-12 与 :18 职责互斥",
+        "状态：修订后已复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 45885,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "fail",
+            "c": "fail",
+            "d": "fail",
+            "e": "pending",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "pending",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-71",
       "card": "CORE-71",
       "grade": "C",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 51685,
+      "reviewer": "r9-aggregator-consumers-review",
+      "date": "2026-10-22",
+      "materialChars": 64375,
       "segments": 1,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "fail",
         "c": "pass",
         "d": "fail",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
         "S2": "fail",
         "S3": "fail",
-        "S4": "pending",
+        "S4": "fail",
         "S5": "pass",
-        "S6": "pending"
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "L-N06；M/L"
+        "F-71-01 thresholds.yaml 创建者/路径/格式三方不一致",
+        "F-71-09 集合一致性无检查归属且 Test 越界",
+        "F-71-03 阈值双定义",
+        "F-71-04 unsafe/FFI 计数无契约却计入规模",
+        "状态：修订后已复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 51685,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
     },
     {
       "record": "P2-CORE-72",
@@ -2201,74 +3448,16 @@
       "record": "P2-CORE-74",
       "card": "CORE-74",
       "grade": "B",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 52288,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pending",
-        "c": "pass",
-        "d": "pass",
-        "e": "pass",
-        "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
-        "S4": "pending",
-        "S5": "pass",
-        "S6": "pending"
-      },
-      "conclusion": "pending",
-      "blockers": [
-        "M/L；ABI头/注册表/标签"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-75",
-      "card": "CORE-75",
-      "grade": "C",
-      "reviewer": "/root/p2_core_late",
-      "date": "2026-10-20",
-      "materialChars": 10567,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pending",
-        "c": "fail",
-        "d": "fail",
-        "e": "fail",
-        "f": "pass",
-        "g": "pending",
-        "S1": "pass",
-        "S2": "fail",
-        "S3": "fail",
-        "S4": "pass",
-        "S5": "pass",
-        "S6": "fail"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "L-N04/07；L-I09"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-76",
-      "card": "CORE-76",
-      "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 27153,
+      "reviewer": "r8-policy74-review",
+      "date": "2026-10-22",
+      "materialChars": 61559,
       "segments": 1,
       "checks": {
         "a": "pass",
         "b": "pass",
         "c": "pass",
-        "d": "fail",
-        "e": "fail",
+        "d": "pass",
+        "e": "pass",
         "f": "pass",
         "g": "pass",
         "S1": "pass",
@@ -2278,41 +3467,200 @@
         "S5": "pass",
         "S6": "pass"
       },
-      "conclusion": "fail",
+      "conclusion": "pass",
       "blockers": [
-        "R76-01 验收覆盖缺口：audit.mjs 与 validateCurrent 的多项规则无用例",
-        "R76-02 current.mjs 接口签名与文件约定缺失"
+        "复核人原文：pass有条件",
+        "状态：修订草案未整合"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 52288,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pending",
+            "S5": "pass",
+            "S6": "pending"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-75",
+      "card": "CORE-75",
+      "grade": "B",
+      "reviewer": "r6-c",
+      "date": "2026-10-22",
+      "materialChars": 42905,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pending",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_core_late",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 10567,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "fail",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "fail",
+            "S3": "fail",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "fail"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-76",
+      "card": "CORE-76",
+      "grade": "B",
+      "reviewer": "r6-c",
+      "date": "2026-10-22",
+      "materialChars": 46975,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pending",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 27153,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "fail",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
     },
     {
       "record": "P2-AND-01",
       "card": "AND-01",
       "grade": "B",
-      "reviewer": "/root/p2_platform",
-      "date": "2026-10-20",
-      "materialChars": 110580,
+      "reviewer": "r6-e",
+      "date": "2026-10-22",
+      "materialChars": 97822,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "pass",
         "c": "pass",
-        "d": "pass",
+        "d": "fail",
         "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "fail",
         "S1": "pass",
-        "S2": "pending",
-        "S3": "pass",
+        "S2": "fail",
+        "S3": "fail",
         "S4": "pass",
-        "S5": "pending",
-        "S6": "fail"
+        "S5": "fail",
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "M；宿主锁版探针"
+        "F-4 验收缺口、F-11 M0 锁版探针 pending",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_platform",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 110580,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pending",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-AND-02",
@@ -2578,31 +3926,60 @@
     {
       "record": "P2-AND-12",
       "card": "AND-12",
-      "grade": "C",
-      "reviewer": "/root/p2_platform",
-      "date": "2026-10-20",
-      "materialChars": 322836,
-      "segments": 5,
+      "grade": "B",
+      "reviewer": "r6-ad",
+      "date": "2026-10-22",
+      "materialChars": 204761,
+      "segments": 3,
       "checks": {
-        "a": "pending",
-        "b": "pending",
+        "a": "pass",
+        "b": "fail",
         "c": "pass",
-        "d": "pass",
+        "d": "fail",
         "e": "fail",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
+        "S2": "fail",
         "S3": "fail",
-        "S4": "pending",
-        "S5": "pending",
-        "S6": "fail"
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "M；P-N01；真机/模型"
+        "R6AD-AND12-01 高（7 个 CORE-01 Android 预算行无采集",
+        "R6AD-AND12-02 高（样本 JSON 缺 status/reason 与字",
+        "R6AD-AND12-03/04（跨端一致性比对与语料未定义）",
+        "消费方（AND-16）签认缺失",
+        "状态：修订已整合待复检"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_platform",
+          "date": "2026-10-20",
+          "grade": "C",
+          "conclusion": "fail",
+          "materialChars": 322836,
+          "segments": 5,
+          "checks": {
+            "a": "pending",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-AND-13",
@@ -2695,30 +4072,57 @@
       "record": "P2-WIN-01",
       "card": "WIN-01",
       "grade": "B",
-      "reviewer": "/root/p2_platform",
-      "date": "2026-10-20",
-      "materialChars": 155137,
+      "reviewer": "r6-f",
+      "date": "2026-10-22",
+      "materialChars": 155770,
       "segments": 2,
       "checks": {
         "a": "pass",
-        "b": "pending",
+        "b": "pass",
         "c": "pass",
         "d": "pass",
-        "e": "fail",
+        "e": "pass",
         "f": "pass",
-        "g": "pending",
+        "g": "pass",
         "S1": "pass",
-        "S2": "pending",
-        "S3": "fail",
+        "S2": "pass",
+        "S3": "pass",
         "S4": "pending",
-        "S5": "pending",
-        "S6": "fail"
+        "S5": "pass",
+        "S6": "pass"
       },
       "conclusion": "fail",
       "blockers": [
-        "M；P-N04；工具链/runner"
+        "S3 未闭合（F-01 验收未标 manual/windows-host、未接 WI",
+        "中：F-02 Release 调试信息落盘越界、F-03 R41 允许位置缺 win",
+        "状态：复检后无修订"
       ],
-      "consumerConfirmation": null
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "/root/p2_platform",
+          "date": "2026-10-20",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 155137,
+          "segments": 2,
+          "checks": {
+            "a": "pass",
+            "b": "pending",
+            "c": "pass",
+            "d": "pass",
+            "e": "fail",
+            "f": "pass",
+            "g": "pending",
+            "S1": "pass",
+            "S2": "pending",
+            "S3": "fail",
+            "S4": "pending",
+            "S5": "pending",
+            "S6": "fail"
+          }
+        }
+      ]
     },
     {
       "record": "P2-WIN-02",
@@ -3159,40 +4563,10 @@
       "record": "P2-CORE-77",
       "card": "CORE-77",
       "grade": "B",
-      "reviewer": "rev-r1",
-      "date": "2026-10-21",
-      "materialChars": 68066,
-      "segments": 1,
-      "checks": {
-        "a": "pass",
-        "b": "pass",
-        "c": "pass",
-        "d": "fail",
-        "e": "pass",
-        "f": "pass",
-        "g": "pass",
-        "S1": "pass",
-        "S2": "pass",
-        "S3": "pass",
-        "S4": "pass",
-        "S5": "pass",
-        "S6": "pass"
-      },
-      "conclusion": "fail",
-      "blockers": [
-        "R77-01 CORE-08 未声明 Rational/Dimension/DimensionFull 的 serde，DimExpr/TypeExpr 的 JSON 无法凭契约实现",
-        "P-01 CORE-09/CORE-11 作者调用方确认缺失"
-      ],
-      "consumerConfirmation": null
-    },
-    {
-      "record": "P2-CORE-78",
-      "card": "CORE-78",
-      "grade": "B",
-      "reviewer": "rev-r2；s6-b",
-      "date": "2026-10-21",
-      "materialChars": 71039,
-      "segments": 1,
+      "reviewer": "r6-k",
+      "date": "2026-10-22",
+      "materialChars": 90613,
+      "segments": 2,
       "checks": {
         "a": "pass",
         "b": "pass",
@@ -3208,10 +4582,939 @@
         "S5": "pass",
         "S6": "pass"
       },
+      "conclusion": "fail",
+      "blockers": [
+        "P-01 消费方确认缺失（CORE-09/CORE-11 作者未签）",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r1",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "fail",
+          "materialChars": 68066,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "fail",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-78",
+      "card": "CORE-78",
+      "grade": "B",
+      "reviewer": "r6-n",
+      "date": "2026-10-22",
+      "materialChars": 111087,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "**B / fail**（S2 F：N-01 中",
+        "N-02～N-04 低）",
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null,
+      "history": [
+        {
+          "reviewer": "rev-r2；s6-b",
+          "date": "2026-10-21",
+          "grade": "B",
+          "conclusion": "pending",
+          "materialChars": 71039,
+          "segments": 1,
+          "checks": {
+            "a": "pass",
+            "b": "pass",
+            "c": "pass",
+            "d": "pass",
+            "e": "pass",
+            "f": "pass",
+            "g": "pass",
+            "S1": "pass",
+            "S2": "pass",
+            "S3": "pass",
+            "S4": "pass",
+            "S5": "pass",
+            "S6": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "record": "P2-CORE-100",
+      "card": "CORE-100",
+      "grade": "B",
+      "reviewer": "r8-schema100-review",
+      "date": "2026-10-22",
+      "materialChars": 133224,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "N-01 关键字白名单缺 $schema 与 minItems/maxItems",
+        "N-02 nullable 的 schema 编码未定义",
+        "F-02 残余 双向一致不能自证真实快照集合",
+        "F-03 残余 registry 条目无 op 字段",
+        "N-06 ast.schema 不在 manifest 却要求生成",
+        "状态：修订草案未整合"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-93",
+      "card": "CORE-93",
+      "grade": "B",
+      "reviewer": "r6-j",
+      "date": "2026-10-22",
+      "materialChars": 117473,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "fail",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "93-J1（solvable_targets 四项能力判定规则、符号集合与顺序未定义",
+        "Test:11 能力一致性不可测）",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-79",
+      "card": "CORE-79",
+      "grade": "B",
+      "reviewer": "r6-k",
+      "date": "2026-10-22",
+      "materialChars": 212000,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6K-79-02～05（d 语义缺口）、R6K-79-06（e 验收依赖未交付 t",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-92",
+      "card": "CORE-92",
+      "grade": "B",
+      "reviewer": "r6-k",
+      "date": "2026-10-22",
+      "materialChars": 92368,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6K-92-01 导出文法缺失、R6K-92-02 Hole 错误码矛盾、R6K-",
+        "P-92-01 消费方确认缺失",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-94",
+      "card": "CORE-94",
+      "grade": "B",
+      "reviewer": "r6-k",
+      "date": "2026-10-22",
+      "materialChars": 90323,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6K-94-01 缓存上限/归属、R6K-94-02 symbols 哈希、R6K",
+        "P-94-01 消费方确认缺失",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-84",
+      "card": "CORE-84",
+      "grade": "C",
+      "reviewer": "r6-u",
+      "date": "2026-10-22",
+      "materialChars": 249325,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "fail",
+        "d": "fail",
+        "e": "pass",
+        "f": "fail",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "fail",
+        "S5": "fail",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "fail",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-98",
+      "card": "CORE-98",
+      "grade": "B",
+      "reviewer": "r6-p",
+      "date": "2026-10-22",
+      "materialChars": 233950,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "fail",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "fail"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 缺 CORE-24 依赖",
+        "F-02 缺 CORE-66 且 sync.reencrypt 契约未入材料",
+        "F-03 轮换后密语行为待 CORE-24 裁定",
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-99",
+      "card": "CORE-99",
+      "grade": "B",
+      "reviewer": "r6-p",
+      "date": "2026-10-22",
+      "materialChars": 214205,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 register/login 归 CORE-23 且无 AccountCo",
+        "F-02 keys API 归属冲突（98 vs 25）且材料无端点",
+        "F-03 “询问开启同步”无通道致 afterUpgrade 恒 no-op",
+        "状态：修订已整合待复检"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-85",
+      "card": "CORE-85",
+      "grade": "C",
+      "reviewer": "r6-u",
+      "date": "2026-10-22",
+      "materialChars": 242813,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "fail",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "fail",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-80",
+      "card": "CORE-80",
+      "grade": "B",
+      "reviewer": "r6-r",
+      "date": "2026-10-22",
+      "materialChars": 187515,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-81",
+      "card": "CORE-81",
+      "grade": "C",
+      "reviewer": "r6-s",
+      "date": "2026-10-22",
+      "materialChars": 186555,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 P1：TooSoon 缺 StudyDay/day，验收③不可实现",
+        "F-02/F-03/F-04/F-05 P2",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-82",
+      "card": "CORE-82",
+      "grade": "C",
+      "reviewer": "r6-s",
+      "date": "2026-10-22",
+      "materialChars": 205894,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "fail",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 P1：12 op 无 schema/字段表（manifest 全 pend",
+        "F-02 P1：start/step/appeal 缺 now_ms",
+        "F-03～F-09 P2",
+        "状态：修订草案未整合"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-91",
+      "card": "CORE-91",
+      "grade": "C",
+      "reviewer": "r6-ab",
+      "date": "2026-10-22",
+      "materialChars": 199378,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F1 export.formula schema/mode 未注册（manifest",
+        "F2 选择→formats 映射缺失",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-95",
+      "card": "CORE-95",
+      "grade": "C",
+      "reviewer": "r6-ab",
+      "date": "2026-10-22",
+      "materialChars": 201025,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 pack.install/list/uninstall/recover 四",
+        "F-02 CORE-96 依赖的 SecurityState 原子单调持久化接口无签",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-96",
+      "card": "CORE-96",
+      "grade": "C",
+      "reviewer": "r6-ab",
+      "date": "2026-10-22",
+      "materialChars": 127588,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pass",
+        "S5": "pending",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "F-01 A-32 未闭合、verify_update_metadata 签名不可编",
+        "F-02 pack.check_updates op 未登记（manifest pe",
+        "F-03 TUF root 轮换后的可信根无持久化落点（TrustRoot 编译期常",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-AND-16",
+      "card": "AND-16",
+      "grade": "C",
+      "reviewer": "r6-ad",
+      "date": "2026-10-22",
+      "materialChars": 162242,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "fail",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6AD-AND16-01 高（'上表全部测试' 悬空，本卡无表）",
+        "R6AD-AND16-02 高（run_matrix 执行/消费歧义、无 APK/用",
+        "R6AD-AND16-06（模板手动项来源冲突且 acceptance_jobs.j",
+        "R6AD-AND16-07（7 行预算无采集者）",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-88",
+      "card": "CORE-88",
+      "grade": "B",
+      "reviewer": "r6-aa",
+      "date": "2026-10-22",
+      "materialChars": 241189,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pending",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
       "conclusion": "pending",
       "blockers": [
-        "复核人未列阻断项；consumerConfirmation 缺：CORE-26/66 作者调用方确认未取得",
-        "contracts/errors/registry.yaml 未创建，pending_batch 读出损坏行的错误码未写（低）"
+        "F-01（高）档案切换未闭合",
+        "F-05 草稿询问不可实现",
+        "F-07 revise+update_meta 部分成功未定义",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-89",
+      "card": "CORE-89",
+      "grade": "B",
+      "reviewer": "r6-aa",
+      "date": "2026-10-22",
+      "materialChars": 227836,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "F-01（高）start 缺 plan_id/续学/commands 丢弃",
+        "F-02（高，上游）CORE-82 study.* op schema/error_",
+        "F-05 书架条目与 exam_tags 无数据源",
+        "F-06 无计划态未定义",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-90",
+      "card": "CORE-90",
+      "grade": "B",
+      "reviewer": "r6-aa",
+      "date": "2026-10-22",
+      "materialChars": 260071,
+      "segments": 4,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pending",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "pending",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "F-01（高）library.list 无任何卡定义",
+        "F-02（高，上游）CORE-14/CORE-82 相关 op 全 pending、",
+        "F-03（高）书字段校验无错误码且误用 STUDY_PLAN_INVALID",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-97",
+      "card": "CORE-97",
+      "grade": "C",
+      "reviewer": "r6-ac",
+      "date": "2026-10-22",
+      "materialChars": 181140,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R97-01 预测回忆概率 p 与复习前 memory state 无契约（CORE",
+        "ADR-V5-29 白名单无 retrievability）",
+        "R97-02 stats.calibration 未注册、schema=null、m",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-101",
+      "card": "CORE-101",
+      "grade": "B",
+      "reviewer": "r6-ac",
+      "date": "2026-10-22",
+      "materialChars": 181508,
+      "segments": 3,
+      "checks": {
+        "a": "fail",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-83",
+      "card": "CORE-83",
+      "grade": "C",
+      "reviewer": "r6-z",
+      "date": "2026-10-22",
+      "materialChars": 209445,
+      "segments": 3,
+      "checks": {
+        "a": "fail",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6Z-83-01/02/03（ID 来源、映射存储、导入写路径）",
+        "状态：修订草案未整合"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-86",
+      "card": "CORE-86",
+      "grade": "C",
+      "reviewer": "r6-z",
+      "date": "2026-10-22",
+      "materialChars": 251873,
+      "segments": 4,
+      "checks": {
+        "a": "fail",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "fail",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6Z-86-01/02/03（UUIDv7 通道、op schema+SavedP",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-18",
+      "card": "WIN-18",
+      "grade": "B",
+      "reviewer": "r6-ae",
+      "date": "2026-10-22",
+      "materialChars": 192572,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pending",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pending",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "W18-03 高：summarize 判定口径只覆盖 ms 行，FPS/掉帧/MB/",
+        "W18-02 compare 无契约",
+        "W18-01 12 处“WIN-13汇总”陈旧归属",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-19",
+      "card": "WIN-19",
+      "grade": "B",
+      "reviewer": "r6-ae",
+      "date": "2026-10-22",
+      "materialChars": 185792,
+      "segments": 3,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "pending",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "W19-01/02/10 中：scanFolder 与 confirmFolder ",
+        "W19-03 中高：Test:7 帧卡顿无 CORE-01 行名且不可自动化",
+        "W19-04 页面级验收未标手动→e=F/S3=F",
+        "W19-05 installWindowsDrop 落点文件缺",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-WIN-20",
+      "card": "WIN-20",
+      "grade": "B",
+      "reviewer": "r6-ae",
+      "date": "2026-10-22",
+      "materialChars": 155089,
+      "segments": 2,
+      "checks": {
+        "a": "pass",
+        "b": "fail",
+        "c": "pass",
+        "d": "fail",
+        "e": "pass",
+        "f": "fail",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pending"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "W20-02 高：`struct Journal",
+        "` 仅前置声明，WIN-16 须逐字段构造、C/N 语义无定义句→消费方无法写代码且",
+        "W20-01 中：备份集含 CORE-95 pack_meta.db/-wal/-s",
+        "W20-03/05 中：恢复目标命名不一致、current/pending/roll",
+        "W20-04 中：launcher 目录与 staging\\updates 共享写入",
+        "W20-06 中：nonce 生成无归属/无端口 → d/e/g、S2/S3 fai",
+        "状态：复检后无修订"
+      ],
+      "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-87",
+      "card": "CORE-87",
+      "grade": "C",
+      "reviewer": "r6",
+      "date": "2026-10-22",
+      "materialChars": 169738,
+      "segments": 3,
+      "checks": {
+        "a": "fail",
+        "b": "pass",
+        "c": "pass",
+        "d": "fail",
+        "e": "fail",
+        "f": "pass",
+        "g": "fail",
+        "S1": "pass",
+        "S2": "fail",
+        "S3": "fail",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "fail",
+      "blockers": [
+        "R6Z-87-01/03（平台绑定登记互斥、[R09] 验收不可独立自动化）+ R6",
+        "状态：复检后无修订"
       ],
       "consumerConfirmation": null
     }
