@@ -257,8 +257,9 @@ test('segmentation is exact: parts concatenate to the material byte for byte', (
 });
 
 test('denoising cuts material size markedly', () => {
-  // 整合 CO-44/45/49 后 CORE-78 直接依赖契约增长（约 104K 字符，去噪仍节省约 242K），上限按现行材料放宽到 110000。
-  for (const [id, max] of [['CORE-77', 100000], ['CORE-78', 110000]]) assert.ok(pack(id).report.chars < max, id);
+  // 整合 CO-44/45/49 后 CORE-78 直接依赖契约增长（约 104K 字符，去噪仍节省约 242K）；CO-56 后 CORE-77≈98.2K、CORE-78≈109.9K，
+  // 余量不足百字，按现行材料各留约 10% 余量：CORE-77 110000、CORE-78 120000（仍为体积回归护栏，超出须先查去噪是否失效）。
+  for (const [id, max] of [['CORE-77', 110000], ['CORE-78', 120000]]) assert.ok(pack(id).report.chars < max, id);
   const r = pack('CORE-26');
   const saved = r.report.filteredFiles.reduce((s, f) => s + f.originalBytes - f.includedBytes, 0);
   assert.ok(saved > 150000, String(saved));
