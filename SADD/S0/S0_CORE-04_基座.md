@@ -70,7 +70,7 @@ abstract interface class SecureKeyValueStore {
 }
 /// 应用私有目录；返回的目录都位于应用私有根目录之内，不存在时自动创建。
 abstract interface class LocalFileStore {
-  Future<Directory> root(StoreArea area);
+  Future<Directory> root(StoreArea area);                     // 目录位于应用私有根内并已创建；StoreArea.staging 的绝对路径即 staging 类 op 的 staging_root（ADR-V5-53），核心不保存全局暂存根
   Future<int> freeBytes();                                    // 应用私有根目录所在卷的可用字节数
   /// dir须在本应用私有根目录内（解析符号链接后的真实路径）；越界抛ArgumentError，不创建/修改目标。
   Future<void> excludeFromSystemBackup(Directory dir);
@@ -189,6 +189,8 @@ HttpTransport流式续传统一协议：rangeStart>=0且仅saveTo可用；>0时�
 - 端口不得把用户内容写入日志；`ImportedImage.readBytes` 只在当前导入会话内有效，过期抛 `PLATFORM_IO`。
 - 端口接口只用 Dart SDK 与 `dart:io` 类型，不引入第三方包类型；平台差异只体现在实现与注释中，接口文本两端相同。
 - 平台卡内联本卡签名时须逐字复制本节代码，不得增删参数或改写注释。
+- 核心加载失败的异常边界：`CoreBinding.open` 把 `DynamicLibrary.open` 的 `ArgumentError` 原样抛出，`runPlatformApp` 捕获后显示 `loadFailed`；ABI MAJOR 不一致不抛异常，由 `runPlatformApp` 比较 `abiVersion() >> 16` 后显示 `abiMismatch`。端口层不捕获也不重映射这两类失败（定义在 CORE-03，本卡照用）。
+- 依赖分类：本卡只依赖 CORE-01、CORE-02、CORE-03。正文提到的 CORE-28、CORE-27、CORE-14、CORE-34、CORE-36、AND-07、WIN-08、AND-01、WIN-01 是消费方或下游说明，不是本卡的代码依赖，因此不加入“依赖”行（下游说明，非契约）。
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-04_TEST.md](../Test/S0/S0_CORE-04_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
