@@ -77,7 +77,7 @@ pub fn decode_tokens(ids: &[i64], vocab: &[String]) -> Result<String, FmlError>;
 - 推理线程数 = min(4, 逻辑核数 / 2)，在 CORE-03 长任务线程上执行，不阻塞 FFI 同步调用。
 - 模型与训练数据许可逐项登记（附录 C），`model_license`、`weights_license` 或 `training_data_refs` 为空的包拒绝注册（`RECOG_MODEL_INCOMPATIBLE`）。
 - 本地后端不联网、不初始化遥测；运行时的遥测或在线功能须在构建配置中关闭。
-- 性能按 CORE-01 预算表“本地模型识别”“本地模型首次加载”两行验收；`benchmark` 字段只作说明，以本卡验收的实测为准。
+- 性能按 CORE-01 预算表“本地模型识别（单式，模型已加载）”“本地模型首次加载”两行验收（行名逐字取预算表第一列的机器键）；`benchmark` 字段只作说明，以本卡验收的实测为准。
 - 外部前提：运行时二选一（ONNX Runtime 的 Rust 绑定 `ort`，或 MNN 的 C API 自写绑定）及其版本，M0 定案（ADR-V5-13（待定））；可用的公开模型与许可见附录 B、附录 C；在模型就绪前，本卡全部单测与集成测试用 `FakeEngine` 与 `tests/fixtures/model-fake/` 假模型包完成。
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-35_TEST.md](../Test/core/S5_CORE-35_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。

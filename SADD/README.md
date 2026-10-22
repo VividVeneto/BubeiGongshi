@@ -184,7 +184,7 @@ v5 的主要变化：
 | R23 | 版本控制简洁可靠 | 原文 | V1 | Trunk-based、SemVer、ABI/DTO/DB/包版本矩阵、发布与回滚 | 自动＋主机真机（两平台回滚）＋人工checklist | CORE-01、CORE-22、CORE-42、CORE-74、AND-01、AND-11、WIN-01、WIN-02、WIN-03、WIN-09、WIN-12、WIN-16、WIN-18、WIN-20 |
 | R24 | 用户不登录无法使用软件 | 原文 | V1 | 账户状态机：Uninitialized 只显示账户入口 | 自动 | CORE-22、CORE-23、CORE-45、CORE-46、CORE-62、CORE-63、CORE-65 |
 | R25 | 不注册可使用游客账户，数据在本地保存 | 原文 | V1 | 本地一等游客账户；退出不清数据 | 自动 | CORE-23、CORE-24、CORE-27、CORE-47、CORE-63、CORE-65、CORE-83、CORE-84、CORE-99、CORE-101 |
-| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-23、CORE-24、CORE-25、CORE-26、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-46、CORE-50、CORE-51、CORE-62、CORE-69、CORE-84、AND-08、AND-09、AND-11、WIN-03、WIN-09、WIN-10 |
+| R26 | 游客账户不向云端提交内容 | 原文 | V1 | NetworkGuard 白名单、游客禁用云识别与同步 | 自动 | CORE-01、CORE-23、CORE-24、CORE-25、CORE-26、CORE-28、CORE-29、CORE-33、CORE-34、CORE-40、CORE-46、CORE-50、CORE-51、CORE-62、CORE-69、CORE-84、AND-08、AND-09、AND-11、WIN-03、WIN-09、WIN-10 |
 | R27 | 本地存储用户数据 | 原文 | V1 | SQLCipher 加密库、私有目录、导出与恢复 | 自动 | CORE-03、CORE-04、CORE-13、CORE-21、CORE-23、CORE-27、CORE-28、CORE-32、CORE-47、CORE-65、CORE-84、CORE-85、AND-03、AND-05、AND-06、WIN-02、WIN-03、WIN-04、WIN-06、WIN-07、WIN-09、WIN-16、WIN-20 |
 | R28 | 转为注册账户后可以同步 | 原文 | V1 | 游客升级日志、端到端加密同步、服务端密文存储 | 自动 | CORE-13、CORE-17、CORE-21、CORE-22、CORE-23、CORE-24、CORE-25、CORE-26、CORE-27、CORE-36、CORE-43、CORE-46、CORE-47、CORE-66、CORE-68、CORE-78、CORE-80、CORE-83、CORE-84、CORE-98、CORE-99 |
 | R29 | 静态资源剥离为资源包 | 原文 | V1 | 签名资源包；安装包内置 bootstrap-pack | 自动＋模型（M-MODEL） | CORE-35、CORE-51、CORE-95 |
