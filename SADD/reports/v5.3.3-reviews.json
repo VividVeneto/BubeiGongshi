@@ -5547,6 +5547,36 @@
         "状态：复检后无修订"
       ],
       "consumerConfirmation": null
+    },
+    {
+      "record": "P2-CORE-102",
+      "card": "CORE-102",
+      "grade": "B",
+      "reviewer": "d3-core13-split-owner",
+      "date": "2026-10-22",
+      "materialChars": 164489,
+      "segments": 3,
+      "checks": {
+        "a": "pending",
+        "b": "pending",
+        "c": "pending",
+        "d": "pending",
+        "e": "pending",
+        "f": "pending",
+        "g": "pending",
+        "S1": "pending",
+        "S2": "pending",
+        "S3": "pending",
+        "S4": "pending",
+        "S5": "pending",
+        "S6": "pending"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "新卡 CORE-102（CO-64 拆卡，ADR-V5-66）：作者自查、非独立复核，a～g 与 S1～S6 全 pending，不作就绪依据",
+        "消费方 CORE-24/CORE-26/CORE-66 的接线程与读取入口确认未完成"
+      ],
+      "consumerConfirmation": null
     }
   ]
 }

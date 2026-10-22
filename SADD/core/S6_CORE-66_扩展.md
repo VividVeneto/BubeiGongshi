@@ -6,7 +6,7 @@
 - 包含：快照构建/应用、旧事件重新包装与轮换事务。
 - 不包含：依赖卡已定义的业务算法、存储与平台能力；不修改其契约。
 
-**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-05、CORE-13、CORE-21、CORE-23、CORE-24、CORE-25、CORE-26、CORE-56、CORE-68、CORE-78
+**依赖**：CORE-01、CORE-02、CORE-03、CORE-04、CORE-05、CORE-13、CORE-21、CORE-23、CORE-24、CORE-25、CORE-26、CORE-56、CORE-68、CORE-78、CORE-102
 
 **接口契约**
 
@@ -52,15 +52,15 @@ FFI唯一归属：sync.reencrypt、sync.snapshot_build、sync.snapshot_apply均�
 - 已装库上的 apply 前提（非空库/已同步设备）：允许在已有业务数据与本机游标的库执行，适用场景是新设备首次全量、纪元变化后重建、或本地已有数据的设备补快照。语义是按 CORE-13 字段时钟 LWW 合并，不是整库覆盖：快照中较旧的字段不覆盖本地较新值，墓碑丢弃更旧版本，不删除“快照中没有但本地存活”的实体；apply 不清空本地 outbox、不改 device_id、不触发回退证据判定。因此“非空库必须一律 SYNC_SNAPSHOT_CORRUPT”不是本卡语义；真正的失败条件只有清单/分片/记录流非法、纪元不符与本地分析前提故障。
 - 轮换同一事务load_account_keys_tx校验new_version存在，再作废KeyRotated批次、清旧outbox并按registry稳定枚举/requeue_outbox重建，保持业务字段与时钟；全部重排入队成功才提交，不在中途切换对外版本。此函数只建立待加密队列，不产生新密文；真正AEAD nonce/加密由CORE-26 prepare_push完成。轮换完成必须等待实际prepare_push、上传及确认条件，不能把重排成功报告成密文已轮换；旧密钥保留到全部确认。只重排不产生虚假的本地业务修改，IdSource随机失败CRYPTO_RNG_FAILED不部分入队。账户密钥版本导入/保存仍归CORE-24。
 
-**跨卡变更单（CORE-13，所有者 CO-44；本卡只登记，不代签、不得以本卡文字伪装已交付）**
+**跨卡变更单（已由 2026-10-22 拆卡 CORE-102/CO-64 受理，原登记对象为 CORE-13 的 CO-44；本卡按 CORE-102 公开符号接线，不得自拼 SQL，也不得以本卡文字伪装 CORE-102 已就绪）**
 
-build 需按 registry 枚举实体并读负载与时钟、读未过期墓碑与 `sync_pull` 游标；apply 需写游标。CORE-13 目前只有 DDL 与 `list_entity_ids`/`requeue_outbox`，缺读接口，故申请：
+build 需按 registry 枚举实体并读负载与时钟、读未过期墓碑与 `sync_pull` 游标；apply 需写游标。原卡 CORE-13 只有 DDL 与 `list_entity_ids`/`requeue_outbox`，读取入口与写门已拆至 CORE-102（S2，依赖 CORE-13；`crates/fml-store/src/sync_read.rs`、`write_gate.rs`），符号如下（`conn` 均为调用方已开启事务的合同只读视图，`tx.conn()` 取得）：
 
-- `read_entity_tx(tx: &ReadTx, entity_type: &str, entity_id: &str) -> Result<Option<StoredEntity>, FmlError>`（旧：无；新：上）：返回规范化 body JSON 字节与 `clocks`（与 outbox 行同口径），不返回 outbox/隔离区。
-- `list_tombstones(tx: &ReadTx, now_ms: i64) -> Result<Vec<TombstoneRow>, FmlError>`（旧：无；新：上）：未过期墓碑的 entity_type/entity_id/deleted_at_ms/clocks。
-- `read_sync_cursor_tx(tx: &ReadTx, stream: &str) -> Result<Option<SyncCursorRow>, FmlError>`（`SyncCursorRow{cursor, epoch, updated_at_ms}`）与 `write_sync_cursor_tx(tx: &mut WriteTx, stream: &str, cursor: &str, epoch: u32, now_ms: i64)`（旧：`sync_cursor` 只有 DDL；新：上）。
+- `EntityRegistry::read_entity(&self, conn: &rusqlite::Connection, entity_type: &str, entity_id: &str) -> Result<Option<StoredEntity>, FmlError>`（旧：无；CORE-102 定义）：返回规范化 body 与 `clocks`（`StoredEntity{entity, clocks}`，与 outbox 行同口径），不返回 outbox/隔离区；未登记类型或存活实体无字段时钟 → `STORE_CORRUPT`。build 分步读取时可另用 `read_field_clocks(conn, entity_type, entity_id) -> Result<BTreeMap<String, FieldClock>, FmlError>`。
+- `list_tombstones(conn: &rusqlite::Connection, now_ms: i64) -> Result<Vec<TombstoneRow>, FmlError>`（旧：无；CORE-102 定义）：未过期墓碑的 entity_type/entity_id/deleted_at_ms/clocks，保留期常量 `TOMBSTONE_TTL_MS` 同属 CORE-102；只读，不清理。
+- `read_sync_cursor(conn: &rusqlite::Connection, stream: &str) -> Result<Option<SyncCursorRow>, FmlError>`（`SyncCursorRow{cursor, epoch, updated_at_ms}`）与 `WriteTx::set_sync_cursor(&mut self, stream: &str, next: &SyncCursorValue, order: &dyn CursorOrder, now_ms: i64) -> Result<SyncCursorWrite, FmlError>`、`WriteTx::clear_sync_cursor(&mut self, stream: &str) -> Result<bool, FmlError>`（旧：`sync_cursor` 只有 DDL；CORE-102 定义，只接受写事务以保证单写者）。
 
-迁移风险：读接口必须是只读快照接口，写接口不得绕过单写者；CORE-26 `apply_pull` 与本卡 `apply_snapshot` 共用 `write_sync_cursor_tx`，游标单调判定必须同源（建议 CORE-13 落地时直接提供 `advance_sync_cursor_tx`，否则两卡各判一次会分叉）。消费者：本卡、CORE-26（`sync.cursor`/`status.last_applied_ms`）。Test 变更单：CORE-13 补「只读快照」「无行返回 None」「游标不回退」用例；本卡与 CORE-26 的快照/拉取实现在 CORE-13 落地前阻断于 CO-44 组。
+迁移风险：读接口必须是只读快照接口，写接口不得绕过单写者；CORE-26 `apply_pull` 与本卡 `apply_snapshot` 共用 `WriteTx::set_sync_cursor`，游标单调判定单源在 CORE-102 注入的 `CursorOrder`（原建议的 `advance_sync_cursor_tx` 由该入口取代，两卡传同一实现即可，不各判一次）。消费者：本卡、CORE-26（`sync.cursor`/`status.last_applied_ms`）。Test 变更单：CORE-102 的测试方案已含「只读快照」「无行返回 None」「游标不回退」用例，本卡只按上述符号接线，不再阻断于 CO-44；CORE-102 复检通过前本卡与 CORE-26 的快照/拉取实现仍按未就绪处理。
 
 **实现约束**
 - 快照验证完整后才单事务应用并保存 covers_through 游标，失败保留旧库与游标；轮换先保存新包装再切版本，旧密钥保留到全部确认。
