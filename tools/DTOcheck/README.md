@@ -19,6 +19,10 @@ node --test tools/DTOcheck/*.test.mjs                 # 本工具自身的测试
 | 工具 | 检查 | 代号 |
 | --- | --- | --- |
 | dto | manifest：op 唯一与命名、owner 是现行卡、scope/mode/status、ready 必有 schema 与示例、pending 必有 blocked_reason、error_codes 唯一且有序 | DTO-01～09 |
+| dto | manifest 阶段：每条必须带 `stage`（S0～S7），传入卡片阶段表时还须等于 owner 卡在 §2 实施阶段表中的阶段（唯一来源，检查器不猜） | DTO-22～23 |
+| dto | manifest 引擎快照集合：ready 必须显式 `reads_engine_snapshot` 布尔值，且与该 op 是否含 `ENGINE_UNAVAILABLE` 双向一致；pending 不得声明 | DTO-24 |
+| dto | manifest 条目字段冻结：ready 只准 `reads_engine_snapshot`、pending 只准 `blocked_reason` 作为状态相关键，其余未知键失败 | DTO-25 |
+| dto | op 的错误集合来源：每个码必须在现行卡的“错误码”定义表恰好注册一次（未注册/重复归属都是硬错误）；CORE-03 的信封/句柄/取消码不得写入 op 的业务集合 | DTO-06、DTO-18 |
 | dto | schema：$schema/title、关键字白名单、required ⊆ properties、对象必须 additionalProperties:false、整数范围（超过 2^53-1 登记为 i64 字段，超过 i64 报错）、pattern/format 合法、$ref 可解析、孤儿 schema | DTO-10～17 |
 | dto | 示例按自带 schema 校验（类型、必填、额外字段、格式、范围、oneOf、prefixItems）；x-sensitive 与 manifest.sensitive_paths 一致 | DTO-12～14 |
 | dto | contracts/vectors：JSON 合法；云识别幂等键按 UUIDv5 重算 | DTO-20～21 |
@@ -38,3 +42,4 @@ xref 的候选是启发式的，不能当作缺陷清单，也不能整体忽略
 - 提交前请运行 `node tools/DTOcheck/run.mjs`（AGENTS.md 与 README §8.1 已列入）。
 - `tools/sadd/`（pack、audit、stats、reservations、current）仍是材料、统计与就绪证据的正式入口，本工具不改写任何文件（`--update-baseline` 只写你指定的基线文件）。
 - 未覆盖：Rust/Dart 编译、DTO 生成器（CORE-67 的 `gen_dto.py`）、字段语义是否合理、示例以外的向量。
+- 未覆盖（等待所有者实现）：逐 op 期望错误集合与 `contracts/errors/registry.yaml` 的比对。registry.yaml 尚未创建（CORE-02 未实现），本工具只校验“码已注册且归属唯一”，不把 manifest 与自身比、也不自建第二份逐 op 期望；registry 落地后由本工具比对，不在 `dto_schema.py` 里再写一遍。
