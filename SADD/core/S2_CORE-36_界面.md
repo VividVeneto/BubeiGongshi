@@ -40,6 +40,9 @@ enum UpgradeChoice { newAccount, mergeInto }
 sealed class KeySecretInput { const KeySecretInput(); }
 final class RecoveryCodeInput extends KeySecretInput { const RecoveryCodeInput(this.code); final String code; }
 final class PassphraseInput extends KeySecretInput { const PassphraseInput(this.passphrase); final String passphrase; }
+final class UpgradeCredentials { const UpgradeCredentials({required this.email, required this.emailCode, required this.password});
+  final String email; final String emailCode; final String password; }   // 仅升级的注册步使用；不回显、不落盘、不写日志或错误详情
+enum UpgradeResumeState { none, needsUser, completed }   // none 无待续步骤 / needsUser 需用户补凭据或确认 / completed 已续接到完成
 abstract interface class SyncFacade {
   Stream<SyncStatus> get status;
   Future<SyncStatus> syncNow(SyncTrigger trigger);
@@ -52,11 +55,14 @@ abstract interface class SyncFacade {
 }
 abstract interface class UpgradeFacade {
   Future<void> run(UpgradeChoice choice, {required Future<bool> Function(String recoveryCode) confirmSaved,
-                   Future<KeySecretInput> Function()? askSecret /* mergeInto 必填 */});
-  Future<void> resumeIfPending();
+                   Future<KeySecretInput> Function()? askSecret,            // mergeInto 必填
+                   Future<UpgradeCredentials> Function()? askCredentials,  // newAccount 必填
+                   Future<bool> Function()? askEnableSync});               // 升级完成后由实现至多询问一次是否开启同步
+  Future<UpgradeResumeState> resumeIfPending();   // 只续接可自动完成的步骤；需用户补凭据时返回 needsUser，不自动推进
+  Future<void> abandonPending();                  // 取消升级；仅本地提交之前允许，之后抛 SYNC_UPGRADE_NOT_ABANDONABLE（CORE-24）
 }
 final class DisabledSyncFacade implements SyncFacade { /* status 先发并只发 SyncStatus(phase: disabled)；choices 返回 const []；syncNow/setEnabled/provideKey/setSyncPassphrase/revokeDeviceAndRotate/resolveChoice 均抛 FmlException('SYNC_NOT_AVAILABLE')（CORE-02 本地构造器） */ }
-final class DisabledUpgradeFacade implements UpgradeFacade { /* run 抛 SYNC_NOT_AVAILABLE；resumeIfPending 什么也不做 */ }
+final class DisabledUpgradeFacade implements UpgradeFacade { /* run 与 abandonPending 抛 SYNC_NOT_AVAILABLE；resumeIfPending 返回 UpgradeResumeState.none */ }
 
 // app/lib/composition/profile_hooks.dart；不改变 CORE-04 StartupHook
 final class ProfileHooks {
@@ -144,7 +150,7 @@ class StartupFailedScreen extends StatelessWidget { const StartupFailedScreen({s
 | --- | --- | --- | --- |
 | `SYNC_NOT_AVAILABLE` | info | 否 | 相应同步/升级模块未安装时调用其 Disabled 门面方法；已安装但游客/关闭同步不在此列 |
 
-规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：组装层/门面/外壳接缝约 350、外壳/路由守卫/进程与档案钩子约 300，共约 670（② 含启动失败页约 20），测试与特性接入行不计；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
+规模复核（2026-10-21 按 README §8.4 新口径复估，见规模行分阶段）：组装层/门面/外壳接缝约 350、外壳/路由守卫/进程与档案钩子约 300，共约 675（② 含启动失败页约 20；升级门面新增的恢复态与凭据类型并入①），测试与特性接入行不计；ProfileSession实现与打开/关闭序列归CORE-65，本卡仅注入其source，不复制生命周期状态机。
 
 启动order 95保留不登记：旧托盘创建已迁firstFrameHooks 10，最小化兜底15、健康确认20均属于首帧钩子独立序列，不得重新塞入顺序队列。startup12/85分别归Windows键位/更新，平台未安装时空缺；同号跨序列允许，同序列不同所有者冲突需CORE-36维护者分配，不靠登记先后碰运气。
 
@@ -168,5 +174,5 @@ PR3预分配以contracts/policies/shared-writes.json为机器索引，公共行�
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-36_TEST.md](../Test/core/S2_CORE-36_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约 670 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`（含 `entry.dart` 一行接缝）。各特性在聚合文件中的接入行计入特性卡。分阶段：① 组装层、门面与外壳接缝（compose_app、AppDeps/UiDeps、installers、facades、shell_ext 与登记回执，约 350）；② 应用外壳、路由守卫与启动钩子（routes.dart、app_shell.dart、main_common.dart、startup_failed_screen.dart，约 320）。
+**规模**：约 675 行；主包 `app/lib/composition/`、`app/lib/ui/shell/`、`app/lib/main_common.dart`（含 `entry.dart` 一行接缝）。各特性在聚合文件中的接入行计入特性卡。分阶段：① 组装层、门面与外壳接缝（compose_app、AppDeps/UiDeps、installers、facades、shell_ext 与登记回执，约 355）；② 应用外壳、路由守卫与启动钩子（routes.dart、app_shell.dart、main_common.dart、startup_failed_screen.dart，约 320）。
 
