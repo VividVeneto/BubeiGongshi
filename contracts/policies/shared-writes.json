@@ -1191,6 +1191,12 @@
     },
     {
       "kind": "error",
+      "key": "LIB_DRAFT_INVALID",
+      "owner": "CORE-61",
+      "point": "contracts/errors/registry.yaml"
+    },
+    {
+      "kind": "error",
       "key": "LIB_TAGS_LIMIT",
       "owner": "CORE-14",
       "point": "contracts/errors/registry.yaml"
@@ -1235,6 +1241,12 @@
       "kind": "file",
       "key": "app/windows/runner/flutter_window.cpp",
       "owner": "WIN-01",
+      "point": "single-writer"
+    },
+    {
+      "kind": "file",
+      "key": ".github/workflows/ci.yml",
+      "owner": "CORE-41",
       "point": "single-writer"
     },
     {
