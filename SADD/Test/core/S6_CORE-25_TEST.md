@@ -12,7 +12,7 @@
 - [R28] 服务端存储检查：数据库与对象存储中无可解析的公式文本（注入已知明文后扫描零命中）。
 - [R28] 账户删除：认证时间超过 300 s 被拒；删除后令牌失效、数据查询为空、对象存储无该账户前缀；费用墓碑与安全日志按例外保留。
 - [R26] 未注册（无令牌）请求一律 401 `AUTH_TOKEN_INVALID`；[R18] 用 A 的令牌读取 B 的 `snapshot_id`、`deletion_id` 返回 404 `SYNC_NOT_FOUND`，不存在的 ID 返回同一响应体（除 trace）；无已提交快照时 `snapshots/latest` 返回 404 `SYNC_NOT_FOUND`。
-- [R28] 入站校验：push 请求以 `contracts/vectors/envelope-v2.json` 的 invalid 用例逐个替换批内第 2 条，返回 400 `SYNC_ENVELOPE_INVALID` 且 `args.field` 与向量一致、整批不写入（数据库 last_seq 不变）；`too_large_ciphertext` 返回 413 `SYNC_PAYLOAD_TOO_LARGE`、`hash_mismatch` 返回 400 `SYNC_HASH_MISMATCH`；push/pull 响应体可由 CORE-68 PushResponse/PullResponse 以 deny_unknown_fields 反序列化。
+- [R28] 入站校验：push 请求以 `contracts/vectors/envelope-v2.json` 中 `group=invalid` 的用例（按文件顺序）逐个替换批内第 2 条，返回 400 `SYNC_ENVELOPE_INVALID` 且 `args.field` 与向量的 `expect.field` 一致、整批不写入（数据库 last_seq 不变）；`group=too_large` 的 `too_large_ciphertext` 返回 413 `SYNC_PAYLOAD_TOO_LARGE`、`group=hash_mismatch` 的 `hash_mismatch` 返回 400 `SYNC_HASH_MISMATCH`（文件结构与分组见 CORE-68 测试方案）；push/pull 响应体可由 CORE-68 PushResponse/PullResponse 以 deny_unknown_fields 反序列化。
 - [R28] 推送结果与批内校验：一批 5 条（含 1 条已存在同哈希、1 条 CONFLICT）时 `results` 长度为 5 且下标与请求一一对应；批内两条 op_id 相同返回 400 `SYNC_ENVELOPE_INVALID`、`args.field = "op_id"` 且不写入；pull 返回的每条 envelope 字节与 push 时 `to_canonical_json` 字节逐字节相等。
 - [R28] 拉取参数边界：limit 0/1/200/201、max_bytes 65535/65536/1048576/1048577 按边界截取；Σbody+(n−1) ≤ max_bytes；单条超过 max_bytes 时仍返回该一条；has_more 在恰好取尽时为 false。
 - [R28] 纪元参数：`SYNC_EPOCH_STALE` 与纪元不符的 `SYNC_CURSOR_INVALID` 响应 `args.account_epoch` 等于服务端当前纪元（十进制字符串）；游标无法解析时不带该参数。
