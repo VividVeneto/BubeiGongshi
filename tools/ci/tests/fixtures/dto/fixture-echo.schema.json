@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FixtureEchoSchema",
+  "$defs": {
+    "request": {
+      "title": "FixtureEchoRequest",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "ok": {
+      "title": "FixtureEchoOk",
+      "type": "object",
+      "properties": {
+        "echo": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": -9223372036854775808,
+          "maximum": 9223372036854775807
+        },
+        "ratio": {
+          "type": "number"
+        },
+        "flag": {
+          "type": "boolean"
+        },
+        "amount": {
+          "type": "string",
+          "format": "decimal"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warn"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "db_key": {
+          "type": "string",
+          "format": "base64",
+          "x-sensitive": true
+        },
+        "note": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "echo",
+        "count",
+        "ratio",
+        "flag",
+        "amount",
+        "level",
+        "tags",
+        "db_key",
+        "note"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "text": "hello"
+      },
+      "ok": {
+        "echo": "hello",
+        "count": 1,
+        "ratio": 0.5,
+        "flag": true,
+        "amount": "1.25",
+        "level": "info",
+        "tags": [
+          "a",
+          "b"
+        ],
+        "db_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "note": null
+      }
+    }
+  ]
+}
