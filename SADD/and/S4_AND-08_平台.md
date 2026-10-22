@@ -31,6 +31,7 @@ abstract interface class ReminderSelfCheck {
 final class AndroidNotificationScheduler implements NotificationScheduler {
   AndroidNotificationScheduler(this.permissions);   // AND-02；requestPermission：API 33+ 请求 postNotifications，以下版本查询通知是否被关闭
   final PermissionService permissions;
+  // 调用说明：本卡只按 AND-02 的接口调用，不构造 ChannelPermissionService、不自建对话框宿主或导航键；通知类文案键由本卡传给 request，用途说明对话框由组合层注入的上下文提供者驱动，界面不可用时由 AND-02 降级为只弹系统权限框。
 }
 final class AndroidReminderSelfCheck implements ReminderSelfCheck { const AndroidReminderSelfCheck(); }
 void installAndroidReminders(CompositionContext ctx) =>
