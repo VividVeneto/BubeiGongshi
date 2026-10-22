@@ -3,7 +3,7 @@
 **目标**：定义与具体模型无关的识别输入、输出与后端能力契约，使本地模型、云端 LLM 与实验后端可插拔替换。
 
 **范围**
-- 包含：`Recognizer` trait、输入/上下文/输出类型、后端能力声明、后端注册表与选择规则（本地后端与远程后端描述符）、两种识别模式、墨迹规范表示与规范渲染、`recog.backends` 与 `recog.run` op。
+- 包含：`Recognizer` trait、输入/上下文/输出类型、后端能力声明、后端注册表与选择规则（本地后端与远程后端描述符）、两种识别模式、墨迹规范表示与规范渲染、`recog.backends`、`recog.register_remote` 与 `recog.run` op。
 - 不包含：具体后端实现（CORE-34 云端、CORE-35 本地、附录 B 的 YOLO 实验分支）；图片预处理（CORE-30）；后处理（CORE-31）；会话持久化（CORE-32）。
 
 **依赖**：CORE-01、CORE-02、CORE-03、CORE-05
@@ -46,7 +46,7 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 
 - 墨迹规范渲染：按包围盒缩放到长边 `long_edge_px`，四周留 5% 白边；笔宽 `max(2, long_edge_px / 200)` 像素，圆头圆角，忽略压力；白底黑字 8 位灰度；用 tiny-skia 软件光栅化、png crate 编码（压缩级别固定），使两端像素逐字节一致。
 - `run` 的检查顺序：id 不存在 → `RECOG_BACKEND_UNAVAILABLE`；networked 且游客 → `RECOG_BACKEND_NOT_ALLOWED`；networked（注册用户）→ `RECOG_BACKEND_REMOTE`（调用方按该码改走 CORE-34）；输入为图片且 `input_kinds` 不含 `Image` → `RECOG_INPUT_INVALID`（不降级为墨迹路径，也不自动改用其他后端）；输入为墨迹且 `input_kinds` 不含 `Ink` → 先 `render_ink`（`long_edge_px = clamp(caps.recommended_pixels, 256, 2048)`），渲染后再按图片输入检查 `Image` 能力；其余调用后端。后端返回空候选 → `RECOG_NO_CANDIDATE`。
-- FFI op：`recog.backends`（同步）`{ account }` → `{ backends: BackendCaps[] }`；`recog.register_remote`（同步）`{ caps }` → `{}`（CORE-34 在注册用户解锁后调用）；`recog.run`（长任务）`{ backend_id, account, input: { ink } | { image_path }, context, staging_root? }` → `RawOutput`。图片输入的 `image_path` 必须是 CORE-30 `img.prepare`/`img.fit_for_upload` 写出的 PNG，`staging_root` 必填；墨迹输入不带这两个字段。图片分支由 `crates/fml-ffi/src/ops/recognize.rs` 处理层执行：① 把 `image_path` 与 `staging_root` 规范化后比较（ADR-V5-53），须位于其下且路径各级都不是符号链接或重解析点；缺 `staging_root`、越界或经符号链接指向外部 → `RECOG_INPUT_INVALID`；② 以只读方式分块读入全部字节（每 1 MiB 与读完后各检查一次 `CancelFlag`，置位 → `RECOG_CANCELLED`），文件不存在、不是普通文件或不可读 → `IMG_PATH_INVALID`；③ 字节数 > 20 MiB → `IMG_TOO_LARGE`（恰 20 MiB 通过）；④ 只查头部判定 PNG：8 字节签名 `89 50 4E 47 0D 0A 1A 0A` 与长度 13 的首个 `IHDR` 块，不做完整解码；签名、IHDR 或首块类型不合法 → `IMG_FORMAT_UNSUPPORTED`；⑤ 由 IHDR 取宽高，宽 × 高 > 40 MP → `IMG_TOO_MANY_PIXELS`（按头部声明判断，防解压炸弹）；⑥ `sha256` 对读入的这份 PNG 字节计算，不重编码、不缩放、不旋转，`png` 与 `image_path` 的文件内容逐字节相同；⑦ 用 `png`、`width`、`height`、`sha256` 构造 `RecogImage`。判定与上限沿用 CORE-30 的 `DecodeLimits` 与 `probe` 口径（`max_bytes` 20 MiB、`max_pixels` 40 MP）；CORE-30 在产出该文件时已完成解码、EXIF 方向修正与规范化，本卡不重复解码、不新增 crate 依赖，适配层只做最小头部校验与哈希。
+- FFI op：`recog.backends`（同步）`{ account }` → `{ backends: BackendCaps[] }`；`recog.register_remote`（同步）`{ caps }` → `{}`（CORE-34 在注册用户解锁后调用）；`recog.run`（长任务）`{ backend_id, account, input: { ink } | { image_path }, context, staging_root? }` → `RawOutput`。图片输入的 `image_path` 必须是 CORE-30 `img.prepare`/`img.fit_for_upload` 写出的 PNG，`staging_root` 必填；墨迹输入不带这两个字段。图片分支由 `crates/fml-ffi/src/ops/recognize.rs` 处理层执行：① 把 `image_path` 与 `staging_root` 规范化后比较（ADR-V5-53），须位于其下且路径各级都不是符号链接或重解析点；缺 `staging_root`、越界或经符号链接指向外部 → `RECOG_INPUT_INVALID`；② 以只读方式分块读入全部字节（每 1 MiB 与读完后各检查一次 `CancelFlag`，置位 → `RECOG_CANCELLED`），文件不存在、不是普通文件或不可读 → `IMG_PATH_INVALID`；③ 字节数 > 20 MiB → `IMG_TOO_LARGE`（恰 20 MiB 通过）；④ 只查头部判定 PNG：8 字节签名 `89 50 4E 47 0D 0A 1A 0A` 与长度 13 的首个 `IHDR` 块，不做完整解码；签名、IHDR 或首块类型不合法 → `IMG_FORMAT_UNSUPPORTED`；⑤ 由 IHDR 取宽高，宽 × 高 > 40 MP → `IMG_TOO_MANY_PIXELS`（按头部声明判断，防解压炸弹）；⑥ `sha256` 对读入的这份 PNG 字节计算，不重编码、不缩放、不旋转，`png` 与 `image_path` 的文件内容逐字节相同；⑦ 用 `png`、`width`、`height`、`sha256` 构造 `RecogImage`。判定与上限沿用 CORE-30 的 `DecodeLimits` 与 `probe` 口径（`max_bytes` 20 MiB、`max_pixels` 40 MP）；CORE-30 在产出该文件时已完成解码、EXIF 方向修正与规范化，本卡不重复解码、不新增解码依赖，文件字节的 SHA-256 用 sha2（见外部前提），适配层只做最小头部校验与哈希。
 - 错误码：
 
 | 错误码 | 级别 | 可重试 | 触发条件 |
@@ -72,7 +72,7 @@ pub fn render_ink(ink: &InkStrokes, long_edge_px: u32 /* 256..=2048 */) -> Resul
 - 本地识别低置信度、失败或内存不足时，不得自动切换到云端；本地模式不初始化任何远程 SDK 或遥测。
 - 没有安装本地模型时，游客的识别入口显示“不可用”，只提供编辑器与手工输入，不给假结果。
 - `yolo-experiment` 只存在于实验分支，主线代码中不得出现其注册调用（附录 B）。
-- 外部前提：tiny-skia、png（版本按 ADR-V5-15 锁入 `Cargo.lock`；渲染一致性测试在两端 CI 运行）。
+- 外部前提：tiny-skia、png 与 sha2（版本按 ADR-V5-15 锁入 `Cargo.lock`；sha2 与 CORE-05、CORE-68 同一 crate，用于文件字节 SHA-256，不引入第二个哈希实现；渲染一致性测试在两端 CI 运行）。
 
 **验收标准**：测试方案全文见 [Test/core/S5_CORE-29_TEST.md](../Test/core/S5_CORE-29_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 

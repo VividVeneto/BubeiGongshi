@@ -56,7 +56,7 @@ deskew：灰度缩至长边1024，阈值化后扫描-15°..15°步长0.5°，最
 - 质量提示不阻断流程，低质量时提示重拍或调整；阈值在 M0 用样本标定后写入 `crates/fml-imgproc/thresholds.yaml`。
 - 不强制锐化与二值化；保留灰度图（`PrepareOutput.gray`）与增强图供用户对照；切换增强选项会重新生成图片与哈希，原有上传授权作废。
 - 只有基准测试证明必要时才引入 OpenCV（须经 ADR）。
-- 外部前提：image（`default-features = false`，只启用 png 特性；禁止启用其 jpeg/webp 特性）、zune-jpeg、image-webp（纯 Rust，禁止拉入 libwebp 或任何 `-sys` 图像库）、kamadak-exif（读取方向），版本按 ADR-V5-15 由 Cargo.lock 锁定、首次引入在 ADR-V5-15 回填查询日期；cargo-fuzz 目标 `crates/fml-imgproc/fuzz/decode.rs` 由 CORE-41 夜间任务运行。样本集 `tests/fixtures/images/`（暗光、阴影、倾斜、模糊、纸张纹理各 20 张，单张 ≤ 2 MiB）由项目成员自行拍摄、以项目许可证入库，两名标注者独立标注质量提示、不一致项第三人裁定，标注文件 `labels.json` 与图片同目录；未入库前 R32 一致性验收记为外部前提阻断，不算通过。
+- 外部前提：image（`default-features = false`，只启用 png 特性；禁止启用其 jpeg/webp 特性）、zune-jpeg、image-webp（纯 Rust，禁止拉入 libwebp 或任何 `-sys` 图像库）、kamadak-exif（读取方向）与 sha2（对文件与输出字节计算 SHA-256，与 CORE-05、CORE-68 同一 crate，不引入第二个哈希实现），版本按 ADR-V5-15 由 Cargo.lock 锁定、首次引入在 ADR-V5-15 回填查询日期；cargo-fuzz 目标 `crates/fml-imgproc/fuzz/decode.rs` 由 CORE-41 夜间任务运行。样本集 `tests/fixtures/images/`（暗光、阴影、倾斜、模糊、纸张纹理各 20 张，单张 ≤ 2 MiB）由项目成员自行拍摄、以项目许可证入库，两名标注者独立标注质量提示、不一致项第三人裁定，标注文件 `labels.json` 与图片同目录；未入库前 R32 一致性验收记为外部前提阻断，不算通过。
 - 中间结果只在内存或 `StoreArea.staging` 中，会话结束立即清理；不写系统相册或公共目录。
 - 单个活动解码/推理任务、一次导入最多 10 张图片由 CORE-40 `RecognitionFlow`（下游说明，非契约）执行（逐张处理、`startImages` 1–10 张）；本卡函数本身无队列，可并发调用。
 
