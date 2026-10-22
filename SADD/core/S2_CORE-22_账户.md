@@ -71,7 +71,7 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 - 唯一所有权：Casdoor 保存邮箱/口令哈希、授权会话、签名密钥、授权码与刷新令牌；业务 PostgreSQL 的 account 只保存 id UUID PK、oidc_issuer TEXT、oidc_sub TEXT、email_normalized TEXT UNIQUE、created_at、deleted_at，UNIQUE(oidc_issuer,oidc_sub)。device 保存 id、account_id、platform、app_version、revoked_at；audit_log 保存 action、request_id、at。业务库不保存 password_hash，也不保存刷新令牌明文；令牌族表只存 HMAC（见下条）。
 - 注册/找回门面只经内部受认证 Casdoor 管理适配器执行，禁止公开管理凭据：先用 EmailCodeService 校验消费，再以请求 ID 幂等创建身份账户/改密与吊销；跨系统结果记 auth_operation(id PK, action, email_hash, state, subject NULL)，故障重试先查 subject 与状态，绝不因本地超时再次消费验证码。验证码未通过不查询或透露账户存在性。Casdoor 默认公开注册/找回关闭，所有本项目入口都经该门面；原生表单若启用，也必须调用同一门面。
 - 登录/重新认证：系统浏览器打开 authorize，state 与 nonce 随机生成并绑定本机待完成请求，回调 URI 严格白名单，授权码只由 Casdoor 在成功登录后的重定向签发。账户入口发起的登录一律带 prompt=login，系统浏览器里残留的 Casdoor 会话不能静默登入（共用设备）。敏感操作遇 AUTH_RECENT_LOGIN_REQUIRED 时以 prompt=login、max_age=0 重新走 PKCE，并用这次换得的访问令牌立即重发敏感请求；失败不执行敏感操作。
-- 令牌声明：iss、sub、aud、exp、iat、jti 必填；auth_time 只出现在授权码换得的令牌中，值为身份服务本次交互认证的 UTC 秒。Casdoor 刷新签发的令牌不带 auth_time，也不带 sid（ADR-V5-32），因此普通接口不要求 auth_time，敏感接口（CORE-25 的 `POST /v1/sync/reset` 与 `POST /v1/account/delete`）在 auth_time 缺失或 now-auth_time >300 s 时返回 AUTH_RECENT_LOGIN_REQUIRED，不能用 iat 冒充。校验固定 issuer/audience、允许算法白名单、discovery 的 JWKS 签名、exp/nbf（容差 60 s）；ID token 还校验 nonce，不能当 API access token。业务 account_id 由 (iss,sub) 映射。令牌 payload 不得含邮箱、手机号、昵称、头像（Q7 含未成年人）：Casdoor 应用 TokenFormat 固定为 JWT-Custom，tokenFields 只选非个人信息字段；JWT 与 JWT-Empty 格式都会内嵌邮箱，禁止使用。
+- 令牌声明：iss、sub、aud、exp、iat、jti 必填；auth_time 只出现在授权码换得的令牌中，值为身份服务本次交互认证的 UTC 秒。Casdoor 刷新签发的令牌不带 auth_time，也不带 sid（ADR-V5-32），因此普通接口不要求 auth_time，敏感接口（CORE-25 的 `POST /v1/sync/reset` 与 `POST /v1/account/delete`）在 auth_time 缺失或 now-auth_time 超过 `auth.recent_login_max_age_s`（默认 300 s）时返回 `AUTH_RECENT_LOGIN_REQUIRED`，不能用 iat 冒充。校验固定 issuer/audience、允许算法白名单、discovery 的 JWKS 签名、exp/nbf（容差 60 s）；ID token 还校验 nonce，不能当 API access token。业务 account_id 由 (iss,sub) 映射。令牌 payload 不得含邮箱、手机号、昵称、头像（Q7 含未成年人）：Casdoor 应用 TokenFormat 固定为 JWT-Custom，tokenFields 只选非个人信息字段；JWT 与 JWT-Empty 格式都会内嵌邮箱，禁止使用。
 - 令牌族（ADR-V5-32）：Casdoor 对授权码换得的令牌，刷新时要求 client_secret，只有本服务持有，因此刷新只能经 /v1/auth/token。表 `auth_refresh_family`（family_id UUID PK、account_id、device_id UUID NULL、current_hash BYTEA UNIQUE、created_at、rotated_at、revoked_at NULL）与 `auth_refresh_used`（hash BYTEA PK、family_id、used_at，保留 30 天），hash = HMAC-SHA256(服务端密钥, refresh_token)。授权码换令牌成功后建族；刷新时先查 used 表，命中即重放：吊销整族并返回 AUTH_REFRESH_REVOKED；再按 current_hash 行锁定后调用 Casdoor，成功则旧 hash 移入 used、current_hash 换为新值；Casdoor 判为无效时同样吊销整族。Casdoor 超时或 5xx 返回 SERVER_UNAVAILABLE，不移动 hash。登出、找回口令、吊销设备分别吊销对应的一族、该账户全部族、该设备绑定的族；已签发的访问令牌最长 15 min 自然过期。
 - 错误码（唯一所有者；服务端复用只描述处理，不重复登记）：
 
@@ -82,9 +82,9 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 | `AUTH_TOKEN_INVALID` | error | 否 | 401 | 需认证的接口缺少 `Authorization`、不是 `Bearer` 格式，或令牌签名、iss、aud、必填声明校验失败，或令牌主体对应账户已删除（过期另报 `AUTH_TOKEN_EXPIRED`）；响应带 `WWW-Authenticate: Bearer` |
 | `AUTH_REFRESH_REVOKED` | error | 否 | 401 | 刷新令牌已吊销、过期、不在令牌族表中，或旧刷新令牌被重复使用（同时吊销整个令牌族） |
 | `AUTH_REAUTH_REQUIRED` | error | 否 | — | 仅客户端刷新失败，回到账户入口 |
-| `AUTH_RECENT_LOGIN_REQUIRED` | error | 否 | 401 | 服务端敏感操作的 auth_time 缺失（刷新所得令牌）或距今超过 300 s |
+| `AUTH_RECENT_LOGIN_REQUIRED` | error | 否 | 401 | 服务端敏感操作的 auth_time 缺失（刷新所得令牌）或距今超过 `auth.recent_login_max_age_s`（默认 300 s） |
 | `AUTH_EMAIL_TAKEN` | error | 否 | 409 | 注册时邮箱已存在（验证码校验通过之后才返回，避免枚举） |
-| `AUTH_PASSWORD_WEAK` | error | 否 | 400 | 口令少于 8 个字符或在常见口令表中 |
+| `AUTH_PASSWORD_WEAK` | error | 否 | 400 | 口令少于 8 个字符（NFC 后按 Unicode 字符计）或在服务端口令表 `server/data/common-passwords.txt`（本卡所有；每行一个 NFC 小写口令，≤ 100 KiB；与 CORE-21 的 `crates/fml-crypto/data/common-passwords.txt` 相互独立、不共用文件）中；比对先 NFC 再 Unicode 小写折叠 |
 | `AUTH_RATE_LIMITED` | error | 是 | 429 | 登录同一邮箱 15 min 内失败 10 次、同一 IP 每分钟超过 60 次认证请求；CORE-25 推送超过每账户每分钟 60 次；CORE-45 发码限流（均带 `Retry-After`） |
 | `SERVER_CLIENT_TOO_OLD` | error | 否 | 426 | `X-Fml-App-Version` 低于 `min_app_version` |
 | `SERVER_UNAVAILABLE` | error | 是 | 503 | 数据库或依赖不可用（可重试） |
@@ -101,7 +101,7 @@ pub struct RequestOutcome { pub resend_after_s: u32 }
 - 日志只记账户 ID、请求 ID、路由、状态码与耗时，不记请求体。
 - 账户标识只用邮箱：V1 不收集、不绑定手机号，不接短信验证码（暂无运营商短信通道，README §6 Q9）。
 - 注册只有验证码校验通过才创建账户；找回口令成功后吊销该账户所有刷新令牌。口令不参与账户密钥派生（ADR-V5-05），找回口令不影响端到端加密数据。
-- 外部前提：Rust stable、axum、sqlx、PostgreSQL、Casdoor 的版本与 digest 按开工锁定规则确定（ADR-V5-14、ADR-V5-15）；测试用 PostgreSQL 容器。
+- 外部前提：Rust stable、axum、sqlx、PostgreSQL、Casdoor 的版本与 digest 按开工锁定规则确定（ADR-V5-14、ADR-V5-15）；测试用 PostgreSQL 容器；服务端口令表 `server/data/common-passwords.txt` 的来源 URL、许可与摘要值按 CORE-21 同口径登记于附录D 本卡外部前提行（摘要算法随登记写明，不因此新增生产依赖），未登记前该文件不交付、相应验收阻断，不以空表通过。
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-22_TEST.md](../Test/core/S2_CORE-22_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
