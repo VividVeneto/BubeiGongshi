@@ -433,3 +433,73 @@ test('the policy maintainer in the closure gets the whole file; zero-hit filteri
     assert.ok(r67.report.warnings.some(w => w.includes(file) && /0\//.test(w)), file + ' zero-hit warning');
   }
 });
+
+// ---- 错误码 contracts（CORE-02 阶段1）按相关性收录 ----
+const ERR_REGISTRY = 'contracts/errors/registry.yaml', ERR_OWNERSHIP = 'contracts/errors/ownership.yaml';
+const ERR_README = 'contracts/errors/README.md', ERR_VECTOR = 'contracts/vectors/errors-v1.json';
+
+test('errors contracts are complete for the card that owns them (CORE-02)', () => {
+  // 失败情形：registry 或任一生成镜像/错误向量被改成按相关卡过滤或只列名时，report.files 不再含该路径、
+  // material 里没有该文件全文，或出现切片/过滤标题——任一断言即失败；放宽成“只要提到就整收”的反向改动
+  // 会被 CORE-77/CORE-78 的上限用例抓住。
+  const result = pack('CORE-02');
+  for (const file of [ERR_REGISTRY, ERR_OWNERSHIP, ERR_README, ERR_VECTOR]) {
+    assert.ok(result.report.files.includes(file), file + ' file-list');
+    assert.equal(result.report.filteredFiles.find(f => f.path === file), undefined, file + ' not filtered');
+    assert.ok(result.text.includes(read(file)), file + ' full text');
+  }
+  assert.ok(!result.text.includes(ERR_REGISTRY + '（按 owner/引用过滤）'), 'owner card has no slice');
+  assert.ok(!result.report.warnings.some(w => w.includes(ERR_REGISTRY)), 'no slice warning');
+});
+
+test('errors contracts are sliced or listed by relevance for a card that does not own them (CORE-77)', () => {
+  // 失败情形（逐条对应断言）：registry 退回整收 → 不再有 filteredFiles 切片条目、report.files 含该路径、
+  // 材料里没有“按 owner/引用过滤”小节；切片丢掉 entries: 以上头部 → 头部断言失败；切片漏收相关 owner 或
+  // 正文引用的 code → 逐条 owner/正文断言与 kept/entries 断言失败；切片把不相关条目带进来 → 同上逐条断言失败；
+  // 生成镜像或错误向量改回整收 → 只列名断言与“正文不含其内容”断言失败；--file 不再恢复全文 → 末尾断言失败。
+  const id = 'CORE-77';
+  const result = pack(id);
+  const target = load(undefined, {tests: false}).get(id);
+  const original = read(ERR_REGISTRY);
+  assert.ok(!result.report.files.includes(ERR_REGISTRY), 'registry not whole');
+  assert.ok(!result.text.includes(original), 'no full registry text');
+  const entry = result.report.filteredFiles.find(f => f.path === ERR_REGISTRY);
+  assert.equal(entry.mode, 'sliced');
+  assert.equal(entry.sha256, sha(original));
+  assert.equal(entry.originalBytes, Buffer.byteLength(original));
+  assert.ok(entry.includedBytes > 0 && entry.includedBytes < entry.originalBytes, String(entry.includedBytes));
+  assert.ok(entry.kept > 0 && entry.kept < entry.total, entry.kept + '/' + entry.total);
+  const slice = fenced(result.text, ERR_REGISTRY + '（按 owner/引用过滤）');
+  const head = original.slice(0, original.indexOf('entries:\n') + 'entries:\n'.length);
+  assert.ok(slice.startsWith(head), 'header kept');
+  assert.ok(slice.includes('registry_version: 1'), 'registry_version kept');
+  assert.ok(result.text.includes('原文件 SHA-256=' + entry.sha256), 'note carries original sha');
+  const blocks = slice.slice(head.length).split(/^(?=  - code: )/m).filter(block => block.trim());
+  assert.equal(blocks.length, entry.kept, 'block count');
+  const related = new Set(result.report.related);
+  const codes = [];
+  for (const block of blocks) {
+    const code = block.match(/^  - code: (\S+)/)[1];
+    const owner = block.match(/^ {4}owner: (\S+)$/m)[1];
+    codes.push(code);
+    assert.ok(related.has(owner) || new RegExp('(?<![A-Za-z0-9_])' + code + '(?![A-Za-z0-9_])').test(target.body), code + '/' + owner);
+    assert.ok(block.includes('namespace: ') || block.includes('severity: '), code + ' entry body kept');
+  }
+  assert.deepEqual(codes, entry.entries);
+  const omitted = original.split(/^(?=  - code: )/m).slice(1).map(b => b.match(/^  - code: (\S+)/)[1]).find(c => !codes.includes(c));
+  assert.ok(omitted, 'some entry omitted');
+  assert.ok(!slice.includes('  - code: ' + omitted), 'omitted entry absent');
+  for (const file of [ERR_OWNERSHIP, ERR_README, ERR_VECTOR]) {
+    const listed = result.report.filteredFiles.find(f => f.path === file);
+    assert.equal(listed.mode, 'listed', file);
+    assert.equal(listed.includedBytes, 0, file);
+    assert.equal(listed.sha256, sha(read(file)), file);
+    assert.equal(listed.originalBytes, Buffer.byteLength(read(file)), file);
+    assert.ok(!result.report.files.includes(file), file + ' not whole');
+    assert.ok(result.text.includes('| ' + file + ' | ' + listed.originalBytes + ' | ' + listed.sha256 + ' |'), file + ' listed row');
+    assert.ok(!result.text.includes(read(file)), file + ' no body');
+  }
+  const forced = pack(id, {extra: [ERR_REGISTRY]});
+  assert.ok(forced.report.files.includes(ERR_REGISTRY), '--file restores registry');
+  assert.ok(forced.text.includes(original), '--file restores full text');
+});
