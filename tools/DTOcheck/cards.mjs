@@ -132,7 +132,8 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
     else if (Number.isNaN(n)) r.error('CARD-05', `${id}: 规模行没有“约 N 行”`);
     else {
       if (n !== ix.scale) r.error('CARD-05', `${id}: 规模与索引不一致：卡=${n} 索引=${ix.scale}`);
-      if (n > LIMIT) r.error('CARD-06', `${id}: 规模 ${n} 行超过 ${LIMIT}，先拆卡`);
+      if (n > LIMIT && !/D\.14\.8 RL-\d+/.test(sl)) r.error('CARD-06', `${id}: 规模 ${n} 行超过 ${LIMIT}，先拆卡`);
+      // 例外：规模行写明附录D D.14.8 的放宽登记号（RL-NN，用户批准、发布前收回）时不报 CARD-06 超限；“分阶段”仍要求。
       else if (n > STAGE_LIMIT && !/分阶段/.test(sl)) r.error('CARD-06', `${id}: 规模 ${n} 行超过 ${STAGE_LIMIT}，规模行须写“分阶段”`);
     }
     if (/另计|不计入本卡规模|额外约\s*\d+\s*行/.test(sl)) r.error('CARD-07', `${id}: 规模行含“另计/额外”代码，应拆卡或并入估算`);
