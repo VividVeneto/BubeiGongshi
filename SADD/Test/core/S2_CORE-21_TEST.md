@@ -12,7 +12,7 @@
 
 - [R28] WR-01/02 字节往返；WR-NEG-01、乱序键/非最短/重复键/错误 salt 长度均拒绝；改变 kind/version 后 unwrap 标签校验失败。
 - [R28][R27] SecretKey以Zeroizing32字节构造/as_bytes借用，Sealed显式编码解码（坏版本/短长度拒绝）；RecoveryCode只经as_str敏感出口取规范文本。编译失败样例证明秘密类型无Clone/Copy/Serialize/Deserialize/Display，Debug脱敏，不依赖释放后读内存的未定义行为“验证零化”。恢复码及解码熵临时缓冲使用Zeroizing，零化路径做源码/类型审计；日志扫描不输出密钥、恢复码、passphrase。
-- [R28] wrap只接受非口令kind，wrap_with_params只接受口令kind；错误kind/版本0/越界参数明确拒绝；解封后非32字节统一CRYPTO_DECRYPT_FAILED。Platform值0结构往返保留，但平台DPAPI/Keystore blob不冒充WrapRecord，账户上传只允许既有恢复码/同步密语种类。CRYPTO_KDF_MEMORY不可重试且不降安全参数，CRYPTO_KEY_VERSION_UNKNOWN由调用者查表失败构造；纯函数不伪装查表。
+- [R28] wrap只接受非口令kind，wrap_with_params只接受口令kind；错误kind/版本0/越界参数明确拒绝；解封后非32字节统一CRYPTO_DECRYPT_FAILED。Platform值0结构往返保留，但平台DPAPI/Keystore blob不冒充WrapRecord，账户上传只允许既有恢复码/同步密语种类。CRYPTO_KDF_MEMORY不可重试且不降安全参数，`CRYPTO_KEY_VERSION_UNKNOWN` 为预留码（本 crate 不产生；现有消费方缺所需密钥时用 CORE-24 的 `SYNC_KEY_MISSING`，该码仅作未来轮换预留），纯函数不伪装查表。
 - [R28] wrap-v1.json顶层版本、唯一id及WR正负例均与卡片固定字节一致，独立编码器/人工复核证据齐备；仅结构valid的全零密文不得被报告为AEAD成功。向量/常见口令表若未交付或许可未确认则阻断相应验收，不以空数据通过。
 - [R28] 口令策略与派生（CO-29）：check_passphrase_policy 对 11/12 个 NFC 字符（NFD 输入按 NFC 计数）、全同字符、测试样例表中口令（大小写不同）分别返回 CRYPTO_PASSPHRASE_WEAK/通过/WEAK/WEAK；同一口令的 NFC 与 NFD 形式经 passphrase_key 得到相同密钥；KdfParams m_kib=65535、131073、t=2、t=11、p=3 各返回 CRYPTO_PARAM_INVALID，边界 65536/131072/3/10/4 接受；Argon2 分配失败（私有原语注入）映射 CRYPTO_KDF_MEMORY 且不降参数重试。
 - [R28] 子密钥与 AAD：derive_subkey 对 5 个 KeyPurpose × key_version {1,2} 的 10 个输出两两不同且 info 串逐字等于卡片规则；aad_cbor 对只含 domain/key_version/format_version 的 AadFields 省略键 2/3/4；Sealed::from_bytes 对 40 字节与 version=2 输入返回 CRYPTO_DECRYPT_FAILED；WrapRecord::from_bytes 对 4097 字节输入、key_version=0 拒绝，key_version=u32::MAX 往返。

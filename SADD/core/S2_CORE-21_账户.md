@@ -70,7 +70,7 @@ pub fn aad_cbor(fields: &AadFields) -> Vec<u8>;                          // RFC 
 | 错误码 | 级别 | 可重试 | 触发条件 |
 | --- | --- | --- | --- |
 | `CRYPTO_DECRYPT_FAILED` | error | 否 | 认证标签/AAD/版本/长度/编码无效；不区分原因 |
-| `CRYPTO_KEY_VERSION_UNKNOWN` | error | 否 | 使用方在本地 key_version→根密钥表查无所需版本时构造（如CORE-26/备份调用者）；本crate的纯AEAD/HKDF不查询表，也不凭单个SecretKey猜测版本 |
+| `CRYPTO_KEY_VERSION_UNKNOWN` | error | 否 | 使用方在本地 key_version→根密钥表查无所需版本时构造（预留码：当前无生产者，消费方一律用 CORE-24 的 `SYNC_KEY_MISSING`，CORE-26、CORE-46、CORE-66 的下游说明同此口径；本码仅作未来密钥轮换场景预留）；本crate的纯AEAD/HKDF不查询表，也不凭单个SecretKey猜测版本 |
 | `CRYPTO_RECOVERY_CODE_FORMAT` | warning | 否 | 恢复码字符、长度、首字符或校验位非法 |
 | `CRYPTO_PASSPHRASE_WEAK` | warning | 否 | 违反口令策略 |
 | `CRYPTO_KDF_MEMORY` | error | 否 | 当前内存不足以执行指定 Argon2id 参数 |
@@ -101,7 +101,7 @@ WrapRecord wire v1（≤4096 B，严格 RFC 8949 确定性 CBOR；读入非最�
 
 字段键按1..7递增，缺省4/5省略、不编码 null。unwrap 的 AAD 为 aad_cbor，domain="key.wrap/v1/<wrap_kind线上名>"，account/entity字段省略，key_version 与记录一致、format_version=1，防替换 kind/version；口令包装先由调用方 CSPRNG 提供 salt，passphrase_key 派生后，wrap_with_params(rng,kek,key,kind,version,kdf,salt,now_ms) 写入全部参数；非口令 `wrap(rng,kek,key,kind,key_version,now_ms)` 只接受 Platform/RecoveryCode，kdf/salt=None；口令两种kind传入该函数返回 CRYPTO_PARAM_INVALID。`wrap_with_params` 只接受 SyncPassphrase/ExportPassword，签名为 `pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &SecretKey, kind: WrapKind, version: u32, kdf: KdfParams, salt: [u8;16], now_ms: i64) -> Result<WrapRecord,FmlError>;`。版本0在包装入口为CRYPTO_PARAM_INVALID；unwrap先按from_bytes等价结构校验再解密（含32字节明文检查），错误一律CRYPTO_DECRYPT_FAILED。Platform=0保留此格式与纯SecretKey KEK包装能力；Android Keystore/Windows DPAPI的CORE-04平台blob不是WrapRecord，调用者不得假设能在本crate解封平台blob，也不得把platform记录上传账户密钥端点。所有者提供此受测函数，不允许外卡手工补字段。
 
-WR-NEG-01 最小语法向量（sealed 为41 B空明文，故 from_bytes 必须拒绝长度，给解码器反例）：`a501010201030106582901000000000000000000000000000000000000000000000000000000000000000000000000000000000700`。
+WR-NEG-01 最小语法向量（sealed 为41 B空明文，故 `WrapRecord::from_bytes` 必须拒绝该长度——被包装明文固定 32 B 时 sealed 恒为 73 B；`Sealed::from_bytes` 对 41 B 仍合法、只拒绝 < 41 B；给解码器反例）：`a501010201030106582901000000000000000000000000000000000000000000000000000000000000000000000000000000000700`。
 WR-01 正例 = map(5): 1→1,2→1,3→1,6→bstr(0x01+24个0x00+48个0x00),7→0；其确切十六进制为 `a5010102010301065849010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000700`。这里只验格式往返，不声称全零密文通过 AEAD 验证。WR-02 在 WR-01 加4→{1:65536,2:3,3:4}、5→16个0x01且kind=2；测编码字节与独立 RFC 编码器一致、解码再编码相同。
 
 `contracts/vectors/wrap-v1.json` 由本卡创建并维护，是跨CORE-24/26/27/32调用者的只读wire向量来源；顶层固定 `schema:1, wrap_version:1, aad_version:1, vectors:[{id, hex, valid}]`，id唯一，hex小写偶数长度，WR-NEG-01 valid=false、WR-01/WR-02 valid=true，其余非最短/未知键等负例使用唯一WR-NEG-*标识。valid仅指WrapRecord结构解码，不代表AEAD验证成功；真正认证篡改测试另用本卡固定AEAD向量。数据由独立编码/复核产生，当前尚未创建就保持未交付，不以文内向量冒充文件。
@@ -118,7 +118,7 @@ pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &Secre
 
 **实现约束**
 - 只使用经审计的库（RustCrypto 的 chacha20poly1305、argon2、hkdf 与 sha2；无实际哈希用途不添加blake3依赖）；禁止自研密码算法与自研 PAKE。确定性 CBOR 只需上述字段类型，自写最小编码器，不引入通用 CBOR 库。
-- 外部前提：上述 crate 与 `zeroize` 版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`（`getrandom` 只由 CORE-23 的 `OsRandom` 依赖，不进入本crate正常/构建依赖闭包；chacha20poly1305等禁用默认隐式熵源特性，仅启用所需alloc/纯算法特性，按锁定版本核查；测试工具的dev依赖另报告，不能把它当生产依赖）；常见口令表（`crates/fml-crypto/data/common-passwords.txt`，每行一个 NFC 小写口令，≤ 100 KiB，`include_str!` 编译进 crate）的来源 URL、许可与 BLAKE3 在 M0 登记于附录D 本卡外部前提行；登记前该文件不交付、相应验收阻断，策略逻辑单元测试改用 `#[cfg(test)]` 内置 10 条固定样例表，不以空表通过。比对时口令先 NFC 再按 Unicode 小写折叠。本表只用于客户端同步密语/导出口令策略，与 CORE-22 服务端登录口令表（`AUTH_PASSWORD_WEAK`）相互独立，不共用文件、不要求一致（登录口令与端到端密钥无派生关系）。
+- 外部前提：上述 crate、`uuid`（仅 `v5` + `serde`；服务 `AadFields.account_id` 的 UUID 字段与 16 字节字节串映射，不启用 `v4`/`v7`/RNG）与 `zeroize` 版本按 ADR-V5-15 由首张使用卡开工时锁入 `Cargo.lock`（`getrandom` 只由 CORE-23 的 `OsRandom` 依赖，不进入本crate正常/构建依赖闭包；chacha20poly1305等禁用默认隐式熵源特性，仅启用所需alloc/纯算法特性，按锁定版本核查；测试工具的dev依赖另报告，不能把它当生产依赖）；常见口令表（`crates/fml-crypto/data/common-passwords.txt`，每行一个 NFC 小写口令，≤ 100 KiB，`include_str!` 编译进 crate）的来源 URL、许可与 BLAKE3 在 M0 登记于附录D 本卡外部前提行；登记前该文件不交付、相应验收阻断，策略逻辑单元测试改用 `#[cfg(test)]` 内置 10 条固定样例表，不以空表通过。比对时口令先 NFC 再按 Unicode 小写折叠。本表只用于客户端同步密语/导出口令策略，与 CORE-22 服务端登录口令表（`AUTH_PASSWORD_WEAK`）相互独立，不共用文件、不要求一致（登录口令与端到端密钥无派生关系）。
 - 服务端可见的登录凭据永远不作为端到端加密密钥或其派生来源；同步密语只在客户端使用，从不上传。
 - 恢复码使用 HKDF（其熵已足够，不再做慢 KDF）；只显示一次，服务端不保存恢复码或其可离线验证的哈希，只保存它包装的密钥记录。
 - Argon2id 参数下限 m = 64 MiB、t = 3、p = 4，盐 128 位；内存占用上限 128 MiB；低内存设备不得降到下限以下，改为提示“改用恢复码”。
