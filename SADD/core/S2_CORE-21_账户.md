@@ -123,7 +123,7 @@ pub fn wrap_with_params(rng: &mut dyn SecureRandom, kek: &SecretKey, key: &Secre
 - 恢复码使用 HKDF（其熵已足够，不再做慢 KDF）；只显示一次，服务端不保存恢复码或其可离线验证的哈希，只保存它包装的密钥记录。
 - Argon2id 参数下限 m = 64 MiB、t = 3、p = 4，盐 128 位；内存占用上限 128 MiB；低内存设备不得降到下限以下，改为提示“改用恢复码”。
 - 每类数据使用独立子密钥，可单独删除识别历史；密钥材料不得写入普通 SQLite 表、日志与复现包；内存中用 `Zeroizing` 尽力清零。
-- 密钥轮换：更换同步密语或重新生成恢复码只重新包装；设备吊销或怀疑泄露时生成新 AccountDataKey，`key_version` + 1，重新加密快照（由 CORE-26 执行）。所有包装记录带 `key_version` 与创建时间，旧包装在用户确认后过期。
+- 密钥轮换：更换同步密语或重新生成恢复码只重新包装；设备吊销或怀疑泄露时生成新 AccountDataKey，`key_version` + 1。轮换后的重新加密与重排队列唯一由 CORE-66 `reencrypt_for_rotation(store, registry, new_version)` 执行（本卡只产生新密钥与新 `key_version`，不写 Store、不产同步负载、不重新加密快照）；上行密文由 CORE-26 `prepare_push` 按新版本产出。所有包装记录带 `key_version` 与创建时间，旧包装在用户确认后过期。
 - 云识别供应商 API Key 与本 crate 无关，只在服务端（CORE-33）。
 
 **验收标准**：测试方案全文见 [Test/core/S2_CORE-21_TEST.md](../Test/core/S2_CORE-21_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
