@@ -5,5 +5,8 @@
 **验收标准**
 - [R18] ID数相同但替换未知/重复/遗漏均失败；等级读取最右复核列，旧列不覆盖新列。
 - [R18] 就绪缺独立记录、S2非pass、conclusion非pass或公共消费者确认缺失均失败；全部证据满足夹具通过；--check拒绝手工改统计数字。
-
 - [R18] 状态表头改名、缺失或重复（须恰有一个“当前状态”和一个“编号”列），以及数据行宽与表头不等，均失败，不得借此跳过就绪证据检查（T1-F10）。
+- [R18] 夹具放tools/sadd/fixtures/core76/：pass/（三张假卡的最小SADD目录，含D.10、D.12与reports/v9.9.9-reviews.json，其中一卡就绪且证据齐全、一卡B、一卡—）为通过基准；其余反例各自只改基准的一处。
+- [R18] validateCurrent逐项反例各返回含`SADD-12: `的错误：重复record、reviews.version为2、materialChars为-1、segments为0、grade与D.10最新列不一致、D.12行的复核人/日期/字符/分段/a～g或S1～S6旗标与JSON任一不符；状态为裸“就绪”、“就绪（D.12 P2-其他卡）”或最右复核列为未知版本导致找不到记录时均失败；基准返回空数组且不抛异常。
+- [R18] stats.mjs：基准下--check退出0；手改区块内就绪数退出1并输出`SADD stats drift`；删除起止标记退出2且stderr含`Missing stats block`；reviews JSON损坏退出2；不带--check只改写两标记之间内容，区块外字节不变。
+- [R18] audit.mjs：对基准目录用--sadd与--out运行，输出含stats/errors/warnings/materials且每卡一条材料记录；不传--out时写build/sadd/audit.json；运行前后SADD/reports/下既有文件字节不变；一张假卡材料超80000时只计入overLimit，等级、errors与退出码不变；任一validateCurrent错误时退出1。

@@ -5,3 +5,4 @@
 **验收标准**
 - [R20][R19] 每类SADD规则有独立正反例；保持行数相同而替换未知卡ID仍失败，缺/重复/逆阶段依赖和只改追踪表失败；更改验证方式列不影响末列解析。
 - [R18] 缺验收目标输出pending，存在目标失败为error；--release有pending拒绝。D.10声称就绪但D.12没有完整通过或作者相同，退出1。
+- [R18] acceptance_jobs.json为{version:1,rows:[]}时有效；version为2、顶层缺rows或JSON损坏退出2；两行(card,criterion,environment)相同、行缺status或environment取未列值退出1。
