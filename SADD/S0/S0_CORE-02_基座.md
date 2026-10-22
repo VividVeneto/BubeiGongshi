@@ -133,5 +133,5 @@ PR3 预分配机器表 `contracts/policies/shared-writes.json` 的 error 项在 
 
 **验收标准**：测试方案全文见 [Test/S0/S0_CORE-02_TEST.md](../Test/S0/S0_CORE-02_TEST.md)；修改本卡功能时同步修改该文件（工具按此引用把它拼回本卡）。
 
-**规模**：约490行，分两阶段；主包 crates/fml-error/ 175行；附属 tools/ci/gen_errors.py 及本卡CI接入 245行、app/lib/binding/errors.dart 手写异常桥 70行；registry/ownership/消息资源/errors-v1 向量与生成物不计。阶段1 约420行（主包 175 + 生成器与CI接入 245，另加 registry/arb/errors-v1 数据文件），阶段2 约70行（errors.dart 手写异常桥与 `DiagnosticDto` 别名，前置与卡级顺序见“接口契约”末段的两阶段说明）；每阶段独立构建、独立测试、单独提交与复核。
+**规模**：约1030行，分阶段（两阶段；阶段1 实测超 ADR-V5-52 约800行停下线，工程样品阶段按附录D D.14.8 RL-08 不拆卡，发布前收回）；主包 crates/fml-error/ 实测 320行（原估 175）；附属 tools/ci/gen_errors.py 含本卡CI接入实测 642行（原估 245，238 条码 × 5 种生成物及校验分支）、app/lib/binding/errors.dart 手写异常桥 70行；registry/ownership/消息资源/errors-v1 向量与生成物不计。阶段1 实测 962行，按两段登记复核：1a 错误模型 lib.rs 320、1b 生成器与CI接入 642（另加 registry/arb/errors-v1 数据文件），阶段2 约70行（errors.dart 手写异常桥与 `DiagnosticDto` 别名，前置与卡级顺序见“接口契约”末段的两阶段说明）；每阶段独立构建、独立测试、单独提交与复核。
 
