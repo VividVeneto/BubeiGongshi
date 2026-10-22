@@ -168,3 +168,48 @@ export function makeDto(root) {
   ]}, null, 2));
   return dir;
 }
+
+/** 标准错误码定义表（REG-02 需要“级别/可重试”列）；任一行为对象且带 http 键时输出 HTTP 列。 */
+export const defTable = (rows, opts = {}) => {
+  const list = (Array.isArray(rows) ? rows : [rows]).map(x => (typeof x === 'string' ? {code: x, ...opts} : {...opts, ...x}));
+  const withHttp = list.some(x => 'http' in x);
+  const head = withHttp ? '| 错误码 | 级别 | 可重试 | HTTP | 触发条件 |' : '| 错误码 | 级别 | 可重试 | 触发条件 |';
+  const sep = withHttp ? '| --- | --- | --- | --- | --- |' : '| --- | --- | --- | --- |';
+  const body = list.map(x => (withHttp
+    ? `| \`${x.code}\` | ${x.severity ?? 'error'} | ${x.retryable ?? '否'} | ${x.http ?? '—'} | 测试 |`
+    : `| \`${x.code}\` | ${x.severity ?? 'error'} | ${x.retryable ?? '否'} | 测试 |`));
+  return ['', '**错误码**', '', head, sep, ...body, ''].join('\n');
+};
+
+/** 逐 op 错误镜像表（DTO-06 的对照源，ADR-V5-55）：{op: [码]} 或 {op: '单元格原文'}。 */
+export const mirrorTable = (map, {note = ''} = {}) => ['', '**错误镜像**', '',
+  `| op | 本卡业务/诊断代码及依赖透传${note} |`, '| --- | --- |',
+  ...Object.entries(map).map(([op, v]) => `| \`${op}\` | ${Array.isArray(v) ? v.join('、') : v} |`), ''].join('\n');
+
+/** 逐 op 错误镜像的内联句写法（CORE-92 那种），segment 形如 {op: '码、码'}。 */
+export const mirrorInline = segments => '\n\n' + '错误镜像（不重定义）：' + Object.entries(segments).map(([op, v]) => `${op} = ${Array.isArray(v) ? v.join('、') : v}`).join('；') + '；信封/句柄/取消复用CORE-03。\n';
+
+/** registry 条目默认值；over 覆盖单列（也可用于造非法值）。 */
+export const entry = (code, over = {}) => ({code, namespace: code.split('_')[0].toLowerCase(), owner: 'CORE-05', severity: 'error',
+  message_key: 'errors.' + code.toLowerCase(), retryable: false, since: 1, surface: 'client', ...over});
+
+const scalar = v => (typeof v === 'boolean' || typeof v === 'number' ? String(v) : v === null ? 'null' : String(v));
+
+/** 生成 registry.yaml 文本（只使用 yaml-lite 支持的子集）。 */
+export function registryYaml({entries = [], registry_version = 1} = {}) {
+  const lines = [`registry_version: ${registry_version}`, 'entries:'];
+  for (const e of entries) {
+    lines.push(`  - code: ${e.code}`);
+    for (const [k, v] of Object.entries(e)) if (k !== 'code') lines.push(`    ${k}: ${scalar(v)}`);
+  }
+  return lines.join('\n') + '\n';
+}
+
+/** 生成 contracts/errors/registry.yaml 与 contracts/vectors/errors-v1.json；yaml/vectors 可整体替换。 */
+export function makeErrors(root, {entries = [], registry_version = 1, error_version = 1,
+  shape = {code: 'DEMO_FAIL', domain: 'demo', retryable: false, trace_id: 't', diagnostics: []}, yaml = null, vectors = null} = {}) {
+  write(path.join(root, 'contracts', 'errors', 'registry.yaml'), yaml ?? registryYaml({entries, registry_version}));
+  write(path.join(root, 'contracts', 'vectors', 'errors-v1.json'),
+    JSON.stringify(vectors ?? {version: 1, error_version, cases: [{input: {error: shape}, expected: {}}]}, null, 1));
+  return root;
+}

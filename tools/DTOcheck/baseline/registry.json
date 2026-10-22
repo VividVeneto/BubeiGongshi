@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "note": "registry 版本基线：registry_version 随条目增删/字段改动递增，error_version 只随错误对象形状变；只允许在语义确认后更新",
+ "registry_version": 1,
+ "error_version": 1,
+ "entryDigest": "d0d8e992f2fc299c",
+ "errorShapes": [
+  "diagnostic[args,code,input_range,needs_confirm,node_path,recovery,severity]",
+  "diagnostic[args,code,input_range,needs_confirm,node_path,severity]",
+  "diagnostic[args,code,input_range,needs_confirm,severity]",
+  "diagnostic[args,code,needs_confirm,recovery,severity]",
+  "diagnostic[args,code,needs_confirm,severity]",
+  "diagnostic[args,code,severity]",
+  "diagnostic[code,input_range,severity]",
+  "diagnostic[code,severity]",
+  "error[code,condition,diagnostics,domain,retryable,trace_id]",
+  "error[code,diagnostics,domain,retryable,trace_id]"
+ ]
+}

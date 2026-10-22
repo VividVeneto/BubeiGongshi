@@ -5,18 +5,24 @@ import {load, ROOT, FILES} from '../sadd/pack.mjs';
 
 export {load, ROOT, FILES};
 
-/** 一次检查的结果；error 使退出码为 1，warn 仅提示（--strict 时也算失败）。 */
+/**
+ * 一次检查的结果；error 使退出码为 1，warn 仅提示（--strict 时也算失败），
+ * skip 表示该项“未执行”（例如 registry 尚未创建）：输出“未执行”，任何模式下都不算通过。
+ */
 export class Report {
-  constructor(name) { this.name = name; this.errors = []; this.warnings = []; this.stats = {}; }
+  constructor(name) { this.name = name; this.errors = []; this.warnings = []; this.skipped = []; this.stats = {}; }
   error(id, msg) { this.errors.push({id, msg}); }
   warn(id, msg) { this.warnings.push({id, msg}); }
-  get ok() { return this.errors.length === 0; }
+  skip(id, msg) { this.skipped.push({id, msg}); }
+  get ok() { return this.errors.length === 0 && this.skipped.length === 0; }
 }
 
 export function printReport(r, {verbose = false, limit = 40} = {}) {
-  const head = `[${r.name}] errors=${r.errors.length} warnings=${r.warnings.length} ${JSON.stringify(r.stats)}`;
+  const skipped = r.skipped?.length ? ` skipped=${r.skipped.length}` : '';
+  const head = `[${r.name}] errors=${r.errors.length} warnings=${r.warnings.length}${skipped} ${JSON.stringify(r.stats)}`;
   const out = [head];
   for (const e of r.errors) out.push(`  ERROR ${e.id}: ${e.msg}`);
+  for (const e of r.skipped ?? []) out.push(`  SKIP  ${e.id}: 未执行：${e.msg}`);
   const shown = verbose ? r.warnings : r.warnings.slice(0, limit);
   for (const w of shown) out.push(`  warn  ${w.id}: ${w.msg}`);
   if (!verbose && r.warnings.length > limit) out.push(`  ... 另有 ${r.warnings.length - limit} 条 warning，加 --verbose 查看`);
@@ -25,6 +31,7 @@ export function printReport(r, {verbose = false, limit = 40} = {}) {
 
 export function exitCodeFor(reports, {strict = false} = {}) {
   if (reports.some(r => r.errors.length)) return 1;
+  if (reports.some(r => r.skipped?.length)) return 1;   // “未执行”不是通过，任何模式都失败
   if (strict && reports.some(r => r.warnings.length)) return 1;
   return 0;
 }
@@ -116,4 +123,78 @@ export function errorRefs(cards) {
     }
   }
   return refs;
+}
+
+/**
+ * 提取带列的错误码定义表：Map<code, [{card, line, severity, retryable, http}]>。
+ * 表头首格以“错误码”开头且不含“引用”的表才算定义表；列按表头文字定位（级别 / 可重试 / HTTP），
+ * 没有该列时为 null。HTTP 单元格原样返回（数字或“—”，没有 HTTP 列时为 null）。
+ */
+export function errorTableRows(cards) {
+  const rows = new Map();
+  for (const c of cards.values()) {
+    let mode = null, cols = null;
+    const lines = c.body.split('\n');
+    for (const [i, line] of lines.entries()) {
+      if (!line.startsWith('|')) { mode = null; cols = null; continue; }
+      const cells = line.split('|').map(x => x.trim());
+      const head = cells[1] ?? '';
+      if (/^错误码/.test(head)) {
+        mode = /引用/.test(head) ? 'ref' : 'def';
+        const at = name => cells.findIndex(x => x.includes(name));
+        cols = mode === 'def' ? {severity: at('级别'), retryable: at('可重试'), http: at('HTTP')} : null;
+        continue;
+      }
+      if (mode !== 'def' || /^-+$/.test(cells[1] ?? '')) continue;
+      const m = (cells[1] ?? '').match(/^`([A-Z][A-Z0-9_]*)`(?:（\d+）)?$/);
+      if (!m || !isErrorCode(m[1])) continue;
+      const list = rows.get(m[1]) ?? [];
+      list.push({
+        card: c.id, file: c.file ?? null, line: i + 1,
+        severity: cols.severity > 0 ? (cells[cols.severity] ?? null) : null,
+        retryable: cols.retryable > 0 ? (cells[cols.retryable] ?? null) : null,
+        http: cols.http > 0 ? (cells[cols.http] ?? null) : null,
+      });
+      rows.set(m[1], list);
+    }
+  }
+  return rows;
+}
+
+/**
+ * 提取逐 op 错误镜像（DTO-06 的对照源，ADR-V5-55）：Map<op, [{card, line, basis, codes:Set}]>。
+ * 两种写法都认：表头为“op | 本卡业务/诊断代码及依赖透传”的表行，或“错误镜像（不重定义）：op = 码、码”内联句。
+ * 码用 `OP = A、B（CORE-05）` 的注记只取错误码本身；单元格写“无业务错误”时集合为空。
+ */
+export function opMirrors(cards) {
+  const out = new Map();
+  const add = (op, entry) => {
+    if (!op) return;
+    const list = out.get(op) ?? [];
+    list.push(entry);
+    out.set(op, list);
+  };
+  const codesOf = text => new Set([...(text ?? '').matchAll(/`?([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`?/g)].map(m => m[1]).filter(isErrorCode));
+  for (const c of cards.values()) {
+    const lines = c.body.split('\n');
+    let inTable = false;
+    for (const [i, line] of lines.entries()) {
+      const inline = line.match(/错误镜像[^\n]*?：\s*(.+)$/);
+      if (inline) {
+        for (const part of inline[1].split('；')) {
+          const m = part.match(/^\s*`?([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)`?\s*=\s*(.+)$/);
+          if (!m) continue;                       // 尾部的“信封/句柄/取消复用 CORE-03”等说明不算镜像
+          add(m[1], {card: c.id, file: c.file ?? null, line: i + 1, basis: 'inline', codes: codesOf(m[2])});
+        }
+      }
+      if (!line.startsWith('|')) { inTable = false; continue; }
+      const cells = line.split('|').map(x => x.trim());
+      if (cells[1] === 'op' && /本卡业务\/诊断代码/.test(cells[2] ?? '')) { inTable = true; continue; }
+      if (!inTable || /^-+$/.test(cells[1] ?? '')) continue;
+      const op = (cells[1] ?? '').replace(/`/g, '').trim();
+      if (!/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/.test(op)) continue;
+      add(op, {card: c.id, file: c.file ?? null, line: i + 1, basis: 'row', codes: codesOf(cells[2])});
+    }
+  }
+  return out;
 }

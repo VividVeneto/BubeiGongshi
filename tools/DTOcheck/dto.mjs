@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {Report, ROOT, loadCards, errorDefs, readJson, printReport, argOf} from './lib.mjs';
+import {Report, ROOT, loadCards, errorDefs, opMirrors, readJson, printReport, argOf} from './lib.mjs';
 import {validate, lintSchema, collectRefs, resolveRef, sensitivePaths} from './schema.mjs';
 import {stageTable} from './cards.mjs';
 
@@ -46,7 +46,11 @@ export function checkDto({root = ROOT, cards = null, stages = null} = {}) {
     try { files.set(f, readJson(path.join(dir, f))); } catch (e) { r.error('DTO-10', `${f} 不是合法 JSON: ${e.message}`); }
   }
   const codes = cards ? errorDefs(cards) : null;
-  const seen = new Set(); const referenced = new Set(); let ready = 0, pending = 0, examples = 0, assertions = 0, snapshotOps = 0; const i64 = []; const stageCount = {};
+  // 逐 op 错误镜像（ADR-V5-55）：DTO-06 双向比对的对照源是 op 所有者卡的 `| op | 代码 |` 行或等效内联句，
+  // 不是 registry（registry 只是码字典，由 REG-01 管）。mirrors: Map<op, [{card,file,line,basis,codes:Set}]>
+  const mirrors = cards ? opMirrors(cards) : null;
+  const at = m => (m.file ? 'SADD/' + m.file : '卡 ' + m.card) + ':' + m.line;
+  const seen = new Set(); const referenced = new Set(); let ready = 0, pending = 0, examples = 0, assertions = 0, snapshotOps = 0, bidirectional = 0; const i64 = []; const stageCount = {};
 
   for (const [i, op] of manifest.ops.entries()) {
     const id = op?.op ?? `ops[${i}]`;
@@ -76,6 +80,28 @@ export function checkDto({root = ROOT, cards = null, stages = null} = {}) {
         if (!owners) bad('DTO-06', `错误码 ${c} 未在任何卡的错误码表定义（未注册）`);
         else if (owners.length > 1) bad('DTO-06', `错误码 ${c} 被多张卡定义：${owners.join('、')}`);
         else if (owners[0] === 'CORE-03') bad('DTO-18', `错误码 ${c} 是 CORE-03 的信封/句柄/取消码，不得写入 op 的业务错误集合`);
+      }
+    }
+    // DTO-06 双向比对（ADR-V5-55）：卡行与 error_codes 任一侧缺码都失败。
+    // 排除 CORE-03 信封/句柄/取消码（DTO-18 管），以及 CORE-56 全局规则加的 ENGINE_UNAVAILABLE（DTO-24 管）。
+    if (mirrors) {
+      const exclude = c => c === 'ENGINE_UNAVAILABLE' || codes?.get(c)?.[0] === 'CORE-03';
+      const mirrored = mirrors.get(op.op) ?? [];
+      for (const m of mirrored.filter(m => m.card !== op.owner)) {
+        bad('DTO-06', `逐 op 错误镜像写在 ${m.card}，应由 op 所有者 ${op.owner} 的卡声明（${at(m)}）`);
+      }
+      const onOwner = mirrored.filter(m => m.card === op.owner);
+      if (op.status === 'ready') {
+        if (!onOwner.length) bad('DTO-06', `所有者 ${op.owner} 的卡没有 ${op.op} 的逐 op 错误镜像（| op | 行或等效内联句）`);
+        else {
+          bidirectional++;
+          const cardCodes = new Set(onOwner.flatMap(m => [...m.codes]).filter(c => !exclude(c)));
+          const manifestCodes = new Set((op.error_codes ?? []).filter(c => !exclude(c)));
+          const onlyManifest = [...manifestCodes].filter(c => !cardCodes.has(c)).sort();
+          const onlyCard = [...cardCodes].filter(c => !manifestCodes.has(c)).sort();
+          if (onlyManifest.length) bad('DTO-06', `error_codes 有码但所有者卡 ${op.owner} 的逐 op 镜像没有：${onlyManifest.join('、')}（${onOwner.map(at).join('、')}）`);
+          if (onlyCard.length) bad('DTO-06', `所有者卡 ${op.owner} 的逐 op 镜像有码但 error_codes 没有：${onlyCard.join('、')}（${onOwner.map(at).join('、')}）`);
+        }
       }
     }
     if (!Array.isArray(op.sensitive_paths)) bad('DTO-07', 'sensitive_paths 必须是数组');
@@ -159,7 +185,11 @@ export function checkDto({root = ROOT, cards = null, stages = null} = {}) {
     }
   }
   const stageSummary = Object.fromEntries(Object.entries(stageCount).sort(([a], [b]) => a.localeCompare(b)));
-  r.stats = {ops: manifest.ops.length, ready, pending, stages: stageSummary, snapshotOps, schemas: files.size, examples, vectors, assertions, i64Fields: i64.length};
+  if (mirrors) for (const [op, list] of mirrors) if (!manifest.ops.some(o => o?.op === op)) {
+    r.error('DTO-06', `逐 op 错误镜像声明了 manifest 没有的 op：${op}（${list.map(at).join('、')}）`);
+  }
+  r.stats = {ops: manifest.ops.length, ready, pending, stages: stageSummary, snapshotOps, mirrors: mirrors ? mirrors.size : 0, bidirectional,
+    schemas: files.size, examples, vectors, assertions, i64Fields: i64.length};
   r.info = {i64Fields: i64};
   return r;
 }
