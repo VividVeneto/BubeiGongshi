@@ -488,8 +488,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const id = process.argv[2];
     if (!id || id.startsWith('--')) throw new PackError('Usage: node tools/sadd/pack.mjs CARD [--out DIR] [--sadd DIR] [--file PATH] [--with-tests] [--check-budget]');
-    const opt = name => { const i=process.argv.indexOf(name); return i<0?undefined:process.argv[i+1]; };
-    const extra = process.argv.flatMap((x,i) => x === '--file' ? [process.argv[i+1]] : []);
+    // 卡 :19：取值缺失或紧接另一选项属用法错误（2），不得落成 TypeError（3）或静默回退默认值。
+    const valueOf = (name, i) => {
+      const value = process.argv[i + 1];
+      if (value === undefined || value.startsWith('--')) throw new PackError('Missing value for ' + name);
+      return value;
+    };
+    const opt = name => { const i=process.argv.indexOf(name); return i<0?undefined:valueOf(name, i); };
+    const extra = process.argv.flatMap((x,i) => x === '--file' ? [valueOf('--file', i)] : []);
     const result = pack(id, {sadd: opt('--sadd'), extra, withTests: process.argv.includes('--with-tests')});
     const out = path.resolve(opt('--out') ?? `build/sadd/${id}`);
     writeOutput(out, result, {node: process.version});

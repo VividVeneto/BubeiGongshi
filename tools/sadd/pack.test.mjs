@@ -321,6 +321,28 @@ test('CLI exits 2 for usage and contract errors and writes no material', () => {
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });
 
+// 卡 :19：取值缺失或紧接另一选项属于用法错误（2），不得落成 TypeError（3）或静默回退默认值（C57-N1）。
+test('CLI treats missing option values as usage errors and writes no material', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-run-'));
+  const inCwd = args => spawnSync(process.execPath, [path.resolve('tools/sadd/pack.mjs'), ...args], {cwd, encoding: 'utf8'});
+  try {
+    const cases = [
+      [['CORE-57', '--file'], /Missing value for --file/],
+      [['CORE-57', '--file', '--with-tests'], /Missing value for --file/],
+      [['CORE-57', '--out'], /Missing value for --out/],
+      [['CORE-57', '--sadd'], /Missing value for --sadd/],
+      [['CORE-57', '--sadd', '--out', path.join(cwd, 'packed')], /Missing value for --sadd/],
+    ];
+    for (const [args, message] of cases) {
+      const result = inCwd(args);
+      assert.equal(result.status, 2, args.join(' ') + ' -> ' + result.stderr);
+      assert.match(result.stderr, message);
+    }
+    // 默认输出目录也不得被静默写出：--out 缺值不得回退 build/sadd/<卡号>。
+    assert.ok(!fs.existsSync(path.join(cwd, 'build')));
+  } finally { fs.rmSync(cwd, {recursive: true, force: true}); }
+});
+
 test('CLI exits 2 for an indivisible block above 80000 and 3 for unexpected internal failures', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-'));
   const sadd = path.join(root, 'SADD'); fs.mkdirSync(sadd);
