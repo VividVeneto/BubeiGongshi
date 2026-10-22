@@ -1,0 +1,6 @@
+# 网络构造白名单唯一文件（CORE-01 定义，CORE-28 与 CORE-41 引用同一份）。
+# 只豁免下列文件的 HttpClient/Socket 构造与网络包导入；privacy/、composition/ 不豁免。
+version: 1
+allow:
+  - "app/lib/platform/android/net/**/*.dart"
+  - "app/lib/platform/windows/net/**/*.dart"

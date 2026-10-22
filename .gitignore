@@ -1,0 +1,45 @@
+# 构建与本地临时输出（build/、temp/、target/ 一律不入库）
+/build/
+/target/
+/temp/
+**/target/
+**/build/
+
+# Dart / Flutter 生成目录与本地缓存
+**/.dart_tool/
+**/.pub/
+**/.pub-cache/
+**/doc/api/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.last_build_id
+app.*.symbols
+app.*.map.json
+
+# Flutter 平台工程内的构建产物与本地配置（工程本身由 AND-01/WIN-01 生成并入库）
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/.cxx/
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/.last_build_id
+
+# IDE / 编辑器
+.idea/
+*.iml
+*.ipr
+*.iws
+**/.vscode/
+
+# 系统与临时文件
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+
+# contracts/、SADD/、tools/ 是受版本管理的契约与工具，不得忽略。

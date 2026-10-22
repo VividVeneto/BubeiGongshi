@@ -1,0 +1,5 @@
+# 只用稳定版 rustfmt 支持的设置（CORE-01）。
+edition = "2024"
+max_width = 100
+newline_style = "Unix"
+use_small_heuristics = "Default"

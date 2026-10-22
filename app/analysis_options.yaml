@@ -1,0 +1,12 @@
+# 不背公式（BubeiGongshi）Dart 静态检查基线（CORE-01）。
+#
+# public_member_api_docs 必须显式启用：公共成员缺文档注释时 analyze 报 info 并以非零退出。
+analyzer:
+  exclude:
+    - build/**
+  language:
+    strict-casts: true
+
+linter:
+  rules:
+    public_member_api_docs: true

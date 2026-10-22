@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "patterns": [
+    { "library": "dart:io", "receiver": "Platform", "member": "isAndroid" },
+    { "library": "dart:io", "receiver": "Platform", "member": "isWindows" },
+    { "library": "dart:io", "receiver": "Platform", "member": "isLinux" },
+    { "library": "dart:io", "receiver": "Platform", "member": "isMacOS" },
+    { "library": "dart:io", "receiver": "Platform", "member": "isIOS" },
+    { "library": "dart:io", "receiver": "Platform", "member": "isFuchsia" },
+    { "library": "dart:io", "receiver": "Platform", "member": "operatingSystem" },
+    { "library": "package:flutter/foundation.dart", "receiver": null, "member": "defaultTargetPlatform" },
+    { "library": "package:flutter/foundation.dart", "receiver": null, "member": "kIsWeb" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "android" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "windows" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "linux" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "macOS" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "iOS" },
+    { "library": "package:flutter/foundation.dart", "receiver": "TargetPlatform", "member": "fuchsia" }
+  ]
+}

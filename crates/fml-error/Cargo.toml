@@ -1,0 +1,16 @@
+[package]
+name = "fml-error"
+description = "不背公式的全领域共享错误模型 crate（正式错误码与错误类型由 CORE-02 交付）"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+# CORE-01 只建骨架：本 crate 当前没有任何公共项与第三方运行时依赖。
+[dependencies]
+
+[dev-dependencies]
+serde_json = { workspace = true }
+yaml-rust2 = { workspace = true }
+
+[lints]
+workspace = true

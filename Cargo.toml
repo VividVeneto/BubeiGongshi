@@ -1,0 +1,25 @@
+# 不背公式（BubeiGongshi）Rust 工作区骨架（CORE-01）。
+#
+# 成员只有 crates/*：server/ 由 CORE-22 创建时追加为成员，尚未实现的 crate 不得预先列入。
+# 版本取值与查询依据见 SADD 附录A ADR-V5-15（查询日期记录在 tools/toolchain.versions）。
+
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+# 第三方 crate 的精确版本由本卡首次锁定（ADR-V5-15），实际解析结果见 Cargo.lock。
+serde_json = "1.0.154"
+# YAML 解析只用于测试方案第 4 条读 contracts/policies/*.yaml：取纯 Rust 的 yaml-rust2。
+# 不取 serde_yaml_ng：其依赖链带一项安全公告（编号与组件不入库，见附录D D.14.8 RL-01），
+# 会让裸 cargo deny check 失败。default-features = false 去掉 UTF-16/32 转码（encoding_rs）：
+# 策略文件是仓库内的 UTF-8 文本，策略解析用 load_from_str 直接吃 &str。
+yaml-rust2 = { version = "0.13.0", default-features = false }
+
+[workspace.lints.rust]
+missing_docs = "deny"
+unsafe_code = "forbid"

@@ -1,0 +1,28 @@
+# 统一按 LF 入库，二进制类型显式标注（CORE-01）。
+* text=auto eol=lf
+
+*.rs text eol=lf
+*.dart text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.py text eol=lf
+*.txt text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.onnx binary

@@ -1,0 +1,15 @@
+name: bubeigongshi
+description: 不背公式（BubeiGongshi）Flutter 共享界面；本包当前只有可启动的空壳，不含绑定、平台判定与业务逻辑。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
