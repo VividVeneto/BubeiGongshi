@@ -72,6 +72,24 @@ export function checkMigrations(cards) {
   return out;
 }
 
+/**
+ * §2 实施阶段表：Map<卡号, S编号>。同一卡出现在多个阶段时记入 conflicts，由 STAGE-01 报告。
+ * DTOcheck 内部（含 dto 的 manifest stage 来源核对）共用这一份解析，避免第二套阶段枚举。
+ */
+export function stageTable(sadd = path.join(ROOT, 'SADD'), docs = null) {
+  const texts = (docs ?? readDocs(sadd)).texts;
+  const stageOf = new Map(); const conflicts = [];
+  for (const f of FILES) for (const line of section(texts[f], 2).split('\n')) {
+    const m = line.match(/^\| (S\d) [^|]*\| ([^|]+) \|/);
+    if (!m) continue;
+    for (const id of m[2].match(/(?:CORE|AND|WIN)-\d+/g) ?? []) {
+      if (stageOf.has(id) && stageOf.get(id) !== m[1]) conflicts.push({id, from: stageOf.get(id), to: m[1]});
+      stageOf.set(id, m[1]);
+    }
+  }
+  return {stageOf, conflicts};
+}
+
 export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
   const r = new Report('cards');
   let cards;
@@ -163,16 +181,9 @@ export function checkCards({sadd = path.join(ROOT, 'SADD')} = {}) {
     if (!reach(id, d)) r.error('GRAPH-05', `${id}: 依赖图未体现直接依赖 ${d}`);
   }
 
-  // 实施阶段
-  const stageOf = new Map();
-  for (const f of FILES) for (const line of section(texts[f], 2).split('\n')) {
-    const m = line.match(/^\| (S\d) [^|]*\| ([^|]+) \|/);
-    if (!m) continue;
-    for (const id of m[2].match(/(?:CORE|AND|WIN)-\d+/g) ?? []) {
-      if (stageOf.has(id) && stageOf.get(id) !== m[1]) r.error('STAGE-01', `${id}: 同时出现在 ${stageOf.get(id)} 与 ${m[1]}`);
-      stageOf.set(id, m[1]);
-    }
-  }
+  // 实施阶段（解析与 dto 检查共用 stageTable）
+  const {stageOf, conflicts: stageConflicts} = stageTable(sadd, docs);
+  for (const c of stageConflicts) r.error('STAGE-01', `${c.id}: 同时出现在 ${c.from} 与 ${c.to}`);
   for (const id of cards.keys()) if (!stageOf.has(id)) r.error('STAGE-02', `${id}: 未出现在任何实施阶段`);
   // 拆分布局：文件名中的 S 编号与所在文件夹必须与实施阶段表一致
   for (const [id, f] of docs.cardFiles) {
