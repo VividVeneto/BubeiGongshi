@@ -162,6 +162,10 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   const exists = file => fs.existsSync(path.join(root, file)) && fs.statSync(path.join(root, file)).isFile();
   const readText = file => fs.readFileSync(path.join(root, file), 'utf8');
   const MANIFEST = 'contracts/dto/manifest.json', SHARED = 'contracts/policies/shared-writes.json', TYPES = 'contracts/dto/types.schema.json';
+  // 错误码 contracts（CORE-02）：registry.yaml 是唯一真源，ownership.yaml 与 README.md 是生成镜像，errors-v1 是本卡向量。
+  // 不走“正文提到就整收”：registry 只对其维护者整收、其余卡按 owner/引用切片，生成镜像只列名，向量只由所有者或目标卡正文引用整收。
+  const ERR_CARD = 'CORE-02', ERR_REGISTRY = 'contracts/errors/registry.yaml', ERR_OWNERSHIP = 'contracts/errors/ownership.yaml', ERR_README = 'contracts/errors/README.md';
+  const ERR_VECTOR = 'contracts/vectors/errors-v1.json', ERR_MIRRORS = new Set([ERR_OWNERSHIP, ERR_README]);
   const manifestDoc = exists(MANIFEST) ? JSON.parse(readText(MANIFEST)) : {ops: []};
   // CO-60-1/F-75-01：文件声明的单写维护者卡 = policy 中 kind=file 且 key 为该文件路径的条目 owner。
   const sharedDoc = exists(SHARED) ? JSON.parse(readText(SHARED)) : {entries: []};
@@ -169,7 +173,8 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   const ownedSchemas = new Set((manifestDoc.ops ?? []).filter(o => related.has(o.owner) && typeof o.schema === 'string').map(o => 'contracts/dto/' + o.schema));
   const isSchema = f => /^contracts\/dto\/[^/]+\.schema\.json$/.test(f) && f !== TYPES;
   const isVector = f => f.startsWith('contracts/vectors/');
-  const vectorReferenced = f => { const stem = path.posix.basename(f).replace(/\.[^.]+$/, ''); return new RegExp(`(?<![A-Za-z0-9_-])${stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_-])`).test(relatedBodies); };
+  const vectorReferencedIn = (f, text) => { const stem = path.posix.basename(f).replace(/\.[^.]+$/, ''); return new RegExp(`(?<![A-Za-z0-9_-])${stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_-])`).test(text); };
+  const vectorReferenced = f => vectorReferencedIn(f, relatedBodies);
   const inventory = listContracts(root);
   const fullReason = new Map();
   const wantFull = (f, reason) => { if (!fullReason.has(f)) { fullReason.set(f, reason); queue.push(f); } };
@@ -177,8 +182,16 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   for (const f of extraSet) if (f.startsWith('contracts/')) wantFull(f, '--file 指定');
   for (const f of ownedSchemas) wantFull(f, '目标卡/直接依赖拥有的 op');
   for (const f of mentionedRelated) if (isSchema(f)) wantFull(f, '目标卡/直接依赖正文引用');
-  for (const f of mentionedAll) if (!isSchema(f) && !isVector(f) && ![MANIFEST, SHARED, TYPES].includes(f)) wantFull(f, '正文引用');
-  for (const f of inventory) if (isVector(f) && vectorReferenced(f)) wantFull(f, '目标卡/直接依赖验收引用');
+  for (const f of mentionedAll) if (!isSchema(f) && !isVector(f) && ![MANIFEST, SHARED, TYPES].includes(f) && f !== ERR_REGISTRY && !ERR_MIRRORS.has(f)) wantFull(f, '正文引用');
+  const registryText = exists(ERR_REGISTRY) ? readText(ERR_REGISTRY) : '';
+  const registrySliceable = /^entries:\s*$/m.test(registryText);
+  if (id === ERR_CARD) {
+    for (const f of [ERR_REGISTRY, ...ERR_MIRRORS, ERR_VECTOR]) if (exists(f)) wantFull(f, '目标卡是错误码契约的所有者（CORE-02）');
+  } else if (mentionedAll.has(ERR_REGISTRY) && !registrySliceable) {
+    wantFull(ERR_REGISTRY, '正文引用（非注册表结构，整文件收录）');
+  }
+  for (const f of inventory) if (isVector(f) && f !== ERR_VECTOR && vectorReferenced(f)) wantFull(f, '目标卡/直接依赖验收引用');
+  if (exists(ERR_VECTOR) && (id === ERR_CARD || vectorReferencedIn(ERR_VECTOR, target.body))) wantFull(ERR_VECTOR, id === ERR_CARD ? '目标卡是错误码契约的所有者（CORE-02）' : '目标卡正文引用错误向量');
   const typesNeeded = new Set(); let typesFull = extraSet.has(TYPES);
   for (let i = 0; i < queue.length; i++) {
     const f = queue[i];
@@ -212,6 +225,16 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
   for (const file of inventory) {
     if (fullReason.has(file)) continue;
     const content = readText(file); const entry = {path: file, originalBytes: bytes(content), sha256: sha256(content)};
+    if (file === ERR_REGISTRY && registrySliceable && mentionedAll.has(file)) {
+      const slice = sliceErrorRegistry(content, related, target.body);
+      if (slice) {
+        const note = `切片（按 owner/引用过滤）：owner ∈ {${ownerList}}，或 code 在目标卡正文出现；收录 ${slice.kept}/${slice.total} 条（原 ${entry.originalBytes} 字节，收录 ${bytes(slice.text)} 字节），原文件 SHA-256=${entry.sha256}。保留顶部 registry_version 等头部字段与各条目原文；未收录 ${slice.total - slice.kept} 条（其 code 与 owner 见上面的只列名清单或 registry 原文）。收录 code：${slice.codes.join('、') || '无'}。全文用 --file ${ERR_REGISTRY}。`;
+        pushFile(file, note + '\n\n' + fence(slice.text), `${file}（按 owner/引用过滤）`);
+        filteredFiles.push({...entry, mode: 'sliced', includedBytes: bytes(slice.text), reason: `只收录 owner ∈ 目标卡/直接依赖、或 code 在目标卡正文出现的条目（${slice.kept}/${slice.total}）`, kept: slice.kept, total: slice.total, entries: slice.codes});
+        if (!slice.kept) warnings.push(`${ERR_REGISTRY} 切片后 0 条：目标卡与直接依赖不拥有任何错误码，正文也未引用 code；不能视为已读，需时用 --file ${ERR_REGISTRY} 取全文`);
+        continue;
+      }
+    }
     if (file === MANIFEST || file === SHARED) {
       const key = file === MANIFEST ? 'ops' : 'entries';
       const total = jsonItems(content, key).length;
@@ -255,6 +278,9 @@ export function pack(id, {sadd = path.join(ROOT, 'SADD'), extra = [], withTests 
     }
     const reason = isSchema(file) ? '非目标卡/直接依赖拥有的 op，且未被收录的 schema 引用或正文引用'
       : file === TYPES ? '没有被引用或在正文出现的 $defs 条目'
+      : ERR_MIRRORS.has(file) ? 'CORE-02 生成的镜像，只由维护者卡 CORE-02 整文件收录'
+      : file === ERR_REGISTRY ? '错误码注册表，只由维护者卡 CORE-02 整文件收录，其余卡按 owner/引用切片'
+      : file === ERR_VECTOR ? 'CORE-02 拥有的错误向量，只在维护者卡或目标卡正文引用时整收'
       : isVector(file) ? '目标卡与直接依赖的正文和验收未引用' : '目标卡与已收录材料未引用';
     filteredFiles.push({...entry, mode: 'listed', includedBytes: 0, reason});
   }
@@ -320,6 +346,30 @@ function listContracts(root) {
   } };
   if (fs.existsSync(base)) walk(base);
   return out;
+}
+
+/**
+ * 错误码注册表切片：保留头部字段（注释与 registry_version/version 等）和“owner ∈ 给定集合或 code 在目标卡正文出现”的条目原文。
+ * 文件没有 entries: 容器或没有条目时返回 null（不是注册表结构，调用方按整文件收录）。
+ */
+function sliceErrorRegistry(text, owners, targetBody) {
+  const at = text.search(/^entries:\s*$/m);
+  if (at < 0) return null;
+  const lineEnd = text.indexOf('\n', at);
+  const prefix = lineEnd < 0 ? text : text.slice(0, lineEnd + 1);
+  const body = lineEnd < 0 ? '' : text.slice(lineEnd + 1);
+  const blocks = body.split(/^(?=  - code: )/m).filter(block => block.trim());
+  const kept = []; const codes = [];
+  for (const block of blocks) {
+    const code = block.match(/^  - code: (\S+)/)?.[1];
+    const owner = block.match(/^ {4}owner: (\S+)$/m)?.[1];
+    if (!code) continue;
+    if (owners.has(owner) || new RegExp(`(?<![A-Za-z0-9_])${code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_])`).test(targetBody)) {
+      kept.push(block); codes.push(code);
+    }
+  }
+  if (!blocks.length) return null;
+  return {text: prefix + kept.join(''), kept: kept.length, total: blocks.length, codes};
 }
 
 /** 收集 JSON 值中全部 $ref 字符串。 */
