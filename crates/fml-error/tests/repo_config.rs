@@ -1,12 +1,19 @@
 //! CORE-01 测试方案第 1、2、3、6、7 条：仓库骨架、工程配置、锁版与依赖清单断言。
 //!
 //! 本测试只读仓库文件与 cargo 元数据，不实现检查器（CORE-69/CORE-41 消费同一批文件）。
+//!
+//! “仅本卡产物”按卡的合法范围解释（差异留档见
+//! `temp/review/s0r1-core01-expansion-fix/卡片问题留档.md`）：后续卡新增 crate、`app/lib` 目录与
+//! 平台原生工程，只要仍在 CORE-01 卡给出的成员清单（`contracts/policies/dep-allow.yaml` 预留键）、
+//! 依赖上界、目录布局与 lint 约束内即通过；未登记成员、越级依赖、缺基座文件、布局外路径与放宽
+//! lint 仍判失败。判据集中在下面的纯函数里，仓库断言与夹具断言共用同一套。
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 use std::process::Command;
 
 use serde_json::{Value, json};
+use yaml_rust2::YamlLoader;
 
 /// 仓库根目录（由 crate 位置推出，避免依赖当前工作目录）。
 fn repo_root() -> PathBuf {
@@ -171,32 +178,473 @@ fn cargo_deny_version() -> String {
         .expect("cargo deny --version 输出为空")
         .to_string()
 }
+// ---------------------------------------------------------------------------
+// 骨架包含式判据：CORE-01 卡给的是合法范围，不是“本卡产物清单”。
+// ---------------------------------------------------------------------------
+
+/// CORE-01 卡列出的 app/lib 非特性顶层目录（子树由对应卡填充）。
+const APP_LIB_RESERVED_DIRS: &[&str] = &["binding", "ports", "composition", "render", "l10n"];
+
+/// CORE-01 卡列出的 app/lib/<feature> 特性目录。
+const APP_LIB_FEATURES: &[&str] = &[
+    "account",
+    "sync",
+    "recognition",
+    "study",
+    "study_stats",
+    "library",
+    "editor",
+    "calc",
+    "packs",
+    "settings",
+    "privacy",
+    "export",
+    "net",
+    "design",
+];
+
+/// CORE-01 卡列出的 app/lib/ui/<feature> 界面目录。
+const APP_UI_FEATURES: &[&str] = &[
+    "shell",
+    "design",
+    "editor",
+    "library",
+    "study",
+    "study_stats",
+    "books",
+    "calc",
+    "packs",
+    "recognition",
+    "settings",
+];
+
+/// 卡允许出现受审计 unsafe 的 crate；其余 crate 必须 `#![forbid(unsafe_code)]`。
+const AUDITED_UNSAFE_CRATES: &[&str] = &["fml-ffi", "fml-imgproc", "fml-recognize-local"];
+
+/// 平台原生工程目录：共享界面只面向 Windows 与 Android。
+const APP_PLATFORM_DIRS: &[&str] = &["android", "windows"];
+
+/// 读 contracts/policies/dep-allow.yaml 的 crates 映射：crate → 允许的本仓库直接依赖。
+///
+/// 这份上界表是成员清单与依赖上界的唯一来源，CORE-69 消费同一文件。
+fn dep_allow_registry() -> BTreeMap<String, BTreeSet<String>> {
+    let text = read("contracts/policies/dep-allow.yaml");
+    let documents = YamlLoader::load_from_str(&text)
+        .unwrap_or_else(|e| panic!("dep-allow.yaml 不是合法 YAML：{e}"));
+    assert_eq!(
+        documents.len(),
+        1,
+        "dep-allow.yaml 必须恰好包含一个 YAML 文档"
+    );
+    let crates = documents[0]["crates"]
+        .as_hash()
+        .unwrap_or_else(|| panic!("dep-allow.yaml 缺少 crates 映射"));
+    let mut registry = BTreeMap::new();
+    for (key, value) in crates {
+        let name = key
+            .as_str()
+            .unwrap_or_else(|| panic!("crates 的键必须是字符串：{key:?}"))
+            .to_string();
+        let allowed: BTreeSet<String> = value
+            .as_vec()
+            .unwrap_or_else(|| panic!("{name} 的允许上界必须是数组"))
+            .iter()
+            .map(|item| {
+                item.as_str()
+                    .unwrap_or_else(|| panic!("{name} 的允许项必须是字符串"))
+                    .to_string()
+            })
+            .collect();
+        registry.insert(name, allowed);
+    }
+    registry
+}
+
+/// app/lib 下的相对路径是否落在 CORE-01 布局内；合法返回 None，否则返回违例说明。
+fn app_lib_path_violation(path: &str) -> Option<String> {
+    let Some(rest) = path.strip_prefix("app/lib/") else {
+        return Some(format!("{path} 不在 app/lib 下"));
+    };
+    let parts: Vec<&str> = rest.split('/').collect();
+    let Some(top) = parts.first().copied() else {
+        return Some(format!("app/lib 下缺少文件名：{path}"));
+    };
+    if parts.len() == 1 {
+        // 顶层只有空壳 main.dart 与平台卡写入的 main_<平台>.dart。
+        return if top == "main.dart" || (top.starts_with("main_") && top.ends_with(".dart")) {
+            None
+        } else {
+            Some(format!(
+                "app/lib/ 顶层只允许 main.dart 与 main_<平台>.dart：{path}"
+            ))
+        };
+    }
+    if top == "platform" {
+        // 平台实现只按端口落到 android/、windows/。
+        return match parts.get(1) {
+            Some(platform) if APP_PLATFORM_DIRS.contains(platform) && parts.len() > 2 => None,
+            _ => Some(format!(
+                "app/lib/platform/ 下只允许 android/ 与 windows/，且需落到具体文件：{path}"
+            )),
+        };
+    }
+    if top == "ui" {
+        let Some(feature) = parts.get(1) else {
+            return Some(format!("app/lib/ui/ 下必须是 <feature>/<文件>：{path}"));
+        };
+        // 界面目录不另立白名单：<feature> 必须在本卡的 <feature> 名单里（CORE-01:29 的
+        // 11 个界面名与 lib/<feature> 名的并集），CORE-63:25 的 ui/account/ 因此也在内。
+        let known_feature = APP_UI_FEATURES.contains(feature) || APP_LIB_FEATURES.contains(feature);
+        return if !known_feature {
+            Some(format!(
+                "app/lib/ui/{feature}/ 不在 CORE-01 的 <feature> 名单内（lib/<feature> ∪ ui/<feature>）：{path}"
+            ))
+        } else if parts.len() == 2 {
+            Some(format!("app/lib/ui/{feature}/ 下必须落到文件：{path}"))
+        } else {
+            None
+        };
+    }
+    if APP_LIB_RESERVED_DIRS.contains(&top) || APP_LIB_FEATURES.contains(&top) {
+        None
+    } else {
+        Some(format!("app/lib/{top}/ 不在 CORE-01 布局内：{path}"))
+    }
+}
+
+/// 一个工作区成员的最小事实集（仓库断言与夹具断言共用同一判据）。
+struct MemberFacts<'a> {
+    /// Cargo 包名。
+    name: &'a str,
+    /// 清单路径（绝对或相对皆可，判据按路径尾部比对）。
+    manifest_path: &'a str,
+    /// 清单正文。
+    manifest: &'a str,
+    /// `src/lib.rs` 正文；库 crate 没有该文件时为 None。
+    lib: Option<&'a str>,
+    /// `src/main.rs` 正文；二进制成员（CORE-22 的 fml-server）只有它。
+    ///
+    /// CORE-22:108 的 server 主包是 `server/src/{main.rs,config.rs,...}`，SADD 全文没有
+    /// `server/src/lib.rs`，故基座文件按“lib.rs 或 main.rs 二选一”判定。
+    main: Option<&'a str>,
+    /// 本仓库内的直接依赖包名（cargo metadata 中 source 为 null 的那些）。
+    local_deps: &'a [String],
+}
+
+/// 成员清单是否落在 `crates/<name>/Cargo.toml`，或 server 成员落在 `server/Cargo.toml`。
+fn manifest_location_ok(name: &str, manifest_path: &str) -> bool {
+    let path = manifest_path.replace('\\', "/");
+    let path = path.trim_start_matches("./");
+    if name == "fml-server" {
+        path == "server/Cargo.toml" || path.ends_with("/server/Cargo.toml")
+    } else {
+        let expected = format!("crates/{name}/Cargo.toml");
+        path == expected || path.ends_with(&format!("/{expected}"))
+    }
+}
+
+/// `// SAFETY: 说明` 里的说明正文；没有说明或不是 SAFETY 注释时返回 None。
+fn safety_text(comment: &str) -> Option<&str> {
+    let rest = comment.trim().strip_prefix("//")?.trim_start();
+    let note = rest.strip_prefix("SAFETY:")?.trim();
+    (!note.is_empty()).then_some(note)
+}
+
+/// 收集没有 `// SAFETY:` 说明的 `unsafe` 块（CORE-01:133）。
+///
+/// 按行判定：代码位置出现 `unsafe` 关键字（`unsafe {`、`unsafe fn/impl/trait/extern`）时，
+/// 本行行尾或紧邻其上的连续注释里必须有非空 `// SAFETY:`；`unsafe_code` 这类 lint 名不算块。
+fn unsafe_blocks_without_safety(source: &str) -> Vec<String> {
+    const BLOCK_MARKERS: &[&str] = &[
+        "unsafe {",
+        "unsafe{",
+        "unsafe fn ",
+        "unsafe impl ",
+        "unsafe trait ",
+        "unsafe extern ",
+    ];
+    let lines: Vec<&str> = source.lines().collect();
+    let mut missing = Vec::new();
+    for (at, line) in lines.iter().enumerate() {
+        let code = line.split("//").next().unwrap_or_default();
+        if !BLOCK_MARKERS.iter().any(|marker| code.contains(marker)) {
+            continue;
+        }
+        let trailing = &line[code.len()..];
+        let has_safety = safety_text(trailing).is_some()
+            || lines[..at]
+                .iter()
+                .rev()
+                .map(|above| above.trim())
+                .take_while(|above| above.starts_with("//"))
+                .any(|above| safety_text(above).is_some());
+        if !has_safety {
+            missing.push(format!("第 {} 行 {}", at + 1, line.trim()));
+        }
+    }
+    missing
+}
+
+/// 成员的必需要素与依赖上界检查；返回全部违例（空表示合法）。
+fn member_violations(
+    member: &MemberFacts<'_>,
+    registry: &BTreeMap<String, BTreeSet<String>>,
+) -> Vec<String> {
+    let name = member.name;
+    // 受审计 unsafe crate 不能继承根 workspace.lints：unsafe_code = "forbid" 经 CLI -F 生效、
+    // crate 属性无法覆盖，CORE-01:133 让它们改用逐块 // SAFETY:（真实 cargo 最小例见修复报告 B1）。
+    let audited = AUDITED_UNSAFE_CRATES.contains(&name);
+    let mut violations = Vec::new();
+    let registered = registry.get(name);
+    if registered.is_none() {
+        violations.push(format!(
+            "{name} 未在 contracts/policies/dep-allow.yaml 预留清单登记"
+        ));
+    }
+    if !manifest_location_ok(name, member.manifest_path) {
+        let expected = if name == "fml-server" {
+            "server/Cargo.toml".to_string()
+        } else {
+            format!("crates/{name}/Cargo.toml")
+        };
+        violations.push(format!(
+            "{name} 的清单路径应为 {expected}，实际 {}",
+            member.manifest_path
+        ));
+    }
+    if kv(section(member.manifest, "[package]"), "publish") != Some("false") {
+        violations.push(format!("{name} 必须声明 publish = false"));
+    }
+    // CORE-01:93 要求 crate 显式继承 workspace.lints；受审计 crate 例外（见上）。
+    if !audited && kv(section(member.manifest, "[lints]"), "workspace") != Some("true") {
+        violations.push(format!("{name} 必须 [lints] workspace = true"));
+    }
+    // 基座文件：库 crate 看 src/lib.rs，二进制成员（CORE-22 的 fml-server）看 src/main.rs。
+    let sources: Vec<&str> = member.lib.into_iter().chain(member.main).collect();
+    if sources.is_empty() {
+        violations.push(format!("{name} 缺少基座文件 src/lib.rs 或 src/main.rs"));
+    }
+    if let Some(lib) = member.lib {
+        if !lib.contains("#![deny(missing_docs)]") {
+            violations.push(format!("{name} 的 src/lib.rs 必须 #![deny(missing_docs)]"));
+        }
+        if !audited && !lib.contains("#![forbid(unsafe_code)]") {
+            violations.push(format!(
+                "{name} 不在受审计 unsafe 名单（{AUDITED_UNSAFE_CRATES:?}），src/lib.rs 必须 #![forbid(unsafe_code)]"
+            ));
+        }
+    }
+    if audited {
+        for source in &sources {
+            let missing = unsafe_blocks_without_safety(source);
+            if !missing.is_empty() {
+                violations.push(format!(
+                    "{name} 的 unsafe 块缺非空 // SAFETY: 注释（CORE-01:133）：{}",
+                    missing.join("；")
+                ));
+            }
+        }
+    }
+    if let Some(allowed) = registered {
+        for dep in member.local_deps {
+            if dep == name {
+                violations.push(format!("{name} 不得依赖自身"));
+            } else if !allowed.contains(dep) {
+                violations.push(format!(
+                    "{name} 不得依赖 {dep}：dep-allow.yaml 的允许上界为 {allowed:?}"
+                ));
+            }
+        }
+    }
+    violations
+}
+
+/// 成员集合的检查：基座 fml-error 必须在，成员必须已登记。
+fn workspace_violations(
+    names: &BTreeSet<String>,
+    registry: &BTreeMap<String, BTreeSet<String>>,
+) -> Vec<String> {
+    let mut violations = Vec::new();
+    if !names.contains("fml-error") {
+        violations.push("基座 crate fml-error 必须是工作区成员".to_string());
+    }
+    for name in names {
+        if !registry.contains_key(name) {
+            violations.push(format!(
+                "{name} 未在 contracts/policies/dep-allow.yaml 预留清单登记"
+            ));
+        }
+    }
+    violations
+}
+
+/// app 空壳与布局的最小事实集。
+struct AppShell<'a> {
+    /// app/lib 下的全部文件（相对仓库根，'/' 分隔）。
+    files: &'a [String],
+    /// app/lib/main.dart 正文（缺失时传空串）。
+    main_dart: &'a str,
+    /// app/analysis_options.yaml 正文（缺失时传空串）。
+    analysis_options: &'a str,
+}
+
+/// 单个 Dart 文件的 import 限制：视图不 import binding/、platform/，共享界面不发起 HTTP。
+///
+/// 只扫 `import` 行；符号级与传输层检查归 CORE-69 的静态检查工具。
+fn app_import_violations(path: &str, text: &str) -> Vec<String> {
+    let in_ui = path.starts_with("app/lib/ui/");
+    let mut violations = Vec::new();
+    for line in text.lines().map(str::trim) {
+        let Some(rest) = line.strip_prefix("import ") else {
+            continue;
+        };
+        // 视图可以只读引用 CORE-67 生成的纯数据 DTO。
+        if in_ui && rest.contains("binding/dto/") && rest.contains(".g.dart") {
+            continue;
+        }
+        let forbidden: &[&str] = if in_ui {
+            &[
+                "binding/",
+                "platform/",
+                "dart:io",
+                "package:http/",
+                "package:dio/",
+            ]
+        } else {
+            &[
+                "binding/",
+                "platform/",
+                "dart:io",
+                "dart:ffi",
+                "package:http/",
+            ]
+        };
+        for needle in forbidden {
+            if rest.contains(needle) {
+                violations.push(format!("{path} 不得 import {needle}：{line}"));
+            }
+        }
+    }
+    violations
+}
+
+/// app 空壳必须保留的基座文件与布局约束。
+fn app_shell_violations(shell: &AppShell<'_>) -> Vec<String> {
+    let mut violations = Vec::new();
+    if !shell
+        .analysis_options
+        .contains("public_member_api_docs: true")
+    {
+        violations
+            .push("app/analysis_options.yaml 必须显式启用 public_member_api_docs".to_string());
+    }
+    let mut has_main = false;
+    for path in shell.files {
+        if path == "app/lib/main.dart" {
+            has_main = true;
+        }
+        if let Some(violation) = app_lib_path_violation(path) {
+            violations.push(violation);
+        }
+    }
+    if !has_main {
+        violations.push("缺少基座文件 app/lib/main.dart".to_string());
+    }
+    if !shell
+        .main_dart
+        .contains("import 'package:flutter/material.dart';")
+    {
+        violations.push(
+            "app/lib/main.dart 必须 import 'package:flutter/material.dart';（空壳只依赖 Flutter 界面库）"
+                .to_string(),
+        );
+    }
+    violations.extend(app_import_violations("app/lib/main.dart", shell.main_dart));
+    violations
+}
+
 #[test]
-fn workspace_members_are_only_fml_error() {
+fn workspace_members_stay_within_core01_layout() {
+    let registry = dep_allow_registry();
+    assert!(
+        registry.contains_key("fml-error"),
+        "dep-allow.yaml 必须预留基座 crate fml-error"
+    );
+
     let metadata = cargo_metadata(true);
-    let mut names: Vec<String> = metadata["packages"]
-        .as_array()
-        .expect("packages 应为数组")
-        .iter()
-        .map(|package| {
-            package["name"]
-                .as_str()
-                .expect("包名应为字符串")
-                .to_string()
-        })
-        .collect();
-    names.sort();
-    assert_eq!(
-        names,
-        vec!["fml-error".to_string()],
-        "工作区成员只能有本卡建出的 fml-error"
-    );
-    assert!(!exists("server"), "server/ 由 CORE-22 创建，本卡不得预建");
-    assert_eq!(
-        subdirs("crates"),
-        vec!["fml-error".to_string()],
-        "crates/ 下只能有 fml-error"
-    );
+    let packages = metadata["packages"].as_array().expect("packages 应为数组");
+    let mut names = BTreeSet::new();
+    let mut violations = Vec::new();
+    for package in packages {
+        let name = package["name"]
+            .as_str()
+            .expect("包名应为字符串")
+            .to_string();
+        let manifest_path = package["manifest_path"]
+            .as_str()
+            .expect("manifest_path 应为字符串");
+        // 成员清单必须在 crates/<name>/ 或 server/（判据见 manifest_location_ok）。
+        let dir = if name == "fml-server" {
+            "server".to_string()
+        } else {
+            format!("crates/{name}")
+        };
+        let manifest_rel = format!("{dir}/Cargo.toml");
+        let lib_rel = format!("{dir}/src/lib.rs");
+        let main_rel = format!("{dir}/src/main.rs");
+        let manifest = if exists(&manifest_rel) {
+            read(&manifest_rel)
+        } else {
+            String::new()
+        };
+        let lib = exists(&lib_rel).then(|| read(&lib_rel));
+        // CORE-22 的 fml-server 只有 src/main.rs（binary-only）。
+        let main = exists(&main_rel).then(|| read(&main_rel));
+        // cargo metadata --no-deps 里 source 为 null 的依赖就是本仓库的 path 依赖。
+        let local_deps: Vec<String> = package["dependencies"]
+            .as_array()
+            .expect("dependencies 应为数组")
+            .iter()
+            .filter(|dependency| dependency["source"].is_null())
+            .map(|dependency| {
+                dependency["name"]
+                    .as_str()
+                    .expect("依赖名应为字符串")
+                    .to_string()
+            })
+            .collect();
+        let facts = MemberFacts {
+            name: &name,
+            manifest_path,
+            manifest: &manifest,
+            lib: lib.as_deref(),
+            main: main.as_deref(),
+            local_deps: &local_deps,
+        };
+        violations.extend(member_violations(&facts, &registry));
+        names.insert(name);
+    }
+    violations.extend(workspace_violations(&names, &registry));
+
+    // crates/ 下每个目录都必须是成员：目录名即包名（由清单路径判据保证）。
+    for dir in subdirs("crates") {
+        assert!(
+            names.contains(&dir),
+            "crates/{dir}/ 未成为工作区成员：{names:?}"
+        );
+    }
+    // server/ 由 CORE-22 创建并追加为成员；未创建时不预列，创建后不得只存在于目录。
+    if exists("server") {
+        assert!(
+            exists("server/Cargo.toml"),
+            "server/ 存在时必须建为工作区成员"
+        );
+        assert!(
+            names.contains("fml-server"),
+            "server/ 存在时必须由 CORE-22 追加为成员 fml-server"
+        );
+    }
+    assert!(violations.is_empty(), "工作区成员违例：\n{violations:#?}");
 }
 
 #[test]
@@ -234,11 +682,20 @@ fn root_manifest_declares_workspace_contract() {
     let manifest = read("Cargo.toml");
     let workspace = section(&manifest, "[workspace]");
     assert_eq!(kv(workspace, "resolver"), Some("\"2\""), "resolver 应为 2");
+    // CORE-01:42：初始 members 只有 crates/*；CORE-22 首次建 server/Cargo.toml 时把
+    // "server" 追加进来（NF1：这里不再要求精确等于 ["crates/*"]，其余追加项仍拒绝）。
+    let member_entries = quoted(kv(workspace, "members").expect("workspace.members"));
     assert_eq!(
-        kv(workspace, "members"),
-        Some("[\"crates/*\"]"),
-        "members 应为 crates/*"
+        member_entries.first().map(String::as_str),
+        Some("crates/*"),
+        "members 必须以 crates/* 开头"
     );
+    for extra in &member_entries[1..] {
+        assert_eq!(
+            extra, "server",
+            "members 只允许 CORE-22 追加的 server：{member_entries:?}"
+        );
+    }
 
     let package = section(&manifest, "[workspace.package]");
     assert_eq!(kv(package, "version"), Some("\"0.1.0\""));
@@ -263,54 +720,462 @@ fn root_manifest_declares_workspace_contract() {
 }
 
 #[test]
-fn app_is_shell_only() {
+fn app_shell_stays_within_layout() {
     assert!(exists("app/pubspec.yaml"), "缺少 app/pubspec.yaml");
-    assert!(exists("app/lib/main.dart"), "缺少 app/lib/main.dart");
+    let mut files = Vec::new();
+    collect_files("app/lib", &mut files);
+    files.sort();
+    let main_dart = if exists("app/lib/main.dart") {
+        read("app/lib/main.dart")
+    } else {
+        String::new()
+    };
+    let analysis_options = if exists("app/analysis_options.yaml") {
+        read("app/analysis_options.yaml")
+    } else {
+        String::new()
+    };
+    let violations = app_shell_violations(&AppShell {
+        files: &files,
+        main_dart: &main_dart,
+        analysis_options: &analysis_options,
+    });
     assert!(
-        read("app/analysis_options.yaml").contains("public_member_api_docs: true"),
-        "analysis_options 必须显式启用 public_member_api_docs"
+        violations.is_empty(),
+        "app 空壳与布局违例：\n{violations:#?}"
     );
 
-    let mut libs = Vec::new();
-    collect_files("app/lib", &mut libs);
-    libs.sort();
-    // 空壳 main.dart 加 CORE-02 生成/登记的共享错误资源：生成物只读，仍不允许界面代码。
-    assert_eq!(
-        libs,
-        vec![
-            "app/lib/binding/error_codes.g.dart".to_string(),
-            "app/lib/l10n/errors_zh.arb".to_string(),
-            "app/lib/main.dart".to_string(),
-        ],
-        "app/lib 只允许空壳 main.dart 与 CORE-02 的错误码生成物、消息资源"
+    // 视图的 import 限制（只扫 import 行；符号级检查归 CORE-69）。
+    let mut import_violations = Vec::new();
+    for path in files.iter().filter(|path| path.starts_with("app/lib/ui/")) {
+        import_violations.extend(app_import_violations(path, &read(path)));
+    }
+    assert!(
+        import_violations.is_empty(),
+        "视图 import 违例：\n{import_violations:#?}"
     );
 
-    for platform in ["android", "windows", "linux", "macos", "ios"] {
+    // 共享界面只面向 Windows 与 Android：其他平台原生工程不得出现。
+    for platform in ["linux", "macos", "ios", "web"] {
         assert!(
             !exists(&format!("app/{platform}")),
-            "平台原生工程由平台卡生成，本卡不得预建 app/{platform}"
+            "共享界面只面向 Android 与 Windows，不得预建 app/{platform}"
         );
     }
-    assert!(!exists("app/android/toolchain.versions"));
-    assert!(!exists("app/windows/toolchain.versions"));
+    // 平台卡可以写 app/<平台>/toolchain.versions，但不得重复记录 Rust 与 Flutter 版本。
+    for platform in APP_PLATFORM_DIRS {
+        let rel = format!("app/{platform}/toolchain.versions");
+        if !exists(&rel) {
+            continue;
+        }
+        for line in read(&rel).lines() {
+            let Some((key, _)) = line.split_once('=') else {
+                continue;
+            };
+            let key = key.trim();
+            assert!(
+                !["rust", "rust_channel", "flutter", "flutter_version", "dart"].contains(&key),
+                "{rel} 不得重复记录 {key} 版本：唯一来源是 rust-toolchain.toml 与 app/.flutter-version"
+            );
+        }
+    }
+}
 
-    let main = read("app/lib/main.dart");
-    assert!(
-        main.contains("import 'package:flutter/material.dart';"),
-        "空壳应只依赖 Flutter 框架本身的界面库"
-    );
-    let imports: Vec<&str> = main
-        .lines()
-        .map(str::trim)
-        .filter(|line| line.starts_with("import "))
+/// 合法成员清单夹具：publish = false 且 [lints] workspace = true。
+const LEGAL_MANIFEST: &str =
+    "[package]\nname = \"fixture\"\npublish = false\n\n[lints]\nworkspace = true\n";
+
+/// 受审计 unsafe crate 的清单夹具：publish = false 且不继承 workspace.lints。
+///
+/// 根 `workspace.lints.rust.unsafe_code = "forbid"` 经 CLI `-F unsafe-code` 生效，crate 属性
+/// 无法覆盖；继承后 crate 里的 unsafe 块必然编译失败（真实 cargo 最小例见修复报告 B1）。
+const LEGAL_AUDITED_MANIFEST: &str = "[package]\nname = \"fixture\"\npublish = false\n";
+
+/// 合法领域 crate 的 lib.rs 夹具：禁 unsafe，公共项要有文档。
+const LEGAL_LIB: &str =
+    "#![forbid(unsafe_code)]\n#![deny(missing_docs)]\n\n/// 占位。\npub fn placeholder() {}\n";
+
+/// 受审计 unsafe crate 的 lib.rs 夹具：与可编译形态一致，每个 unsafe 块带非空 SAFETY 说明。
+const AUDITED_LIB: &str = "#![deny(missing_docs)]\n\n/// 占位。\npub fn read_at(pointer: *const u32) -> u32 {\n    // SAFETY: 调用方保证 pointer 有效且对齐。\n    unsafe { std::ptr::read(pointer) }\n}\n";
+
+/// CORE-22 的 fml-server 入口夹具：binary-only，没有 src/lib.rs（SADD 无 server/src/lib.rs）。
+const SERVER_MAIN: &str = "//! 服务端入口（CORE-22）。\n\nfn main() {}\n";
+
+/// 夹具用的本仓库依赖名列表。
+fn deps(names: &[&str]) -> Vec<String> {
+    names.iter().map(|name| name.to_string()).collect()
+}
+
+/// 夹具成员的违例文本（便于按关键字断言）。
+fn joined_violations(
+    member: &MemberFacts<'_>,
+    registry: &BTreeMap<String, BTreeSet<String>>,
+) -> String {
+    member_violations(member, registry).join("\n")
+}
+
+#[test]
+fn fixture_legal_expansion_is_accepted() {
+    let registry = dep_allow_registry();
+
+    // 后续卡的合法成员：crates/<name>/ 布局、依赖不越上界、lint 基座齐全。
+    for (name, allowed) in [
+        ("fml-ast", vec!["fml-error"]),
+        ("fml-latex", vec!["fml-ast", "fml-error"]),
+        (
+            "fml-type",
+            vec!["fml-ast", "fml-units", "fml-notation", "fml-error"],
+        ),
+    ] {
+        let local_deps = deps(&allowed);
+        let manifest_path = format!("crates/{name}/Cargo.toml");
+        let facts = MemberFacts {
+            name,
+            manifest_path: &manifest_path,
+            manifest: LEGAL_MANIFEST,
+            lib: Some(LEGAL_LIB),
+            main: None,
+            local_deps: &local_deps,
+        };
+        let violations = member_violations(&facts, &registry);
+        assert!(violations.is_empty(), "{name} 应被接受：{violations:#?}");
+    }
+
+    // 成员集合：基座 fml-error 仍在即合法。
+    let names: BTreeSet<String> = ["fml-ast", "fml-error", "fml-latex"]
+        .iter()
+        .map(|name| name.to_string())
         .collect();
-    assert_eq!(imports.len(), 1, "空壳只允许一条 import：{imports:?}");
-    for forbidden in ["dart:io", "defaultTargetPlatform", "binding/", "platform/"] {
+    let set_violations = workspace_violations(&names, &registry);
+    assert!(set_violations.is_empty(), "{set_violations:#?}");
+
+    // app/lib 的合法多目录扩展。
+    for path in [
+        "app/lib/main.dart",
+        "app/lib/main_android.dart",
+        "app/lib/main_windows.dart",
+        "app/lib/binding/dto/types.g.dart",
+        "app/lib/ports/share_port.dart",
+        "app/lib/platform/android/http_client.dart",
+        "app/lib/platform/windows/http_client.dart",
+        "app/lib/composition/ports_android.dart",
+        "app/lib/render/formula_painter.dart",
+        "app/lib/l10n/errors_zh.arb",
+        "app/lib/study/session.dart",
+        "app/lib/ui/shell/shell_page.dart",
+        "app/lib/ui/study/study_page.dart",
+    ] {
+        assert_eq!(app_lib_path_violation(path), None, "{path} 应被接受");
+    }
+
+    // 视图只读引用纯数据 DTO 仍然合法。
+    let ui =
+        "import 'package:flutter/material.dart';\nimport '../../../binding/dto/types.g.dart';\n";
+    let ui_violations = app_import_violations("app/lib/ui/study/study_page.dart", ui);
+    assert!(ui_violations.is_empty(), "{ui_violations:#?}");
+
+    // 空壳与新特性目录同时存在时整体判据仍通过。
+    let files: Vec<String> = [
+        "app/lib/main.dart",
+        "app/lib/study/session.dart",
+        "app/lib/ui/shell/shell_page.dart",
+    ]
+    .iter()
+    .map(|path| path.to_string())
+    .collect();
+    let shell = AppShell {
+        files: &files,
+        main_dart: "import 'package:flutter/material.dart';\n\nvoid main() {}\n",
+        analysis_options: "linter:\n  rules:\n    public_member_api_docs: true\n",
+    };
+    let shell_violations = app_shell_violations(&shell);
+    assert!(shell_violations.is_empty(), "{shell_violations:#?}");
+}
+
+#[test]
+fn fixture_illegal_expansion_is_rejected() {
+    let registry = dep_allow_registry();
+    let none: Vec<String> = Vec::new();
+
+    // 1. 未登记的新成员。
+    let stray = MemberFacts {
+        name: "fml-unknown",
+        manifest_path: "crates/fml-unknown/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &none,
+    };
+    assert!(
+        joined_violations(&stray, &registry)
+            .contains("未在 contracts/policies/dep-allow.yaml 预留清单登记")
+    );
+
+    // 2. 缺基座 fml-error。
+    let names: BTreeSet<String> = ["fml-ast"].iter().map(|name| name.to_string()).collect();
+    assert!(
+        workspace_violations(&names, &registry)
+            .join("\n")
+            .contains("基座 crate fml-error 必须是工作区成员")
+    );
+
+    // 3. 清单文件不在 crates/<name>/ 或 server/。
+    let stray_args = deps(&["fml-error"]);
+    let misplaced = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-latex/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &stray_args,
+    };
+    assert!(
+        joined_violations(&misplaced, &registry).contains("清单路径应为 crates/fml-ast/Cargo.toml")
+    );
+
+    // 4. 基座文件缺失：lib.rs 与 main.rs 都没有（只有其中一个即可，见合法夹具 fml-server）。
+    let no_base = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: None,
+        main: None,
+        local_deps: &none,
+    };
+    assert!(
+        joined_violations(&no_base, &registry).contains("缺少基座文件 src/lib.rs 或 src/main.rs")
+    );
+    // 5. 放宽 lint：publish 未关、缺 [lints]、缺 forbid(unsafe_code)、缺 missing_docs。
+    let loose_manifest =
+        "[package]\nname = \"fixture\"\npublish = true\n\n[lints]\nworkspace = true\n";
+    let loose = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: loose_manifest,
+        lib: Some("#![deny(missing_docs)]\n"),
+        main: None,
+        local_deps: &none,
+    };
+    let loose_text = joined_violations(&loose, &registry);
+    assert!(
+        loose_text.contains("必须声明 publish = false"),
+        "{loose_text}"
+    );
+    assert!(
+        loose_text.contains("src/lib.rs 必须 #![forbid(unsafe_code)]"),
+        "{loose_text}"
+    );
+
+    let no_lints_manifest = "[package]\nname = \"fixture\"\npublish = false\n";
+    let no_lints = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: no_lints_manifest,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &none,
+    };
+    assert!(joined_violations(&no_lints, &registry).contains("必须 [lints] workspace = true"));
+
+    let no_docs = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some("#![forbid(unsafe_code)]\n"),
+        main: None,
+        local_deps: &none,
+    };
+    assert!(
+        joined_violations(&no_docs, &registry).contains("src/lib.rs 必须 #![deny(missing_docs)]")
+    );
+
+    // 6. 非法依赖：基座 crate 无本仓库依赖、越级依赖、自依赖。
+    let base_with_dep = MemberFacts {
+        name: "fml-error",
+        manifest_path: "crates/fml-error/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &deps(&["fml-ast"]),
+    };
+    assert!(joined_violations(&base_with_dep, &registry).contains("不得依赖 fml-ast"));
+
+    let reversed = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &deps(&["fml-type"]),
+    };
+    assert!(joined_violations(&reversed, &registry).contains("不得依赖 fml-type"));
+
+    let self_dep = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(LEGAL_LIB),
+        main: None,
+        local_deps: &deps(&["fml-ast"]),
+    };
+    assert!(joined_violations(&self_dep, &registry).contains("不得依赖自身"));
+
+    // 7. 布局外路径。
+    for path in [
+        "app/lib/widgets2/button.dart",
+        "app/lib/unknown_feature/page.dart",
+        "app/lib/ui/unknown/page.dart",
+        "app/lib/ui/study.dart",
+        "app/lib/study.dart",
+        "app/lib/platform/linux/http_client.dart",
+        "app/lib/platform/android.dart",
+    ] {
+        assert!(app_lib_path_violation(path).is_some(), "{path} 应被拒绝");
+    }
+
+    // 8. 视图 import 运行时 binding/、平台实现与 HTTP 仍被拒绝。
+    let bad_ui = "import 'package:flutter/material.dart';\nimport '../../binding/error_codes.g.dart';\nimport '../../platform/android/http.dart';\nimport 'package:http/http.dart';\n";
+    let bad_ui_text = app_import_violations("app/lib/ui/study/study_page.dart", bad_ui).join("\n");
+    assert!(
+        bad_ui_text.contains("不得 import binding/"),
+        "{bad_ui_text}"
+    );
+    assert!(
+        bad_ui_text.contains("不得 import platform/"),
+        "{bad_ui_text}"
+    );
+    assert!(
+        bad_ui_text.contains("不得 import package:http/"),
+        "{bad_ui_text}"
+    );
+
+    // 9. 基座文件缺失或未启用 public_member_api_docs。
+    let files: Vec<String> = [
+        "app/lib/study/session.dart",
+        "app/lib/ui/shell/shell_page.dart",
+    ]
+    .iter()
+    .map(|path| path.to_string())
+    .collect();
+    let shell = AppShell {
+        files: &files,
+        main_dart: "",
+        analysis_options: "analyzer:\n  errors:\n    unused: warning\n",
+    };
+    let shell_text = app_shell_violations(&shell).join("\n");
+    assert!(
+        shell_text.contains("缺少基座文件 app/lib/main.dart"),
+        "{shell_text}"
+    );
+    assert!(
+        shell_text.contains("public_member_api_docs"),
+        "{shell_text}"
+    );
+}
+
+/// B1：受审计 unsafe crate 用逐块 `// SAFETY:` 代替继承 workspace.lints（CORE-01:133）。
+///
+/// 根 `workspace.lints.rust.unsafe_code = "forbid"` 经 CLI `-F unsafe-code` 生效、crate 属性
+/// 无法覆盖，受审计 crate 继承它就是不可编译组合；这里要求的正是可编译形态（真实 cargo 最小例
+/// 见修复报告 B1）。缺非空 SAFETY 说明仍拒绝，普通 crate 仍必须 forbid(unsafe_code)。
+#[test]
+fn audited_unsafe_crate_uses_safety_comments_instead_of_workspace_lints() {
+    let registry = dep_allow_registry();
+    let none: Vec<String> = Vec::new();
+    let accepted = MemberFacts {
+        name: "fml-ffi",
+        manifest_path: "crates/fml-ffi/Cargo.toml",
+        manifest: LEGAL_AUDITED_MANIFEST,
+        lib: Some(AUDITED_LIB),
+        main: None,
+        local_deps: &none,
+    };
+    let violations = member_violations(&accepted, &registry);
+    assert!(violations.is_empty(), "{violations:#?}");
+
+    let bare_unsafe = "#![deny(missing_docs)]\n\n/// 占位。\npub fn read_at(pointer: *const u32) -> u32 {\n    unsafe { std::ptr::read(pointer) }\n}\n";
+    for (name, source) in [
+        ("fml-ffi", bare_unsafe),
+        (
+            "fml-imgproc",
+            "#![deny(missing_docs)]\n\n/// 占位。\npub fn read_at(pointer: *const u32) -> u32 {\n    // SAFETY:\n    unsafe { std::ptr::read(pointer) }\n}\n",
+        ),
+    ] {
+        let member = MemberFacts {
+            name,
+            manifest_path: &format!("crates/{name}/Cargo.toml"),
+            manifest: LEGAL_AUDITED_MANIFEST,
+            lib: Some(source),
+            main: None,
+            local_deps: &none,
+        };
         assert!(
-            imports.iter().all(|line| !line.contains(forbidden)),
-            "空壳不得引用：{forbidden}"
+            joined_violations(&member, &registry).contains("缺非空 // SAFETY: 注释"),
+            "{name} 缺 SAFETY 说明应被拒绝"
         );
     }
+
+    // 受审计例外不解除普通 crate 的 forbid(unsafe_code)。
+    let plain_with_unsafe = MemberFacts {
+        name: "fml-ast",
+        manifest_path: "crates/fml-ast/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: Some(bare_unsafe),
+        main: None,
+        local_deps: &none,
+    };
+    assert!(
+        joined_violations(&plain_with_unsafe, &registry)
+            .contains("src/lib.rs 必须 #![forbid(unsafe_code)]")
+    );
+}
+
+/// B2：CORE-22:108 的 fml-server 是 binary-only（`server/src/{main.rs,...}`，无 lib.rs）。
+#[test]
+fn binary_only_server_member_is_accepted() {
+    let registry = dep_allow_registry();
+    let server_deps = deps(&["fml-error", "fml-sync-proto"]);
+    let server = MemberFacts {
+        name: "fml-server",
+        manifest_path: "server/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: None,
+        main: Some(SERVER_MAIN),
+        local_deps: &server_deps,
+    };
+    let violations = member_violations(&server, &registry);
+    assert!(violations.is_empty(), "{violations:#?}");
+
+    // lib.rs 与 main.rs 都缺才是缺基座。
+    let none: Vec<String> = Vec::new();
+    let no_base = MemberFacts {
+        name: "fml-server",
+        manifest_path: "server/Cargo.toml",
+        manifest: LEGAL_MANIFEST,
+        lib: None,
+        main: None,
+        local_deps: &none,
+    };
+    assert!(
+        joined_violations(&no_base, &registry).contains("缺少基座文件 src/lib.rs 或 src/main.rs")
+    );
+}
+
+/// B3：界面目录按 CORE-01:29 与 CORE-63:25 的 <feature> 并集判定，不另立白名单。
+#[test]
+fn ui_feature_directories_follow_the_contract_feature_set() {
+    // CORE-63:25 的 ui/account/ 与 CORE-01:29 的 11 个界面名都合法。
+    for path in [
+        "app/lib/ui/account/login_page.dart",
+        "app/lib/ui/books/book_list_page.dart",
+        "app/lib/ui/shell/shell_page.dart",
+    ] {
+        assert_eq!(app_lib_path_violation(path), None, "{path} 应被接受");
+    }
+    // 契约里没有的界面目录仍拒绝。
+    assert!(app_lib_path_violation("app/lib/ui/unknown/page.dart").is_some());
+    // 界面目录要落到文件。
+    assert!(app_lib_path_violation("app/lib/ui/account").is_some());
 }
 
 #[test]
