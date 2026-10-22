@@ -567,11 +567,11 @@ S0 首批会话按以下顺序进行，前一步合入 main 后再开下一步�
 | CORE-44 | 鸿蒙预留与 C 头文件消费者验证 | 工程与发布 | 脚本与配置 | `tools/ohos-smoke/` | S7 |
 | CORE-57 | 会话材料生成与文档统计工具 | 工程与发布 | 材料与统计 | `tools/sadd/pack.mjs`、`tools/DTOcheck/` | S0 |
 | CORE-67 | Dart DTO 生成与漂移门禁 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/dto_emit.py`、`tools/ci/gen_dto.py`、`contracts/dto` | S0 |
-| CORE-69 | 源文件词法与依赖隐私门禁 | 工程与发布 | 新增职责 | `tools/ci/common.py` | S0 |
+| CORE-69 | 源文件词法与依赖隐私门禁 | 工程与发布 | 新增职责 | `tools/ci/`（common.py、source_scan.py、check_deps.py、check_privacy.py） | S0 |
 | CORE-70 | SADD结构与验收索引门禁 | 工程与发布 | 新增职责 | `tools/sadd/structure.mjs`、`tools/ci/check_sadd.py` | S0 |
 | CORE-71 | 可维护性度量与阈值报告 | 工程与发布 | 新增职责 | `tools/ci/maint_report.py` | S0 |
 | CORE-72 | 云识别运维与熔断解除 | 工程与发布 | 新增职责 | `server/ops/` | S5 |
-| CORE-74 | unsafe、ABI与错误注册表门禁 | 工程与发布 | 新增职责 | `tools/ci/check_unsafe.py` | S0 |
+| CORE-74 | unsafe、ABI与错误注册表门禁 | 工程与发布 | 新增职责 | `tools/ci/`（check_unsafe.py、check_abi.py、check_errors.py） | S0 |
 | CORE-75 | 共享写入点预分配门禁 | 工程与发布 | 新增职责 | `tools/sadd/reservations.mjs` | S0 |
 | CORE-76 | 现行评级统计与就绪证据核对 | 工程与发布 | 新增职责 | `tools/sadd/current.mjs`、`tools/DTOcheck/` | S0 |
 | CORE-100 | DTO schema 编译、类型图与严格校验 | 工程与发布 | DTO生成与契约门禁 | `tools/ci/dto_schema.py` | S0 |
