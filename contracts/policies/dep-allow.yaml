@@ -1,0 +1,28 @@
+# 本仓库 crate 之间允许的直接依赖上界（CORE-01 定义，检查实现归 CORE-69）。
+# 值为去重字符串数组，不支持通配符；落盘使用完整 Cargo package name。
+# 未知 key/版本、未知已实现包名、重复元素、自依赖是配置错误；图中环无条件拒绝。
+version: 1
+crates:
+  fml-error: []
+  fml-ast: [fml-error]
+  fml-latex: [fml-ast, fml-error]
+  fml-units: [fml-ast, fml-error]
+  fml-notation: [fml-ast, fml-latex, fml-units, fml-error]
+  fml-type: [fml-ast, fml-units, fml-notation, fml-error]
+  fml-eval: [fml-ast, fml-type, fml-units, fml-error]
+  fml-derive: [fml-ast, fml-type, fml-units, fml-eval, fml-notation, fml-error]
+  fml-typeset: [fml-ast, fml-latex, fml-error]
+  fml-export: [fml-ast, fml-latex, fml-typeset, fml-error]
+  fml-srs: [fml-ast, fml-error]
+  fml-grade: [fml-ast, fml-latex, fml-notation, fml-units, fml-type, fml-eval, fml-srs, fml-error]
+  fml-study: [fml-ast, fml-latex, fml-notation, fml-units, fml-type, fml-eval, fml-srs, fml-grade, fml-error]
+  fml-crypto: [fml-ast, fml-error]
+  fml-sync-proto: [fml-error]
+  fml-imgproc: [fml-ast, fml-error]
+  fml-recognize-local: [fml-ast, fml-imgproc, fml-error]
+  fml-recognize: [fml-ast, fml-latex, fml-notation, fml-units, fml-type, fml-imgproc, fml-recognize-local, fml-error]
+  fml-pack: [fml-ast, fml-crypto, fml-store, fml-error]
+  fml-store: [fml-ast, fml-latex, fml-notation, fml-units, fml-type, fml-eval, fml-derive, fml-typeset, fml-export, fml-srs, fml-grade, fml-study, fml-crypto, fml-sync-proto, fml-sync, fml-recognize, fml-error]
+  fml-sync: [fml-ast, fml-crypto, fml-sync-proto, fml-error]
+  fml-ffi: [fml-ast, fml-latex, fml-notation, fml-units, fml-type, fml-eval, fml-derive, fml-typeset, fml-export, fml-srs, fml-grade, fml-study, fml-crypto, fml-sync-proto, fml-imgproc, fml-recognize-local, fml-recognize, fml-pack, fml-store, fml-sync, fml-error]
+  fml-server: [fml-error, fml-sync-proto]

@@ -1,0 +1,62 @@
+# 不背公式（BubeiGongshi）依赖审计基线（CORE-01 定义与维护；CORE-41 只读取执行、不改写）。
+#
+# 依据：CORE-01 卡 :93（CO-58 现行文本）。四个域 licenses、bans、sources、advisories 同时启用。
+# 键名与取值按锁定的 cargo-deny 0.20.2（tools/toolchain.versions 的 cargo_deny=）实测核对，
+# 不是照抄文档：advisories 段在 0.20 已升到 config v2，个体键的可用性见该段注释。
+# 本文件为工程验证阶段的宽松许可口径（用户 2026-10-22 决定，不逐项裁定）：
+# allow 只抄录当前 Cargo.lock 中第三方包实际声明且已核对的 SPDX 标识符（含开发依赖及其传递依赖），
+# 未列入即拒绝；对外发布前的逐项裁决归附录 D D.14.7，不写成本文件的门禁。
+
+[licenses]
+# 显式 SPDX 数组：逐项抄录锁文件里的标识符，不按大类放行、不用通配。
+allow = [
+    "Apache-2.0",   # hashbrown、hashlink、itoa、serde、serde_json、syn 等的双许可选项之一
+    "MIT",          # 多数依赖的双许可选项，以及 zmij 的唯一许可
+    "Unicode-3.0",  # unicode-ident 在 MIT OR Apache-2.0 之外追加的许可
+    "Unlicense",    # memchr 的双许可选项之一
+    "Zlib",         # foldhash（hashbrown 的哈希实现），MIT 之外的唯一许可
+]
+# 以下两键卡未规定取值，保持 cargo-deny 0.20.2 默认值并在此说明：
+# confidence-threshold 默认 0.8（按许可文本识别时的置信度阈值，本仓库依赖的许可均由清单声明，不走文本识别）；
+# exceptions 默认空（不按 crate 开特例；确有需要时逐条写 crate 与 allow）。
+confidence-threshold = 0.8
+exceptions = []
+
+# 自有 crate 以 publish = false 标为未发布，不在检查里要求它声明 license：
+# 卡 :93 的写法是 [licenses] 内的 private = { ignore = true }。
+private = { ignore = true }
+
+# 显式声明开发依赖计入检查对象（卡 :93 要求显式声明）；不改变上面的抄录义务。
+include-dev = true
+
+[bans]
+# 禁用名单初始为空：禁用 crate 只由用户或发布政策登记，本卡不代设。
+deny = []
+# 同一包重复版本一律拒绝；本卡依赖树实测无重复，故不使用 [[bans.skip]]。
+multiple-versions = "deny"
+# 通配版本依赖一律拒绝。
+wildcards = "deny"
+
+[bans.workspace-dependencies]
+# 共享依赖的重复声明与无人使用的条目一律拒绝，防止共享依赖漂移。
+duplicates = "deny"
+unused = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+# 只允许 crates.io 官方索引；不写 sources.allow-org，也不开任何 git 来源。
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
+
+[advisories]
+# 卡 :93 要求 vulnerability 与 yanked 均为 deny。cargo-deny 0.20.2 的 advisories 是 config v2：
+# vulnerability、notice、severity-threshold 三个级别键已被移除（写入即配置错误），
+# 所有漏洞告警固定按错误报告——效果等价于 deny，故这里不再写该键；
+# yanked 仍是级别键，按卡写 deny（默认是 warn）。
+yanked = "deny"
+# ignore 必须为空：不得静默任何告警（卡 :93）。加 ignore 会让门禁失效。
+ignore = []
+# 无人维护（unmaintained）与不安全 API（unsound）告警在 v2 里只剩「收录范围」键
+# （all、workspace、transitive、none），没有告警级写法。本文件不写这两键，保持 0.20.2 默认值：
+# 按卡 :93（v2 写法）采用工具默认收录范围，命中即失败、不静默；锁定版本变化时按其 cfg 页复核。
