@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "baseline": "core76-fixture",
+  "reviewDate": "2026-10-30",
+  "note": "夹具用最小复核记录，不代表任何真实卡。",
+  "entries": [
+    {
+      "record": "P2-CORE-01",
+      "card": "CORE-01",
+      "grade": "A",
+      "reviewer": "复核人甲",
+      "date": "2026-10-30",
+      "materialChars": 1200,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pass",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pass",
+      "blockers": [],
+      "consumerConfirmation": "AND-01 已确认假端口契约",
+      "history": []
+    },
+    {
+      "record": "P2-CORE-02",
+      "card": "CORE-02",
+      "grade": "B",
+      "reviewer": "复核人乙",
+      "date": "2026-10-30",
+      "materialChars": 900,
+      "segments": 1,
+      "checks": {
+        "a": "pass",
+        "b": "pass",
+        "c": "pass",
+        "d": "pass",
+        "e": "pass",
+        "f": "pass",
+        "g": "pass",
+        "S1": "pass",
+        "S2": "pending",
+        "S3": "pass",
+        "S4": "pass",
+        "S5": "pass",
+        "S6": "pass"
+      },
+      "conclusion": "pending",
+      "blockers": [
+        "S2 待复测"
+      ],
+      "consumerConfirmation": null,
+      "history": []
+    }
+  ]
+}
