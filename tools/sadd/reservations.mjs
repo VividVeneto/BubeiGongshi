@@ -4,6 +4,17 @@ import {fileURLToPath} from 'node:url';
 import {load,ROOT} from './pack.mjs';
 
 const kinds=new Set(['error','file','route','installer','shortcut','startup','profile','firstFrame','settings']);
+// Closed-form point per kind (CO-60, ADR-V5-62); spellings outside the category fail with EXT-1.
+const registrar=/^[A-Z][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$/;
+const points={error:/^contracts\/errors\/registry\.yaml$/,installer:/^app\/lib\/composition\/(?:installers|ports_windows|ports_android)\.dart$/,
+  route:/^[a-z][A-Za-z0-9]*Routes$/,shortcut:/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$/,
+  startup:registrar,firstFrame:registrar,settings:registrar,profile:/^ProfileHooks$/};
+// Points are ASCII symbols or repository-relative paths; empty segments and .. would leave the root.
+const pointOk=row=>{
+  const p=row.point;
+  if(!/^[A-Za-z0-9_.\/-]+$/.test(p) || p.includes('..') || p.split('/').some(s=>!s||s==='.')) return false;
+  return row.kind==='file' ? p===row.key : points[row.kind].test(p);
+};
 export function validateReservations(value,cards) {
   const errors=[]; const seen=new Set();
   if(!value || value.version!==1 || !Array.isArray(value.entries) ||
@@ -23,6 +34,7 @@ export function validateReservations(value,cards) {
     if(row.kind==='route' && !/^\/(?:[a-z][a-z0-9_-]*|:[A-Za-z][A-Za-z0-9_]*)(?:\/(?:[a-z][a-z0-9_-]*|:[A-Za-z][A-Za-z0-9_]*))*$/.test(row.key) && row.key!=='/')errors.push(`EXT-1: invalid route ${key}`);
     if(row.kind==='error' && !/^[A-Z]+(?:_[A-Z0-9]+)+$/.test(row.key))errors.push(`EXT-1: invalid code ${key}`);
     if(['startup','profile','firstFrame','settings'].includes(row.kind) && !/^(?:0|[1-9][0-9]{0,2})$/.test(row.key))errors.push(`EXT-1: invalid order ${key}`);
+    if(kinds.has(row.kind) && !pointOk(row))errors.push(`EXT-1: invalid point ${key}`);
   }
   return errors;
 }
@@ -46,11 +58,18 @@ export function compareActual(policy,actual,cards) {
 if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try {
     const opt=name=>{const i=process.argv.indexOf(name);if(i<0)return undefined;if(!process.argv[i+1] || process.argv[i+1].startsWith('--'))throw Error(`Missing ${name}`);return process.argv[i+1];};
+    const cards=load(), count=x=>Array.isArray(x?.entries)?x.entries.length:0;
     const policy=JSON.parse(fs.readFileSync(opt('--policy')??path.join(ROOT,'contracts/policies/shared-writes.json'),'utf8'));
-    const cards=load();const errors=validateReservations(policy,cards);
+    const errors=validateReservations(policy,cards);
     const actualFile=opt('--actual');
-    if(actualFile && !errors.length)errors.push(...compareActual(policy,JSON.parse(fs.readFileSync(actualFile,'utf8')),cards));
-    console.log(JSON.stringify({mode:actualFile?'implementation':'design',entries:policy.entries?.length,errors}));
+    let entries=count(policy);
+    // A build receipt is checked after the design table and reports the rows registered by this build.
+    if(actualFile) {
+      const actual=JSON.parse(fs.readFileSync(actualFile,'utf8'));
+      entries=count(actual);
+      if(!errors.length)errors.push(...compareActual(policy,actual,cards));
+    }
+    console.log(JSON.stringify({mode:actualFile?'implementation':'design',entries,errors}));
     process.exitCode=errors.length?1:0;
   } catch(error) {console.error(`EXT-INPUT: ${error.message}`);process.exitCode=2;}
 }
