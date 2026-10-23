@@ -202,6 +202,31 @@ class CoreSourcesCase(unittest.TestCase):
         )
         self.assertEqual(items[0]["reason"], "旧原因")
 
+    def test_explicit_pending_channel_does_not_touch_default(self):
+        """内部通道可定向登记；独立默认路径兼容由empty_set用例覆盖。"""
+        default = self.root / "build/ci/pending.json"
+        default.parent.mkdir(parents=True)
+        default.write_text("old unrelated output", encoding="utf-8")
+        custom = self.root / "build/custom ci/pending.json"
+        env = dict(os.environ, CORE_CI_PENDING=str(custom))
+        proc = self.run_tool(env=env)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(default.read_text(encoding="utf-8"), "old unrelated output")
+        self.assertEqual(json.loads(custom.read_text(encoding="utf-8"))["items"][0]["target"], "core-sources")
+
+    def test_invalid_pending_fails_closed_without_overwriting(self):
+        """独立运行亦不静默丢弃损坏登记。"""
+        pending = self.root / "build/ci/pending.json"
+        pending.parent.mkdir(parents=True)
+        for bad in (b"{bad", b"[]", b'{"items":[null]}', b'{"items":[{"card":1}]}', b"\xff"):
+            with self.subTest(bad=bad):
+                pending.write_bytes(bad)
+                proc = self.run_tool()
+                self.assertEqual(proc.returncode, 2, proc.stderr)
+                self.assertIn("pending.json", proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+                self.assertEqual(pending.read_bytes(), bad)
+
     def test_non_empty_set_writes_no_pending(self):
         """非空集合不写 pending.json。"""
         self.touch("crates/fml-ast/src/lib.rs")

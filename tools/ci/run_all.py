@@ -235,7 +235,7 @@ def tail(text: str) -> str:
 
 
 def execute_step(
-    step: dict[str, Any], root: Path, timeout: float, release: bool
+    step: dict[str, Any], root: Path, timeout: float, release: bool, pending_path: Path
 ) -> dict[str, Any]:
     """执行一个步骤，返回 exit/error_kind/duration_ms 与完整输出。"""
     argv = list(step["argv"])
@@ -252,10 +252,13 @@ def execute_step(
             "stderr": f"run_all: 解释器缺失: {argv[0]}",
         }
     command = [interpreter] + argv[1:]
+    # 内部登记通道只绑定本轮 out；不继承其他运行的 CORE_CI_PENDING。
+    child_env = dict(os.environ, CORE_CI_PENDING=str(pending_path.resolve()))
     try:
         proc = subprocess.Popen(
             command,
             cwd=str(root),
+            env=child_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -313,7 +316,7 @@ def _read_pending(path: Path) -> tuple[list[dict[str, str]], str | None]:
         raw = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return ([], None)
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         return ([], f"无法读取 {path.name}: {exc}")
     try:
         data = json.loads(raw)
@@ -447,7 +450,7 @@ def main(argv: list[str]) -> int:
             )
             print(f"[pending] {step['id']} ({step['owner']}) 缺少目标: {reason}")
             continue
-        outcome = execute_step(step, root, args.step_timeout, args.release)
+        outcome = execute_step(step, root, args.step_timeout, args.release, pending_path)
         if outcome["stdout"]:
             sys.stdout.write(outcome["stdout"])
         if outcome["stderr"]:
@@ -500,7 +503,7 @@ def main(argv: list[str]) -> int:
     _write_json(out_dir / "run_all.json", {"version": 1, "steps": steps_doc})
     errors = sum(1 for item in records if item["_state"] == "error")
     fails = sum(1 for item in records if item["_state"] == "fail")
-    pendings = sum(1 for item in records if item["_state"] == "pending")
+    pendings = len(merged)
     total = 2 if errors else 1 if fails else 1 if (pendings and args.release) else 0
     if args.release:
         override, message = ha002_verdict(root, records, before)
