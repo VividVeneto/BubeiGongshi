@@ -1,0 +1,18 @@
+[package]
+name = "fml-ffi"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "fmlcore"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+test_ops = []
+abi_major_bump = []
+
+[dependencies]
+fml-error = { path = "../fml-error", version = "=0.1.0" }
+serde.workspace = true
+serde_json.workspace = true

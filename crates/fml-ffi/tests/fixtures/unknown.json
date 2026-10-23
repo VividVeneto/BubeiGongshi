@@ -1,0 +1,8 @@
+{
+  "request": {
+    "v": 1,
+    "trace_id": "3f8b2c1d4e5f60718293a4b5c6d7e8f9",
+    "body": {}
+  },
+  "response": "{\"v\":1,\"trace_id\":\"3f8b2c1d4e5f60718293a4b5c6d7e8f9\",\"error\":{\"code\":\"FFI_UNKNOWN_OP\",\"domain\":\"ffi\",\"retryable\":false,\"trace_id\":\"3f8b2c1d4e5f60718293a4b5c6d7e8f9\",\"diagnostics\":[]}}"
+}
