@@ -259,9 +259,9 @@ test('segmentation is exact: parts concatenate to the material byte for byte', (
 });
 
 test('denoising cuts material size markedly', () => {
-  // 整合 CO-44/45/49 后 CORE-78 直接依赖契约增长（约 104K 字符，去噪仍节省约 242K）；CO-56 后 CORE-77≈98.2K、CORE-78≈109.9K，
-  // 余量不足百字，按现行材料各留约 10% 余量：CORE-77 110000、CORE-78 120000；CORE-01 交付文件落盘后实测约 113728/125494，2026-10-22 用户批准提高到 130000、140000（仍为体积回归护栏，超出须先查去噪是否失效）。
-  for (const [id, max] of [['CORE-77', 130000], ['CORE-78', 140000]]) assert.ok(pack(id).report.chars < max, id);
+  // 完整收录 ffi 2.2.0 / ffigen 23.0.0 锁文件后，主线单变量锁替换实测 CORE-77/78 为 131843/143402 字符；
+  // 锁文件增加 5672 字符，filteredFiles/manifest 不变。固定上限 140000/150000 留约 6%/5% 余量，超出仍须先排查去噪回归，不能裁剪锁或契约。
+  for (const [id, max] of [['CORE-77', 140000], ['CORE-78', 150000]]) assert.ok(pack(id).report.chars < max, id);
   const r = pack('CORE-26');
   const saved = r.report.filteredFiles.reduce((s, f) => s + f.originalBytes - f.includedBytes, 0);
   assert.ok(saved > 150000, String(saved));
