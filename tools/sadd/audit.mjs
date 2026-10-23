@@ -2,6 +2,7 @@
 // 退出码 0 无错误、1 校验错误、2 读写/解析错误（卡 :15）。
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {load, pack, ROOT} from './pack.mjs';
 import {reviewColumn, validateCurrent} from './current.mjs';
 
@@ -96,5 +97,5 @@ function main() {
   }
 }
 
-main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
 
