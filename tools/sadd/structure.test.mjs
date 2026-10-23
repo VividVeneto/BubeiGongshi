@@ -707,6 +707,43 @@ test('SADD-12 日期早于当前版本日期：退出 1', () => {
   assert.ok(messages(result, 'SADD-12').some((m) => m.includes('earlier than the current version date 2026-10-20')));
 });
 
+test('SADD-12 取不到 README 现行版本日期：报“未校验”而不静默跳过', () => {
+  const root = fresh();
+  mutate(root, README_REL, '**现行本地基线**', '**本地基线**');
+  mutate(root, APPENDIX_REL, '| r1 / 2026-10-22 |', '| r1 / 2026-10-19 |');
+  mutate(root, REVIEWS_REL, '"date": "2026-10-22"', '"date": "2026-10-19"');
+  const result = runOn(root);
+  assert.equal(result.code, 0);
+  assert.deepEqual(result.findings, []);
+  const warning = result.warnings.find((w) => w.rule === 'SADD-12');
+  assert.ok(warning, '缺基准时必须提示日期先后校验未执行');
+  assert.equal(warning.file, README_REL);
+  assert.match(warning.message, /not checked/);
+  assert.match(render(result), /SADD-12 review date ordering is not checked/);
+});
+
+test('SADD-12 有现行版本日期时不提示未校验', () => {
+  assert.ok(!runOn(fresh()).warnings.some((w) => w.rule === 'SADD-12'));
+});
+
+test('SADD-12 无复核日期可比时不提示未校验', () => {
+  const root = fresh();
+  mutate(root, README_REL, '**现行本地基线**', '**本地基线**');
+  write(root, REVIEWS_REL, JSON.stringify({version: 1, entries: []}, null, 2));
+  mutate(root, APPENDIX_REL, '| CORE-01 | S0 | B | 就绪（D.12 P2-CORE-01） |', '| CORE-01 | S0 | — | 未就绪 |');
+  const result = runOn(root);
+  assert.ok(!result.warnings.some((w) => w.rule === 'SADD-12'));
+});
+
+test('SADD-12 现行行内取不到日期：同样报未校验', () => {
+  const root = fresh();
+  mutate(root, README_REL, '| **2026-10-20** | **现行本地基线** |', '| **待定** | **现行本地基线** |');
+  const result = runOn(root);
+  assert.equal(result.code, 0);
+  assert.deepEqual(result.findings, []);
+  assert.ok(result.warnings.some((w) => w.rule === 'SADD-12' && /not checked/.test(w.message)));
+});
+
 test('SADD-12 findings 与 validateCurrent 同源', () => {
   const root = fresh();
   mutate(root, APPENDIX_REL, '| PPPPPPP | PPPPPP |', '| PPPFFPP | PPPPPP |');

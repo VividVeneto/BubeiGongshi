@@ -363,6 +363,14 @@ function checkCurrent(sadd, docs, cards, readmeText, f) {
   }
 
   const baseline = currentVersionDate(readmeText);
+  const dated = (Array.isArray(reviews.entries) ? reviews.entries : [])
+    .filter(review => review && typeof review.card === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(review.date ?? ''));
+  // 取不到 README 现行版本日期时无从比较：不许静默跳过，按既有 warning 通道显式报“未校验”（C70-N6）。
+  if (!baseline && dated.length) {
+    f.warn('SADD-12', '', docs.docRel('README.md'), 1,
+      'review date ordering is not checked: README has no 现行 version date row',
+      'README 缺带“现行”的版本日期行，日期先后校验未执行（只提示，不判通过）');
+  }
   for (const review of Array.isArray(reviews.entries) ? reviews.entries : []) {
     if (!review || typeof review.card !== 'string') continue;
     const line = cardLine(review.card);
