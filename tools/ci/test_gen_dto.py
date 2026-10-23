@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import inspect
 import io
 import json
 import shutil
@@ -37,6 +38,14 @@ REPORT_KEYS = {"version", "mode", "manifest", "required_stage", "release",
 #: files[] 与 diagnostics[] 每项的固定键集。
 FILE_KEYS = {"path", "status", "sha256", "expected_sha256"}
 DIAG_KEYS = {"severity", "code", "op", "file", "pointer", "message"}
+
+#: 消费者固定 include_shared=True（HA-001 推荐 A：共享类型随类型图一起来）。真实
+#: producer 由 CORE-100 的共享类型分支提供；合入前，凡走真实 compile_manifest 的
+#: 用例按能力显式跳过——不删断言、不改断言，合入后同一批断言直接生效。
+PRODUCER_HAS_SHARED = "include_shared" in inspect.signature(
+    ds.compile_manifest).parameters
+#: 跳过理由（只能算未执行，不能算通过）。
+SHARED_SKIP = "等待 CORE-100 提供 compile_manifest(include_shared=)"
 
 
 # ---- 替身类型图（与 CORE-100 同形的只读 bundle）-----------------------------
@@ -203,6 +212,7 @@ class TestCommandLine(TempArea):
         self.assertEqual(self.script("--check", "--required-stage", "S9"), 2)
 
 
+@unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
 class TestWrite(TempArea):
     """卡 :20、:49：--write 只写确定文件集，不写报告、不动别的文件。"""
 
@@ -212,7 +222,7 @@ class TestWrite(TempArea):
                                          "--out", str(self.out))
         self.assertEqual(code, 0)
         self.assertEqual(sorted(path.name for path in self.out.iterdir()),
-                         ["fixture.g.dart"])
+                         ["fixture.g.dart", "types.g.dart"])
         text = (self.out / "fixture.g.dart").read_text(encoding="utf-8")
         self.assertTrue(dto_emit.has_generated_header(text))
         self.assertIn("manifest=fixture.manifest.json", text)
@@ -233,7 +243,7 @@ class TestWrite(TempArea):
         self.assertEqual(self.write(), 0)
         self.assertEqual(keep.read_text(encoding="utf-8"), "手工文件\n")
         self.assertEqual(sorted(path.name for path in self.out.iterdir()),
-                         ["fixture.g.dart", "keep.txt"])
+                         ["fixture.g.dart", "keep.txt", "types.g.dart"])
 
     def test_fixture_emits_required_nullable_note(self) -> None:
         """卡 :38：fixture 的 required+nullable note 走完整链路仍生成必填参数与 presence 读器。"""
@@ -254,6 +264,7 @@ class TestWrite(TempArea):
 class TestCheck(TempArea):
     """卡 :22、:49：报告冻结形状，四态里阶段1 覆盖 missing/match/drift。"""
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_match_exit_0_and_report_shape(self) -> None:
         """写后未改：全 match、退出 0、报告键集与取值冻结。"""
         self.assertEqual(self.write(), 0)
@@ -270,8 +281,9 @@ class TestCheck(TempArea):
         self.assertEqual((report["ready"], report["pending"]), (1, 1))
         self.assertEqual(report["skipped"], ["fixture.pending_echo"])
         self.assertEqual(report["exit"], 0)
-        self.assertEqual(len(report["files"]), 1)
-        row = report["files"][0]
+        self.assertEqual(len(report["files"]), 2)
+        rows = {row["path"]: row for row in report["files"]}
+        row = rows[(self.out / "fixture.g.dart").relative_to(REPO).as_posix()]
         self.assertEqual(set(row), FILE_KEYS)
         self.assertEqual(row["path"],
                          (self.out / "fixture.g.dart").relative_to(REPO).as_posix())
@@ -285,9 +297,10 @@ class TestCheck(TempArea):
         self.assertIsNone(diag["file"])
         self.assertIsNone(diag["pointer"])
         self.assertTrue(diag["message"].startswith("SKIP pending fixture.pending_echo: "))
-        self.assertIn("match=1", out_text)
+        self.assertIn("match=2", out_text)
         self.assertEqual((self.out / "fixture.g.dart").read_bytes(), before)
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_check_on_empty_out_missing_exit_1(self) -> None:
         """生成目录为空：files 全 missing、sha256 为 null、退出 1，且不建目录。"""
         code, _, _ = self.check()
@@ -300,6 +313,7 @@ class TestCheck(TempArea):
         self.assertTrue(row["expected_sha256"])
         self.assertEqual(report["exit"], 1)
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_drift_exit_1(self) -> None:
         """手改生成文件 → drift、sha256 与期望不同、退出 1。"""
         self.assertEqual(self.write(), 0)
@@ -314,6 +328,7 @@ class TestCheck(TempArea):
         self.assertNotEqual(row["sha256"], row["expected_sha256"])
         self.assertEqual(report["exit"], 1)
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_report_is_byte_stable_and_path_free(self) -> None:
         """同一输入两次报告逐字节相同；无盘符、无绝对路径、无时间戳。"""
         self.assertEqual(self.write(), 0)
@@ -337,7 +352,7 @@ class TestCheck(TempArea):
         paths = [row["path"] for row in report["files"]]
         self.assertEqual(paths, sorted(paths))
         self.assertEqual([Path(item).name for item in paths],
-                         ["alpha.g.dart", "beta.g.dart"])
+                         ["alpha.g.dart", "beta.g.dart", "types.g.dart"])
         self.assertEqual(report["skipped"], ["fixture.alpha", "fixture.zeta"])
         keys = [(diag["file"] or "", diag["code"], diag["op"] or "", diag["message"])
                 for diag in report["diagnostics"]]
@@ -379,6 +394,7 @@ class TestExitCodes(TempArea):
         self.assertIn("boom", err)
         self.assertFalse(self.report.exists())
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_report_not_writable_exit_2(self) -> None:
         """报告路径是目录（写不了）→ 2。"""
         self.assertEqual(self.write(), 0)
@@ -440,10 +456,11 @@ class TestTypeGraphOnly(TempArea):
         manifest = self.root / "absent.manifest.json"
         seen: dict[str, object] = {}
 
-        def fake(path, required_stage=None, release=False):
+        def fake(path, required_stage=None, release=False, include_shared=None):
             seen["path"] = path
             seen["required_stage"] = required_stage
             seen["release"] = release
+            seen["include_shared"] = include_shared
             return _echo_stub()
 
         with mock.patch.object(ds, "compile_manifest", side_effect=fake):
@@ -454,14 +471,16 @@ class TestTypeGraphOnly(TempArea):
         text = (self.out / "fixture.g.dart").read_text(encoding="utf-8")
         self.assertIn("manifest=absent.manifest.json", text)
         self.assertTrue(dto_emit.has_generated_header(text))
+        self.assertIs(seen["include_shared"], True)  # 消费者无条件要求共享类型
 
     def test_stage_and_release_are_passed_through(self) -> None:
         """--required-stage 与 --release 原样交给 CORE-100，并写进报告。"""
         seen: dict[str, object] = {}
 
-        def fake(path, required_stage=None, release=False):
+        def fake(path, required_stage=None, release=False, include_shared=None):
             seen["required_stage"] = required_stage
             seen["release"] = release
+            seen["include_shared"] = include_shared
             return _echo_stub()
 
         with mock.patch.object(ds, "compile_manifest", side_effect=fake):
@@ -470,10 +489,25 @@ class TestTypeGraphOnly(TempArea):
                 "--out", str(self.out), "--report", str(self.report),
                 "--required-stage", "S2", "--release")
         self.assertEqual(code, 1)  # 输出目录为空 → missing
-        self.assertEqual(seen, {"required_stage": "S2", "release": True})
+        self.assertEqual(seen, {"required_stage": "S2", "release": True,
+                                "include_shared": True})
         report = self.load_report()
         self.assertEqual(report["required_stage"], "S2")
         self.assertTrue(report["release"])
+
+    def test_producer_without_include_shared_is_tool_error(self) -> None:
+        """producer 不认识 include_shared 时退 2 并点名该参数：不静默降级成旧图。"""
+
+        def old_producer(path, required_stage=None, release=False):
+            return _echo_stub()
+
+        with mock.patch.object(ds, "compile_manifest", side_effect=old_producer):
+            code, _, err = self.run_cli("--write", "--manifest",
+                                        str(self.root / "absent.json"),
+                                        "--out", str(self.out))
+        self.assertEqual(code, 2)
+        self.assertIn("include_shared", err)
+        self.assertFalse(self.out.exists())
 
     def test_pending_never_becomes_a_type(self) -> None:
         """pending op 只在 skipped 里出现，生成文件不含它的类型。"""
@@ -504,6 +538,7 @@ class TestCiIntegration(TempArea):
                          "build/dto/drift.json")
         self.assertEqual(step["release_args"], ["--release"])
 
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
     def test_aggregator_maps_exit_codes(self) -> None:
         """用片段里的 argv 跑真实入口：match→pass、missing→fail、参数错→error。"""
         step = json.loads(gen_dto.CI_STEP_FRAGMENT)
@@ -540,6 +575,244 @@ class TestNoExtraDependencies(unittest.TestCase):
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     found.add(node.module.split(".")[0])
             self.assertEqual(found - allowed, set(), name)
+
+
+@unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
+class TestStage2Drift(TempArea):
+    """阶段2：stale 生成物、生成头保护、写盘原子性。"""
+
+    def test_stale_generated_file_fails_check_then_write_removes_it(self) -> None:
+        """集合外但带生成头的文件 → stale、退出 1；--write 幂等清理并退 0。"""
+        self.assertEqual(self.write(), 0)
+        stale = self.out / "legacy_gone.g.dart"
+        stale.write_text(dto_emit.GENERATED_MARKER + "\n" + dto_emit.GENERATOR_LINE
+                         + "\n// 旧生成物\n", encoding="utf-8")
+        code, _, _ = self.check()
+        self.assertEqual(code, 1)
+        report = self.load_report()
+        rows = {row["path"]: row for row in report["files"]}
+        row = rows[stale.relative_to(REPO).as_posix()]
+        self.assertEqual(row["status"], "stale")
+        self.assertIsNone(row["expected_sha256"])
+        self.assertIsNone(row["sha256"])
+        self.assertEqual(report["exit"], 1)
+        self.assertEqual(self.write(), 0)
+        self.assertFalse(stale.exists())
+        self.assertEqual(sorted(path.name for path in self.out.iterdir()),
+                         ["fixture.g.dart", "types.g.dart"])
+
+    def test_headerless_target_is_refused_not_overwritten(self) -> None:
+        """目标已存在但无生成头：--write 不写任何文件退 1，--check 报 DTO_HEADER_MISSING。"""
+        self.out.mkdir(parents=True)
+        target = self.out / "fixture.g.dart"
+        target.write_text("// 手工维护\n", encoding="utf-8")
+        code, _, err = self.run_cli("--write", "--manifest", str(FIXTURE),
+                                    "--out", str(self.out))
+        self.assertEqual(code, 1)
+        self.assertTrue(err.strip())
+        self.assertEqual(target.read_text(encoding="utf-8"), "// 手工维护\n")
+        self.assertFalse((self.out / "types.g.dart").exists())
+        code, _, _ = self.check()
+        self.assertEqual(code, 1)
+        diags = [diag for diag in self.load_report()["diagnostics"]
+                 if diag["code"] != dto_emit.D_PENDING_SKIP]
+        self.assertEqual([diag["code"] for diag in diags], [dto_emit.D_HEADER_MISSING])
+        self.assertEqual(diags[0]["file"], target.relative_to(REPO).as_posix())
+        self.assertTrue(diags[0]["message"])
+
+    def test_write_is_atomic_under_oserror(self) -> None:
+        """替换阶段抛 OSError：目标字节不变、退 2、不留临时文件。"""
+        self.assertEqual(self.write(), 0)
+        target = self.out / "fixture.g.dart"
+        before = target.read_bytes()
+        with mock.patch.object(Path, "replace", side_effect=OSError("磁盘已满")):
+            code, _, err = self.run_cli("--write", "--manifest", str(FIXTURE),
+                                        "--out", str(self.out))
+        self.assertEqual(code, 2)
+        self.assertIn("磁盘已满", err)
+        self.assertEqual(target.read_bytes(), before)
+        self.assertEqual(sorted(path.name for path in self.out.iterdir()),
+                         ["fixture.g.dart", "types.g.dart"])
+
+    def test_successful_write_leaves_no_temp_file(self) -> None:
+        """正常写入也不留 .tmp：目录里只有确定文件集。"""
+        self.assertEqual(self.write(), 0)
+        names = sorted(path.name for path in self.out.iterdir())
+        self.assertEqual(names, ["fixture.g.dart", "types.g.dart"])
+        self.assertFalse(list(self.out.glob("*.tmp")))
+
+
+class TestRefusalKeepsBytes(TempArea):
+    """阶段2：拒写（非法图 / --release 遇 pending）原样保留已有生成物字节。"""
+
+    def snapshot(self) -> dict[str, bytes]:
+        """输出目录下每个文件的字节快照，用来证明“未改动任何文件”。"""
+        return {path.name: path.read_bytes() for path in sorted(self.out.iterdir())}
+
+    def test_invalid_bundle_keeps_existing_bytes(self) -> None:
+        """先成功写一次，再让类型图非法：--write 退 1 且字节快照完全相同。"""
+        self.assertEqual(self.write(), 0)
+        before = self.snapshot()
+        with mock.patch.object(ds, "compile_manifest",
+                               return_value=_unsupported_stub()):
+            code, _, err = self.run_cli("--write", "--manifest", str(FIXTURE),
+                                        "--out", str(self.out))
+        self.assertEqual(code, 1)
+        self.assertTrue(err.strip())
+        self.assertEqual(self.snapshot(), before)
+        self.assertFalse(list(self.out.glob("*.tmp")))
+        with mock.patch.object(ds, "compile_manifest",
+                               return_value=_unsupported_stub()):
+            code, _, _ = self.check()
+        self.assertEqual(code, 1)
+        report = self.load_report()
+        self.assertEqual(report["exit"], 1)
+        # 拒绝生成时期望文件集为空，盘上已有生成物只能记 stale（不是 drift）；
+        # 退出码由 error 诊断决定，所以这里断言“没有任何文件被当成期望产物”。
+        self.assertEqual({row["status"] for row in report["files"]}, {"stale"})
+        self.assertIn("DTO_SCHEMA_INVALID",
+                      {diag["code"] for diag in report["diagnostics"]})
+        self.assertEqual(self.snapshot(), before)
+
+    def test_release_pending_refused_keeps_bytes(self) -> None:
+        """--release 下 pending 变成错误：退 1、报告记 release 且生成物字节不变。"""
+        self.assertEqual(self.write(), 0)
+        before = self.snapshot()
+        code, _, err = self.run_cli("--write", "--release", "--manifest", str(FIXTURE),
+                                    "--out", str(self.out))
+        self.assertEqual(code, 1)
+        self.assertTrue(err.strip())
+        self.assertEqual(self.snapshot(), before)
+        code, _, _ = self.run_cli("--check", "--release", "--manifest", str(FIXTURE),
+                                  "--out", str(self.out),
+                                  "--report", str(self.report))
+        self.assertEqual(code, 1)
+        report = self.load_report()
+        self.assertTrue(report["release"])
+        self.assertEqual(report["ready"], 0)
+        self.assertGreater(report["pending"], 0)
+        self.assertEqual({row["status"] for row in report["files"]}, {"stale"})
+        self.assertTrue([diag for diag in report["diagnostics"]
+                         if diag["severity"] == "error"])
+        self.assertEqual(self.snapshot(), before)
+
+    def test_zero_ready_bundle_still_writes_shared_types(self) -> None:
+        """ready=0（全部 pending）但具名共享节点在：--write 退 0 且仍产出 types.g.dart。"""
+        src = "types.schema.json"
+        nodes = (
+            _node(src, "/$defs/Uuid", "string", title="Uuid"),
+            _node(src, "/$defs/NodePath", "string", title="NodePath"),
+            _node(src, "/$defs/Tag", "object", title="Tag",
+                  fields=(_field("name", "name", _ref(src, "/$defs/Uuid")),)),
+        )
+        bundle = _bundle(nodes, pending=(_pending("fixture.later"),))
+        with mock.patch.object(ds, "compile_manifest", return_value=bundle):
+            code, out_text, _ = self.run_cli("--write", "--manifest",
+                                             str(self.root / "absent.json"),
+                                             "--out", str(self.out))
+        self.assertEqual(code, 0, out_text)
+        self.assertEqual(sorted(path.name for path in self.out.iterdir()),
+                         ["types.g.dart"])
+        text = (self.out / "types.g.dart").read_text(encoding="utf-8")
+        self.assertIn("typedef Uuid = String;", text)
+        self.assertIn("typedef NodePath = String;", text)
+        self.assertIn("final class Tag {", text)
+
+
+class TestRealManifest(unittest.TestCase):
+    """验收：真实清单生成物自身通过 --check，且 Diagnostic 用上阶段2 形状。"""
+
+    def setUp(self) -> None:
+        WORK.mkdir(parents=True, exist_ok=True)
+        self.report = WORK / "real-drift.json"
+
+    @unittest.skipUnless(PRODUCER_HAS_SHARED, SHARED_SKIP)
+    def test_real_manifest_check_exits_0(self) -> None:
+        """真实清单 + 已提交生成物：--check 退出 0、全部 match。"""
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = gen_dto.run(["--check", "--report", str(self.report)])
+        self.assertEqual(code, 0, out.getvalue() + err.getvalue())
+        report = json.loads(self.report.read_text(encoding="utf-8"))
+        self.assertEqual(report["exit"], 0)
+        self.assertGreater(report["ready"], 0)
+        self.assertTrue(report["pending"])
+        self.assertEqual([row for row in report["files"] if row["status"] != "match"], [])
+        self.assertIn("match=%d" % len(report["files"]), out.getvalue())
+
+    def test_committed_outputs_all_carry_generated_header(self) -> None:
+        """已提交的每个生成文件都能被 --check 当作生成物识别。"""
+        paths = sorted((REPO / gen_dto.DEFAULT_OUT).glob("*.g.dart"))
+        self.assertTrue(paths)
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            self.assertTrue(dto_emit.has_generated_header(text), path.name)
+
+    def test_diagnostic_uses_stage2_shapes(self) -> None:
+        """Diagnostic 同时用到有类型 map 与 tuple，入口是 @Json 风格的 fromJson。"""
+        text = (REPO / gen_dto.DEFAULT_OUT / "types.g.dart").read_text(encoding="utf-8")
+        self.assertIn("final class Diagnostic {", text)
+        self.assertIn("  final Map<String, String> args;", text)
+        self.assertIn("  final (int, int)? inputRange;", text)
+        self.assertIn("typedef DiagnosticInputRange = (int, int);", text)
+        self.assertIn("  factory Diagnostic.fromJson(Map<String, Object?> json) {", text)
+        self.assertIn("args: readStringMap(json, 'args'),", text)
+        self.assertIn("inputRange: readValueOrNull(json, 'input_range', "
+                      "readDiagnosticInputRangeValue),", text)
+
+
+    def test_naming_samples_match_frozen_algorithm(self) -> None:
+        """命名（冻结算法）的真实样例在已提交生成物里逐个对上。
+
+        覆盖卡面 ①～⑥ 六类样例：field_const 联合的分支名、external_key 联合的
+        五分支（含空载荷分支）、scalar_enum 与对象分支并存、内联 enum、具名
+        record、内联对象命名；并断言同一 title 只生成一次。
+
+        卡面举例的 MathKindReal 在真实类型图里没有对应分支（MathKind 的 'real'
+        不是判别取值，真实标量分支是 MathKindScalar，对象分支是
+        MathKindVector/Matrix/Function），差异记在卡片问题留档 K-11。
+        """
+        text = (REPO / gen_dto.DEFAULT_OUT / "types.g.dart").read_text(encoding="utf-8")
+        # ① field_const 联合：FormulaNode → 分支按 <父><取值> 折叠
+        self.assertIn("sealed class FormulaNode {", text)
+        for branch in ("FormulaNodeSymbol", "FormulaNodeNumber", "FormulaNodeUnit"):
+            self.assertIn("final class %s extends FormulaNode {" % branch, text)
+        # ② external_key 联合：PathSeg → 四个承载坐标的分支 + 空载荷分支
+        self.assertIn("sealed class PathSeg {", text)
+        for branch in ("PathSegMoveTo", "PathSegLineTo", "PathSegQuadTo",
+                       "PathSegCubicTo", "PathSegClose"):
+            self.assertIn("final class %s extends PathSeg {" % branch, text)
+        # ③ scalar_enum 与对象分支并存：String 走标量分支，Map 走对象分支
+        self.assertIn("sealed class MathKind {", text)
+        self.assertIn("final class MathKindScalar extends MathKind {", text)
+        self.assertIn("final class MathKindVector extends MathKind {", text)
+        self.assertIn("        case 'scalar':\n          return const MathKindScalar();", text)
+        self.assertIn("      if (json.containsKey('vector')) {\n"
+                      "        return MathKindVector.fromJson(json);", text)
+        # ④ 内联 enum：Diagnostic.severity → DiagnosticSeverity（三个 wire 取值）
+        self.assertIn("enum DiagnosticSeverity {", text)
+        for member in ("  error('error'),", "  warning('warning'),", "  info('info');"):
+            self.assertIn(member, text)
+        # ⑤ 具名 record：Diagnostic.input_range → DiagnosticInputRange
+        self.assertIn("typedef DiagnosticInputRange = (int, int);", text)
+        # ⑥ 内联对象：DisplayList.bounds → DisplayListNodeBounds
+        self.assertIn("typedef DisplayListNodeBounds = (String, Rect);", text)
+        # ⑦ 全局唯一 title 只生成一次：types.g.dart 里没有第二个 Diagnostic 类
+        self.assertEqual(text.count("final class Diagnostic {"), 1)
+
+
+    def test_ref_wrapper_schema_produces_no_file(self) -> None:
+        """纯 $ref 包装的 ast.schema.json 不产出 ast.g.dart。
+
+        ast.schema.json 存在且只把 types.schema.json 的 FormulaNode 包成 op 根，
+        不参与域枚举：产物里没有 ast.g.dart，FormulaNode 仍只在 types.g.dart。
+        """
+        out_dir = REPO / gen_dto.DEFAULT_OUT
+        self.assertTrue((REPO / "contracts/dto/ast.schema.json").is_file())
+        names = sorted(path.name for path in out_dir.glob("*.g.dart"))
+        self.assertNotIn("ast.g.dart", names)
+        text = (out_dir / "types.g.dart").read_text(encoding="utf-8")
+        self.assertIn("sealed class FormulaNode {", text)
 
 
 if __name__ == "__main__":
