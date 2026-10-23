@@ -52,6 +52,8 @@ FORMATS: tuple[Format, ...] = (
 DIALECT = "https://json-schema.org/draft/2020-12/schema"
 ENGINE_SNAPSHOT_CODE = "ENGINE_UNAVAILABLE"
 MANIFEST_SOURCE = "contracts/dto/manifest.json"
+#: `include_shared=True` 时并入同一张类型图的共享类型文档（与 manifest 同目录）。
+_SHARED_TYPES = "types.schema.json"
 
 #: CORE-03 统一信封/句柄/取消码的归属集合（按 CORE-03 卡错误码表 owner 列，
 #: 不按 FFI_ 前缀猜）。本库只拒绝这些码，不维护逐 op 集合。
@@ -1175,7 +1177,8 @@ class _Compiler:
 
     # ---------- 入口 ----------
 
-    def run(self, required_stage: Stage | None, release: bool) -> SchemaBundle:
+    def run(self, required_stage: Stage | None, release: bool,
+            include_shared: bool = False) -> SchemaBundle:
         source = MANIFEST_SOURCE
         try:
             text = self._path.read_text(encoding="utf-8")
@@ -1220,7 +1223,39 @@ class _Compiler:
                 else:
                     self._info(D_MANIFEST_SKIP, source, "", label, "`op %s 显式 SKIP：阶段 %s 晚于 %s`"
                                % (label, stage, required_stage))
+        if include_shared:
+            self._shared()
         return self._bundle(state["ready"], state["pending"])
+
+    # ---------- 共享根 ----------
+
+    def _shared(self) -> None:
+        """把同目录 `types.schema.json` 的全部 `$defs` 并入同一张类型图。
+
+        只补 manifest 未引用的共享根：复用同一次编译的 `_titles`/`_nodes`/
+        `_docs`，不新增 ready/pending 条目，也不要求共享文档带 request/ok 示例
+        协议。缺文件、非法 JSON 与非有限常量沿既有诊断码；根不是对象或 `$defs`
+        不是对象记形状错误；子节点沿既有规则。合法 JSON `null` 解析成功却没有
+        诊断，必须在这里补一条根形状错误，不能静默当成有效文档。
+        """
+        doc = self._doc(_SHARED_TYPES, None)
+        if doc is None:
+            if not any(item.code == D_SCHEMA_JSON and item.source == _SHARED_TYPES
+                       and item.pointer == "" for item in self._diags):
+                self._err(D_SCHEMA_SHAPE, _SHARED_TYPES, "", None,
+                          "`共享类型文档根必须是 JSON 对象`")
+            return
+        if not isinstance(doc, dict):
+            self._err(D_SCHEMA_SHAPE, _SHARED_TYPES, "", None,
+                      "`共享类型文档根必须是 JSON 对象`")
+            return
+        defs = doc.get("$defs")
+        if not isinstance(defs, dict):
+            self._err(D_SCHEMA_SHAPE, _SHARED_TYPES, "/$defs", None,
+                      "`共享类型文档必须带对象型 $defs`")
+            return
+        for key in sorted(defs, key=_b):
+            self._build(_SHARED_TYPES, _pjoin("/$defs", key), defs[key], None)
 
     def _bundle(self, ready: list, pending: list) -> SchemaBundle:
         diags = tuple(sorted( self._diags,
@@ -1244,16 +1279,23 @@ def _no_constant(name: str) -> Any:
 
 
 def compile_manifest(manifest_path: Path, required_stage: Stage | None = None,
-                     release: bool = False) -> SchemaBundle:
+                     release: bool = False,
+                     include_shared: bool = False) -> SchemaBundle:
     """把 manifest 与其引用的受限 schema 编译成可信类型图。
 
     required_stage 给定时，早于或等于该阶段的 pending 条目是错误，晚于该阶段的
     pending 条目只记一条显式 SKIP 的 info；release=True 时任何 pending 都是错误。
     清单不可读原样抛 OSError；本库内部故障抛 SchemaToolError。两种情况都不写成
     valid=False。
+
+    `include_shared=True` 额外把同目录 `types.schema.json` 的全部 `$defs` 并入同
+    一张类型图（默认关闭，既有调用的返回逐字段不变）：共享文档缺文件、非法 JSON
+    或形状不对同样记诊断并使结果 invalid，不新增 ready/pending 条目。
     """
     if required_stage is not None and required_stage not in STAGES:
         raise SchemaToolError( "required_stage 必须是 %s 之一：%r" % (STAGES, required_stage))
     if not isinstance(release, bool):
         raise SchemaToolError("release 必须是布尔值")
-    return _Compiler(Path(manifest_path)).run(required_stage, release)
+    if not isinstance(include_shared, bool):
+        raise SchemaToolError("include_shared 必须是布尔值")
+    return _Compiler(Path(manifest_path)).run(required_stage, release, include_shared)
