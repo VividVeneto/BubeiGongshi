@@ -2,6 +2,7 @@
 /build/
 /target/
 /temp/
+/tmp/
 **/target/
 **/build/
 
@@ -13,6 +14,7 @@
 **/.flutter-plugins
 **/.flutter-plugins-dependencies
 **/.last_build_id
+**/.flutter_tool_state
 app.*.symbols
 app.*.map.json
 
@@ -44,6 +46,15 @@ app.*.map.json
 .DS_Store
 Thumbs.db
 *.swp
+*.swo
+*~
+*.tmp
+*.temp
+*.bak
 *.log
+
+# 本地工具工作目录与未展开的 Windows 环境变量目录
+/.archify/
+/%SystemDrive%/
 
 # contracts/、SADD/、tools/ 是受版本管理的契约与工具，不得忽略。
