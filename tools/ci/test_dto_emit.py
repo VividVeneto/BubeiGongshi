@@ -155,7 +155,6 @@ def echo_graph():
     return graph, request, ok
 
 
-
 class TestHeader(unittest.TestCase):
     """验收：固定头、来源与 generator 常量、无时间戳、字节确定性。"""
 
@@ -385,6 +384,124 @@ def nullable_graph():
     return graph, ref(src, "/$defs/request"), ref(src, "/$defs/ok")
 
 
+def union_case(source, pointer, match, branch, *, key=None, values=()):
+    """union 的一个 oneOf 分支：判别方式、判别键与标量取值。"""
+    scalars = tuple(ds.SchemaScalar(kind="string", value=item) for item in values)
+    return ds.SchemaCase(branch=ref(source, pointer), match=match, key=key,
+                         values=scalars)
+
+
+def union_node(source, pointer, title, cases):
+    """union 节点；分支类名由分支标签派生。"""
+    return ds.SchemaNode(ref=ref(source, pointer), title=title, nullable=False,
+                         kind="union", cases=tuple(cases))
+
+
+def tuple_node(source, pointer, prefix, *, title=None):
+    """tuple 节点：prefix 是逐元素 SchemaRef。"""
+    return ds.SchemaNode(ref=ref(source, pointer), title=title, nullable=False,
+                         kind="tuple", prefix=tuple(prefix))
+
+
+def map_node(source, pointer, *, title=None, nullable=False):
+    """有类型 map 节点（wire 为 string → string 对象）。"""
+    return ds.SchemaNode(ref=ref(source, pointer), title=title, nullable=nullable,
+                         kind="map")
+
+
+def ref_wrapper(source, pointer, target, *, nullable=False):
+    """无 title 的 $ref 包裹节点：nullable 在包裹层声明，target 指向共享定义。"""
+    return ds.SchemaNode(ref=ref(source, pointer), title=None, nullable=nullable,
+                         kind="ref", target=target)
+
+
+def stage2_graph():
+    """阶段2 形状：union 三种判别、tuple、typed map、跨文件递归与 ref 包裹的必填可空。"""
+    graph = Graph()
+    src = "fixture-stage2.schema.json"
+    shared = "fixture-stage2-shared.schema.json"
+    base = "/$defs/ok/properties/"
+    ok_fields = [
+        ("choice", "choice", ref(src, base + "choice"), True),
+        ("mode", "mode", ref(src, base + "mode"), True),
+        ("either", "either", ref(src, base + "either"), True),
+        ("pair", "pair", ref(src, base + "pair"), True),
+        ("labels", "labels", ref(src, base + "labels"), True),
+        ("tree", "tree", ref(src, base + "tree"), True),
+        ("note", "note", ref(src, base + "note"), True),
+        ("tag", "tag", ref(src, base + "tag"), True),
+    ]
+    graph.add(object_node(src, "/$defs/request", "FixtureStage2Request",
+                          [("text", "text", ref(src, "/$defs/request/properties/text"),
+                            True)]))
+    graph.add(string_node(src, "/$defs/request/properties/text"))
+    graph.add(object_node(src, "/$defs/ok", "FixtureStage2Ok", ok_fields))
+
+    graph.add(union_node(src, base + "choice", "FixtureStage2Choice", [
+        union_case(src, base + "choice/oneOf/0", "field_const",
+                   ref(src, base + "choice/oneOf/0"), key="kind", values=("note",)),
+        union_case(src, base + "choice/oneOf/1", "field_const",
+                   ref(src, base + "choice/oneOf/1"), key="kind", values=("count",)),
+    ]))
+    graph.add(object_node(src, base + "choice/oneOf/0", None, [
+        ("kind", "kind", ref(src, base + "choice/oneOf/0/properties/kind"), True),
+        ("message", "message", ref(src, base + "choice/oneOf/0/properties/message"),
+         True)]))
+    graph.add(string_node(src, base + "choice/oneOf/0/properties/kind"))
+    graph.add(string_node(src, base + "choice/oneOf/0/properties/message"))
+    graph.add(object_node(src, base + "choice/oneOf/1", None, [
+        ("kind", "kind", ref(src, base + "choice/oneOf/1/properties/kind"), True),
+        ("value", "value", ref(src, base + "choice/oneOf/1/properties/value"), True)]))
+    graph.add(string_node(src, base + "choice/oneOf/1/properties/kind"))
+    graph.add(int_node(src, base + "choice/oneOf/1/properties/value", fmt="int64"))
+
+    graph.add(union_node(src, base + "mode", "FixtureStage2Mode", [
+        union_case(src, base + "mode/oneOf/0", "scalar_enum",
+                   ref(src, base + "mode/oneOf/0"), values=("fast", "slow")),
+    ]))
+    graph.add(string_node(src, base + "mode/oneOf/0"))
+
+    graph.add(union_node(src, base + "either", "FixtureStage2Either", [
+        union_case(src, base + "either/oneOf/0", "external_key",
+                   ref(src, base + "either/oneOf/0"), key="text"),
+        union_case(src, base + "either/oneOf/1", "external_key",
+                   ref(src, base + "either/oneOf/1"), key="count"),
+    ]))
+    graph.add(object_node(src, base + "either/oneOf/0", None, [
+        ("text", "text", ref(src, base + "either/oneOf/0/properties/text"), True)]))
+    graph.add(string_node(src, base + "either/oneOf/0/properties/text"))
+    graph.add(object_node(src, base + "either/oneOf/1", None, [
+        ("count", "count", ref(src, base + "either/oneOf/1/properties/count"), True)]))
+    graph.add(int_node(src, base + "either/oneOf/1/properties/count", fmt="int64"))
+
+    graph.add(tuple_node(src, base + "pair", [
+        ref(src, base + "pair/prefixItems/0"), ref(src, base + "pair/prefixItems/1")],
+        title="FixtureStage2Pair"))
+    graph.add(string_node(src, base + "pair/prefixItems/0"))
+    graph.add(int_node(src, base + "pair/prefixItems/1", fmt="int64"))
+
+    graph.add(map_node(src, base + "labels"))
+
+    graph.add(ref_wrapper(src, base + "tree", ref(shared, "/$defs/tree")))
+    graph.add(object_node(shared, "/$defs/tree", "FixtureStage2Tree", [
+        ("label", "label", ref(shared, "/$defs/tree/properties/label"), True),
+        ("child", "child", ref(shared, "/$defs/tree/properties/child"), False)]))
+    graph.add(string_node(shared, "/$defs/tree/properties/label"))
+    graph.add(ref_wrapper(shared, "/$defs/tree/properties/child",
+                          ref(shared, "/$defs/tree"), nullable=True))
+
+    graph.add(ref_wrapper(src, base + "note", ref(shared, "/$defs/note_meta"),
+                          nullable=True))
+    graph.add(object_node(shared, "/$defs/note_meta", "FixtureStage2NoteMeta", [
+        ("id", "id", ref(shared, "/$defs/note_meta/properties/id"), True)]))
+    graph.add(string_node(shared, "/$defs/note_meta/properties/id"))
+
+    graph.add(ref_wrapper(src, base + "tag", ref(shared, "/$defs/tag_text"),
+                          nullable=True))
+    graph.add(string_node(shared, "/$defs/tag_text"))
+    return graph, ref(src, "/$defs/request"), ref(src, "/$defs/ok")
+
+
 def dart_exe() -> str | None:
     """找 Dart SDK：优先 sdk 的 dart.exe，其次 Flutter bin 下的 dart 再定位 cache。"""
     exe = shutil.which("dart.exe")
@@ -529,7 +646,8 @@ class TestRequiredNullable(unittest.TestCase):
         self.assertIn("note: readStringPresent(json, 'note'),", self.text)
         self.assertIn("meta: readObjectPresent(json, 'meta', NullableMeta.fromJson),",
                       self.text)
-        self.assertIn("tags: readListPresent(json, 'tags', asString),", self.text)
+        self.assertIn("tags: readListPresent(json, 'tags', (Object? value) => asString(value)),",
+                      self.text)
         self.assertIn("blob: readBytesPresent(json, 'blob'),", self.text)
         self.assertIn("level: readEnumPresent(json, 'level', NullableOkLevel.fromWire),",
                       self.text)
@@ -545,8 +663,9 @@ class TestRequiredNullable(unittest.TestCase):
         self.assertIn("optPlain: readStringOrNull(json, 'opt_plain'),", self.text)
         self.assertIn("optMeta: readObjectOrNull(json, 'opt_meta', NullableOptMeta.fromJson),",
                       self.text)
-        self.assertIn("optTagList: readListOrNull(json, 'opt_tag_list', asString),",
-                      self.text)
+        self.assertIn(
+            "optTagList: readListOrNull(json, 'opt_tag_list', "
+            "(Object? value) => asString(value)),", self.text)
 
     def test_present_helpers_check_key_presence(self):
         """presence 读器先查 containsKey 再交给可空读器，缺键抛 FormatException。"""
@@ -591,3 +710,514 @@ class TestGeneratedRuntime(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("OK all", done.stdout)
         self.assertIn("THROW note", done.stdout)
+
+
+class TestStage2Shapes(unittest.TestCase):
+    """卡阶段2：union 三种判别、tuple、typed map、跨文件递归、值相等与 ref 包裹。"""
+
+    def setUp(self):
+        graph, request, ok = stage2_graph()
+        result, files = emit(graph.bundle(op_node("fixture.stage2", request, ok)))
+        self.assertFalse(result.refused, [d.message for d in result.diagnostics])
+        self.files = files
+        self.text = files["fixture.g.dart"]
+
+    def test_union_dispatches_on_field_const(self):
+        """字段常量判别：sealed 基类按判别字段 switch 到分支 final 类。"""
+        self.assertIn("sealed class FixtureStage2Choice {", self.text)
+        self.assertIn("  factory FixtureStage2Choice.fromJson(Object? json) {", self.text)
+        self.assertIn("    switch (json['kind']) {", self.text)
+        self.assertIn("      case 'note':", self.text)
+        self.assertIn("        return FixtureStage2ChoiceNote.fromJson(json);", self.text)
+        self.assertIn("      case 'count':", self.text)
+        self.assertIn("        return FixtureStage2ChoiceCount.fromJson(json);", self.text)
+        self.assertIn("未知 FixtureStage2Choice 判别取值", self.text)
+        self.assertIn("final class FixtureStage2ChoiceNote extends FixtureStage2Choice {",
+                      self.text)
+        self.assertIn("  final String kind = 'note';", self.text)
+        self.assertIn("      'kind': kind,", self.text)
+        self.assertIn("  Object? toJson();", self.text)
+
+    def test_union_dispatches_on_scalar_value(self):
+        """标量取值判别：wire 为字符串，分支是可常量构造的标量类。"""
+        self.assertIn("    if (json is String) {", self.text)
+        self.assertIn("        case 'fast':", self.text)
+        self.assertIn("          return const FixtureStage2ModeFast();", self.text)
+        self.assertIn("          return const FixtureStage2ModeSlow();", self.text)
+        self.assertIn("  Object? toJson() => 'fast';", self.text)
+        self.assertIn("bool operator ==(Object other) {", self.text)
+
+    def test_union_dispatches_on_key_presence(self):
+        """键存在判别：按 containsKey 顺序分派，未知形状抛 FormatException。"""
+        self.assertIn("    if (json is Map<String, Object?>) {", self.text)
+        self.assertIn("      if (json.containsKey('text')) {", self.text)
+        self.assertIn("        return FixtureStage2EitherText.fromJson(json);", self.text)
+        self.assertIn("      if (json.containsKey('count')) {", self.text)
+        self.assertIn("        return FixtureStage2EitherCount.fromJson(json);", self.text)
+        self.assertIn("非法 FixtureStage2Either 判别值", self.text)
+        self.assertIn("final class FixtureStage2EitherCount extends FixtureStage2Either {",
+                      self.text)
+        self.assertNotIn("final String kind = 'text';", self.text)
+
+    def test_tuple_typedef_and_strict_codec(self):
+        """tuple：record typedef + 定长解码（个数/类型严格）+ 解构编码。"""
+        self.assertIn("typedef FixtureStage2Pair = (String, int);", self.text)
+        self.assertIn("(String, int) readFixtureStage2PairValue(Object? value) {", self.text)
+        self.assertIn("  final List<Object?> items = asList(value);", self.text)
+        self.assertIn("  if (items.length != 2) {", self.text)
+        self.assertIn("    asString(items[0]),", self.text)
+        self.assertIn("    asInt(items[1]),", self.text)
+        self.assertIn("List<Object?> encodeFixtureStage2Pair((String, int) value) {", self.text)
+        self.assertIn("  final (String item0, int item1) = value;", self.text)
+        self.assertIn("  final FixtureStage2Pair pair;", self.text)
+        self.assertIn("pair: readValue(json, 'pair', readFixtureStage2PairValue),", self.text)
+        self.assertIn("'pair': encodeFixtureStage2Pair(pair),", self.text)
+
+    def test_typed_map_uses_string_values_and_unmodifiable_view(self):
+        """有类型 map：Map<String, String>，逐值比字符串，返回不可修改视图。"""
+        self.assertIn("  final Map<String, String> labels;", self.text)
+        self.assertIn("labels: readStringMap(json, 'labels'),", self.text)
+        self.assertIn("'labels': labels,", self.text)
+        self.assertIn("Map<String, String> readStringMap(Map<String, Object?> json, "
+                      "String key) {", self.text)
+        self.assertIn("  return Map<String, String>.unmodifiable(out);", self.text)
+        self.assertIn("映射键必须是字符串", self.text)
+
+    def test_recursive_type_and_cross_file_sharing(self):
+        """跨文件共享定义只声明一次；自引用字段可空并走 OrNull 读器。"""
+        self.assertEqual(self.text.count("final class FixtureStage2Tree {"), 1)
+        self.assertIn("  final FixtureStage2Tree? child;", self.text)
+        self.assertIn("child: readObjectOrNull(json, 'child', FixtureStage2Tree.fromJson),",
+                      self.text)
+        self.assertIn("'child': child?.toJson(),", self.text)
+        self.assertIn("fixture-stage2-shared.schema.json", self.text.splitlines()[2])
+
+    def test_ref_wrapped_required_nullable_keeps_presence_readers(self):
+        """G-R1：$ref 包裹的 required+nullable 仍是 presence 读器、类型仍可空。"""
+        self.assertIn("    required this.note,", self.text)
+        self.assertIn("  final FixtureStage2NoteMeta? note;", self.text)
+        self.assertIn("note: readObjectPresent(json, 'note', "
+                      "FixtureStage2NoteMeta.fromJson),", self.text)
+        self.assertIn("'note': note?.toJson(),", self.text)
+        self.assertNotIn("readObjectOrNull(json, 'note'", self.text)
+        self.assertIn("    required this.tag,", self.text)
+        self.assertIn("  final String? tag;", self.text)
+        self.assertIn("tag: readStringPresent(json, 'tag'),", self.text)
+
+    def test_generated_equality_and_hash_are_recursive(self):
+        """==/hashCode：逐字段 dtoEquals/dtoHash；列表有序、映射无序。"""
+        self.assertIn("        other is FixtureStage2Tree &&", self.text)
+        self.assertIn("        dtoEquals(child, other.child);", self.text)
+        self.assertIn("  int get hashCode => Object.hashAll(<int>[", self.text)
+        self.assertIn("    dtoHash(child),", self.text)
+        self.assertIn("  if (a is List && b is List) {", self.text)
+        self.assertIn("  if (a is Map && b is Map) {", self.text)
+        self.assertIn("    return Object.hashAllUnordered(hashes);", self.text)
+        self.assertIn("other is FixtureStage2ModeFast;", self.text)
+
+
+#: 阶段2 Dart 探针：直接运行生成物，验证判别、元组、映射、递归与值相等。
+_STAGE2_PROBE = """import 'fixture.g.dart';
+
+Map<String, Object?> base() {
+  return <String, Object?>{
+    'choice': <String, Object?>{'kind': 'note', 'message': 'm'},
+    'mode': 'fast',
+    'either': <String, Object?>{'text': 't'},
+    'pair': <Object?>['a', 1],
+    'labels': <String, Object?>{'k': 'v'},
+    'tree': <String, Object?>{
+      'label': 'root',
+      'child': <String, Object?>{'label': 'leaf'},
+    },
+    'note': <String, Object?>{'id': 'n1'},
+    'tag': 'tag',
+  };
+}
+
+void expectFormat(void Function() body, String label) {
+  try {
+    body();
+  } on FormatException {
+    print('THROW ' + label);
+    return;
+  }
+  throw StateError(label + ' 没有抛 FormatException');
+}
+
+void main() {
+  final FixtureStage2Ok ok = FixtureStage2Ok.fromJson(base());
+  if (ok.choice is! FixtureStage2ChoiceNote) {
+    throw StateError('字段常量判别失败');
+  }
+  if (ok.mode is! FixtureStage2ModeFast) {
+    throw StateError('标量取值判别失败');
+  }
+  if (ok.either is! FixtureStage2EitherText) {
+    throw StateError('键存在判别失败');
+  }
+  if (ok.pair != ('a', 1)) {
+    throw StateError('元组解码失败');
+  }
+  if (ok.labels['k'] != 'v') {
+    throw StateError('有类型 map 解码失败');
+  }
+  if (ok.tree.child == null || ok.tree.child!.label != 'leaf') {
+    throw StateError('递归解码失败');
+  }
+  if (ok.note == null || ok.note!.id != 'n1' || ok.tag != 'tag') {
+    throw StateError('ref 包裹的必填可空解码失败');
+  }
+  try {
+    ok.labels['x'] = 'y';
+    throw StateError('labels 应为不可修改视图');
+  } on UnsupportedError {
+    print('THROW labels unmodifiable');
+  }
+  final Map<String, Object?> json = ok.toJson();
+  final Object? choice = json['choice'];
+  if (choice is! Map || choice['kind'] != 'note' || choice['message'] != 'm') {
+    throw StateError('联合编码失败');
+  }
+  if (json['mode'] != 'fast' || json['either'] is! Map) {
+    throw StateError('标量/键存在编码失败');
+  }
+  final Object? pair = json['pair'];
+  if (pair is! List || pair.length != 2 || pair[1] != 1) {
+    throw StateError('元组编码失败');
+  }
+  final FixtureStage2Ok again = FixtureStage2Ok.fromJson(json);
+  if (again != ok) {
+    throw StateError('值相等失败');
+  }
+  if (again.hashCode != ok.hashCode) {
+    throw StateError('哈希不一致');
+  }
+  final FixtureStage2Ok nullNote = FixtureStage2Ok.fromJson(base()..['note'] = null);
+  if (nullNote.note != null) {
+    throw StateError('显式 null 应读成 null');
+  }
+  if (!nullNote.toJson().containsKey('note')) {
+    throw StateError('必填可空字段编码必须保留键');
+  }
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..remove('note')), 'note');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['pair'] = <Object?>['a']),
+      'pair length');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['pair'] = <Object?>['a', 'b']),
+      'pair type');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['choice'] =
+      <String, Object?>{'kind': 'unknown'}), 'choice kind');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['mode'] = 'medium'), 'mode');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['either'] =
+      <String, Object?>{'other': 1}), 'either');
+  expectFormat(() => FixtureStage2Ok.fromJson(base()..['labels'] =
+      <String, Object?>{'k': 1}), 'labels value');
+  print('OK all');
+}
+"""
+
+
+class TestStage2Runtime(unittest.TestCase):
+    """把阶段2 生成物交给真正的 Dart 运行，验证行为而不只是文本形状。"""
+
+    def _run_probe(self, files, probe):
+        """写 fixture.g.dart 与探针，跑 Dart，返回 (returncode, stdout)。"""
+        WORK.mkdir(parents=True, exist_ok=True)
+        root = Path(tempfile.mkdtemp(prefix="dart-stage2-", dir=str(WORK)))
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        (root / "fixture.g.dart").write_text(files["fixture.g.dart"], encoding="utf-8")
+        (root / "probe.dart").write_text(probe, encoding="utf-8")
+        done = subprocess.run([dart_exe(), "probe.dart"], cwd=str(root),
+                              capture_output=True, text=True, encoding="utf-8",
+                              timeout=180)
+        return done.returncode, done.stdout + done.stderr
+
+    @unittest.skipUnless(dart_exe(), "需要 Dart SDK（随 app/.flutter-version 的 Flutter）")
+    def test_dart_runtime_stage2_semantics(self):
+        """判别/元组/映射/递归/相等/严格边界在 Dart 运行期成立。"""
+        graph, request, ok = stage2_graph()
+        files = emit(graph.bundle(op_node("fixture.stage2", request, ok)))[1]
+        code, output = self._run_probe(files, _STAGE2_PROBE)
+        self.assertEqual(code, 0, output)
+        self.assertIn("OK all", output)
+        for label in ("note", "pair length", "pair type", "choice kind", "mode",
+                      "either", "labels value"):
+            self.assertIn("THROW " + label, output)
+
+
+class TestSharedSchemaNodes(unittest.TestCase):
+    """共享 types.schema.json 的具名节点：只由类型图驱动，不读 schema 原文。
+
+    这两条用例证明生成器能表达共享定义的全部形状（标量别名、对象、数组、
+    带字段常量的联合）；真实清单里这些节点是否存在由 CORE-100 决定——本树的
+    producer 已提供 include_shared，五个共享根均可达，见 TestUnreachableSharedNodes。
+    """
+
+    def test_titled_scalar_becomes_typedef_in_types_file(self):
+        """title 在标量上（Uuid/NodePath）→ types.g.dart 的 typedef，字段按别名声明。"""
+        graph = Graph()
+        shared = "types.schema.json"
+        graph.add(string_node(shared, "/$defs/Uuid", title="Uuid", fmt="uuid"))
+        graph.add(string_node(shared, "/$defs/NodePath", title="NodePath"))
+        src = "demo.run.schema.json"
+        graph.add(object_node(src, "/$defs/request", "DemoRunRequest", [
+            ("id", "id", ref(shared, "/$defs/Uuid"), True),
+            ("node_path", "nodePath", ref(shared, "/$defs/NodePath"), False),
+        ]))
+        graph.add(object_node(src, "/$defs/ok", "DemoRunOk", [
+            ("ids", "ids", ref(src, "/$defs/ok/properties/ids"), True),
+        ]))
+        graph.add(array_node(src, "/$defs/ok/properties/ids",
+                             ref(shared, "/$defs/Uuid")))
+        bundle = graph.bundle(op_node("demo.run", ref(src, "/$defs/request"),
+                                      ref(src, "/$defs/ok"), schema=src))
+        result, files = emit(bundle)
+        self.assertFalse(result.refused)
+        self.assertEqual(result.diagnostics, ())
+        types_text = files["types.g.dart"]
+        self.assertIn("typedef Uuid = String;", types_text)
+        self.assertIn("typedef NodePath = String;", types_text)
+        self.assertIn("import 'types.g.dart';", files["demo.g.dart"])
+        self.assertIn("  final Uuid id;", files["demo.g.dart"])
+        self.assertIn("  final NodePath? nodePath;", files["demo.g.dart"])
+
+    def test_all_shared_shapes_render_deterministically(self):
+        """五个共享定义的形状（别名/对象/数组/联合）都能从类型图渲成 types.g.dart。"""
+        graph = Graph()
+        shared = "types.schema.json"
+        graph.add(string_node(shared, "/$defs/Uuid", title="Uuid", fmt="uuid"))
+        graph.add(string_node(shared, "/$defs/NodePath", title="NodePath"))
+
+        env = "/$defs/Envelope/properties/"
+        graph.add(object_node(shared, "/$defs/Envelope", "Envelope", [
+            ("account_epoch", "accountEpoch", ref(shared, env + "account_epoch"), True),
+            ("op_id", "opId", ref(shared, "/$defs/Uuid"), True),
+            ("nonce", "nonce", ref(shared, env + "nonce"), True),
+            ("ciphertext", "ciphertext", ref(shared, env + "ciphertext"), True),
+        ]))
+        graph.add(int_node(shared, env + "account_epoch"))
+        graph.add(string_node(shared, env + "op_id"))
+        graph.add(string_node(shared, env + "nonce"))
+        graph.add(string_node(shared, env + "ciphertext", fmt="base64"))
+
+        pull = "/$defs/PullResponse/properties/"
+        graph.add(object_node(shared, "/$defs/PullResponse", "PullResponse", [
+            ("envelopes", "envelopes", ref(shared, pull + "envelopes"), True),
+            ("next_cursor", "nextCursor", ref(shared, pull + "next_cursor"), True),
+            ("has_more", "hasMore", ref(shared, pull + "has_more"), True),
+        ]))
+        graph.add(array_node(shared, pull + "envelopes",
+                             ref(shared, "/$defs/Envelope")))
+        graph.add(string_node(shared, pull + "next_cursor"))
+        graph.add(bool_node(shared, pull + "has_more"))
+
+        branch = "/$defs/PushItemResult/oneOf/"
+        graph.add(union_node(shared, "/$defs/PushItemResult", "PushItemResult", [
+            union_case(shared, branch + "0", "field_const", ref(shared, branch + "0"),
+                       key="status", values=("ACK",)),
+            union_case(shared, branch + "1", "field_const", ref(shared, branch + "1"),
+                       key="status", values=("CONFLICT",)),
+        ]))
+        graph.add(object_node(shared, branch + "0", None, [
+            ("status", "status", ref(shared, branch + "0/properties/status"), True),
+            ("op_id", "opId", ref(shared, branch + "0/properties/op_id"), True),
+            ("server_seq", "serverSeq", ref(shared, branch + "0/properties/server_seq"),
+             True),
+        ]))
+        graph.add(string_node(shared, branch + "0/properties/status"))
+        graph.add(string_node(shared, branch + "0/properties/op_id"))
+        graph.add(int_node(shared, branch + "0/properties/server_seq"))
+        graph.add(object_node(shared, branch + "1", None, [
+            ("status", "status", ref(shared, branch + "1/properties/status"), True),
+            ("op_id", "opId", ref(shared, branch + "1/properties/op_id"), True),
+        ]))
+        graph.add(string_node(shared, branch + "1/properties/status"))
+        graph.add(string_node(shared, branch + "1/properties/op_id"))
+
+        src = "demo.sync.schema.json"
+        graph.add(object_node(src, "/$defs/request", "DemoSyncRequest", [
+            ("since", "since", ref(shared, "/$defs/NodePath"), False),
+        ]))
+        graph.add(object_node(src, "/$defs/ok", "DemoSyncOk", [
+            ("pulled", "pulled", ref(shared, "/$defs/PullResponse"), True),
+            ("pushed", "pushed", ref(shared, "/$defs/PushItemResult"), True),
+        ]))
+        bundle = graph.bundle(op_node("demo.sync", ref(src, "/$defs/request"),
+                                      ref(src, "/$defs/ok"), schema=src))
+        result = dto_emit.emit(bundle, "fixture.manifest.json")
+        self.assertFalse(result.refused)
+        text = {item.path: item.text for item in result.files}["types.g.dart"]
+        for needle in ("typedef Uuid = String;", "typedef NodePath = String;",
+                       "final class Envelope {", "final class PullResponse {",
+                       "sealed class PushItemResult {",
+                       "final class PushItemResultACK extends PushItemResult {",
+                       "final class PushItemResultCONFLICT extends PushItemResult {"):
+            self.assertIn(needle, text)
+        again = dto_emit.emit(bundle, "fixture.manifest.json")
+        self.assertEqual([item.text for item in again.files],
+                         [item.text for item in result.files])
+
+# ---- 共享类型不可达时的播种（HA-001 推荐 A 的消费端）-------------------------
+
+#: 共享类型文档；生成器把它与 wrapper 一起放进 types.g.dart。
+SHARED = "types.schema.json"
+
+
+def _bundle_of(graph, ops, named):
+    """按给定 named 打包替身 bundle：named 由调用方决定，模拟 producer 能力差异。"""
+    index = {node.ref.id: node for node in graph.nodes}
+    return ds.SchemaBundle(valid=True, ready=tuple(ops), pending=(),
+                           nodes=tuple(graph.nodes), named=tuple(named),
+                           diagnostics=(), _index=index)
+
+
+def _named_all(graph):
+    """CORE-100 契约口径：title 非空的全部节点（含 ready 不可达的共享类型）。"""
+    return [node.ref for node in graph.nodes if node.title is not None]
+
+
+def _named_domain_only(graph):
+    """旧播种口径：只有 ready 入口可达才产生声明（named 里不含共享类型）。"""
+    return [node.ref for node in graph.nodes
+            if node.title is not None and SHARED not in node.ref.id]
+
+
+def _domain_graph():
+    """只有业务域节点的图：producer 未 include_shared 时的样子。"""
+    graph = Graph()
+    src = "demo.only.schema.json"
+    graph.add(object_node(src, "/$defs/request", "DemoOnlyRequest", []))
+    graph.add(object_node(src, "/$defs/ok", "DemoOnlyOk", []))
+    op = op_node("demo.only", ref(src, "/$defs/request"), ref(src, "/$defs/ok"),
+                 schema=src)
+    return graph, op
+
+
+def _shared_graph():
+    """业务域节点 + 五个共享类型；共享类型与 ready 入口完全不相连。"""
+    graph, op = _domain_graph()
+    env = "/$defs/Envelope/properties/"
+    graph.add(string_node(SHARED, "/$defs/Uuid", title="Uuid", fmt="uuid"))
+    graph.add(string_node(SHARED, "/$defs/NodePath", title="NodePath"))
+    graph.add(object_node(SHARED, "/$defs/Envelope", "Envelope", [
+        ("account_epoch", "accountEpoch", ref(SHARED, env + "account_epoch"), True),
+        ("op_id", "opId", ref(SHARED, "/$defs/Uuid"), True),
+    ]))
+    graph.add(int_node(SHARED, env + "account_epoch"))
+    pull = "/$defs/PullResponse/properties/"
+    graph.add(object_node(SHARED, "/$defs/PullResponse", "PullResponse", [
+        ("envelopes", "envelopes", ref(SHARED, pull + "envelopes"), True),
+    ]))
+    graph.add(array_node(SHARED, pull + "envelopes", ref(SHARED, "/$defs/Envelope")))
+    branch = "/$defs/PushItemResult/oneOf/"
+    graph.add(union_node(SHARED, "/$defs/PushItemResult", "PushItemResult", [
+        union_case(SHARED, branch + "0", "field_const", ref(SHARED, branch + "0"),
+                   key="status", values=("ACK",)),
+        union_case(SHARED, branch + "1", "field_const", ref(SHARED, branch + "1"),
+                   key="status", values=("CONFLICT",)),
+    ]))
+    graph.add(object_node(SHARED, branch + "0", None, [
+        ("status", "status", ref(SHARED, branch + "0/properties/status"), True),
+        ("op_id", "opId", ref(SHARED, branch + "0/properties/op_id"), True),
+    ]))
+    graph.add(string_node(SHARED, branch + "0/properties/status"))
+    graph.add(string_node(SHARED, branch + "0/properties/op_id"))
+    graph.add(object_node(SHARED, branch + "1", None, [
+        ("status", "status", ref(SHARED, branch + "1/properties/status"), True),
+    ]))
+    graph.add(string_node(SHARED, branch + "1/properties/status"))
+    return graph, op
+
+
+#: 五个共享类型在 types.g.dart 里的渲染特征。
+SHARED_NEEDLES = ("typedef Uuid = String;", "typedef NodePath = String;",
+                  "final class Envelope {", "final class PullResponse {",
+                  "sealed class PushItemResult {")
+
+
+class TestUnreachableSharedNodes(unittest.TestCase):
+    """共享类型要 producer 带上、consumer 也播种才出现：漏任一边即缺。"""
+
+    def _types(self, graph, named):
+        """跑一次生成，返回 (result, types.g.dart 文本, 全部文件)。"""
+        nodes, op = graph
+        result = dto_emit.emit(_bundle_of(nodes, (op,), named(nodes)), "m.json")
+        files = {item.path: item.text for item in result.files}
+        return result, files["types.g.dart"], files
+
+    def test_domain_graph_without_shared_declares_none_of_them(self):
+        """旧图（producer 未带共享类型）× 旧播种：五个共享类型一个都没有。"""
+        _result, text, _files = self._types(_domain_graph(), _named_domain_only)
+        for needle in SHARED_NEEDLES:
+            self.assertNotIn(needle, text)
+
+    def test_domain_graph_with_full_named_is_unchanged(self):
+        """旧图 × 新播种：named 里没有共享类型，输出与旧播种逐字节相同。"""
+        _r1, _t1, files_old = self._types(_domain_graph(), _named_domain_only)
+        result, text, files_new = self._types(_domain_graph(), _named_all)
+        self.assertFalse(result.refused)
+        self.assertEqual(files_new, files_old)
+        for needle in SHARED_NEEDLES:
+            self.assertNotIn(needle, text)
+
+    def test_shared_graph_with_old_seeding_still_misses_them(self):
+        """扩图 × 旧播种：图里有共享类型但没人播种 → 仍然缺。"""
+        result, text, _files = self._types(_shared_graph(), _named_domain_only)
+        self.assertFalse(result.refused)
+        for needle in SHARED_NEEDLES:
+            self.assertNotIn(needle, text)
+
+    def test_shared_graph_with_full_named_declares_all_five(self):
+        """扩图 × 新播种：五个共享类型全部落到 types.g.dart，业务文件不受影响。"""
+        _r1, _t1, files_old = self._types(_shared_graph(), _named_domain_only)
+        result, text, files_new = self._types(_shared_graph(), _named_all)
+        self.assertFalse(result.refused)
+        self.assertEqual(result.diagnostics, ())
+        for needle in SHARED_NEEDLES:
+            self.assertIn(needle, text)
+        self.assertEqual(files_new["demo.g.dart"], files_old["demo.g.dart"])
+        self.assertEqual(sorted(files_new), ["demo.g.dart", "types.g.dart"])
+
+    def test_ready_zero_still_emits_shared_declarations(self):
+        """合法但 ready=0（全部 pending）时，共享类型照样输出。"""
+        graph, _op = _shared_graph()
+        bundle = ds.SchemaBundle(
+            valid=True, ready=(), pending=(), nodes=tuple(graph.nodes),
+            named=tuple(_named_all(graph)), diagnostics=(),
+            _index={node.ref.id: node for node in graph.nodes})
+        result = dto_emit.emit(bundle, "m.json")
+        self.assertFalse(result.refused)
+        files = {item.path: item.text for item in result.files}
+        self.assertEqual(sorted(files), ["types.g.dart"])
+        for needle in SHARED_NEEDLES:
+            self.assertIn(needle, files["types.g.dart"])
+
+    def test_invalid_bundle_refuses_even_with_shared_named(self):
+        """valid=False 时拒写：播种不得把非法图变成可写产物。"""
+        graph, op = _shared_graph()
+        base = _bundle_of(graph, (op,), _named_all(graph))
+        broken = ds.SchemaBundle(
+            valid=False, ready=base.ready, pending=(), nodes=base.nodes,
+            named=base.named, diagnostics=(), _index=dict(base._index))
+        result = dto_emit.emit(broken, "m.json")
+        self.assertTrue(result.refused)
+        self.assertEqual(result.files, ())
+
+    def test_shared_node_from_unlisted_source_lands_in_types_file(self):
+        """共享对象引用未登记 schema 的具名节点：落到 types.g.dart，不产生 “.g.dart”。"""
+        graph = Graph()
+        graph.add(object_node(SHARED, "/$defs/Wrapper", "Wrapper", [
+            ("thing", "thing", ref("orphan.schema.json", "/$defs/Thing"), True),
+        ]))
+        graph.add(object_node("orphan.schema.json", "/$defs/Thing", "OrphanThing", []))
+        result = dto_emit.emit(_bundle_of(graph, (), _named_all(graph)), "m.json")
+        self.assertFalse(result.refused)
+        files = {item.path: item.text for item in result.files}
+        self.assertEqual(sorted(files), ["types.g.dart"])
+        self.assertIn("final class Wrapper {", files["types.g.dart"])
+        self.assertIn("final class OrphanThing {", files["types.g.dart"])
+        self.assertIn("  final OrphanThing thing;", files["types.g.dart"])
+
+
+if __name__ == "__main__":
+    unittest.main()
