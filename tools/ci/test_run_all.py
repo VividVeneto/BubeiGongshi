@@ -15,6 +15,13 @@ RUN_ALL = HERE / "run_all.py"
 MANIFEST = HERE / "manifest.json"
 FIXTURES = HERE / "tests" / "fixtures" / "runall"
 PYTHON = sys.executable
+# CORE-74 交接片段发布的四个自测文件（脚本未合入时按 pending-target 记录）
+GATE74_SELFTESTS = (
+    "tools/ci/tests/test_gate74_unsafe.py",
+    "tools/ci/tests/test_gate74_abi.py",
+    "tools/ci/tests/test_gate74_errors.py",
+    "tools/ci/tests/test_gate74_entrypoints.py",
+)
 
 
 def process_alive(pid: int) -> bool:
@@ -557,14 +564,15 @@ class ManifestRepositoryCase(unittest.TestCase):
         self.steps = {item["id"]: item for item in self.doc["steps"]}
 
     def test_order_and_owners(self):
-        """14 步顺序与 owner 固定。"""
+        """16 步顺序与 owner 固定（含新增的 dto-drift、gate74-selftest 两个真实接线步）。"""
         self.assertEqual(self.doc["version"], 1)
         self.assertEqual(
             [item["id"] for item in self.doc["steps"]],
             [
                 "reservations", "check-deps", "check-privacy", "check-unsafe", "check-abi",
                 "check-errors", "check-sadd", "sadd-stats", "sadd-audit", "sadd-selftest",
-                "dtocheck", "dtocheck-selftest", "core-sources", "maint-report",
+                "dtocheck", "dtocheck-selftest", "dto-drift", "gate74-selftest",
+                "core-sources", "maint-report",
             ],
         )
         self.assertEqual(self.steps["reservations"]["owner"], "CORE-75")
@@ -577,6 +585,8 @@ class ManifestRepositoryCase(unittest.TestCase):
             self.assertEqual(self.steps[name]["owner"], "CORE-76")
         self.assertEqual(self.steps["core-sources"]["owner"], "CORE-41")
         self.assertEqual(self.steps["maint-report"]["owner"], "CORE-71")
+        self.assertEqual(self.steps["dto-drift"]["owner"], "CORE-67")
+        self.assertEqual(self.steps["gate74-selftest"]["owner"], "CORE-74")
         for name in ("sadd-selftest", "dtocheck", "dtocheck-selftest"):
             self.assertEqual(self.steps[name]["owner"], "SADD")
             self.assertEqual(self.steps[name]["kind"], "docs-tool")
@@ -639,13 +649,186 @@ class ManifestRepositoryCase(unittest.TestCase):
         self.assertIn("--core-sources", maint)
         self.assertIn("build/coverage/core-sources.json", maint)
         self.assertIn("--annotations", maint)
-        for name in ("check-deps", "check-privacy", "check-unsafe", "check-abi", "check-errors"):
-            self.assertIn("--root", self.steps[name]["argv"] + ["--root"])
+        for name in ("check-deps", "check-privacy", "check-unsafe"):
+            self.assertEqual(
+                self.steps[name]["argv"], ["python", "tools/ci/%s.py" % name.replace("-", "_"), "--root", "."]
+            )
+        self.assertEqual(
+            self.steps["check-abi"]["argv"],
+            ["python", "tools/ci/check_abi.py", "--root", ".", "--base-ref", "abi-v1.0.0"],
+        )
+        self.assertEqual(
+            self.steps["check-errors"]["argv"],
+            ["python", "tools/ci/check_errors.py", "--root", "."],
+        )
 
     def test_release_consumers_only(self):
         """只有声明 release_args 的步骤在 --release 追加参数。"""
         consumers = [item["id"] for item in self.doc["steps"] if "release_args" in item]
-        self.assertEqual(consumers, ["check-sadd"])
+        self.assertEqual(consumers, ["check-sadd", "dto-drift"])
+        self.assertEqual(self.steps["dto-drift"].get("release_args"), ["--release"])
+
+    def test_dto_drift_step_matches_generator_fragment(self):
+        """manifest 的 dto-drift 与 CORE-67 生成器内发布的片段逐字段一致。"""
+        sys.path.insert(0, str(HERE))
+        try:
+            import gen_dto
+        finally:
+            sys.path.remove(str(HERE))
+        self.assertEqual(self.steps["dto-drift"], json.loads(gen_dto.CI_STEP_FRAGMENT))
+
+    def test_gate74_selftest_lists_each_file(self):
+        """CORE-74 自测走 python -m unittest 并逐个列文件，不用通配或目录。"""
+        argv = self.steps["gate74-selftest"]["argv"]
+        self.assertEqual(argv[:3], ["python", "-m", "unittest"])
+        self.assertEqual(argv[3:], list(GATE74_SELFTESTS))
+
+
+class DtoDriftCase(unittest.TestCase):
+    """CORE-67 的 dto-drift 接入聚合入口：跑真实生成器，漂移必须让聚合失败。"""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="dto-drift-"))
+        self.addCleanup(shutil.rmtree, self.root, True)
+        (self.root / "tools" / "ci").mkdir(parents=True)
+        for name in ("gen_dto.py", "dto_emit.py", "dto_schema.py"):
+            shutil.copy2(HERE / name, self.root / "tools" / "ci" / name)
+        shutil.copytree(REPO / "contracts/dto", self.root / "contracts" / "dto")
+        self.out = self.root / "app" / "lib" / "binding" / "dto"
+        self.out.parent.mkdir(parents=True)
+        shutil.copytree(REPO / "app/lib/binding/dto", self.out)
+        self.manifest = self.root / "manifest.json"
+        self.manifest.write_text(
+            json.dumps({"version": 1, "steps": [{
+                "id": "dto-drift",
+                "owner": "CORE-67",
+                "argv": ["python", "tools/ci/gen_dto.py", "--check",
+                         "--report", "build/dto/drift.json"],
+            }]}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    def run_all(self, *extra):
+        """在临时根跑聚合入口；run_all.py 与生成器都用仓库内的真实文件。"""
+        return subprocess.run(
+            [PYTHON, str(RUN_ALL), "--root", str(self.root), "--manifest", str(self.manifest),
+             "--out", "build/ci", *extra],
+            cwd=self.root, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
+
+    def pending(self):
+        """读本次聚合写出的 pending.json。"""
+        path = self.root / "build" / "ci" / "pending.json"
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_matching_outputs_pass(self):
+        """生成物与清单一致 → 该步 pass、聚合退 0、无 pending。"""
+        done = self.run_all()
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("[pass] dto-drift (CORE-67) exit=0", done.stdout)
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "run_all: 1 steps, 0 error, 0 fail, 0 pending")
+        self.assertEqual(self.pending()["items"], [])
+
+    def test_drifted_output_fails_aggregate(self):
+        """手改生成物 → 该步 fail、聚合退 1，不能记 pending 或通过。"""
+        target = sorted(self.out.glob("*.g.dart"))[0]
+        target.write_text(
+            target.read_text(encoding="utf-8") + "// hand edit" + chr(10), encoding="utf-8"
+        )
+        done = self.run_all()
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("[fail] dto-drift (CORE-67) exit=1", done.stdout)
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "run_all: 1 steps, 0 error, 1 fail, 0 pending")
+        record = json.loads((self.root / "build" / "ci" / "run_all.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["steps"][0]["exit"], 1)
+        self.assertEqual(self.pending()["items"], [])
+
+    def test_missing_outputs_fail_aggregate_not_pending(self):
+        """生成目录整体缺失 → 生成器退 1，聚合记 fail 而不是跳过。"""
+        shutil.rmtree(self.out)
+        done = self.run_all()
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("[fail] dto-drift (CORE-67) exit=1", done.stdout)
+        self.assertEqual(self.pending()["items"], [])
+
+
+class Gate74SelfTestCase(unittest.TestCase):
+    """CORE-74 自测接缝：脚本未合入记 pending，合入后必须真跑，0 tests 不算通过。"""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="gate74-"))
+        self.addCleanup(shutil.rmtree, self.root, True)
+        (self.root / "tools" / "ci" / "tests").mkdir(parents=True)
+        self.manifest = self.root / "manifest.json"
+        self.manifest.write_text(
+            json.dumps({"version": 1, "steps": [{
+                "id": "gate74-selftest",
+                "owner": "CORE-74",
+                "argv": ["python", "-m", "unittest", *GATE74_SELFTESTS],
+            }]}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    def write(self, name, text):
+        """在临时根写一个自测文件。"""
+        (self.root / name).write_text(text, encoding="utf-8")
+
+    def run_all(self, *extra):
+        """在临时根跑聚合入口。"""
+        return subprocess.run(
+            [PYTHON, str(RUN_ALL), "--root", str(self.root), "--manifest", str(self.manifest),
+             "--out", "build/ci", *extra],
+            cwd=self.root, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
+
+    def pending(self):
+        """读本次聚合写出的 pending.json。"""
+        path = self.root / "build" / "ci" / "pending.json"
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_absent_scripts_are_pending_and_release_fails(self):
+        """四个自测文件都不在 → 记 pending-target，不执行、不伪造通过；--release 退 1。"""
+        done = self.run_all()
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("[pending] gate74-selftest (CORE-74)", done.stdout)
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "run_all: 1 steps, 0 error, 0 fail, 1 pending")
+        self.assertEqual(
+            self.pending()["items"],
+            [{"card": "CORE-74", "target": "gate74-selftest", "reason": ",".join(GATE74_SELFTESTS)}],
+        )
+        release = self.run_all("--release")
+        self.assertEqual(release.returncode, 1, release.stdout + release.stderr)
+
+    def test_landed_scripts_run(self):
+        """四个自测文件合入后真跑 unittest，四例通过、聚合退 0。"""
+        body = (
+            "import unittest" + chr(10) + chr(10) + chr(10)
+            + "class Gate(unittest.TestCase):" + chr(10)
+            + "    def test_ok(self):" + chr(10)
+            + "        self.assertTrue(True)" + chr(10)
+        )
+        for name in GATE74_SELFTESTS:
+            self.write(name, body)
+        done = self.run_all()
+        output = done.stdout + done.stderr
+        self.assertEqual(done.returncode, 0, output)
+        self.assertIn("[pass] gate74-selftest (CORE-74) exit=0", done.stdout)
+        self.assertIn("Ran 4 tests", output)
+        self.assertEqual(self.pending()["items"], [])
+
+    def test_present_but_empty_scripts_are_not_green(self):
+        """四个文件都在但没有任何用例 → unittest 退 5，聚合记 error、退 2，不当通过。"""
+        for name in GATE74_SELFTESTS:
+            self.write(name, '"""waiting for CORE-74."""' + chr(10))
+        done = self.run_all()
+        output = done.stdout + done.stderr
+        self.assertEqual(done.returncode, 2, output)
+        self.assertIn("[error] gate74-selftest (CORE-74) exit=5", done.stdout)
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "run_all: 1 steps, 1 error, 0 fail, 0 pending")
+        record = json.loads((self.root / "build" / "ci" / "run_all.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["steps"][0]["exit"], 5)
+
+
 
 
 if __name__ == "__main__":

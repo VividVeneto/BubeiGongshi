@@ -77,6 +77,14 @@ class WorkflowCase(unittest.TestCase):
         self.assertNotIn("|| true", text)
         self.assertNotIn("||true", text)
 
+    def test_checks_job_fetches_full_history(self):
+        """checks 作业 checkout 取全量历史：CORE-74 的 check-abi 要与基线 tag 对比。"""
+        data = load(CI)
+        steps = data["jobs"]["checks"]["steps"]
+        checkouts = [step for step in steps if str(step.get("uses", "")).startswith("actions/checkout@")]
+        self.assertEqual(len(checkouts), 1)
+        self.assertEqual((checkouts[0].get("with") or {}).get("fetch-depth"), 0)
+
     def test_ci_key_commands(self):
         """关键命令落在对应作业：格式化/静态检查、覆盖率、聚合入口、deny。"""
         data = load(CI)
