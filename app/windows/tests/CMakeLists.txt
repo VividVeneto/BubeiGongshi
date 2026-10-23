@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.14)
+project(win01_tests LANGUAGES CXX)
+enable_testing()
+add_executable(dispatch_test dispatch_test.cpp)
+target_compile_features(dispatch_test PRIVATE cxx_std_17)
+target_compile_options(dispatch_test PRIVATE /W4 /WX /EHsc)
+add_test(NAME dispatch COMMAND dispatch_test)

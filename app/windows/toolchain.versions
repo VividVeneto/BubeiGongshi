@@ -1,0 +1,6 @@
+# WIN-01: verified host tools; Flutter/Rust use their existing lock files.
+msvc=14.51.36231
+windows_sdk=10.0.26100.0
+cmake=4.3.1-msvc1
+# Inno Setup is not installed; WIN-02/WIN-16 must lock it before packaging.
+inno=
