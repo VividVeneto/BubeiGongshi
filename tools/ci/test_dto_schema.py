@@ -1011,6 +1011,308 @@ class RealManifest(unittest.TestCase):
             self.assertFalse(Path(item.source).is_absolute())
 
 
+SHARED = "types.schema.json"
+
+
+def shared_types_schema(defs=None):
+    """最小共享类型文档：manifest 不引用它，只有 include_shared=True 才进图。"""
+    return {
+        "$schema": ds.DIALECT,
+        "title": "FixtureSharedTypes",
+        "$defs": defs if defs is not None else {
+            "Counted": {
+                "title": "FixtureSharedCounted",
+                "type": "object",
+                "properties": {"n": {"type": "integer"}},
+                "required": ["n"],
+                "additionalProperties": False,
+            },
+            "Holder": {"title": "FixtureSharedHolder", "$ref": "#/$defs/Uuid"},
+            "Uuid": {"title": "FixtureSharedUuid", "type": "string",
+                     "format": "uuid"},
+        },
+    }
+
+
+class SharedTypes(Base):
+    """CORE-100：同图共享根增量默认关闭，开启后只补 manifest 不可达的根。"""
+
+    def compile_shared(self, shared=None, entries=None, **kw):
+        payload = {ECHO: echo_schema(), SHARED: shared_types_schema()}
+        if shared is not None:
+            payload[SHARED] = shared
+        return self.compile(entries if entries is not None else [echo_entry()],
+                            payload, **kw)
+
+    def ids(self, bundle):
+        return {item.ref.id for item in bundle.nodes}
+
+    def test_core100_shared_default_off_matches_legacy_call(self):
+        schemas = {ECHO: echo_schema(), SHARED: shared_types_schema()}
+        default = self.compile([echo_entry()], schemas)
+        explicit = self.compile([echo_entry()], schemas, include_shared=False)
+        self.assertTrue(default.valid)
+        for field in ("valid", "ready", "pending", "nodes", "named",
+                      "diagnostics"):
+            with self.subTest(field=field):
+                self.assertEqual(getattr(default, field),
+                                 getattr(explicit, field))
+        path = self.write("manifest.json",
+                          {"version": 1, "ops": [echo_entry()]})
+        legacy = ds.compile_manifest(path, "S0", False)
+        self.assertEqual(legacy.pending, default.pending)
+        self.assertEqual(legacy.ready, default.ready)
+        self.assertEqual(legacy.nodes, default.nodes)
+        self.assertEqual(legacy.named, default.named)
+        self.assertEqual(legacy.diagnostics, default.diagnostics)
+        ids = self.ids(default)
+        self.assertNotIn(SHARED + "#/$defs/Uuid", ids)
+        self.assertNotIn(SHARED + "#/$defs/Counted", ids)
+
+    def test_core100_shared_on_adds_roots_and_keeps_ops(self):
+        off = self.compile_shared()
+        on = self.compile_shared(include_shared=True)
+        self.assertTrue(on.valid, self.codes(on))
+        self.assertEqual(on.diagnostics, ())
+        self.assertEqual(on.ready, off.ready)
+        self.assertEqual(on.pending, off.pending)
+        self.assertEqual(len(on.ready), 1)
+        added = self.ids(on) - self.ids(off)
+        roots = {SHARED + "#/$defs/Counted", SHARED + "#/$defs/Holder",
+                 SHARED + "#/$defs/Uuid"}
+        self.assertTrue(roots <= added)
+        self.assertTrue(all(rid.startswith(SHARED + "#") for rid in added))
+        off_named = {ref.id for ref in off.named}
+        self.assertEqual({ref.id for ref in on.named} - off_named, roots)
+        for item in off.nodes:
+            self.assertEqual(on.node(item.ref), item)
+
+    def test_core100_shared_roots_are_closed_refs(self):
+        on = self.compile_shared(include_shared=True)
+        known = self.ids(on)
+        holder = on.node(ds.SchemaRef(SHARED + "#/$defs/Holder"))
+        self.assertEqual(holder.kind, "ref")
+        self.assertEqual(holder.target.id, SHARED + "#/$defs/Uuid")
+        self.assertEqual(on.node(holder.target).kind, "string")
+        for node in on.nodes:
+            for field in node.fields:
+                self.assertIn(field.value.id, known)
+            for edge in (node.item, node.target):
+                if edge is not None:
+                    self.assertIn(edge.id, known)
+            for edge in node.prefix:
+                self.assertIn(edge.id, known)
+            for case in node.cases:
+                self.assertIn(case.branch.id, known)
+
+    def test_core100_shared_empty_defs_is_valid(self):
+        on = self.compile_shared(shared_types_schema({}), include_shared=True)
+        self.assertTrue(on.valid)
+        self.assertEqual(on.diagnostics, ())
+        self.assertEqual(on.nodes,
+                         self.compile([echo_entry()], {ECHO: echo_schema()}).nodes)
+
+    def test_core100_shared_missing_file_is_diagnostic(self):
+        bundle = self.compile([echo_entry()], {ECHO: echo_schema()},
+                              include_shared=True)
+        self.assert_invalid(bundle, ds.D_SCHEMA_JSON)
+        diag = [item for item in bundle.diagnostics
+                if item.code == ds.D_SCHEMA_JSON]
+        self.assertEqual(len(diag), 1)
+        self.assertEqual(diag[0].source, SHARED)
+        self.assertEqual(diag[0].pointer, "")
+        self.assertIsNone(diag[0].op)
+        self.assertTrue(self.compile([echo_entry()], {ECHO: echo_schema()}).valid)
+
+    def test_core100_shared_not_object_is_shape_diagnostic(self):
+        for payload in ("null", "[]", '"FixtureSharedTypes"', "3"):
+            with self.subTest(payload=payload):
+                bundle = self.compile_shared(payload, include_shared=True)
+                self.assert_invalid(bundle, ds.D_SCHEMA_SHAPE)
+                self.assertEqual(self.codes(bundle), [ds.D_SCHEMA_SHAPE])
+
+    def test_core100_shared_null_after_manifest_ref_is_diagnostic(self):
+        # manifest 先按 $ref 读过同一文件，_doc 已把合法 JSON null 缓存成 None；
+        # 共享根阶段必须仍判断出「解析成功但根不是对象」，不能因为缓存无新诊断
+        # 就静默当成有效文档。
+        schema = echo_schema(
+            extra_ok={"uuid": {"$ref": SHARED + "#/$defs/Uuid"}})
+        schemas = {ECHO: schema, SHARED: "null"}
+        on = self.compile([echo_entry()], schemas, include_shared=True)
+        self.assert_invalid(on, ds.D_SCHEMA_SHAPE)
+        self.assertEqual(self.codes(on), [ds.D_SCHEMA_SHAPE])
+        diag = [item for item in on.diagnostics
+                if item.code == ds.D_SCHEMA_SHAPE]
+        self.assertEqual(diag[0].source, SHARED)
+        self.assertEqual(diag[0].pointer, "")
+        self.assertIsNone(diag[0].op)
+        # 默认关闭时保持既有行为：$ref 解析不到目标只让该字段无节点，不报诊断。
+        off = self.compile([echo_entry()], schemas)
+        self.assertTrue(off.valid)
+        self.assertEqual(off.diagnostics, ())
+
+    def test_core100_shared_broken_json_stays_json_code(self):
+        for payload in ("{not json",
+                        '{"$defs": {"A": {"type": "number", "default": NaN}}}'):
+            with self.subTest(payload=payload):
+                bundle = self.compile_shared(payload, include_shared=True)
+                self.assert_invalid(bundle, ds.D_SCHEMA_JSON)
+
+    def test_core100_shared_definitions_shape(self):
+        cases = [
+            (shared_types_schema([]), "/$defs"),
+            ({"$schema": ds.DIALECT, "title": "FixtureSharedTypes"}, "/$defs"),
+            (shared_types_schema({"Bad": "not-a-schema"}), "/$defs/Bad"),
+        ]
+        for payload, pointer in cases:
+            with self.subTest(pointer=pointer):
+                bundle = self.compile_shared(payload, include_shared=True)
+                self.assert_invalid(bundle, ds.D_SCHEMA_SHAPE)
+                self.assertTrue(any(item.pointer == pointer
+                                    for item in bundle.diagnostics))
+
+    def test_core100_shared_child_rules_apply(self):
+        cases = [
+            ({"Bad": {"type": "email"}}, ds.D_SCHEMA_TYPE),
+            ({"Bad": {"type": "string", "patternProperties": {}}},
+             ds.D_SCHEMA_KEYWORD),
+            ({"Bad": {"$ref": "#/$defs/Absent"}}, ds.D_SCHEMA_REF),
+            ({"Bad": {"title": "FixtureEchoOk", "type": "string"}},
+             ds.D_SCHEMA_TITLE),
+            ({"Bad": {"title": "lower", "type": "string"}}, ds.D_SCHEMA_TITLE),
+            ({"Bad": {"type": "integer", "default": "1"}}, ds.D_SCHEMA_EXAMPLE),
+        ]
+        for defs, code in cases:
+            with self.subTest(code=code, defs=defs):
+                bundle = self.compile_shared(shared_types_schema(defs),
+                                             include_shared=True)
+                self.assert_invalid(bundle, code)
+
+    def test_core100_shared_diagnostics_carry_no_op(self):
+        bundle = self.compile_shared(shared_types_schema({"Bad": {"type": "email"}}),
+                                     include_shared=True)
+        self.assertFalse(bundle.valid)
+        shared = [item for item in bundle.diagnostics if item.source == SHARED]
+        self.assertTrue(shared)
+        for item in shared:
+            self.assertIsNone(item.op)
+            self.assertEqual(item.severity, "error")
+
+    def test_core100_shared_parameter_must_be_bool(self):
+        for value in (1, 0, "yes", None, [True]):
+            with self.subTest(value=value):
+                with self.assertRaises(ds.SchemaToolError):
+                    self.compile([echo_entry()], include_shared=value)
+        path = self.write("manifest.json",
+                          {"version": 1, "ops": [echo_entry()]})
+        self.write(ECHO, echo_schema())
+        with self.assertRaises(ds.SchemaToolError):
+            ds.compile_manifest(path, None, False, "yes")
+
+    def test_core100_shared_oserror_boundary(self):
+        with self.assertRaises(OSError):
+            ds.compile_manifest(self.dir / "absent" / "manifest.json",
+                                include_shared=True)
+
+    def test_core100_shared_ordering_is_stable(self):
+        forward = self.compile_shared(include_shared=True)
+        defs = shared_types_schema()["$defs"]
+        reversed_defs = {key: defs[key] for key in reversed(list(defs))}
+        reverse = self.compile_shared(shared_types_schema(reversed_defs),
+                                      include_shared=True)
+        self.assertTrue(reverse.valid)
+        self.assertEqual(reverse.nodes, forward.nodes)
+        self.assertEqual(reverse.named, forward.named)
+        self.assertEqual(reverse.diagnostics, forward.diagnostics)
+        self.assertEqual(self.compile_shared(include_shared=True).nodes,
+                         forward.nodes)
+
+    def test_core100_shared_does_not_mask_manifest_errors(self):
+        bundle = self.compile_shared(
+            entries=[echo_entry(owner="nope")], include_shared=True)
+        self.assert_invalid(bundle, ds.D_MANIFEST_OWNER)
+        self.assertEqual(self.codes(bundle), [ds.D_MANIFEST_OWNER])
+
+
+@unittest.skipUnless(REAL.is_file(), "contracts/dto/manifest.json 不在工作树内")
+class RealSharedTypes(unittest.TestCase):
+    """CORE-100：真实 contracts/dto 数据快照上的共享根增量。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.off = ds.compile_manifest(REAL)
+        cls.on = ds.compile_manifest(REAL, include_shared=True)
+        cls.roots = sorted(json.loads(
+            (DTO / SHARED).read_text(encoding="utf-8"))["$defs"])
+
+    def ids(self, bundle):
+        return {item.ref.id for item in bundle.nodes}
+
+    def codes(self, bundle):
+        return [item.code for item in bundle.diagnostics
+                if item.severity == "error"]
+
+    def test_core100_shared_real_default_is_off(self):
+        self.assertTrue(self.off.valid)
+        self.assertEqual(len(self.off.ready), 36)
+        self.assertEqual(len(self.off.pending), 107)
+        self.assertEqual(len(self.off.nodes), 624)
+        self.assertEqual(len(self.off.named), 115)
+        explicit = ds.compile_manifest(REAL, include_shared=False)
+        self.assertEqual(explicit.ready, self.off.ready)
+        self.assertEqual(explicit.pending, self.off.pending)
+        self.assertEqual(explicit.nodes, self.off.nodes)
+        self.assertEqual(explicit.named, self.off.named)
+        self.assertEqual(explicit.diagnostics, self.off.diagnostics)
+        for key in ("Envelope", "NodePath", "PullResponse", "PushItemResult",
+                    "Uuid"):
+            self.assertNotIn(SHARED + "#/$defs/" + key, self.ids(self.off))
+
+    def test_core100_shared_real_adds_all_roots(self):
+        self.assertTrue(self.on.valid)
+        self.assertEqual(self.on.diagnostics, ())
+        self.assertEqual(len(self.on.ready), 36)
+        self.assertEqual(len(self.on.pending), 107)
+        self.assertEqual(len(self.roots), 48)
+        added = self.ids(self.on) - self.ids(self.off)
+        self.assertEqual(len(added), 33)
+        self.assertTrue(all(rid.startswith(SHARED + "#") for rid in added))
+        self.assertEqual(len(self.on.nodes), 624 + 33)
+        self.assertEqual(len(self.on.named), 115 + 5)
+        self.assertTrue({SHARED + "#/$defs/" + key for key in self.roots}
+                        <= self.ids(self.on))
+        titles = [self.on.node(ref).title for ref in self.on.named]
+        self.assertEqual((len(titles), len(set(titles))), (120, 120))
+
+    def test_core100_shared_real_keeps_old_nodes_and_ops(self):
+        self.assertEqual(self.on.ready, self.off.ready)
+        self.assertEqual(self.on.pending, self.off.pending)
+        for item in self.off.nodes:
+            self.assertEqual(self.on.node(item.ref), item)
+
+    def test_core100_shared_real_gates_unchanged(self):
+        off_s0 = ds.compile_manifest(REAL, "S0")
+        on_s0 = ds.compile_manifest(REAL, "S0", include_shared=True)
+        self.assertTrue(on_s0.valid)
+        self.assertEqual(len(on_s0.ready), 36)
+        self.assertEqual(on_s0.diagnostics, off_s0.diagnostics)
+        self.assertEqual(len(on_s0.diagnostics), 107)
+        self.assertEqual({item.severity for item in on_s0.diagnostics}, {"info"})
+        self.assertEqual(len(on_s0.nodes), 624 + 33)
+        released = ds.compile_manifest(REAL, release=True, include_shared=True)
+        self.assertFalse(released.valid)
+        self.assertEqual(len(released.diagnostics), 107)
+        self.assertEqual((released.ready, released.nodes, released.named),
+                         ((), (), ()))
+        self.assertEqual(len(released.pending), 107)
+
+    def test_core100_shared_real_repeat_is_stable(self):
+        again = ds.compile_manifest(REAL, include_shared=True)
+        self.assertEqual(again.nodes, self.on.nodes)
+        self.assertEqual(again.named, self.on.named)
+        self.assertEqual(again.diagnostics, self.on.diagnostics)
+
+
 class InvalidPolicy(Base):
     """验收 11：invalid 不返回半张图、诊断稳定、故障边界与消费方协议。"""
 
