@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 import {APPENDIX, sandbox} from './fixtures/core76/harness.mjs';
 
 const KINDS = new Set(['outside-closure', 'missing-local-definition', 'sdk-unknown', 'q-drift']);
@@ -10,6 +12,21 @@ const KINDS = new Set(['outside-closure', 'missing-local-definition', 'sdk-unkno
 const hashTree = dir => Object.fromEntries(fs.readdirSync(dir).sort().map(name =>
   [name, crypto.createHash('sha256').update(fs.readFileSync(path.join(dir, name))).digest('hex')]));
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+
+// U76-N3：import 只装载模块，不得运行 CLI；对整棵沙箱目录逐文件取哈希比较写入。
+const treeHash = (dir, base = dir, acc = {}) => {
+  for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) treeHash(full, base, acc);
+    else acc[path.relative(base, full)] = crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex');
+  }
+  return acc;
+};
+// 在子进程里用真实 import() 装载被复制的脚本；多给的参数只作 argv，不表示本次要跑 CLI。
+const importOnly = (s, script, ...args) => spawnSync(process.execPath,
+  ['--input-type=module', '-e', `await import(${JSON.stringify(pathToFileURL(path.join(s.root, 'tools', 'sadd', script)).href)})`,
+    ...(args.length ? ['--', ...args] : [])],
+  {cwd: s.root, encoding: 'utf8'});
 
 test('--sadd and --out report every required field with one material row per card', () => {
   const s = sandbox();
@@ -181,6 +198,37 @@ test('stats.ready only counts the exact ready string, even when the run fails', 
     const data = read(out);
     assert.equal(data.stats.ready, 0);
     assert.ok(data.errors.some(e => e.includes('ready without complete independent evidence CORE-01')), data.errors.join('; '));
+  } finally {
+    s.clean();
+  }
+});
+
+test('importing audit.mjs writes no report and prints nothing (U76-N3)', () => {
+  const s = sandbox();
+  try {
+    const before = treeHash(s.root);
+    const r = importOnly(s, 'audit.mjs');
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.stdout, '');
+    assert.equal(r.stderr, '');
+    assert.deepEqual(treeHash(s.root), before);
+    assert.ok(!fs.existsSync(path.join(s.root, 'build', 'sadd', 'audit.json')), 'import must not write the default report');
+  } finally {
+    s.clean();
+  }
+});
+
+test('importing audit.mjs ignores CLI arguments instead of writing to --out (U76-N3)', () => {
+  const s = sandbox();
+  try {
+    const out = path.join(s.root, 'build', 'probe.json');
+    const before = treeHash(s.root);
+    const r = importOnly(s, 'audit.mjs', '--sadd', s.sadd, '--out', out);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.stdout, '');
+    assert.equal(r.stderr, '');
+    assert.deepEqual(treeHash(s.root), before);
+    assert.ok(!fs.existsSync(out), 'import must not write the --out file');
   } finally {
     s.clean();
   }
