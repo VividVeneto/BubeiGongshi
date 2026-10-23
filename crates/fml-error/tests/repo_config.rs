@@ -1532,13 +1532,81 @@ fn yolo_hits(text: &str) -> Vec<String> {
     let lower = text.to_lowercase();
     let mut found: Vec<String> = BANNED
         .iter()
-        .chain(WEIGHTS.iter())
         .filter(|needle| lower.contains(**needle))
+        .chain(WEIGHTS.iter().filter(|extension| {
+            // 后缀必须结束于标识符边界；.pt 不能把合法的 .ptr 字段当成权重。
+            // 检查每次出现，避免较早的字段前缀遮蔽后续真实模型路径。
+            lower.match_indices(**extension).any(|(start, _)| {
+                lower[start + extension.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|ch| !ch.is_alphanumeric() && ch != '_')
+            })
+        }))
         .map(|needle| (*needle).to_string())
         .collect();
     found.sort();
     found.dedup();
     found
+}
+
+#[test]
+fn yolo_weight_extensions_do_not_match_identifier_prefixes() {
+    for text in [
+        "buf.ptr.is_null()",
+        "a.bytes.as_ptr() == buf.ptr && a.bytes.len() == buf.len",
+        "other.ptr",
+        "output.ptr == input.ptr",
+        "value.pt_count",
+        "value.pt2",
+        "value.pt字段",
+        "value.onnx_session",
+        "value.onnx2",
+        "value.weights_count",
+        "value.weights2",
+        r#"let path = "report.ptr";"#,
+    ] {
+        assert!(yolo_hits(text).is_empty(), "合法标识符不得命中：{text}");
+    }
+}
+
+#[test]
+fn yolo_weight_extensions_match_file_and_string_boundaries() {
+    for extension in WEIGHTS {
+        for ending in [
+            "", "\"", "'", " ", "\n", ";", ")", "]", "}", ",", "/", "\\", "?v=1", "#hash", ".gz",
+        ] {
+            for prefix in [
+                "detector",
+                "models/detector",
+                r"C:\models\detector",
+                "https://host/models/detector",
+            ] {
+                let text = format!("{prefix}{extension}{ending}");
+                assert_eq!(yolo_hits(&text), [*extension], "权重引用必须命中：{text}");
+                assert_eq!(yolo_hits(&text.to_uppercase()), [*extension]);
+            }
+        }
+        // 首次出现是标识符前缀时，后续真实扩展名仍必须命中。
+        let text = format!("value{extension}_field; load(\"detector{extension}\")");
+        assert_eq!(yolo_hits(&text), [*extension]);
+        for suffix in ["r", "_field", "2", "字段"] {
+            let text = format!("value{extension}{suffix}");
+            assert!(yolo_hits(&text).is_empty(), "扩展名前缀不得命中：{text}");
+        }
+    }
+}
+
+#[test]
+fn yolo_banned_names_and_hit_order_remain_unchanged() {
+    for name in BANNED {
+        assert_eq!(yolo_hits(&name.to_uppercase()), [*name]);
+        assert_eq!(yolo_hits(&format!("prefix_{name}_implementation")), [*name]);
+    }
+    assert_eq!(
+        yolo_hits("a.pt a.PT b.weights c.onnx YOLO ultralytics darknet"),
+        [".onnx", ".pt", ".weights", "darknet", "ultralytics", "yolo"]
+    );
 }
 
 #[test]
