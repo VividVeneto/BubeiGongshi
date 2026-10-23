@@ -1,0 +1,22 @@
+name: FmlCoreBindings
+description: CORE-03 C ABI generated from the public header.
+output: lib/binding/fmlcore.g.dart
+preamble: |
+  // ignore_for_file: public_member_api_docs
+headers:
+  entry-points:
+    - ../contracts/include/fmlcore.h
+  include-directives:
+    - "**/fmlcore.h"
+functions:
+  include:
+    - "fml_.*"
+structs:
+  include:
+    - FmlBuf
+typedefs:
+  include:
+    - "Fml.*"
+macros:
+  include:
+    - "FML_ABI_.*"
