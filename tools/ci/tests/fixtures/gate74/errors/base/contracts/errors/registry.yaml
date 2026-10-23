@@ -1,0 +1,18 @@
+registry_version: 1
+entries:
+  - code: AST_JSON_INVALID
+    namespace: AST
+    owner: CORE-05
+    severity: error
+    message_key: err.ast.json_invalid
+    retryable: false
+    since: 1
+    surface: client
+  - code: FFI_BAD_ARG
+    namespace: FFI
+    owner: CORE-03
+    severity: error
+    message_key: err.ffi.bad_arg
+    retryable: false
+    since: 1
+    surface: client

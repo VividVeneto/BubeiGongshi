@@ -1,0 +1,5 @@
+{
+  "@@locale": "zh",
+  "err.ast.json_invalid": "AST 无效",
+  "err.ffi.bad_arg": "参数无效"
+}
