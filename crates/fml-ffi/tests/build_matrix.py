@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import queue
+import threading
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "build" / "ffi-matrix"
@@ -114,6 +116,71 @@ for i in range(1100):
         samples.append(elapsed)
 RESULTS["local_latency"] = {"warmup": 100, "samples": 1000, "p95_ms": sorted(samples)[949],
                             "includes": "Python JSON + ctypes + FFI + free; debug desktop host only"}
+
+# Exercise the real worker -> C callback path, not a Python mock of native work.
+received = queue.Queue()
+callback_errors = []
+main_thread = threading.get_ident()
+Completion = c.CFUNCTYPE(None, c.c_uint64, Buf, c.c_void_p)
+
+
+@Completion
+def completed(job, buf, user):
+    try:
+        assert user == 17 and threading.get_ident() != main_thread
+        assert lib.fml_cancel(job) == 1
+        assert lib.fml_register_completion(None, None) == -6
+        received.put((job, buf, json.loads(c.string_at(buf.ptr, buf.len))))
+    except Exception as error:
+        callback_errors.append(repr(error))
+
+
+assert lib.fml_register_completion(c.cast(completed, c.c_void_p), c.c_void_p(17)) == 0
+expected = {}
+for op in ("fake.async", "fake.async_error", "fake.async_traced", "fake.async_panic", "fake.async_invalid"):
+    for _ in range(8):
+        payload = json.dumps(req).encode()
+        job = c.c_uint64()
+        assert lib.fml_submit(op.encode(), payload, len(payload), c.byref(job)) == 0
+        assert job.value not in expected
+        expected[job.value] = op
+seen = set()
+for _ in expected:
+    job, buf, reply = received.get(timeout=10)
+    assert job not in seen and job in expected
+    seen.add(job)
+    op = expected[job]
+    assert reply["v"] == 1
+    assert reply["trace_id"] == ("07" * 16 if op == "fake.async_traced" else trace)
+    if op != "fake.async":
+        assert reply["trace_id"] == reply["error"]["trace_id"]
+    assert lib.fml_register_completion(None, None) == -6
+    assert lib.fml_free_buffer(buf) == 0
+    assert lib.fml_free_buffer(buf) == -1
+assert not callback_errors, callback_errors
+# The last Python callback can have returned while Rust is still releasing its lease.
+# Retry the documented busy state; the deadline diagnoses a leak, not wins a race.
+deadline = time.monotonic() + 10
+while lib.fml_register_completion(None, None) == -6:
+    assert time.monotonic() < deadline, "native callback resources did not drain"
+assert received.empty()
+assert lib.fml_register_completion(c.cast(completed, c.c_void_p), c.c_void_p(17)) == 0
+payload = json.dumps(dict(req, body={"wait_ms": 5000})).encode()
+job = c.c_uint64()
+assert lib.fml_submit(b"fake.wait", payload, len(payload), c.byref(job)) == 0
+status = lib.fml_cancel(job)
+if status == 0:
+    assert received.empty()
+else:
+    assert status == 1
+    delivered, buf, _ = received.get(timeout=10)
+    assert delivered == job.value and lib.fml_free_buffer(buf) == 0
+deadline = time.monotonic() + 10
+while lib.fml_register_completion(None, None) == -6:
+    assert time.monotonic() < deadline
+assert lib.fml_cancel(job) == -4
+RESULTS["cases"].append({"case": "native-async-callback-reentry-trace-ownership", "passed": True, "completions": len(seen)})
+RESULTS["cases"].append({"case": "native-cooperative-cancel", "passed": True, "status": status})
 
 # Compile/link/run a genuine C translation unit against the normal DLL import library.
 if sys.platform == "win32":
