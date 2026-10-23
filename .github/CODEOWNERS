@@ -1,0 +1,14 @@
+# CODEOWNERS（CORE-41）
+#
+# 本文件为 S0 阶段占位：`@crypto-owner-a` 等是待管理员替换的占位账号，
+# 编码会话不能编造真实用户名、也不能改远端仓库设置。
+#
+# 分支保护属于 manual checklist（未签字不记通过，见 编码报告.md「手动外部前提」）：
+#   - main 要求 pull request 评审，required approvals=2；
+#   - 要求 CODEOWNERS 审阅（代码所有者改动必须由对应 owner 批准）；
+#   - required status checks：lint / test / checks / build / deny（ci.yml 五个作业）。
+# 真实账号替换与分支保护开启需仓库管理员在托管平台完成，本仓库内只写配置。
+
+/crates/fml-crypto/ @crypto-owner-a @crypto-owner-b
+/crates/fml-sync/ @sync-owner-a @sync-owner-b
+/contracts/ @contract-owner-a @contract-owner-b

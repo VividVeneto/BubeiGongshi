@@ -1,0 +1,185 @@
+name: ci
+
+# CORE-41 单写维护的工作流：只编排 tools/ci/ 脚本与官方工具，YAML 里不写检查逻辑、
+# 也不写 Rust/Flutter/Python/Node/cargo 工具版本字面量（一律经 toolchain.py 读锁文件）。
+# 他卡新增作业以契约变更单提交完整片段（job 键、needs、steps、环境/缓存/secrets），
+# 由 CORE-41 合入；合入前置校验见 S0_CORE-41 卡。CORE-44 的鸿蒙冒烟属此类片段。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: 安装锁定 Rust 工具链
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt --component clippy
+          rustup default "$RUST_VERSION"
+      - name: cargo fmt
+        run: cargo fmt --all --check
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: cargo doc（文档告警即失败）
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+      - name: dart format
+        working-directory: app
+        run: dart format --set-exit-if-changed .
+      - name: flutter analyze
+        working-directory: app
+        run: flutter analyze
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: 安装锁定 Rust 工具链与覆盖率组件
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt --component clippy --component llvm-tools-preview
+          rustup default "$RUST_VERSION"
+      - name: cargo test
+        run: cargo test --workspace
+      - name: 覆盖率采集（LCOV）
+        run: |
+          cargo install cargo-llvm-cov --version "$CARGO_LLVM_COV" --locked
+          cargo llvm-cov --workspace --all-targets --lcov --output-path build/coverage/core.lcov
+      - name: flutter test
+        working-directory: app
+        run: flutter test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-lcov
+          path: build/coverage/core.lcov
+
+  checks:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: 取覆盖率构件
+        uses: actions/download-artifact@v4
+        with:
+          name: core-lcov
+          path: build/coverage
+      - name: tools/ci 自测（显式发现目录，禁止 Ran 0 冒充通过）
+        run: python -m unittest discover -s tools/ci -p "test_*.py" -v
+      - name: 全部门禁聚合（含 maint_report --annotations）
+        run: python tools/ci/run_all.py --root .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-artifacts
+          path: |
+            build/ci/
+            build/check-sadd/
+            build/sadd/
+            build/coverage/
+
+  build:
+    needs: checks
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: 安装锁定 Rust 工具链
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+      - name: ubuntu 构建 APK
+        if: runner.os == 'Linux'
+        working-directory: app
+        run: flutter build apk --release
+      - name: Windows Flutter 构建
+        if: runner.os == 'Windows'
+        working-directory: app
+        run: flutter build windows --release
+      - name: Windows 启动器 CMake 配置
+        if: runner.os == 'Windows'
+        run: cmake -S installer/windows/launcher -B build/launcher
+      - name: Windows 启动器构建
+        if: runner.os == 'Windows'
+        run: cmake --build build/launcher --config Release
+      - name: Windows 启动器测试
+        if: runner.os == 'Windows'
+        run: ctest --test-dir build/launcher -C Release --output-on-failure
+
+  deny:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - name: 安装锁定 Rust 工具链
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+      - name: 安装锁定 cargo-deny
+        run: cargo install cargo-deny --version "$CARGO_DENY" --locked
+      - name: cargo deny check
+        run: cargo deny check

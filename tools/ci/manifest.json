@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "steps": [
+    {
+      "id": "reservations",
+      "owner": "CORE-75",
+      "argv": [
+        "node",
+        "tools/sadd/reservations.mjs"
+      ]
+    },
+    {
+      "id": "check-deps",
+      "owner": "CORE-69",
+      "argv": [
+        "python",
+        "tools/ci/check_deps.py",
+        "--root",
+        "."
+      ]
+    },
+    {
+      "id": "check-privacy",
+      "owner": "CORE-69",
+      "argv": [
+        "python",
+        "tools/ci/check_privacy.py",
+        "--root",
+        "."
+      ]
+    },
+    {
+      "id": "check-unsafe",
+      "owner": "CORE-74",
+      "argv": [
+        "python",
+        "tools/ci/check_unsafe.py",
+        "--root",
+        "."
+      ]
+    },
+    {
+      "id": "check-abi",
+      "owner": "CORE-74",
+      "argv": [
+        "python",
+        "tools/ci/check_abi.py",
+        "--header",
+        "contracts/include/fmlcore.h"
+      ]
+    },
+    {
+      "id": "check-errors",
+      "owner": "CORE-74",
+      "argv": [
+        "python",
+        "tools/ci/check_errors.py",
+        "--registry",
+        "contracts/errors/registry.yaml",
+        "--root",
+        "."
+      ]
+    },
+    {
+      "id": "check-sadd",
+      "owner": "CORE-70",
+      "argv": [
+        "python",
+        "tools/ci/check_sadd.py",
+        "--sadd",
+        "SADD",
+        "--out",
+        "build/check-sadd"
+      ],
+      "release_args": [
+        "--release"
+      ]
+    },
+    {
+      "id": "sadd-stats",
+      "owner": "CORE-76",
+      "argv": [
+        "node",
+        "tools/sadd/stats.mjs",
+        "--check"
+      ]
+    },
+    {
+      "id": "sadd-audit",
+      "owner": "CORE-76",
+      "argv": [
+        "node",
+        "tools/sadd/audit.mjs",
+        "--sadd",
+        "SADD",
+        "--out",
+        "build/sadd/audit.json"
+      ]
+    },
+    {
+      "id": "sadd-selftest",
+      "owner": "SADD",
+      "kind": "docs-tool",
+      "argv": [
+        "node",
+        "--test",
+        "tools/sadd/pack.test.mjs",
+        "tools/sadd/current.test.mjs",
+        "tools/sadd/reservations.test.mjs",
+        "tools/sadd/cardiff.test.mjs",
+        "tools/sadd/audit.test.mjs",
+        "tools/sadd/stats.test.mjs",
+        "tools/sadd/structure.test.mjs"
+      ]
+    },
+    {
+      "id": "dtocheck",
+      "owner": "SADD",
+      "kind": "docs-tool",
+      "argv": [
+        "node",
+        "tools/DTOcheck/run.mjs",
+        "--strict"
+      ]
+    },
+    {
+      "id": "dtocheck-selftest",
+      "owner": "SADD",
+      "kind": "docs-tool",
+      "argv": [
+        "node",
+        "--test",
+        "tools/DTOcheck/cards.test.mjs",
+        "tools/DTOcheck/dto.test.mjs",
+        "tools/DTOcheck/layout.test.mjs",
+        "tools/DTOcheck/xref.test.mjs",
+        "tools/DTOcheck/registry.test.mjs",
+        "tools/DTOcheck/yaml-lite.test.mjs"
+      ]
+    },
+    {
+      "id": "core-sources",
+      "owner": "CORE-41",
+      "argv": [
+        "python",
+        "tools/ci/core_sources.py",
+        "--root",
+        ".",
+        "--out",
+        "build/coverage/core-sources.json"
+      ]
+    },
+    {
+      "id": "maint-report",
+      "owner": "CORE-71",
+      "argv": [
+        "python",
+        "tools/ci/maint_report.py",
+        "--root",
+        ".",
+        "--out",
+        "build/maint.md",
+        "--lcov",
+        "build/coverage/core.lcov",
+        "--core-sources",
+        "build/coverage/core-sources.json",
+        "--annotations"
+      ]
+    }
+  ]
+}
