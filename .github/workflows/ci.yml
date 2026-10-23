@@ -95,7 +95,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      # CORE-74 的 check-abi 要与基线 tag 的 ABI 对比（--base-ref），浅 clone 找不到
+      # 该 tag 会以 GATE-1 退 2；聚合门禁统一在 checks 作业跑，因此这里取全量历史。
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: 锁定工具链版本
         run: |
           PY="$(command -v python3 || command -v python)"

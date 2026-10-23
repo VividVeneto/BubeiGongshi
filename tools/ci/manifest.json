@@ -45,8 +45,10 @@
       "argv": [
         "python",
         "tools/ci/check_abi.py",
-        "--header",
-        "contracts/include/fmlcore.h"
+        "--root",
+        ".",
+        "--base-ref",
+        "abi-v1.0.0"
       ]
     },
     {
@@ -55,8 +57,6 @@
       "argv": [
         "python",
         "tools/ci/check_errors.py",
-        "--registry",
-        "contracts/errors/registry.yaml",
         "--root",
         "."
       ]
@@ -136,6 +136,33 @@
         "tools/DTOcheck/xref.test.mjs",
         "tools/DTOcheck/registry.test.mjs",
         "tools/DTOcheck/yaml-lite.test.mjs"
+      ]
+    },
+    {
+      "id": "dto-drift",
+      "owner": "CORE-67",
+      "argv": [
+        "python",
+        "tools/ci/gen_dto.py",
+        "--check",
+        "--report",
+        "build/dto/drift.json"
+      ],
+      "release_args": [
+        "--release"
+      ]
+    },
+    {
+      "id": "gate74-selftest",
+      "owner": "CORE-74",
+      "argv": [
+        "python",
+        "-m",
+        "unittest",
+        "tools/ci/tests/test_gate74_unsafe.py",
+        "tools/ci/tests/test_gate74_abi.py",
+        "tools/ci/tests/test_gate74_errors.py",
+        "tools/ci/tests/test_gate74_entrypoints.py"
       ]
     },
     {
