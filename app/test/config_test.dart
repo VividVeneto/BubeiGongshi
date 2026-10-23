@@ -76,10 +76,11 @@ String dartExecutable() {
 }
 
 /// 在给定目录运行 Dart 命令（Windows 下 .bat 需经 shell 解析）。
+/// 仅本次调用禁用遥测，避免离线 lint 探针访问网络；不改变全局分析设置。
 ProcessResult runDart(String dart, List<String> arguments, Directory cwd) {
   return Process.runSync(
     dart,
-    arguments,
+    <String>['--suppress-analytics', ...arguments],
     workingDirectory: cwd.path,
     runInShell: Platform.isWindows,
   );
