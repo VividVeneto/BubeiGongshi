@@ -89,12 +89,15 @@ pub static OPS: &[OpEntry] = fake::ENTRIES;
 #[cfg(not(any(test, feature = "test_ops")))]
 pub static OPS: &[OpEntry] = &[];
 pub(crate) fn assert_unique() {
-    for (i, entry) in OPS.iter().enumerate() {
-        assert!(
-            !OPS[..i].iter().any(|other| other.op == entry.op),
-            "duplicate op"
-        );
-    }
+    static CHECKED: std::sync::OnceLock<()> = std::sync::OnceLock::new();
+    CHECKED.get_or_init(|| {
+        for (i, entry) in OPS.iter().enumerate() {
+            assert!(
+                !OPS[..i].iter().any(|other| other.op == entry.op),
+                "duplicate op"
+            );
+        }
+    });
 }
 #[cfg(test)]
 mod tests {

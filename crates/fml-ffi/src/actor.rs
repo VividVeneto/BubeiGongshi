@@ -13,7 +13,7 @@ pub enum CloseTrigger {
 pub enum CloseReply {
     /// Closing accepted; new leases are rejected.
     Accepted,
-    /// Already closing (job-related busy states belong to phase two).
+    /// Already closing or a committed completion still owns delivery resources.
     Busy,
     /// Retired actor.
     Stale,
@@ -27,7 +27,7 @@ struct State {
 }
 /// An immutable slot/generation identity with synchronized lease/close state.
 pub struct HandleActor {
-    handle: FmlHandle,
+    pub(crate) handle: FmlHandle,
     pub(crate) profile: Option<String>,
     state: Mutex<State>,
 }
@@ -43,12 +43,15 @@ impl HandleActor {
     }
     /// Take a lease unless closing or retired.
     pub fn lease(&self) -> Option<Lease<'_>> {
+        self.acquire().then(|| Lease(self))
+    }
+    pub(crate) fn acquire(&self) -> bool {
         let mut state = lock(&self.state);
-        if state.closing || state.retired {
-            return None;
+        if state.closing || state.retired || state.leases == usize::MAX {
+            return false;
         }
-        state.leases = state.leases.checked_add(1)?;
-        Some(Lease(self))
+        state.leases += 1;
+        true
     }
     /// Whether close has begun (also true after retirement).
     pub fn is_closing(&self) -> bool {
@@ -56,6 +59,9 @@ impl HandleActor {
     }
     /// Atomically reject new leases; never wait for existing ones.
     pub fn begin_close(&self, trigger: CloseTrigger) -> CloseReply {
+        crate::jobs::close(self, trigger)
+    }
+    pub(crate) fn close_gate(&self, trigger: CloseTrigger) -> CloseReply {
         let mut state = lock(&self.state);
         if state.retired {
             return CloseReply::Stale;
@@ -66,6 +72,7 @@ impl HandleActor {
         state.closing = true;
         state.native = matches!(trigger, CloseTrigger::NativeClose);
         state.retired = state.native && state.leases == 0;
+        self.reclaim(&state);
         CloseReply::Accepted
     }
     /// Retire only a closing actor with no leases; never resurrect an identity.
@@ -75,14 +82,24 @@ impl HandleActor {
             return false;
         }
         state.retired = true;
+        self.reclaim(&state);
         true
+    }
+    fn reclaim(&self, state: &State) {
+        if state.retired {
+            lock(&HANDLES).retain(|actor| actor.handle != self.handle);
+        }
+    }
+    pub(crate) fn release(&self) {
+        let mut state = lock(&self.state);
+        state.leases -= 1;
+        state.retired |= state.native && state.closing && state.leases == 0;
+        self.reclaim(&state);
     }
 }
 impl Drop for Lease<'_> {
     fn drop(&mut self) {
-        let mut state = lock(&self.0.state);
-        state.leases -= 1;
-        state.retired |= state.native && state.closing && state.leases == 0;
+        self.0.release();
     }
 }
 static HANDLES: Mutex<Vec<Arc<HandleActor>>> = Mutex::new(Vec::new());
@@ -96,8 +113,14 @@ pub(crate) fn lookup(handle: FmlHandle) -> Option<Arc<HandleActor>> {
 #[cfg(test)]
 pub(crate) fn fixture(profile: &str) -> (FmlHandle, Arc<HandleActor>) {
     let mut table = lock(&HANDLES);
-    let slot = u64::try_from(table.len()).unwrap() + 1;
-    assert!(slot < (1 << 48));
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+    let slot = NEXT
+        .try_update(
+            std::sync::atomic::Ordering::Relaxed,
+            std::sync::atomic::Ordering::Relaxed,
+            |slot| (slot < (1 << 48)).then_some(slot + 1),
+        )
+        .expect("fixture handle slots exhausted; never reuse generations");
     let handle = (1 << 48) | slot;
     let actor = Arc::new(HandleActor::new(handle, Some(profile.into())));
     table.push(actor.clone());

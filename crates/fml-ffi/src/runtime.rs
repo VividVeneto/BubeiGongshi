@@ -55,13 +55,29 @@ pub(crate) fn parse(bytes: &[u8], trace: &mut Option<TraceId>) -> Result<Envelop
     }
     Ok(env)
 }
-pub(crate) fn dispatch(op: &str, env: Envelope) -> Result<Value, Failure> {
+// Owned preparation is the only payload admitted to the queue. No foreign borrow escapes.
+pub(crate) struct Prepared {
+    entry: &'static OpEntry,
+    pub(crate) actor: std::sync::Arc<HandleActor>,
+    pub(crate) handle: Option<u64>,
+    pub(crate) control: bool,
+    env: Envelope,
+    leased: bool,
+}
+impl Drop for Prepared {
+    fn drop(&mut self) {
+        if self.leased {
+            self.actor.release();
+        }
+    }
+}
+pub(crate) fn prepare(op: &str, env: Envelope, mode: OpMode) -> Result<Prepared, Failure> {
     if cfg!(debug_assertions) {
         assert_unique();
     }
     let entry = OPS
         .iter()
-        .find(|e| e.op == op && e.mode == OpMode::Sync)
+        .find(|e| e.op == op && e.mode == mode)
         .ok_or_else(|| failure(-2))?;
     let handle = env.profile_handle.as_deref().and_then(decimal);
     let actor = match (entry.scope, handle) {
@@ -70,10 +86,26 @@ pub(crate) fn dispatch(op: &str, env: Envelope) -> Result<Value, Failure> {
         (_, Some(_)) => return Err(failure(-1)),
         (_, None) => std::sync::Arc::new(HandleActor::new(0, None)),
     };
-    let _lease = actor.lease().ok_or_else(|| failure(-4))?;
+    let control = matches!(entry.op, "store.close" | "account.close_profile");
+    let leased = !control;
+    if (leased && !actor.acquire()) || (control && actor.is_closing()) {
+        return Err(failure(-4));
+    }
+    let prepared = Prepared {
+        entry,
+        actor,
+        handle,
+        control,
+        env,
+        leased,
+    };
+    let env = &prepared.env;
+    if env.v != DTO_MAJOR {
+        return Err(failure(-3));
+    }
     if let Some(id) = env.body.get("profile_id")
         && entry.scope == Scope::Profile
-        && id.as_str() != actor.profile.as_deref()
+        && id.as_str() != prepared.actor.profile.as_deref()
     {
         return Err(failure(-1));
     }
@@ -82,31 +114,44 @@ pub(crate) fn dispatch(op: &str, env: Envelope) -> Result<Value, Failure> {
     {
         return Err(failure(-1));
     }
-    if env.v != DTO_MAJOR {
-        return Err(failure(-3));
+    Ok(prepared)
+}
+impl Prepared {
+    pub(crate) fn invoke(&self, cancel: &CancelHandle) -> Result<Value, Failure> {
+        let ctx = OpCtx {
+            op: self.entry.op,
+            dto: DTO_MAJOR,
+            mode: self.entry.mode,
+            scope: self.entry.scope,
+            handle: self.handle,
+            actor: &self.actor,
+            cancel,
+            trace_id: self.env.trace_id,
+            budget_ms: BUDGET_OPS
+                .contains(&self.entry.op)
+                .then_some(self.env.budget_ms)
+                .flatten(),
+        };
+        match self.entry.handler.call(
+            &ctx,
+            &serde_json::to_vec(&self.env.body).map_err(|_| failure(-5))?,
+        ) {
+            OpReply::Ok(bytes) => serde_json::from_slice(&bytes).map_err(|_| failure(-5)),
+            OpReply::Err(error) => Err((1, error)),
+        }
     }
-    let ctx = OpCtx {
-        op: entry.op,
-        dto: DTO_MAJOR,
-        mode: entry.mode,
-        scope: entry.scope,
-        handle,
-        actor: &actor,
-        cancel: &CancelHandle::default(),
-        trace_id: env.trace_id,
-        budget_ms: if BUDGET_OPS.contains(&entry.op) {
-            env.budget_ms
-        } else {
-            None
-        },
-    };
-    match entry.handler.call(
-        &ctx,
-        &serde_json::to_vec(&env.body).map_err(|_| failure(-5))?,
-    ) {
-        OpReply::Ok(bytes) => serde_json::from_slice(&bytes).map_err(|_| failure(-5)),
-        OpReply::Err(error) => Err((1, error)),
+    pub(crate) fn complete(&self, cancel: &CancelHandle) -> Vec<u8> {
+        use std::panic::{AssertUnwindSafe, catch_unwind};
+        catch_unwind(AssertUnwindSafe(|| {
+            let result = catch_unwind(AssertUnwindSafe(|| self.invoke(cancel)))
+                .unwrap_or_else(|_| Err(failure(-5)));
+            response(result, self.env.trace_id).1
+        }))
+        .unwrap_or_else(|_| response(Err(failure(-5)), self.env.trace_id).1)
     }
+}
+pub(crate) fn dispatch(op: &str, env: Envelope) -> Result<Value, Failure> {
+    prepare(op, env, OpMode::Sync)?.invoke(&CancelHandle::default())
 }
 #[derive(Serialize)]
 struct ErrorEnvelope {

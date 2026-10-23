@@ -1,13 +1,12 @@
 //! The only C calling-convention surface. Every entry point contains unwinding.
 use crate::{
-    actor, buffer,
+    actor, buffer, jobs,
     ops::{CloseReply, CloseTrigger},
     runtime, trace,
 };
 use std::{
     ffi::{CStr, c_char, c_void},
     panic::{AssertUnwindSafe, catch_unwind},
-    sync::Mutex,
 };
 /// Core-owned immutable buffer; free once with the unchanged triple.
 #[repr(C)]
@@ -31,11 +30,10 @@ impl Default for FmlBuf {
 }
 /// High 16 bits generation, low 48 bits slot.
 pub type FmlHandle = u64;
-/// Callback ABI; phase one stores it but never manufactures completion events.
-// SAFETY: Invoker must honor callback ownership and user_data lifetime; not invoked in phase one.
+/// Cross-thread callback; keep function and user_data alive until unregister succeeds.
+// SAFETY: Invocation requires the registered callback lifetime and buffer ownership contract.
 pub type FmlCompletion = Option<unsafe extern "C" fn(u64, FmlBuf, *mut c_void)>;
-// Store opaque user_data as an address; it is not dereferenced or invoked in phase one.
-static COMPLETION: Mutex<(FmlCompletion, usize)> = Mutex::new((None, 0));
+
 fn guard(f: impl FnOnce() -> i32) -> i32 {
     catch_unwind(AssertUnwindSafe(f)).unwrap_or(-5)
 }
@@ -51,12 +49,12 @@ pub extern "C" fn fml_abi_version() -> u32 {
 pub extern "C" fn fml_capabilities() -> FmlBuf {
     catch_unwind(|| buffer::allocate(runtime::capabilities())).unwrap_or_default()
 }
-// SAFETY: Caller keeps readable op/request allocations alive for the returned borrow.
-unsafe fn input<'a>(
+// SAFETY: Caller keeps readable op/request allocations alive until the owned copy completes.
+unsafe fn input(
     op: *const c_char,
     req: *const u8,
     len: usize,
-) -> Result<(&'a str, &'a [u8]), runtime::Failure> {
+) -> Result<(String, Vec<u8>), runtime::Failure> {
     if op.is_null() || req.is_null() || len > 16 * 1024 * 1024 {
         return Err(runtime::failure(-1));
     }
@@ -65,7 +63,10 @@ unsafe fn input<'a>(
         .to_str()
         .map_err(|_| runtime::failure(-1))?;
     // SAFETY: Validated nonnull and bounded length; allocation validity is a caller obligation.
-    Ok((name, unsafe { std::slice::from_raw_parts(req, len) }))
+    Ok((
+        name.to_owned(),
+        unsafe { std::slice::from_raw_parts(req, len) }.to_vec(),
+    ))
 }
 /// Synchronous dispatch; returns 0, 1 or an FFI negative status.
 /// # Safety
@@ -90,7 +91,7 @@ pub unsafe extern "C" fn fml_call(
         }
         // SAFETY: Forwarding caller obligations; input validates nullable/length conditions.
         let result = unsafe { input(op, req, req_len) }.and_then(|(name, bytes)| {
-            runtime::parse(bytes, &mut trace_id).and_then(|env| runtime::dispatch(name, env))
+            runtime::parse(&bytes, &mut trace_id).and_then(|env| runtime::dispatch(&name, env))
         });
         let (status, bytes) = runtime::response(result, runtime::fallback_trace(trace_id));
         let buf = buffer::allocate(bytes);
@@ -122,7 +123,7 @@ pub unsafe extern "C" fn fml_call(
         -5
     })
 }
-/// Validate a submission but create no jobs in phase one.
+/// Copy and validate a submission, then admit it without waiting for the handler.
 /// # Safety
 /// Same input obligations as fml_call; job_id is writable/aligned and nonoverlapping.
 // SAFETY: Unique unmangled symbol, matching the checked-in C header.
@@ -143,39 +144,54 @@ pub unsafe extern "C" fn fml_submit(
         }
         let mut trace_id = None;
         // SAFETY: Forwarded caller input lifetime/extent obligations.
-        let parsed = unsafe { input(op, req, req_len) }
-            .and_then(|(_, bytes)| runtime::parse(bytes, &mut trace_id));
-        if let Err((status, _)) = parsed {
-            return status;
+        let parsed = unsafe { input(op, req, req_len) }.and_then(|(name, bytes)| {
+            let env = runtime::parse(&bytes, &mut trace_id)?;
+            if !jobs::registered() {
+                return Err(runtime::failure(-1));
+            }
+            runtime::prepare(&name, env, crate::ops::OpMode::Submit)
+        });
+        let request = match parsed {
+            Ok(request) => request,
+            Err((status, _)) => return status,
+        };
+        match jobs::submit(request) {
+            Ok(id) => {
+                // SAFETY: Caller-owned job output remains valid until this function returns.
+                unsafe {
+                    job_id.write(id);
+                }
+                0
+            }
+            Err(status) => status,
         }
-        if buffer::lock(&COMPLETION).0.is_none() {
-            return -1;
-        }
-        -2 // No Submit entries/jobs until phase two; never call synchronous handlers here.
     })
 }
-/// No jobs exist in phase one; every id is stale.
+/// Cancel before commit and wait for resource release; committed jobs return 1.
 // SAFETY: Unique unmangled symbol, matching the checked-in C header.
 #[unsafe(no_mangle)]
-pub extern "C" fn fml_cancel(_job_id: u64) -> i32 {
-    guard(|| -4)
+pub extern "C" fn fml_cancel(job_id: u64) -> i32 {
+    guard(|| jobs::cancel(job_id))
 }
 /// Register, replace or unregister the process-wide callback while idle.
 // SAFETY: Unique unmangled symbol, matching the checked-in C header.
 #[unsafe(no_mangle)]
 pub extern "C" fn fml_register_completion(cb: FmlCompletion, user_data: *mut c_void) -> i32 {
-    guard(|| {
-        *buffer::lock(&COMPLETION) = (cb, user_data as usize);
-        0
-    })
+    guard(|| jobs::register(cb, user_data as usize))
 }
 /// Free only a registry-verified triple; unknown pointers are never dereferenced.
 // SAFETY: Unique unmangled symbol, matching the checked-in C header.
 #[unsafe(no_mangle)]
 pub extern "C" fn fml_free_buffer(buf: FmlBuf) -> i32 {
-    guard(|| buffer::free(buf))
+    guard(|| {
+        let status = buffer::free(buf);
+        if status == 0 {
+            jobs::freed(buf.allocation_id);
+        }
+        status
+    })
 }
-/// Begin synchronous lease drainage without waiting; no Store/jobs exist yet.
+/// Reject new leases and signal cancellation, without waiting for handlers.
 // SAFETY: Unique unmangled symbol, matching the checked-in C header.
 #[unsafe(no_mangle)]
 pub extern "C" fn fml_close_handle(h: FmlHandle) -> i32 {
@@ -188,15 +204,14 @@ pub extern "C" fn fml_close_handle(h: FmlHandle) -> i32 {
     )
 }
 #[cfg(test)]
-fn registered_user_data() -> Option<usize> {
-    let state = buffer::lock(&COMPLETION);
-    state.0.map(|_| state.1)
-}
-#[cfg(test)]
 #[path = "callback_tests.rs"]
-mod callback_tests;
-// SAFETY: Test-only function pointer, deliberately never invoked by the phase-one runtime.
-#[cfg(test)]
-unsafe extern "C" fn test_callback(_: u64, _: FmlBuf, _: *mut c_void) {
-    panic!("phase one must never invoke callbacks");
+pub(crate) mod callback_tests;
+pub(crate) fn deliver(callback: FmlCompletion, id: u64, buf: FmlBuf, user: *mut c_void) {
+    if let Some(callback) = callback {
+        // SAFETY: Registration is pinned by the live job; caller guarantees callback/user lifetime.
+        // No runtime locks are held. The receiver now owns buf and must free it exactly once.
+        unsafe {
+            callback(id, buf, user);
+        }
+    }
 }
