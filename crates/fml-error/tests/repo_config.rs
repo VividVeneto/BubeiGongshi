@@ -1304,6 +1304,7 @@ fn toolchain_and_version_files_are_recorded() {
             "重复键：{key}"
         );
     }
+    // CORE-41 按 ADR-V5-15 首用追加 cargo_audit= 与 cargo_llvm_cov=（工具链九键）。
     let expected_keys: BTreeSet<String> = [
         "queried_date",
         "python",
@@ -1311,6 +1312,8 @@ fn toolchain_and_version_files_are_recorded() {
         "fuzz_nightly",
         "cargo_fuzz",
         "cargo_deny",
+        "cargo_audit",
+        "cargo_llvm_cov",
     ]
     .iter()
     .map(|key| (*key).to_string())
@@ -1325,6 +1328,8 @@ fn toolchain_and_version_files_are_recorded() {
     assert_eq!(parsed["fuzz_nightly"], "2026-10-22");
     assert_eq!(parsed["cargo_fuzz"], "0.13.2");
     assert_eq!(parsed["cargo_deny"], "0.20.2");
+    assert_eq!(parsed["cargo_audit"], "0.22.2");
+    assert_eq!(parsed["cargo_llvm_cov"], "0.9.1");
 
     let queried = &parsed["queried_date"];
     let parts: Vec<&str> = queried.split('-').collect();

@@ -1,0 +1,120 @@
+name: weekly
+
+# CORE-41：每周维护作业（maint 周对比 / cargo-audit / cargo-fuzz）。
+# 与 ci.yml 一致：YAML 只编排，版本一律从 toolchain.py 读锁文件，不写逻辑门禁。
+# 外部前提：首次运行时没有上周构件，取构件步骤允许缺失（引导，不是吞检查失败）；
+# 归档名 weekly-maint 供下周的 --previous 使用。
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  maint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: 安装锁定 Rust 工具链与覆盖率组件
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component llvm-tools-preview
+          rustup default "$RUST_VERSION"
+      - name: 取上周 maint 构件（首次运行允许缺失）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/previous
+          gh run download --name weekly-maint --dir build/previous --repo "$GITHUB_REPOSITORY" \
+            || echo "weekly: 没有上周 weekly-maint 构件（首次运行），本次不做周对比"
+      - name: 覆盖率采集（LCOV）
+        run: |
+          cargo install cargo-llvm-cov --version "$CARGO_LLVM_COV" --locked
+          cargo llvm-cov --workspace --all-targets --lcov --output-path build/coverage/core.lcov
+      - name: 领域源码集合
+        run: python tools/ci/core_sources.py --root . --out build/coverage/core-sources.json
+      - name: maint_report 周对比（附 maint.json）
+        run: |
+          PREVIOUS=""
+          if [ -f build/previous/maint.json ]; then PREVIOUS="--previous build/previous/maint.json"; fi
+          python tools/ci/maint_report.py --root . --out build/maint.md $PREVIOUS \
+            --lcov build/coverage/core.lcov --core-sources build/coverage/core-sources.json --annotations
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weekly-maint
+          path: |
+            build/maint.md
+            build/maint.json
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - name: 安装锁定 Rust 工具链
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+      - name: 安装锁定 cargo-audit
+        run: cargo install cargo-audit --version "$CARGO_AUDIT" --locked
+      - name: cargo audit（有漏洞即失败，但先落 JSON）
+        run: |
+          mkdir -p build/audit
+          cargo audit --json > build/audit/cargo-audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekly-audit
+          path: build/audit/cargo-audit.json
+
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 锁定工具链版本
+        run: |
+          PY="$(command -v python3 || command -v python)"
+          "$PY" tools/ci/toolchain.py --root . --format env >> "$GITHUB_ENV"
+      - name: 安装锁定 Rust 与 fuzz 工具链
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+          rustup toolchain install "$FUZZ_NIGHTLY" --profile minimal
+          cargo install cargo-fuzz --version "$CARGO_FUZZ" --locked
+      - name: fuzz 目标（每个 10 分钟，崩溃输入归档）
+        run: |
+          set -uo pipefail
+          status=0
+          shopt -s nullglob
+          for target in fuzz/fuzz_targets/*.rs; do
+            name="$(basename "$target" .rs)"
+            out="build/fuzz/$name"
+            mkdir -p "$out"
+            if ! cargo +"$FUZZ_NIGHTLY" fuzz run "$name" -- -max_total_time=600 -artifact_prefix="$out/"; then
+              status=1
+              printf 'fuzz 崩溃：%s -> %s\n' "$name" "$out" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          exit "$status"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekly-fuzz
+          path: build/fuzz/

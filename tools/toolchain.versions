@@ -4,3 +4,5 @@ node=24.18.0
 fuzz_nightly=2026-10-22
 cargo_fuzz=0.13.2
 cargo_deny=0.20.2
+cargo_audit=0.22.2
+cargo_llvm_cov=0.9.1
