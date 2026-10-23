@@ -33,7 +33,7 @@ cargo deny check
 cd app && flutter pub get && dart format --set-exit-if-changed . && flutter analyze && flutter test
 ```
 
-聚合入口 `python tools/ci/run_all.py` 与 `maint_report` 由 CORE-41 交付，当前不存在。
+聚合入口 `python tools/ci/run_all.py` 由 CORE-41 交付，可维护性度量 `python tools/ci/maint_report.py` 由 CORE-71 交付。
 
 ## 约定
 

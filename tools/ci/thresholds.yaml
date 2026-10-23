@@ -1,0 +1,6 @@
+# CORE-71 维护性阈值（本卡创建并读取；CORE-41 只读取、不定义）。
+# 顶层只允许下列四个键；未知键、缺键、类型或范围不符、YAML 解析失败一律退出 2，不静默取默认值。
+file_max_lines: 800
+fn_max_ccn: 15
+core_line_coverage: 0.80
+dart_ccn_warn_only: true
