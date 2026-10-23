@@ -390,10 +390,11 @@ test('--check-budget exits 1 on an over-limit card with complete material and 0 
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });
 
-test('oversized read-only fixture cards report chars, segments, overLimit, manifest and missing locks', () => {
+test('oversized read-only cards report chars, segments, overLimit and manifest; isolated fixtures control lock states', () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'sadd-pack-big-'));
+  const ids = ['WIN-13', 'AND-12', 'WIN-14', 'WIN-08', 'CORE-50'];
   try {
-    for (const id of ['WIN-13', 'AND-12', 'WIN-14', 'WIN-08', 'CORE-50']) {
+    for (const id of ids) {
       const dir = path.join(base, id); const result = pack(id);
       const {parts, removedStaleParts} = writeOutput(dir, result);
       assert.deepEqual(removedStaleParts, []);
@@ -406,8 +407,37 @@ test('oversized read-only fixture cards report chars, segments, overLimit, manif
       assert.ok(result.report.warnings.some(w => /超过 80000/.test(w)), id + ' over-limit warning');
       assert.ok(result.report.manifest.length > 0, id + ' manifest');
       for (const entry of result.report.manifest) for (const k of ['card', 'before', 'after', 'retained']) assert.ok(k in entry, id + ' ' + k);
-      assert.ok(result.report.missing.some(f => /toolchain\.versions$/.test(f)), id + ' missing locks');
       assert.equal(parts.map(p => read(path.join(dir, p))).join(''), material, id + ' lossless parts');
+    }
+
+    // 缺锁与全锁必须由独立根目录控制，不能要求真实仓库永远缺少平台锁。
+    const root = path.join(base, 'fixture'); const sadd = path.join(root, 'SADD');
+    fs.mkdirSync(sadd, {recursive: true});
+    const card = id => `### ${id} fixture\n\n**依赖**：\n\n**接口契约**\n\nfixture\n\n**实现约束**\nfixture\n`;
+    for (const [file, cards] of [
+      ['01-公共核心-v5.md', ['CORE-01', 'CORE-02', 'CORE-50']],
+      ['02-Android端-v5.md', ['AND-12']],
+      ['03-Windows端-v5.md', ['WIN-13', 'WIN-14', 'WIN-08']],
+    ]) fs.writeFileSync(path.join(sadd, file), cards.map(card).join('\n'));
+    for (const file of ['README.md', '附录A-架构决策与评审记录.md']) fs.writeFileSync(path.join(sadd, file), '');
+    const locks = ['rust-toolchain.toml', 'app/.flutter-version', 'tools/toolchain.versions',
+      'tools/requirements.txt', 'Cargo.lock', 'app/pubspec.lock',
+      'app/android/toolchain.versions', 'app/windows/toolchain.versions'];
+    const contents = new Map(locks.map(file => [file, `fixture-lock=${file}\r\n完整锁内容=α末行\r\n`]));
+    for (const present of [[], ['app/android/toolchain.versions'], locks]) {
+      for (const file of present) {
+        fs.mkdirSync(path.dirname(path.join(root, file)), {recursive: true});
+        fs.writeFileSync(path.join(root, file), contents.get(file));
+      }
+      for (const id of ids) {
+        const result = pack(id, {sadd});
+        assert.deepEqual(result.report.missing, locks.filter(file => !present.includes(file)), id + ' exact missing locks');
+        for (const file of locks) {
+          assert.equal(result.report.files.includes(file), present.includes(file), id + ' lock inventory ' + file);
+          if (present.includes(file)) assert.equal(fenced(result.text, file), contents.get(file), id + ' complete lock ' + file);
+          else assert.ok(!result.text.includes('## 已有文件 ' + file), id + ' absent lock ' + file);
+        }
+      }
     }
   } finally {
     assert.ok(path.basename(base).startsWith('sadd-pack-big-'));
