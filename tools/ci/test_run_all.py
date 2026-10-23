@@ -360,6 +360,133 @@ class RunAllCase(unittest.TestCase):
         )
 
 
+class RegisteredPendingCase(unittest.TestCase):
+    """真实 core_sources 子进程接缝；其余步骤成功，不借别的失败挡发布。"""
+
+    def setUp(self):
+        RunAllCase.setUp(self)
+        self.root = self.root.resolve()
+        done = subprocess.run(["git", "init", "-q", str(self.root)], capture_output=True)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        shutil.copy2(HERE / "core_sources.py", self.root / "tools/ci/core_sources.py")
+        self.write_manifest([
+            self.step("before", ["python", self.stub("stub_ok.py")]),
+            self.step("core-sources", ["python", "tools/ci/core_sources.py", "--root", "."]),
+            self.step("after", ["python", self.stub("stub_ok.py")]),
+        ])
+
+    stub = RunAllCase.stub
+    step = RunAllCase.step
+    write_manifest = RunAllCase.write_manifest
+    run_all = RunAllCase.run_all
+    last_line = RunAllCase.last_line
+    read_json = RunAllCase.read_json
+
+    def ready(self):
+        """加入一个真实 tracked 领域源码（非真实覆盖率数据）。"""
+        source = self.root / "crates/fml-ast/src/lib.rs"
+        source.parent.mkdir(parents=True)
+        source.write_text("// sample domain source\n", encoding="utf-8")
+        done = subprocess.run(["git", "-C", str(self.root), "add", "crates"], capture_output=True)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_empty_domain_default_and_custom_out_dev_and_release(self):
+        """唯一pending来自真实空领域；dev0/release1，子exit全0、终端计数等于产物。"""
+        for out in ("build/ci", "build/custom ci"):
+            for release in (False, True):
+                with self.subTest(out=out, release=release):
+                    args = ([] if out == "build/ci" else ["--out", out])
+                    proc = self.run_all(*args, *(["--release"] if release else []))
+                    pending = self.read_json(out + "/pending.json")["items"]
+                    self.assertEqual([x["target"] for x in pending], ["core-sources"])
+                    self.assertEqual(self.last_line(proc), "run_all: 3 steps, 0 error, 0 fail, 1 pending")
+                    self.assertEqual(proc.returncode, int(release), proc.stdout + proc.stderr)
+                    self.assertEqual([x["exit"] for x in self.read_json(out + "/run_all.json")["steps"]], [0, 0, 0])
+
+    def test_ready_domain_all_success_remains_zero(self):
+        """全ready的正例仍0；默认与custom都无pending。"""
+        self.ready()
+        for out in ("build/ci", "build/custom"):
+            for release in (False, True):
+                with self.subTest(out=out, release=release):
+                    proc = self.run_all("--out", out, *(["--release"] if release else []))
+                    self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                    self.assertEqual(self.read_json(out + "/pending.json")["items"], [])
+                    self.assertEqual(self.last_line(proc), "run_all: 3 steps, 0 error, 0 fail, 0 pending")
+
+    def test_out_channel_overrides_inherited_env_and_isolates_previous_runs(self):
+        """连跑默认/custom：只清当次out、不读前次/外部env残留，不写错目录。"""
+        canonical = self.root / "build/ci/pending.json"
+        canonical.parent.mkdir(parents=True)
+        canonical.write_text("not current pending", encoding="utf-8")
+        alien = self.root / "alien/pending.json"
+        proc = self.run_all("--out", "build/custom", "--release", env={"CORE_CI_PENDING": str(alien)})
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertEqual(canonical.read_text(encoding="utf-8"), "not current pending")
+        self.assertFalse(alien.exists())
+        self.assertEqual(len(self.read_json("build/custom/pending.json")["items"]), 1)
+        self.ready()
+        # 回到默认清理坏旧文件；再回custom清理旧pending；最后再回默认。
+        for out in ("build/ci", "build/custom", "build/ci"):
+            proc = self.run_all("--out", out, "--release")
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertEqual(self.read_json(out + "/pending.json")["items"], [])
+
+    def test_registration_and_aggregate_pending_are_deduplicated(self):
+        """真实自登记与缺目标聚合条目同键，仅算一条。"""
+        self.write_manifest([
+            self.step("source-writer", ["python", "tools/ci/core_sources.py"]),
+            self.step("core-sources", ["python", "tools/ci/absent.py"]),
+        ])
+        proc = self.run_all("--out", "build/custom", "--release")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        pending = self.read_json("build/custom/pending.json")["items"]
+        self.assertEqual(len(pending), 1)
+        self.assertIn("领域源码集合为空", pending[0]["reason"])
+        self.assertEqual(self.last_line(proc), "run_all: 2 steps, 0 error, 0 fail, 1 pending")
+        self.assertEqual([x["exit"] for x in self.read_json("build/custom/run_all.json")["steps"]], [0, None])
+
+    def test_bad_registration_cannot_be_washed_by_core_sources(self):
+        """坏JSON/结构/条目经真实core_sources后仍error2且不覆盖坏证据。"""
+        for out in ("build/ci", "build/custom"):
+            for bad in ("{bad", "[]", '{"items":{}}', '{"items":[42]}', '{"items":[{"card":"CORE-41"}]}'):
+                with self.subTest(out=out, bad=bad):
+                    self.write_manifest([
+                        self.step("seed", ["python", self.stub("stub_pending.py"), out + "/pending.json", bad]),
+                        self.step("core-sources", ["python", "tools/ci/core_sources.py"]),
+                    ])
+                    proc = self.run_all("--out", out, "--release")
+                    self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+                    self.assertIn("pending.json", proc.stderr)
+                    self.assertEqual((self.root / out / "pending.json").read_text(encoding="utf-8"), bad)
+
+    def test_invalid_utf8_registration_is_tool_error(self):
+        """即使后面不再有登记者，坏UTF8也按error2而非异常逃逸。"""
+        writer = self.root / self.stub("bad_utf8.py")
+        writer.write_text(
+            "import os\nfrom pathlib import Path\n"
+            "Path(os.environ['CORE_CI_PENDING']).write_bytes(bytes([255]))\n",
+            encoding="utf-8",
+        )
+        self.write_manifest([self.step("seed", ["python", self.stub("bad_utf8.py")])])
+        proc = self.run_all("--out", "build/custom", "--release")
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        self.assertIn("pending.json", proc.stderr)
+        self.assertNotIn("Traceback", proc.stderr)
+        self.assertEqual((self.root / "build/custom/pending.json").read_bytes(), bytes([255]))
+
+    def test_registration_with_child_failure_preserves_exit_and_error_priority(self):
+        """登记者exit1/2原样保留；pending仍计一条，error优先退2。"""
+        payload = json.dumps({"version": 1, "items": [{"card": "CORE-41", "target": "sample", "reason": "pending"}]})
+        for code in (1, 2):
+            with self.subTest(code=code):
+                self.write_manifest([self.step("seed", ["python", self.stub("stub_pending.py"), "build/ci/pending.json", payload, str(code)])])
+                proc = self.run_all("--release")
+                self.assertEqual(proc.returncode, code, proc.stdout + proc.stderr)
+                self.assertEqual(self.read_json("build/ci/run_all.json")["steps"][0]["exit"], code)
+                self.assertEqual(self.last_line(proc), f"run_all: 1 steps, {int(code == 2)} error, {int(code == 1)} fail, 1 pending")
+
+
 class UnittestDiscoveryCase(unittest.TestCase):
     """python -m unittest 聚合入口：识别真实发现目录，0 个测试时不许当通过。"""
 
@@ -505,6 +632,16 @@ class HaTwoCase(unittest.TestCase):
         proc = self.run_all("--release", env={"RUNALL_MAINT": payload})
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertIn("HA-002 发布拒绝", proc.stderr)
+
+    def test_marker_requires_exact_message_prefix(self):
+        """相似/嵌入/空格前缀不扩大HA002，原child exit0保持。"""
+        for message in ("prefix SAMPLE-WAIVER[HA-002]: x", " SAMPLE-WAIVER[HA-002]: x", "SAMPLE-WAIVER[HA-002] x"):
+            with self.subTest(message=message):
+                payload = json.dumps({"violations": [{"message": message}]})
+                proc = self.run_all("--release", env={"RUNALL_MAINT": payload})
+                self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                doc = json.loads((self.root / "build/ci/run_all.json").read_text(encoding="utf-8"))
+                self.assertEqual(doc["steps"][0]["exit"], 0)
 
     def test_missing_report_is_error(self):
         """当次报告不存在：--release 退出 2。"""

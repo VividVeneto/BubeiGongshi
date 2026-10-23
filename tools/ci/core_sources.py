@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -111,15 +112,28 @@ def write_json(path: Path, payload: object) -> None:
 
 def register_pending(root: Path) -> None:
     """集合为空时在 pending.json 登记 core-sources 的 pending-target。"""
-    path = root / PENDING_PATH
+    path = root / os.environ.get("CORE_CI_PENDING", PENDING_PATH)
     items: list[dict[str, str]] = []
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        raw = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        pass
+    except (OSError, UnicodeError) as exc:
+        raise CoreSourcesError(f"无法读取 pending.json: {exc}") from exc
+    else:
+        try:
+            data = json.loads(raw)
+        except ValueError as exc:
+            raise CoreSourcesError(f"pending.json 不是合法 JSON: {exc}") from exc
         raw_items = data.get("items") if isinstance(data, dict) else None
-        if isinstance(raw_items, list):
-            items = [item for item in raw_items if isinstance(item, dict)]
-    except (OSError, ValueError):
-        items = []
+        if not isinstance(raw_items, list):
+            raise CoreSourcesError("pending.json 缺少 items 数组")
+        for item in raw_items:
+            if not isinstance(item, dict) or not all(
+                isinstance(item.get(key), str) for key in ("card", "target", "reason")
+            ):
+                raise CoreSourcesError("pending.json 条目缺少 card/target/reason")
+        items = raw_items
     entry = {"card": "CORE-41", "target": CORE_SOURCES_TARGET, "reason": EMPTY_REASON}
     merged: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
@@ -167,7 +181,11 @@ def main(argv: list[str]) -> int:
     write_json(out, {"version": 1, "paths": kept})
     print(f"core_sources: 收录 {len(kept)} 个文件，排除 {len(excluded)} 个", file=sys.stderr)
     if not kept:
-        register_pending(root)
+        try:
+            register_pending(root)
+        except (CoreSourcesError, OSError) as exc:
+            print(f"core_sources: pending.json 登记失败: {exc}", file=sys.stderr)
+            return 2
         print("core_sources: 集合为空，已登记 pending-target（core-sources）", file=sys.stderr)
     return 0
 
